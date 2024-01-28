@@ -11,10 +11,7 @@ use goplend_base::{
     lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
-use crate::actions::{
-    execute::try_update_config, instantiate::try_instantiate, other::migrate_contract,
-    query::query_config,
-};
+use crate::actions::{instantiate::try_instantiate, other::migrate_contract, query as q};
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -36,17 +33,94 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateConfig { owner, oracle } => {
-            try_update_config(deps, env, info, owner, oracle)
-        }
-
         ExecuteMsg::Receive(Cw20ReceiveMsg {
             sender: _,
             amount: _,
             msg,
         }) => match from_json(msg)? {
+            ExecuteMsg::Deposit {} => unimplemented!(),
+
+            ExecuteMsg::Unbond {} => unimplemented!(),
+
+            ExecuteMsg::Repay {} => unimplemented!(),
+
+            ExecuteMsg::PlaceBid { collections } => unimplemented!(),
+
+            ExecuteMsg::UpdateBid {
+                collection,
+                creation_date,
+                amount,
+                collections,
+            } => unimplemented!(),
+
+            ExecuteMsg::AcceptProposal { id } => unimplemented!(),
+
             _ => Err(ContractError::WrongMessageType)?,
         },
+
+        ExecuteMsg::Deposit {} => unimplemented!(),
+
+        ExecuteMsg::Unbond {} => unimplemented!(),
+
+        ExecuteMsg::Withdraw {} => unimplemented!(),
+
+        ExecuteMsg::DepositCollateral { collections } => unimplemented!(),
+
+        ExecuteMsg::WithdrawCollateral { collections } => unimplemented!(),
+
+        ExecuteMsg::Borrow { amount } => unimplemented!(),
+
+        ExecuteMsg::Repay {} => unimplemented!(),
+
+        ExecuteMsg::PlaceBid { collections } => unimplemented!(),
+
+        ExecuteMsg::RemoveBid {
+            collection,
+            creation_date,
+        } => unimplemented!(),
+
+        ExecuteMsg::UpdateBid {
+            collection,
+            creation_date,
+            amount,
+            collections,
+        } => unimplemented!(),
+
+        ExecuteMsg::ClaimCollateral {} => unimplemented!(),
+
+        ExecuteMsg::Process {} => unimplemented!(),
+
+        ExecuteMsg::UpdateConfig {
+            owner,
+            oracle,
+            main_currency,
+            bgl_currency,
+            unbonding_period,
+            borrow_apr,
+            borrow_fee_rate,
+            liquidation_fee_rate,
+            discount_min_rate,
+            discount_max_rate,
+            bid_min_rate,
+        } => unimplemented!(),
+
+        ExecuteMsg::CreateBglToken {} => unimplemented!(),
+
+        ExecuteMsg::Lock {} => unimplemented!(),
+
+        ExecuteMsg::Unlock {} => unimplemented!(),
+
+        ExecuteMsg::DistributeFunds {
+            address_and_weight_list,
+        } => unimplemented!(),
+
+        ExecuteMsg::RemoveCollection { address } => unimplemented!(),
+
+        ExecuteMsg::CreateProposal { proposal } => unimplemented!(),
+
+        ExecuteMsg::RejectProposal { id } => unimplemented!(),
+
+        ExecuteMsg::AcceptProposal { id } => unimplemented!(),
     }
 }
 
@@ -54,7 +128,8 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryConfig {} => to_json_binary(&query_config(deps, env)?),
+        QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+        _ => unimplemented!(),
     }
 }
 

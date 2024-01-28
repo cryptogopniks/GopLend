@@ -37,9 +37,9 @@ Initially the price of `bglSTARS` is equal to the price of `STARS`, but as the p
 
 The yield on deposit is calculated as
 ```
-deposit_apr = (BORROW_APR - BORROW_COMMISION_RATE) * total_borrowed_amount / total_deposited_amount
+deposit_apr = (BORROW_APR - BORROW_FEE_RATE) * total_borrowed_amount / total_deposited_amount
 ```
-where `BORROW_APR` is 25 %, `BORROW_COMMISION_RATE` is 5 %.
+where `BORROW_APR` is 25 %, `BORROW_FEE_RATE` is 5 %.
 
 `total_borrowed_amount` may exceed `total_deposited_amount`, as the `STARS` pool is replenished from borrower payments and income from sales of collateral assets.
 
@@ -75,7 +75,7 @@ If there are no bids from liquidators, the platform will liquidate the token its
 
 If there are bids, first a check for sufficiency of funds is made; then those with the lowest discount are selected; then those that target specific tokens, collections, general (in descending order of priority); then those with an earlier last change date. If a liquidator has a bid for multiple tokens from the same collection, they will be liquidated in the order in which they were listed when the bid was placed.
 
-The `LTV_MAX`, `BID_MIN`, `BID_MAX` parameters are calculated based on the following considerations. The platform takes a commission of 5% for any liquidation (`LIQUIDATION_FEE_RATE`). If the deposit is liquidated with the maximum discount, the remaining part of the profit (5%) goes to the common `STARS` pool, increasing the profitability of deposits, i.e.
+The `LTV_MAX`, `BID_MIN`, `BID_MAX` parameters are calculated based on the following considerations. The platform takes a fee of 5% for any liquidation (`LIQUIDATION_FEE_RATE`). If the deposit is liquidated with the maximum discount, the remaining part of the profit (5%) goes to the common `STARS` pool, increasing the profitability of deposits, i.e.
 ```
 BID_MIN = 1.1 * loan
 ```
