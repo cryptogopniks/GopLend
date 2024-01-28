@@ -3,7 +3,7 @@
 `GopLend` is a lending platform that uses NFTs as collateral. The application provides the following features:
 
 1) Depositing `STARS` on a floating rate deposit with a 2 week unbonding period. This can be a good alternative to `STARS` staking - with a fixed borrowing rate of 25 % and a platform fee of 5 %, depositors can expect a 20 % APR with an equal liquidity ratio of depositors to borrowers, which exceeds the APR of staking (15.6 % at the time of writing). Moreover, the profitability of deposits is increased due to the funds received from the liquidation of collateral.
-Upon opening a deposit, users receive `bglSTARS` (bonded GopLend `STARS`) CW20 token in return, which reflect their share of ownership of a common `STARS` pool on the platform. Over time, this pool will increase due to borrower payments, while the number of `bglSTARS` will remain unchanged, allowing the latter to grow in value relative to `STARS`, accumulating the platform's revenue.
+Upon opening a deposit, users receive `bglSTARS` (bonded GopLend STARS) CW20 token in return, which reflect their share of ownership of a common `STARS` pool on the platform. Over time, this pool will increase due to borrower payments, while the number of `bglSTARS` will remain unchanged, allowing the latter to grow in value relative to `STARS`, accumulating the platform's revenue.
 
 2) Arbitrage of `bglSTARS`. If there are liquidity pools on DEX, some users will be able to exchange `bglSTARS` for `STARS`, avoiding the anbonding period, and others will be able to buy `bglSTARS` with a small discount. The latter option allows not only a more profitable way to become a depositor, but also opens up opportunities for earning on arbitrage, when users can earn by buying `bglSTARS` on DEX and converting it to `STARS` on the platform during the rebonding period.
 
@@ -33,7 +33,7 @@ bglstars_price = stars_price * stars_pool_volume / bglstars_supply
 
 The price of `bglSTARS` in pools on DEX will also follow this formula, adjusted by arbitrage.
 
-Initially the price of `bglSTARS` is equal to the price of `STARS`, but as the pool grows, it will increase. For example, a user deposited 1000 `STARS` and received 1000 `bglSTARS` in return. After some time the pool grew by 20 %. The user made Unbond and burned 500 `bglSTARS` on the platform. In 2 weeks he will be able to collect 600 `STARS`.
+Initially the price of `bglSTARS` is equal to the price of `STARS`, but as the pool grows, it will increase. For example, a user deposited 1000 `STARS` and received 1000 `bglSTARS` in return. After some time the pool grew by 20 %. The user made `Unbond` and burned 500 `bglSTARS` on the platform. In 2 weeks he will be able to collect 600 `STARS`.
 
 The yield on deposit is calculated as
 ```
@@ -84,7 +84,7 @@ In order to offer attractive terms to liquidators, you need to have a wide range
 BID_MAX = BID_MIN / (DISCOUNT_MAX - DISCOUNT_MIN)
 BID_MAX = 1.375 * loan
 ```
-From here it is easy to get the LTV_MAX value
+From here it is easy to get the `LTV_MAX` value
 ```
 LTV_MAX = loan / BID_MAX
 LTV_MAX = 0.727
