@@ -5,8 +5,10 @@ use cw20::Cw20ReceiveMsg;
 
 use crate::{
     assets::{Currency, Token, TokenUnverified},
-    lending_platform::types::{Collection, CollectionInfo, Proposal},
+    lending_platform::types::{Collateral, Collection, CollectionInfo, Proposal},
 };
+
+use super::types::{Borrower, Depositor, LiquidationBid, Liquidator};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -129,11 +131,62 @@ pub enum QueryMsg {
     #[returns(Vec<crate::assets::Funds<crate::assets::Token>>)]
     QueryPlatformRevenue {},
 
+    #[returns(crate::lending_platform::types::Balances)]
+    QueryBalances {},
+
+    #[returns(Vec<QueryDepositorsResponseItem>)]
+    QueryDepositors { addresses: Vec<String> },
+
+    #[returns(Vec<QueryBorrowersResponseItem>)]
+    QueryBorrowers { addresses: Vec<String> },
+
+    #[returns(Vec<QueryLiquidatorsResponseItem>)]
+    QueryLiquidators { addresses: Vec<String> },
+
+    #[returns(Vec<QueryCollateralsResponseItem>)]
+    QueryCollaterals { collection_addresses: Vec<String> },
+
+    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
+    QueryLiquidationBidsByCollectionAddresses { addresses: Vec<String> },
+
+    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
+    QueryLiquidationBidsByLiquidatorAddresses { addresses: Vec<String> },
+
     #[returns(Vec<QueryProposalsResponseItem>)]
-    QueryProposals { last_amount: Option<Uint128> },
+    QueryProposals { last_amount: Option<u32> },
 
     #[returns(Vec<QueryCollectionsResponseItem>)]
-    QueryCollections { addresses: Option<Vec<String>> },
+    QueryCollections { addresses: Vec<String> },
+}
+
+#[cw_serde]
+pub struct QueryDepositorsResponseItem {
+    pub address: Addr,
+    pub depositor: Depositor,
+}
+
+#[cw_serde]
+pub struct QueryBorrowersResponseItem {
+    pub address: Addr,
+    pub borrower: Borrower,
+}
+
+#[cw_serde]
+pub struct QueryLiquidatorsResponseItem {
+    pub address: Addr,
+    pub liquidator: Liquidator,
+}
+
+#[cw_serde]
+pub struct QueryCollateralsResponseItem {
+    pub address: Addr,
+    pub collateral: Collateral,
+}
+
+#[cw_serde]
+pub struct QueryLiquidationBidsResponseItem {
+    pub address: Addr,
+    pub liquidation_bids: Vec<LiquidationBid>,
 }
 
 #[cw_serde]

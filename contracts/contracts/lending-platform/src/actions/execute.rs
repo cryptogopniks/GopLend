@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 
 use goplend_base::{
     error::ContractError,
@@ -8,6 +8,20 @@ use goplend_base::{
     },
     utils::{check_funds, unwrap_field, Attrs, AuthType, FundsType},
 };
+
+pub fn try_deposit(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_deposit")]))
+}
 
 pub fn try_update_config(
     deps: DepsMut,

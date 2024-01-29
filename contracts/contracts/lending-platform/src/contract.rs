@@ -11,7 +11,9 @@ use goplend_base::{
     lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
-use crate::actions::{instantiate::try_instantiate, other::migrate_contract, query as q};
+use crate::actions::{
+    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+};
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -34,11 +36,11 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Receive(Cw20ReceiveMsg {
-            sender: _,
-            amount: _,
+            sender,
+            amount,
             msg,
         }) => match from_json(msg)? {
-            ExecuteMsg::Deposit {} => unimplemented!(),
+            ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info, Some(sender), Some(amount)),
 
             ExecuteMsg::Unbond {} => unimplemented!(),
 
@@ -58,7 +60,7 @@ pub fn execute(
             _ => Err(ContractError::WrongMessageType)?,
         },
 
-        ExecuteMsg::Deposit {} => unimplemented!(),
+        ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info, None, None),
 
         ExecuteMsg::Unbond {} => unimplemented!(),
 
@@ -129,7 +131,28 @@ pub fn execute(
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
-        _ => unimplemented!(),
+
+        QueryMsg::QueryPlatformRevenue {} => unimplemented!(),
+
+        QueryMsg::QueryBalances {} => unimplemented!(),
+
+        QueryMsg::QueryDepositors { addresses } => unimplemented!(),
+
+        QueryMsg::QueryBorrowers { addresses } => unimplemented!(),
+
+        QueryMsg::QueryLiquidators { addresses } => unimplemented!(),
+
+        QueryMsg::QueryCollaterals {
+            collection_addresses,
+        } => unimplemented!(),
+
+        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => unimplemented!(),
+
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => unimplemented!(),
+
+        QueryMsg::QueryProposals { last_amount } => unimplemented!(),
+
+        QueryMsg::QueryCollections { addresses } => unimplemented!(),
     }
 }
 
