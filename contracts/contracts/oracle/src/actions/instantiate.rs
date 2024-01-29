@@ -28,8 +28,7 @@ pub fn try_instantiate(
         deps.storage,
         &Config::new(
             &info.sender,
-            &validate_attr(&mut attrs, api, "owner", &msg.owner)?,
-            &validate_attr(&mut attrs, api, "lending_platform", &msg.lending_platform)?,
+            &validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,
         ),
     )?;
 

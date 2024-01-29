@@ -10,8 +10,7 @@ use goplend_base::{
 };
 
 use crate::actions::{
-    execute::try_update_config, instantiate::try_instantiate, other::migrate_contract,
-    query::query_config,
+    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -34,10 +33,9 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateConfig {
-            owner,
-            lending_platform,
-        } => try_update_config(deps, env, info, owner, lending_platform),
+        ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
+
+        ExecuteMsg::UpdateConfig { scheduler } => e::try_update_config(deps, env, info, scheduler),
     }
 }
 
@@ -45,7 +43,11 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryConfig {} => to_json_binary(&query_config(deps, env)?),
+        QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+
+        QueryMsg::QueryPrices {
+            collection_addresses,
+        } => to_json_binary(&q::query_prices(deps, env, collection_addresses)?),
     }
 }
 
