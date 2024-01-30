@@ -97,6 +97,7 @@ pub struct Config {
     pub scheduler: Option<Addr>,
     pub main_currency: Currency<Token>,
     pub bgl_currency: Option<Currency<Token>>,
+    pub cw20_base_code_id: u64,
     pub unbonding_period: u64,
     pub borrow_apr: Decimal,
     pub borrow_fee_rate: Decimal,

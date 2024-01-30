@@ -6,8 +6,10 @@ use crate::helpers::{
 };
 
 #[test]
-fn default() -> StdResult<()> {
+fn create_bgl_token_default() -> StdResult<()> {
     let mut project = Project::new();
+
+    let res = project.lending_platform_query_config()?;
 
     Ok(())
 }

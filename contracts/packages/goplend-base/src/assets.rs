@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Deps, StdResult, Uint128};
+use cosmwasm_std::{Addr, Api, StdResult, Uint128};
 
 use cosmwasm_schema::cw_serde;
 
@@ -76,11 +76,11 @@ impl TokenUnverified {
         }
     }
 
-    pub fn verify(&self, deps: &Deps) -> StdResult<Token> {
+    pub fn verify(&self, api: &dyn Api) -> StdResult<Token> {
         match self {
-            Self::Cw20 { address } => Ok(Token::new_cw20(
-                &deps.api.addr_validate(&address.to_string())?,
-            )),
+            Self::Cw20 { address } => {
+                Ok(Token::new_cw20(&api.addr_validate(&address.to_string())?))
+            }
             Self::Native { denom } => Ok(Token::new_native(denom)),
         }
     }

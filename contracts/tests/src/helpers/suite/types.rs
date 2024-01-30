@@ -43,8 +43,8 @@ impl ProjectAccount {
 
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectCoin {
-    #[strum(serialize = "ucrd")]
-    Denom,
+    #[strum(serialize = "ustars")]
+    Stars,
     #[strum(serialize = "unoria")]
     Noria,
 }
@@ -83,7 +83,7 @@ impl GetPrice for ProjectAsset {
 impl GetPrice for ProjectCoin {
     fn get_price(&self) -> Decimal {
         match self {
-            ProjectCoin::Denom => str_to_dec("1"),
+            ProjectCoin::Stars => str_to_dec("1"),
             ProjectCoin::Noria => str_to_dec("2"),
         }
     }
@@ -115,7 +115,7 @@ impl GetDecimals for ProjectAsset {
 impl GetDecimals for ProjectCoin {
     fn get_decimals(&self) -> u8 {
         match self {
-            ProjectCoin::Denom => DEFAULT_DECIMALS,
+            ProjectCoin::Stars => DEFAULT_DECIMALS,
             ProjectCoin::Noria => DEFAULT_DECIMALS,
         }
     }
@@ -182,18 +182,18 @@ impl From<ProjectToken> for ProjectAsset {
 #[derive(Debug, Clone, Copy, EnumIter)]
 pub enum ProjectPair {
     AtomLuna,
-    DenomInj,
-    DenomLuna,
-    DenomNoria,
+    StarsInj,
+    StarsLuna,
+    StarsNoria,
 }
 
 impl ProjectPair {
     pub fn split_pair(&self) -> (ProjectAsset, ProjectAsset) {
         match self {
             ProjectPair::AtomLuna => (ProjectToken::Atom.into(), ProjectToken::Luna.into()),
-            ProjectPair::DenomInj => (ProjectCoin::Denom.into(), ProjectToken::Inj.into()),
-            ProjectPair::DenomLuna => (ProjectCoin::Denom.into(), ProjectToken::Luna.into()),
-            ProjectPair::DenomNoria => (ProjectCoin::Denom.into(), ProjectCoin::Noria.into()),
+            ProjectPair::StarsInj => (ProjectCoin::Stars.into(), ProjectToken::Inj.into()),
+            ProjectPair::StarsLuna => (ProjectCoin::Stars.into(), ProjectToken::Luna.into()),
+            ProjectPair::StarsNoria => (ProjectCoin::Stars.into(), ProjectCoin::Noria.into()),
         }
     }
 }

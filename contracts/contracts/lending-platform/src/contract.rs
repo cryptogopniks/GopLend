@@ -8,12 +8,13 @@ use cw20::Cw20ReceiveMsg;
 
 use goplend_base::{
     error::ContractError,
-    lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    lending_platform::{
+        msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+        state::SAVE_CW20_ADDRESS_REPLY,
+    },
 };
 
-use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
-};
+use crate::actions::{execute as e, instantiate::try_instantiate, other as o, query as q};
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -96,6 +97,7 @@ pub fn execute(
             scheduler,
             main_currency,
             bgl_currency,
+            cw20_base_code_id,
             unbonding_period,
             borrow_apr,
             borrow_fee_rate,
@@ -103,9 +105,26 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
-        } => unimplemented!(),
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            owner,
+            oracle,
+            scheduler,
+            main_currency,
+            bgl_currency,
+            cw20_base_code_id,
+            unbonding_period,
+            borrow_apr,
+            borrow_fee_rate,
+            liquidation_fee_rate,
+            discount_min_rate,
+            discount_max_rate,
+            bid_min_rate,
+        ),
 
-        ExecuteMsg::CreateBglToken {} => unimplemented!(),
+        ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
 
         ExecuteMsg::Lock {} => unimplemented!(),
 
@@ -157,14 +176,17 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 /// Exposes all the replies available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-    let Reply { id: _, result: _ } = reply;
+pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
+    let Reply { id, result } = reply;
 
-    Err(ContractError::UndefinedReplyId)
+    match id {
+        SAVE_CW20_ADDRESS_REPLY => o::save_cw20_address(deps, env, &result),
+        _ => Err(ContractError::UndefinedReplyId),
+    }
 }
 
 /// Used for contract migration
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
-    migrate_contract(deps, env, msg)
+    o::migrate_contract(deps, env, msg)
 }

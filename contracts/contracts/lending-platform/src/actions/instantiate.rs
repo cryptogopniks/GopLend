@@ -8,8 +8,9 @@ use goplend_base::{
     lending_platform::{
         msg::InstantiateMsg,
         state::{
-            BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
-            DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE, UNBONDING_PERIOD,
+            BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME, CW20_CODE_ID,
+            DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
+            UNBONDING_PERIOD,
         },
         types::Config,
     },
@@ -30,14 +31,14 @@ pub fn try_instantiate(
     let api = deps.api;
 
     let main_currency = Currency::new(
-        &msg.main_currency.token.verify(&deps.as_ref())?,
+        &msg.main_currency.token.verify(deps.api)?,
         msg.main_currency.decimals,
     );
 
     let bgl_currency = msg
         .bgl_currency
         .map(|x| -> StdResult<Currency<Token>> {
-            Ok(Currency::new(&x.token.verify(&deps.as_ref())?, x.decimals))
+            Ok(Currency::new(&x.token.verify(deps.api)?, x.decimals))
         })
         .transpose()?;
 
@@ -50,6 +51,7 @@ pub fn try_instantiate(
             scheduler: validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,
             main_currency,
             bgl_currency,
+            cw20_base_code_id: msg.cw20_base_code_id.unwrap_or(CW20_CODE_ID),
             unbonding_period: msg.unbonding_period.unwrap_or(UNBONDING_PERIOD),
             borrow_apr: msg.borrow_apr.unwrap_or(str_to_dec(BORROW_APR)),
             borrow_fee_rate: msg.borrow_fee_rate.unwrap_or(str_to_dec(BORROW_FEE_RATE)),

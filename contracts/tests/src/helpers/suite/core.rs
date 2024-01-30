@@ -29,7 +29,7 @@ pub struct Project {
     contract_counter: u16,
 
     // package code id
-    // cw20_base_code_id: u64,
+    cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
 
     // contract code id
@@ -54,7 +54,7 @@ impl Project {
             logs: WrappedResponse::Execute(Ok(AppResponse::default())),
             contract_counter: 0,
 
-            // cw20_base_code_id: 0,
+            cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
             lending_platform_code_id: 0,
             oracle_code_id: 0,
@@ -116,9 +116,10 @@ impl Project {
             &None,
             &None,
             &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Denom.to_string()),
-                6,
+                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                ProjectCoin::Stars.get_decimals(),
             ),
+            &None,
             &None,
             &None,
             &None,
@@ -132,7 +133,7 @@ impl Project {
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
 
         project = Self {
-            // cw20_base_code_id,
+            cw20_base_code_id,
             lending_platform_code_id,
             oracle_code_id,
 
@@ -154,6 +155,7 @@ impl Project {
                 &Some(ProjectAccount::SchedulerForLendingPlatform),
                 &None,
                 &None,
+                &Some(project.get_cw20_base_code_id()),
                 &None,
                 &None,
                 &None,
@@ -171,10 +173,19 @@ impl Project {
             )
             .unwrap();
 
+        // create bgl_token
+        project
+            .lending_platform_try_create_bgl_token(ProjectAccount::Admin)
+            .unwrap();
+
         project
     }
 
     // code id getters
+    pub fn get_cw20_base_code_id(&self) -> u64 {
+        self.cw20_base_code_id
+    }
+
     pub fn get_oracle_code_id(&self) -> u64 {
         self.oracle_code_id
     }

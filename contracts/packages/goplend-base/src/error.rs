@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Address already exists!")]
+    AddressExists,
+
     #[error("NFT is not found!")]
     NftIsNotFound,
 
