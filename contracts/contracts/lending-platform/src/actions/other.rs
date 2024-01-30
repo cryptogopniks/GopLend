@@ -1,12 +1,55 @@
-use cosmwasm_std::{DepsMut, Env, Response, Storage};
+use cosmwasm_std::{DepsMut, Env, Response, StdResult, Storage, SubMsgResult};
 use cw2::{get_contract_version, set_contract_version};
 
 use semver::Version;
 
 use goplend_base::{
+    assets::{Currency, Token},
     error::ContractError,
-    lending_platform::{msg::MigrateMsg, state::CONTRACT_NAME},
+    lending_platform::{
+        msg::MigrateMsg,
+        state::{BGL_CURRENCY_DECIMALS, CONFIG, CONTRACT_NAME},
+        types::Config,
+    },
+    utils::unwrap_field,
 };
+
+pub fn save_cw20_address(
+    deps: DepsMut,
+    _env: Env,
+    result: &SubMsgResult,
+) -> Result<Response, ContractError> {
+    let res = result
+        .to_owned()
+        .into_result()
+        .map_err(|e| ContractError::CustomError { val: e })?;
+
+    let instantiate_event = unwrap_field(
+        res.events.iter().find(|x| x.ty == "instantiate"),
+        "instantiate_event",
+    )?;
+
+    let cw20_address = &unwrap_field(
+        instantiate_event
+            .attributes
+            .iter()
+            .find(|x| x.key == "_contract_address"),
+        "cw20_address",
+    )?
+    .value;
+
+    let bgl_currency = Currency::new(
+        &Token::new_cw20(&deps.api.addr_validate(cw20_address)?),
+        BGL_CURRENCY_DECIMALS,
+    );
+
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+        x.bgl_currency = Some(bgl_currency);
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attributes([("cw20_address", cw20_address)]))
+}
 
 pub fn migrate_contract(
     deps: DepsMut,

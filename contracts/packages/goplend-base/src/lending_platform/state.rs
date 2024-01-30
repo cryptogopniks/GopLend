@@ -11,6 +11,14 @@ use crate::{
 
 pub const CONTRACT_NAME: &str = "crates.io:cryptogopniks-lending-platform";
 
+pub const MAIN_CURRENCY_DECIMALS: u8 = 6;
+pub const BGL_CURRENCY_DECIMALS: u8 = 6;
+
+pub const CW20_CODE_ID: u64 = 1;
+pub const CW20_NAME: &str = "bonded GopLend STARS";
+pub const CW20_SYMBOL: &str = "bglSTARS";
+pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
+
 pub const UNBONDING_PERIOD: u64 = 14 * 24 * 3600;
 pub const BORROW_APR: &str = "0.25";
 pub const BORROW_FEE_RATE: &str = "0.05";
