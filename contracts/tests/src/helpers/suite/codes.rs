@@ -4,7 +4,11 @@ use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use serde::Serialize;
 use strum::IntoEnumIterator;
 
-use goplend_base::error::parse_err;
+use goplend_base::{
+    assets::{Currency, TokenUnverified},
+    converters::str_to_dec,
+    error::parse_err,
+};
 
 use crate::helpers::suite::{
     core::Project,
@@ -18,6 +22,7 @@ pub trait WithCodes {
 
     // store contracts
     fn store_lending_platform_code(&mut self) -> u64;
+    fn store_oracle_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -27,8 +32,24 @@ pub trait WithCodes {
     fn instantiate_lending_platform(
         &mut self,
         lending_platform_code_id: u64,
-        owner: &Option<Addr>,
+        owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
+        scheduler: &Option<ProjectAccount>,
+        main_currency: &Currency<TokenUnverified>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
+        borrow_apr: &Option<&str>,
+        borrow_fee_rate: &Option<&str>,
+        liquidation_fee_rate: &Option<&str>,
+        discount_min_rate: &Option<&str>,
+        discount_max_rate: &Option<&str>,
+        bid_min_rate: &Option<&str>,
+    ) -> Addr;
+
+    fn instantiate_oracle(
+        &mut self,
+        oracle_code_id: u64,
+        scheduler: &Option<ProjectAccount>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -68,6 +89,18 @@ impl WithCodes for Project {
             )
             .with_reply(lending_platform::contract::reply)
             .with_migrate(lending_platform::contract::migrate),
+        ))
+    }
+
+    fn store_oracle_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                oracle::contract::execute,
+                oracle::contract::instantiate,
+                oracle::contract::query,
+            )
+            .with_reply(oracle::contract::reply)
+            .with_migrate(oracle::contract::migrate),
         ))
     }
 
@@ -132,8 +165,18 @@ impl WithCodes for Project {
     fn instantiate_lending_platform(
         &mut self,
         lending_platform_code_id: u64,
-        owner: &Option<Addr>,
+        owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
+        scheduler: &Option<ProjectAccount>,
+        main_currency: &Currency<TokenUnverified>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
+        borrow_apr: &Option<&str>,
+        borrow_fee_rate: &Option<&str>,
+        liquidation_fee_rate: &Option<&str>,
+        discount_min_rate: &Option<&str>,
+        discount_max_rate: &Option<&str>,
+        bid_min_rate: &Option<&str>,
     ) -> Addr {
         self.instantiate_contract(
             lending_platform_code_id,
@@ -141,6 +184,30 @@ impl WithCodes for Project {
             &goplend_base::lending_platform::msg::InstantiateMsg {
                 owner: owner.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
+                scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                main_currency: main_currency.to_owned(),
+                bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
+                unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
+                borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
+                borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                liquidation_fee_rate: liquidation_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
+                discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
+                bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
+            },
+        )
+    }
+
+    fn instantiate_oracle(
+        &mut self,
+        oracle_code_id: u64,
+        scheduler: &Option<ProjectAccount>,
+    ) -> Addr {
+        self.instantiate_contract(
+            oracle_code_id,
+            "oracle",
+            &goplend_base::oracle::msg::InstantiateMsg {
+                scheduler: scheduler.as_ref().map(|x| x.to_string()),
             },
         )
     }

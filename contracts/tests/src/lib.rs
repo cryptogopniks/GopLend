@@ -1,8 +1,11 @@
 #[cfg(test)]
 pub mod lending_platform;
+#[cfg(test)]
+pub mod oracle;
 
 pub mod helpers {
     pub mod lending_platform;
+    pub mod oracle;
 
     pub mod suite {
         pub mod codes;

@@ -1,34 +1,414 @@
-use cosmwasm_std::StdResult;
+use cosmwasm_std::{StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
+    assets::{Currency, Funds, Token, TokenUnverified},
+    converters::str_to_dec,
     error::parse_err,
     lending_platform::{
-        msg::{ExecuteMsg, QueryMsg},
-        types::Config,
+        msg::{
+            ExecuteMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+            QueryCollectionsResponseItem, QueryDepositorsResponseItem,
+            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem, QueryMsg,
+            QueryProposalsResponseItem,
+        },
+        types::{Balances, CollectionInfo, Config, Proposal},
     },
 };
 
-use crate::helpers::suite::{core::Project, types::ProjectAccount};
+use crate::helpers::suite::{
+    core::{add_funds_to_exec_msg, Project},
+    types::{ProjectAccount, ProjectAsset, ProjectNft},
+};
 
 pub trait LendingPlatformExtension {
-    fn lending_platform_try_update_config<A: ToString>(
+    fn lending_platform_try_deposit(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<A>,
-        oracle: &Option<A>,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_unbond(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_withdraw(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_deposit_collateral(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_withdraw_collateral(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_borrow(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_repay(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_place_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_remove_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        creation_date: u64,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_update_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        creation_date: u64,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_claim_collateral(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_process(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_update_config(
+        &mut self,
+        sender: ProjectAccount,
+        owner: &Option<ProjectAccount>,
+        oracle: &Option<String>,
+        scheduler: &Option<ProjectAccount>,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
+        borrow_apr: &Option<&str>,
+        borrow_fee_rate: &Option<&str>,
+        liquidation_fee_rate: &Option<&str>,
+        discount_min_rate: &Option<&str>,
+        discount_max_rate: &Option<&str>,
+        bid_min_rate: &Option<&str>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_create_bgl_token(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_lock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_unlock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_distribute_funds(
+        &mut self,
+        sender: ProjectAccount,
+        address_and_weight_list: &[(impl ToString, &str)],
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_remove_collection(
+        &mut self,
+        sender: ProjectAccount,
+        address: ProjectNft,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_create_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        proposal: &Proposal<String, TokenUnverified>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_reject_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        id: u32,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_accept_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        id: u32,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_query_config(&self) -> StdResult<Config>;
+
+    fn lending_platform_query_platform_revenue(&self) -> StdResult<Vec<Funds<Token>>>;
+
+    fn lending_platform_query_balances(&self) -> StdResult<Balances>;
+
+    fn lending_platform_query_depositors(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryDepositorsResponseItem>>;
+
+    fn lending_platform_query_borrowers(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryBorrowersResponseItem>>;
+
+    fn lending_platform_query_liquidators(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidatorsResponseItem>>;
+
+    fn lending_platform_query_collaterals(
+        &self,
+        collection_addresses: &[ProjectNft],
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
+
+    fn lending_platform_query_liquidation_bids_by_collection_addresses(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
+
+    fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
+
+    fn lending_platform_query_proposals(
+        &self,
+        last_amount: Option<u32>,
+    ) -> StdResult<Vec<QueryProposalsResponseItem>>;
+
+    fn lending_platform_query_collections(
+        &self,
+        addresses: &[ProjectNft],
+    ) -> StdResult<Vec<QueryCollectionsResponseItem>>;
 }
 
 impl LendingPlatformExtension for Project {
     #[track_caller]
-    fn lending_platform_try_update_config<A: ToString>(
+    fn lending_platform_try_deposit(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<A>,
-        oracle: &Option<A>,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::Deposit {};
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_unbond(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::Unbond {};
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_withdraw(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::Withdraw {};
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_deposit_collateral(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::DepositCollateral {
+                    collections: collections.to_owned(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_withdraw_collateral(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::WithdrawCollateral {
+                    collections: collections.to_owned(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_borrow(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Borrow {
+                    amount: Uint128::from(amount),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_repay(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::Repay {};
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_place_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::PlaceBid {
+            collections: collections.to_owned(),
+        };
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_remove_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        creation_date: u64,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::RemoveBid {
+                    collections: collections.to_owned(),
+                    creation_date,
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_update_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[CollectionInfo<String>],
+        creation_date: u64,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::UpdateBid {
+            collections: collections.to_owned(),
+            creation_date,
+            amount: Uint128::from(amount),
+        };
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_claim_collateral(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::ClaimCollateral {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_process(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Process {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_update_config(
+        &mut self,
+        sender: ProjectAccount,
+        owner: &Option<ProjectAccount>,
+        oracle: &Option<String>,
+        scheduler: &Option<ProjectAccount>,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
+        borrow_apr: &Option<&str>,
+        borrow_fee_rate: &Option<&str>,
+        liquidation_fee_rate: &Option<&str>,
+        discount_min_rate: &Option<&str>,
+        discount_max_rate: &Option<&str>,
+        bid_min_rate: &Option<&str>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -37,6 +417,16 @@ impl LendingPlatformExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     owner: owner.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
+                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                    main_currency: main_currency.as_ref().map(|x| x.to_owned()),
+                    bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
+                    unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
+                    borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
+                    borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                    liquidation_fee_rate: liquidation_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                    discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
+                    discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
+                    bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
                 },
                 &[],
             )
@@ -44,10 +434,256 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
+    fn lending_platform_try_create_bgl_token(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::CreateBglToken {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_lock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Lock {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_unlock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Unlock {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_distribute_funds(
+        &mut self,
+        sender: ProjectAccount,
+        address_and_weight_list: &[(impl ToString, &str)],
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::DistributeFunds {
+                    address_and_weight_list: address_and_weight_list
+                        .iter()
+                        .map(|(address, weight)| (address.to_string(), str_to_dec(weight)))
+                        .collect(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_remove_collection(
+        &mut self,
+        sender: ProjectAccount,
+        address: ProjectNft,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::RemoveCollection {
+                    address: address.to_string(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_create_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        proposal: &Proposal<String, TokenUnverified>,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::CreateProposal {
+                    proposal: proposal.to_owned(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_reject_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        id: u32,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::RejectProposal { id },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_accept_proposal(
+        &mut self,
+        sender: ProjectAccount,
+        id: u32,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::AcceptProposal { id };
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
     fn lending_platform_query_config(&self) -> StdResult<Config> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryConfig {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_platform_revenue(&self) -> StdResult<Vec<Funds<Token>>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryPlatformRevenue {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_balances(&self) -> StdResult<Balances> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryBalances {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_depositors(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryDepositorsResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryDepositors { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_borrowers(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryBorrowers { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidators(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidators { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collaterals(
+        &self,
+        collection_addresses: &[ProjectNft],
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+        let collection_addresses = collection_addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollaterals {
+                collection_addresses,
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_collection_addresses(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
+        &self,
+        addresses: &[ProjectAccount],
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_proposals(
+        &self,
+        last_amount: Option<u32>,
+    ) -> StdResult<Vec<QueryProposalsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryProposals { last_amount },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collections(
+        &self,
+        addresses: &[ProjectNft],
+    ) -> StdResult<Vec<QueryCollectionsResponseItem>> {
+        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollections { addresses },
         )
     }
 }

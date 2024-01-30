@@ -7,15 +7,19 @@ use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
-    assets::{Currency, Funds, Token},
+    assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
 };
 
-use crate::helpers::suite::{
-    codes::WithCodes,
-    types::{
-        GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
-        WrappedResponse, DEFAULT_DECIMALS,
+use crate::helpers::{
+    lending_platform::LendingPlatformExtension,
+    oracle::OracleExtension,
+    suite::{
+        codes::WithCodes,
+        types::{
+            GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
+            WrappedResponse, DEFAULT_DECIMALS,
+        },
     },
 };
 
@@ -27,18 +31,18 @@ pub struct Project {
     // package code id
     // cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
-    oracle_code_id: u64,
 
     // contract code id
     lending_platform_code_id: u64,
+    oracle_code_id: u64,
 
     // package address
     gopniks_address: Addr,
     pinjeons_address: Addr,
-    oracle_address: Addr,
 
     // contract address
     lending_platform_address: Addr,
+    oracle_address: Addr,
     //
     // other
 }
@@ -52,15 +56,14 @@ impl Project {
 
             // cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
-            oracle_code_id: 0,
-
             lending_platform_code_id: 0,
+            oracle_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
-            oracle_address: Addr::unchecked(""),
 
             lending_platform_address: Addr::unchecked(""),
+            oracle_address: Addr::unchecked(""),
         }
     }
 
@@ -75,6 +78,7 @@ impl Project {
 
         // contracts
         let lending_platform_code_id = project.store_lending_platform_code();
+        let oracle_code_id = project.store_oracle_code();
 
         // instantiate packages
 
@@ -106,22 +110,66 @@ impl Project {
 
         // instantiate goplend contracts
 
-        let lending_platform_address =
-            project.instantiate_lending_platform(lending_platform_code_id, &None, &None);
+        let lending_platform_address = project.instantiate_lending_platform(
+            lending_platform_code_id,
+            &None,
+            &None,
+            &None,
+            &Currency::new(
+                &TokenUnverified::new_native(&ProjectCoin::Denom.to_string()),
+                6,
+            ),
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+        );
+
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
 
         project = Self {
             // cw20_base_code_id,
             lending_platform_code_id,
+            oracle_code_id,
 
             gopniks_address,
             pinjeons_address,
 
             lending_platform_address: lending_platform_address.clone(),
+            oracle_address: oracle_address.clone(),
 
             ..project
         };
 
         // prepare contracts
+        project
+            .lending_platform_try_update_config(
+                ProjectAccount::Admin,
+                &Some(ProjectAccount::Owner),
+                &Some(project.get_oracle_address().to_string()),
+                &Some(ProjectAccount::SchedulerForLendingPlatform),
+                &None,
+                &None,
+                &None,
+                &None,
+                &None,
+                &None,
+                &None,
+                &None,
+                &None,
+            )
+            .unwrap();
+
+        project
+            .oracle_try_update_config(
+                ProjectAccount::Admin,
+                &Some(ProjectAccount::SchedulerForOracle),
+            )
+            .unwrap();
 
         project
     }
@@ -166,10 +214,17 @@ impl Project {
         self.app.block_info().time
     }
 
-    pub fn wait(&mut self, delay_ns: u64) {
+    pub fn reset_time(&mut self) {
         self.app.update_block(|block| {
-            block.time = block.time.plus_nanos(delay_ns);
-            block.height += delay_ns / 5_000_000_000;
+            block.time = Timestamp::default().plus_seconds(1_000);
+            block.height = 200;
+        });
+    }
+
+    pub fn wait(&mut self, delay_s: u64) {
+        self.app.update_block(|block| {
+            block.time = block.time.plus_seconds(delay_s);
+            block.height += delay_s / 5;
         });
     }
 

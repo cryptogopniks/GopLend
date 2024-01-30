@@ -94,6 +94,7 @@ pub struct Config {
     pub admin: Addr,
     pub owner: Option<Addr>,
     pub oracle: Option<Addr>,
+    pub scheduler: Option<Addr>,
     pub main_currency: Currency<Token>,
     pub bgl_currency: Option<Currency<Token>>,
     pub unbonding_period: u64,

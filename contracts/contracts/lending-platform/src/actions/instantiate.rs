@@ -47,6 +47,7 @@ pub fn try_instantiate(
             admin: info.sender,
             owner: validate_attr(&mut attrs, api, "owner", &msg.owner)?,
             oracle: validate_attr(&mut attrs, api, "oracle", &msg.oracle)?,
+            scheduler: validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,
             main_currency,
             bgl_currency,
             unbonding_period: msg.unbonding_period.unwrap_or(UNBONDING_PERIOD),

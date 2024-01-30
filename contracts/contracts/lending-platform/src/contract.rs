@@ -49,10 +49,9 @@ pub fn execute(
             ExecuteMsg::PlaceBid { collections } => unimplemented!(),
 
             ExecuteMsg::UpdateBid {
-                collection,
+                collections,
                 creation_date,
                 amount,
-                collections,
             } => unimplemented!(),
 
             ExecuteMsg::AcceptProposal { id } => unimplemented!(),
@@ -77,15 +76,14 @@ pub fn execute(
         ExecuteMsg::PlaceBid { collections } => unimplemented!(),
 
         ExecuteMsg::RemoveBid {
-            collection,
+            collections,
             creation_date,
         } => unimplemented!(),
 
         ExecuteMsg::UpdateBid {
-            collection,
+            collections,
             creation_date,
             amount,
-            collections,
         } => unimplemented!(),
 
         ExecuteMsg::ClaimCollateral {} => unimplemented!(),
@@ -95,6 +93,7 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             owner,
             oracle,
+            scheduler,
             main_currency,
             bgl_currency,
             unbonding_period,

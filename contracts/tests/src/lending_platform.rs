@@ -9,11 +9,5 @@ use crate::helpers::{
 fn default() -> StdResult<()> {
     let mut project = Project::new();
 
-    project.lending_platform_try_update_config(
-        ProjectAccount::Admin,
-        &Some(ProjectAccount::Alice),
-        &Some(ProjectAccount::Bob),
-    )?;
-
     Ok(())
 }

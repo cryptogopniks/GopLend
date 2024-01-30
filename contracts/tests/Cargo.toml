@@ -33,3 +33,4 @@ speculoos = { workspace = true }
 goplend-base = { workspace = true }
 
 lending-platform = { workspace = true }
+oracle = { workspace = true }

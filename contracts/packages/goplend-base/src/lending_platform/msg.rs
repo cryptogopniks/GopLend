@@ -14,6 +14,7 @@ use super::types::{Borrower, Depositor, LiquidationBid, Liquidator};
 pub struct InstantiateMsg {
     pub owner: Option<String>,
     pub oracle: Option<String>,
+    pub scheduler: Option<String>,
     pub main_currency: Currency<TokenUnverified>,
     pub bgl_currency: Option<Currency<TokenUnverified>>,
     pub unbonding_period: Option<u64>,
@@ -62,15 +63,14 @@ pub enum ExecuteMsg {
     },
 
     RemoveBid {
-        collection: String,
+        collections: Vec<CollectionInfo<String>>,
         creation_date: u64,
     },
 
     UpdateBid {
-        collection: String,
+        collections: Vec<CollectionInfo<String>>,
         creation_date: u64,
-        amount: Option<Uint128>,
-        collections: Option<Vec<CollectionInfo<String>>>,
+        amount: Uint128, // amount is required to decrease bid
     },
 
     ClaimCollateral {},
@@ -82,6 +82,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         owner: Option<String>,
         oracle: Option<String>,
+        scheduler: Option<String>,
         main_currency: Option<Currency<TokenUnverified>>,
         bgl_currency: Option<Currency<TokenUnverified>>,
         unbonding_period: Option<u64>,
