@@ -32,7 +32,9 @@ pub enum QueryMsg {
     QueryConfig {},
 
     #[returns(Vec<QueryPricesResponseItem>)]
-    QueryPrices { collection_addresses: Vec<String> },
+    QueryPrices {
+        collection_addresses: Option<Vec<String>>,
+    },
 }
 
 #[cw_serde]

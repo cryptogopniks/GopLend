@@ -9,7 +9,7 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_prices(
     deps: Deps,
     _env: Env,
-    collection_addresses: Vec<String>,
+    collection_addresses: Option<Vec<String>>,
 ) -> StdResult<Vec<QueryPricesResponseItem>> {
     unimplemented!()
 }

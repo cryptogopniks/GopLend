@@ -55,7 +55,9 @@ pub fn execute(
                 amount,
             } => unimplemented!(),
 
-            ExecuteMsg::AcceptProposal { id } => unimplemented!(),
+            ExecuteMsg::AcceptProposal { id } => {
+                e::try_accept_proposal(deps, env, info, id, Some(sender), Some(amount))
+            }
 
             _ => Err(ContractError::WrongMessageType)?,
         },
@@ -126,21 +128,27 @@ pub fn execute(
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
 
-        ExecuteMsg::Lock {} => unimplemented!(),
+        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
-        ExecuteMsg::Unlock {} => unimplemented!(),
+        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
 
         ExecuteMsg::DistributeFunds {
             address_and_weight_list,
-        } => unimplemented!(),
+        } => e::try_distribute_funds(deps, env, info, address_and_weight_list),
 
-        ExecuteMsg::RemoveCollection { address } => unimplemented!(),
+        ExecuteMsg::RemoveCollection { address } => {
+            e::try_remove_collection(deps, env, info, address)
+        }
 
-        ExecuteMsg::CreateProposal { proposal } => unimplemented!(),
+        ExecuteMsg::CreateProposal { proposal } => {
+            e::try_create_proposal(deps, env, info, proposal)
+        }
 
-        ExecuteMsg::RejectProposal { id } => unimplemented!(),
+        ExecuteMsg::RejectProposal { id } => e::try_reject_proposal(deps, env, info, id),
 
-        ExecuteMsg::AcceptProposal { id } => unimplemented!(),
+        ExecuteMsg::AcceptProposal { id } => {
+            e::try_accept_proposal(deps, env, info, id, None, None)
+        }
     }
 }
 
@@ -150,27 +158,41 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryPlatformRevenue {} => unimplemented!(),
+        QueryMsg::QueryPlatformRevenue {} => to_json_binary(&q::query_platform_revenue(deps, env)?),
 
-        QueryMsg::QueryBalances {} => unimplemented!(),
+        QueryMsg::QueryBalances {} => to_json_binary(&q::query_balances(deps, env)?),
 
-        QueryMsg::QueryDepositors { addresses } => unimplemented!(),
+        QueryMsg::QueryDepositors { addresses } => {
+            to_json_binary(&q::query_depositors(deps, env, addresses)?)
+        }
 
-        QueryMsg::QueryBorrowers { addresses } => unimplemented!(),
+        QueryMsg::QueryBorrowers { addresses } => {
+            to_json_binary(&q::query_borrowers(deps, env, addresses)?)
+        }
 
-        QueryMsg::QueryLiquidators { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidators { addresses } => {
+            to_json_binary(&q::query_liquidators(deps, env, addresses)?)
+        }
 
         QueryMsg::QueryCollaterals {
             collection_addresses,
-        } => unimplemented!(),
+        } => to_json_binary(&q::query_collaterals(deps, env, collection_addresses)?),
 
-        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => to_json_binary(
+            &q::query_liquidation_bids_by_collection_addresses(deps, env, addresses)?,
+        ),
 
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => to_json_binary(
+            &q::query_liquidation_bids_by_liquidator_addresses(deps, env, addresses)?,
+        ),
 
-        QueryMsg::QueryProposals { last_amount } => unimplemented!(),
+        QueryMsg::QueryProposals { last_amount } => {
+            to_json_binary(&q::query_proposals(deps, env, last_amount)?)
+        }
 
-        QueryMsg::QueryCollections { addresses } => unimplemented!(),
+        QueryMsg::QueryCollections { addresses } => {
+            to_json_binary(&q::query_collections(deps, env, addresses)?)
+        }
     }
 }
 
