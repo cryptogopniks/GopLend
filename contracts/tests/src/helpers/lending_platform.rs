@@ -166,32 +166,32 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_depositors(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryDepositorsResponseItem>>;
 
     fn lending_platform_query_borrowers(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryBorrowersResponseItem>>;
 
     fn lending_platform_query_liquidators(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidatorsResponseItem>>;
 
     fn lending_platform_query_collaterals(
         &self,
-        collection_addresses: &[ProjectNft],
+        collection_addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
     fn lending_platform_query_liquidation_bids_by_collection_addresses(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
 
     fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
 
     fn lending_platform_query_proposals(
@@ -201,7 +201,7 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_collections(
         &self,
-        addresses: &[ProjectNft],
+        addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>>;
 }
 
@@ -589,9 +589,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_depositors(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryDepositorsResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -602,9 +604,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_borrowers(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -615,9 +619,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_liquidators(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -628,9 +634,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_collaterals(
         &self,
-        collection_addresses: &[ProjectNft],
+        collection_addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
-        let collection_addresses = collection_addresses.iter().map(|x| x.to_string()).collect();
+        let collection_addresses = collection_addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -643,9 +651,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_liquidation_bids_by_collection_addresses(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -656,9 +666,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
         &self,
-        addresses: &[ProjectAccount],
+        addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
@@ -680,9 +692,11 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_collections(
         &self,
-        addresses: &[ProjectNft],
+        addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>> {
-        let addresses = addresses.iter().map(|x| x.to_string()).collect();
+        let addresses = addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),

@@ -158,27 +158,41 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryPlatformRevenue {} => unimplemented!(),
+        QueryMsg::QueryPlatformRevenue {} => to_json_binary(&q::query_platform_revenue(deps, env)?),
 
-        QueryMsg::QueryBalances {} => unimplemented!(),
+        QueryMsg::QueryBalances {} => to_json_binary(&q::query_balances(deps, env)?),
 
-        QueryMsg::QueryDepositors { addresses } => unimplemented!(),
+        QueryMsg::QueryDepositors { addresses } => {
+            to_json_binary(&q::query_depositors(deps, env, addresses)?)
+        }
 
-        QueryMsg::QueryBorrowers { addresses } => unimplemented!(),
+        QueryMsg::QueryBorrowers { addresses } => {
+            to_json_binary(&q::query_borrowers(deps, env, addresses)?)
+        }
 
-        QueryMsg::QueryLiquidators { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidators { addresses } => {
+            to_json_binary(&q::query_liquidators(deps, env, addresses)?)
+        }
 
         QueryMsg::QueryCollaterals {
             collection_addresses,
-        } => unimplemented!(),
+        } => to_json_binary(&q::query_collaterals(deps, env, collection_addresses)?),
 
-        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => to_json_binary(
+            &q::query_liquidation_bids_by_collection_addresses(deps, env, addresses)?,
+        ),
 
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => unimplemented!(),
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => to_json_binary(
+            &q::query_liquidation_bids_by_liquidator_addresses(deps, env, addresses)?,
+        ),
 
-        QueryMsg::QueryProposals { last_amount } => unimplemented!(),
+        QueryMsg::QueryProposals { last_amount } => {
+            to_json_binary(&q::query_proposals(deps, env, last_amount)?)
+        }
 
-        QueryMsg::QueryCollections { addresses } => unimplemented!(),
+        QueryMsg::QueryCollections { addresses } => {
+            to_json_binary(&q::query_collections(deps, env, addresses)?)
+        }
     }
 }
 

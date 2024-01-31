@@ -31,7 +31,7 @@ pub trait OracleExtension {
 
     fn oracle_query_prices(
         &self,
-        collection_addresses: &[ProjectNft],
+        collection_addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryPricesResponseItem>>;
 }
 
@@ -82,9 +82,11 @@ impl OracleExtension for Project {
     #[track_caller]
     fn oracle_query_prices(
         &self,
-        collection_addresses: &[ProjectNft],
+        collection_addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryPricesResponseItem>> {
-        let collection_addresses = collection_addresses.iter().map(|x| x.to_string()).collect();
+        let collection_addresses = collection_addresses
+            .as_ref()
+            .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_oracle_address(),

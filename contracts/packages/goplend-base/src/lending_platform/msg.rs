@@ -138,28 +138,30 @@ pub enum QueryMsg {
     QueryBalances {},
 
     #[returns(Vec<QueryDepositorsResponseItem>)]
-    QueryDepositors { addresses: Vec<String> },
+    QueryDepositors { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryBorrowersResponseItem>)]
-    QueryBorrowers { addresses: Vec<String> },
+    QueryBorrowers { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryLiquidatorsResponseItem>)]
-    QueryLiquidators { addresses: Vec<String> },
+    QueryLiquidators { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryCollateralsResponseItem>)]
-    QueryCollaterals { collection_addresses: Vec<String> },
+    QueryCollaterals {
+        collection_addresses: Option<Vec<String>>,
+    },
 
     #[returns(Vec<QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByCollectionAddresses { addresses: Vec<String> },
+    QueryLiquidationBidsByCollectionAddresses { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByLiquidatorAddresses { addresses: Vec<String> },
+    QueryLiquidationBidsByLiquidatorAddresses { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryProposalsResponseItem>)]
     QueryProposals { last_amount: Option<u32> },
 
     #[returns(Vec<QueryCollectionsResponseItem>)]
-    QueryCollections { addresses: Vec<String> },
+    QueryCollections { addresses: Option<Vec<String>> },
 }
 
 #[cw_serde]
