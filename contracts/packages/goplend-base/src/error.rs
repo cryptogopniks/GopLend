@@ -58,6 +58,9 @@ pub enum ContractError {
     #[error("Collection balance is empty!")]
     CollectionBalanceIsEmpty,
 
+    #[error("Wrong proposal status!")]
+    WrongProposalStatus,
+
     #[error("Sum of weights is not equal one!")]
     WeightsAreUnbalanced,
 

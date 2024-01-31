@@ -55,7 +55,9 @@ pub fn execute(
                 amount,
             } => unimplemented!(),
 
-            ExecuteMsg::AcceptProposal { id } => unimplemented!(),
+            ExecuteMsg::AcceptProposal { id } => {
+                e::try_accept_proposal(deps, env, info, id, Some(sender), Some(amount))
+            }
 
             _ => Err(ContractError::WrongMessageType)?,
         },
@@ -126,21 +128,27 @@ pub fn execute(
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
 
-        ExecuteMsg::Lock {} => unimplemented!(),
+        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
-        ExecuteMsg::Unlock {} => unimplemented!(),
+        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
 
         ExecuteMsg::DistributeFunds {
             address_and_weight_list,
-        } => unimplemented!(),
+        } => e::try_distribute_funds(deps, env, info, address_and_weight_list),
 
-        ExecuteMsg::RemoveCollection { address } => unimplemented!(),
+        ExecuteMsg::RemoveCollection { address } => {
+            e::try_remove_collection(deps, env, info, address)
+        }
 
-        ExecuteMsg::CreateProposal { proposal } => unimplemented!(),
+        ExecuteMsg::CreateProposal { proposal } => {
+            e::try_create_proposal(deps, env, info, proposal)
+        }
 
-        ExecuteMsg::RejectProposal { id } => unimplemented!(),
+        ExecuteMsg::RejectProposal { id } => e::try_reject_proposal(deps, env, info, id),
 
-        ExecuteMsg::AcceptProposal { id } => unimplemented!(),
+        ExecuteMsg::AcceptProposal { id } => {
+            e::try_accept_proposal(deps, env, info, id, None, None)
+        }
     }
 }
 
