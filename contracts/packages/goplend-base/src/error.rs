@@ -46,6 +46,15 @@ pub enum ContractError {
     #[error("NFT already is added!")]
     NftDuplication,
 
+    #[error("Exceeded prices max amount!")]
+    ExceededPricesMaxAmount,
+
+    #[error("Empty raw price item vector!")]
+    EmptyRawPriceItemVector,
+
+    #[error("Empty price vector!")]
+    EmptyPriceVector,
+
     #[error("Collection already exists!")]
     CollectionDuplication,
 
