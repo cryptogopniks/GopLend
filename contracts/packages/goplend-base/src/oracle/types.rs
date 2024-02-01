@@ -1,12 +1,14 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 
-use crate::assets::{Funds, TokenUnverified};
+use crate::assets::{Currency, TokenUnverified};
 
 #[cw_serde]
 pub struct RawPriceItem {
     pub collection_address: String,
-    pub raw_prices: Vec<Funds<TokenUnverified>>,
+    pub currency: Currency<TokenUnverified>,
+    pub raw_prices: Vec<Uint128>,
+    pub trading_volume_per_day: Uint128,
 }
 
 #[cw_serde]

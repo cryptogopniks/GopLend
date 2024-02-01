@@ -6,6 +6,8 @@ use crate::{
     oracle::types::Config,
 };
 
+pub const PRICES_MAX_AMOUNT: usize = 5;
+
 pub const CONTRACT_NAME: &str = "crates.io:cryptogopniks-oracle";
 
 pub const CONFIG: Item<Config> = Item::new("config");
