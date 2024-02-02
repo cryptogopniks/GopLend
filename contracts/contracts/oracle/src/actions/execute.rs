@@ -1,4 +1,4 @@
-use std::cmp::{max, min};
+use std::cmp::min;
 
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 
@@ -6,7 +6,7 @@ use goplend_base::{
     assets::{Currency, Funds},
     error::ContractError,
     oracle::{
-        state::{CONFIG, PRICES_MAX_AMOUNT, PRICE_AND_DATE_LIST},
+        state::{AVERAGE_OFFER_PRICE_MULTIPLIER, CONFIG, PRICES_MAX_AMOUNT, PRICE_AND_DATE_LIST},
         types::{Config, RawPriceItem},
     },
     utils::{check_funds, unwrap_field, Attrs, FundsType},
@@ -45,6 +45,10 @@ pub fn try_update_prices(
             Err(ContractError::ExceededPricesMaxAmount)?;
         }
 
+        if trading_volume_per_day.is_zero() {
+            Err(ContractError::ZeroTradingVolume)?;
+        }
+
         let collection_address = deps.api.addr_validate(&collection_address)?;
 
         if PRICE_AND_DATE_LIST.has(deps.storage, &collection_address)
@@ -57,18 +61,21 @@ pub fn try_update_prices(
         }
 
         let currency = Currency::new(&currency.token.verify(deps.api)?, currency.decimals);
-        let average_offer_price = raw_prices
-            .into_iter()
-            .take(PRICES_MAX_AMOUNT)
-            .fold(Uint128::zero(), |acc, cur| acc + cur)
-            / Uint128::from(PRICES_MAX_AMOUNT as u128);
+        let mut average_offer_price = Uint128::zero();
 
-        let liquidity_multiplier = min(
-            trading_volume_per_day / (Uint128::new(10) * max(average_offer_price, Uint128::one())),
-            Uint128::one(),
-        );
+        for raw_price in raw_prices {
+            if raw_price.is_zero() {
+                Err(ContractError::ZerosInPrices)?;
+            }
 
-        let collateral_price = average_offer_price * liquidity_multiplier;
+            average_offer_price += raw_price;
+        }
+
+        average_offer_price /= Uint128::from(PRICES_MAX_AMOUNT as u128);
+
+        let liquidity_divider = Uint128::new(AVERAGE_OFFER_PRICE_MULTIPLIER) * average_offer_price;
+        let trading_volume_per_day = min(trading_volume_per_day, liquidity_divider);
+        let collateral_price = average_offer_price * trading_volume_per_day / liquidity_divider;
 
         PRICE_AND_DATE_LIST.save(
             deps.storage,
