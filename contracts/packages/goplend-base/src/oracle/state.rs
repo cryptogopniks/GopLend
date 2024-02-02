@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub const PRICES_MAX_AMOUNT: usize = 5;
+pub const AVERAGE_OFFER_PRICE_MULTIPLIER: u128 = 10;
 
 pub const CONTRACT_NAME: &str = "crates.io:cryptogopniks-oracle";
 

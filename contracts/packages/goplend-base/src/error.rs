@@ -46,6 +46,12 @@ pub enum ContractError {
     #[error("NFT already is added!")]
     NftDuplication,
 
+    #[error("Zeros in prices!")]
+    ZerosInPrices,
+
+    #[error("Zero trading volume!")]
+    ZeroTradingVolume,
+
     #[error("Exceeded prices max amount!")]
     ExceededPricesMaxAmount,
 
