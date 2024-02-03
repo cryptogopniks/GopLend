@@ -1,35 +1,27 @@
 import { l } from "../../common/utils";
-import { PATH, rootPath } from "../envs";
-import { calculateFee } from "@cosmjs/stargate";
-import { toUtf8 } from "@cosmjs/encoding";
-import {
-  NETWORK_CONFIG,
-  MINTER_WASM,
-  STAKING_PLATFORM_WASM,
-} from "../../common/config";
+import { rootPath } from "../envs";
+import { calculateFee, Event } from "@cosmjs/stargate";
+import { getChainOptionById } from "../../common/config/config-utils";
 import { gzip } from "pako";
 import { readFile, writeFile } from "fs/promises";
 import { getCwClient } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
-import { getSeed } from "./get-seed";
-import {
-  MsgInstantiateContract,
-  MsgStoreCode,
-} from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import {
-  NetworkName,
-  ContractData,
-  ContractsConfig,
-} from "../../common/interfaces";
+import { Wasm, ContractInfo, ChainConfig } from "../../common/interfaces";
+import { MsgStoreCode } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
   SigningCosmWasmClient,
   MsgStoreCodeEncodeObject,
-  MsgInstantiateContractEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
+import {
+  parseStoreArgs,
+  ENCODING,
+  PATH_TO_CONFIG_JSON,
+  getWallets,
+} from "./utils";
 
-const encoding = "utf8";
-
-function parseCodeIdList(rawLog: string): number[] {
+// TODO: rewrite
+function parseCodeIdList(events: readonly Event[]): number[] {
+  const rawLog = events.reduce((acc, cur) => acc + cur + "\n", "");
   const regex = /"code_id","value":"(\d+)"/g;
 
   return (rawLog.match(regex) || []).map(
@@ -37,41 +29,28 @@ function parseCodeIdList(rawLog: string): number[] {
   );
 }
 
-function parseAddressList(rawLog: string): string[] {
-  const regex = /"_contract_address","value":"(\w+)"/g;
-
-  const addresses = (rawLog.match(regex) || []).map((x) =>
-    x.split(":")[1].replace(/"/g, "")
-  );
-
-  return [...new Set(addresses).values()];
-}
-
-async function main(
-  network: NetworkName,
-  isMigrationRequired: boolean,
-  wasmIgnoreList: string[]
-) {
+async function main() {
   try {
+    const configJsonStr: string = await readFile(PATH_TO_CONFIG_JSON, {
+      encoding: ENCODING,
+    });
+    let configJson: ChainConfig = JSON.parse(configJsonStr);
+
+    const { chainId, wasmList } = parseStoreArgs();
     const {
-      BASE: {
+      PREFIX,
+      OPTION: {
         DENOM,
-        PREFIX,
         RPC_LIST: [RPC],
         GAS_PRICE_AMOUNT,
         STORE_CODE_GAS_MULTIPLIER,
+        CONTRACTS,
+        TYPE,
       },
-      CONTRACTS,
-    } = NETWORK_CONFIG[network];
+    } = getChainOptionById(configJson, chainId);
 
-    const testWallets: {
-      SEED_ADMIN: string;
-    } = JSON.parse(await readFile(PATH.TO_TEST_WALLETS, { encoding }));
-
-    const seed = await getSeed(testWallets.SEED_ADMIN);
-    if (!seed) throw new Error("Seed is not found!");
-
-    const { signer, owner } = await getSigner(PREFIX, seed);
+    const testWallets = await getWallets(TYPE);
+    const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
     const cwClient = await getCwClient(RPC, owner, signer);
     if (!cwClient) throw new Error("cwClient is not found!");
 
@@ -79,12 +58,12 @@ async function main(
 
     let byteLengthSum = 0;
     let contractConfigAndStoreCodeMsgList: [
-      ContractsConfig,
+      ContractInfo,
       MsgStoreCodeEncodeObject
     ][] = [];
 
     for (const CONTRACT of CONTRACTS) {
-      if (wasmIgnoreList.includes(CONTRACT.WASM)) continue;
+      if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
 
       const wasmBinary = await readFile(
         rootPath(`../artifacts/${CONTRACT.WASM}`)
@@ -108,101 +87,53 @@ async function main(
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const fee = calculateFee(gasWantedCalc, gasPrice);
 
-    const { rawLog } = await signingClient.signAndBroadcast(
+    const { events } = await signingClient.signAndBroadcast(
       owner,
       contractConfigAndStoreCodeMsgList.map((x) => x[1]),
       fee
     );
 
-    const codeIds = parseCodeIdList(rawLog || "");
+    const codeIdList = parseCodeIdList(events);
 
-    let contractConfigAndInitMsgList: [
-      ContractsConfig,
-      MsgInstantiateContractEncodeObject
-    ][] = [];
-    let addressList: string[] = [];
-
+    // update CONFIG with code id's
     for (const i in contractConfigAndStoreCodeMsgList) {
-      const [CONTRACT] = contractConfigAndStoreCodeMsgList[i];
-      const { WASM, LABEL, INIT_MSG } = CONTRACT;
-      const codeId = codeIds[i];
+      const [{ WASM }] = contractConfigAndStoreCodeMsgList[i];
+      const codeId = codeIdList[i];
 
-      const contractName = WASM.replace(".wasm", "").toLowerCase();
+      configJson = {
+        ...configJson,
+        CHAINS: configJson.CHAINS.map((chain) => {
+          return {
+            ...chain,
+            OPTIONS: chain.OPTIONS.map((option) => {
+              if (option.CHAIN_ID !== chainId) return option;
 
-      l(`\n"${contractName}" contract code is ${codeId}\n`);
+              return {
+                ...option,
+                CONTRACTS: option.CONTRACTS.map((contract) => {
+                  if (contract.WASM !== WASM) return contract;
 
-      const instantiateContractMsg: MsgInstantiateContractEncodeObject = {
-        typeUrl: "/cosmwasm.wasm.v1.MsgInstantiateContract",
-        value: MsgInstantiateContract.fromPartial({
-          sender: owner,
-          codeId,
-          label: LABEL,
-          msg: toUtf8(JSON.stringify(INIT_MSG)),
-          funds: [],
-          admin: owner,
+                  return {
+                    ...contract,
+                    CODE: codeId,
+                  };
+                }),
+              };
+            }),
+          };
         }),
       };
 
-      contractConfigAndInitMsgList.push([CONTRACT, instantiateContractMsg]);
-    }
-
-    const gasSimulated = await signingClient.simulate(
-      owner,
-      contractConfigAndInitMsgList.map((x) => x[1]),
-      ""
-    );
-    const gasWantedSim = Math.ceil(1.2 * gasSimulated);
-
-    if (!isMigrationRequired) {
-      const res = await signingClient.signAndBroadcast(
-        owner,
-        contractConfigAndInitMsgList.map((x) => x[1]),
-        calculateFee(gasWantedSim, gasPrice)
-      );
-
-      addressList = parseAddressList(res.rawLog || "");
-    }
-
-    for (const i in contractConfigAndInitMsgList) {
-      const [{ WASM }] = contractConfigAndInitMsgList[i];
-      const codeId = codeIds[i];
-      const contractAddress = addressList[i] || "";
-
-      const networkName = network.toLowerCase();
       const contractName = WASM.replace(".wasm", "").toLowerCase();
-
-      let contractData: ContractData = {
-        CODE: codeId,
-        ADDRESS: "",
-      };
-
-      if (!isMigrationRequired) {
-        l(`"${contractName}" contract address is ${contractAddress}\n`);
-
-        contractData.ADDRESS = contractAddress;
-      } else {
-        const { ADDRESS }: ContractData = JSON.parse(
-          await readFile(
-            rootPath(`src/common/config/${networkName}-${contractName}.json`),
-            { encoding }
-          )
-        );
-
-        contractData.ADDRESS = ADDRESS;
-      }
-
-      await writeFile(
-        rootPath(`src/common/config/${networkName}-${contractName}.json`),
-        JSON.stringify(contractData),
-        { encoding }
-      );
-
-      l(`✔️ "${contractName}" contract is ready!\n`);
+      l(`\n"${contractName}" contract code is ${codeId}\n`);
     }
+
+    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson), {
+      encoding: ENCODING,
+    });
   } catch (error) {
     l(error);
   }
 }
 
-// main("STARGAZE", false, []);
-main("STARGAZE", true, [STAKING_PLATFORM_WASM]);
+main();

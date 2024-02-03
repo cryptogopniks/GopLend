@@ -8,11 +8,13 @@
     "node": ">=18.x"
   },
   "scripts": {
-    "init": "ts-node ./src/backend/services/init-contract.ts",
+    "json": "ts-node ./src/backend/services/generate-json.ts",
+    "logs": "ts-node ./src/backend/services/import-logs.ts",
     "store": "ts-node ./src/backend/services/store-contract.ts",
+    "inst": "ts-node ./src/backend/services/instantiate-contract.ts",
     "migrate": "ts-node ./src/backend/services/migrate-contract.ts",
-    "call": "ts-node ./src/backend/services/call-contract.ts",
     "config": "ts-node ./src/backend/services/update-config.ts",
+    "call": "ts-node ./src/backend/services/call-contract.ts",
     "transpile": "shx rm -rf ./dist/backend/* && shx rm -rf ./dist/common/* && npx babel ./src/common --out-dir ./dist/common --extensions '.ts' && shx cp -r ./src/common/config/*.json ./dist/common/config",
     "types": "tsc -p ./src/backend/tsconfig.json",
     "prepare": "npm run transpile && npm run types"
