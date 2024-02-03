@@ -1,84 +1,97 @@
-import { getGasPriceFromChainRegistryItem } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
-import { getSeed } from "./get-seed";
 import { l } from "../../common/utils";
-import { chains } from "chain-registry";
-import { NetworkName } from "../../common/interfaces";
-import { readFile } from "fs/promises";
-import { PATH } from "../envs";
+import { readFile, writeFile } from "fs/promises";
+import { ChainConfig, Wasm, ContractInfo } from "../../common/interfaces";
+import { CHAIN_CONFIG } from "../../common/config";
+import { calculateFee } from "@cosmjs/stargate";
+import { toUtf8 } from "@cosmjs/encoding";
+import { getCwClient } from "../../common/account/clients";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
-  getCwExecHelpers,
-  getCwQueryHelpers,
-} from "../../common/account/cw-helpers";
+  getChainOptionById,
+  replaceTemplates,
+} from "../../common/config/config-utils";
 import {
-  NETWORK_CONFIG,
-  MINTER_WASM,
-  STAKING_PLATFORM_WASM,
-} from "../../common/config";
+  SigningCosmWasmClient,
+  MsgExecuteContractEncodeObject,
+} from "@cosmjs/cosmwasm-stargate";
+import {
+  parseStoreArgs,
+  ENCODING,
+  PATH_TO_CONFIG_JSON,
+  getWallets,
+} from "./utils";
 
-async function main(network: NetworkName) {
+async function main() {
   try {
+    const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
+      encoding: ENCODING,
+    });
+    let configJson: ChainConfig = JSON.parse(configJsonStr);
+    configJson = replaceTemplates(configJson, CHAIN_CONFIG, "update");
+
+    const { chainId, wasmList } = parseStoreArgs();
     const {
-      BASE: {
-        CHAIN_ID,
+      PREFIX,
+      OPTION: {
+        DENOM,
         RPC_LIST: [RPC],
-        PREFIX,
+        GAS_PRICE_AMOUNT,
+        CONTRACTS,
+        TYPE,
       },
-      CONTRACTS,
-    } = NETWORK_CONFIG[network];
+    } = getChainOptionById(configJson, chainId);
 
-    const MINTER_CONTRACT = CONTRACTS.find((x) => x.WASM === MINTER_WASM);
-    if (!MINTER_CONTRACT) throw new Error("MINTER_CONTRACT in not found!");
+    const testWallets = await getWallets(TYPE);
+    const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
+    const cwClient = await getCwClient(RPC, owner, signer);
+    if (!cwClient) throw new Error("cwClient is not found!");
 
-    const STAKING_PLATFORM_CONTRACT = CONTRACTS.find(
-      (x) => x.WASM === STAKING_PLATFORM_WASM
-    );
-    if (!STAKING_PLATFORM_CONTRACT) {
-      throw new Error("STAKING_PLATFORM_CONTRACT in not found!");
+    const signingClient = cwClient.client as SigningCosmWasmClient;
+
+    let contractConfigAndUpdateMsgList: [
+      ContractInfo,
+      MsgExecuteContractEncodeObject
+    ][] = [];
+
+    for (const CONTRACT of CONTRACTS) {
+      if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
+
+      const { UPDATE_MSG, ADDRESS } = CONTRACT;
+      const msg: MsgExecuteContractEncodeObject = {
+        typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+        value: MsgExecuteContract.fromPartial({
+          sender: owner,
+          contract: ADDRESS,
+          msg: toUtf8(UPDATE_MSG),
+          funds: [],
+        }),
+      };
+
+      contractConfigAndUpdateMsgList.push([CONTRACT, msg]);
     }
 
-    const testWallets: {
-      SEED_ADMIN: string;
-    } = JSON.parse(await readFile(PATH.TO_TEST_WALLETS, { encoding: "utf8" }));
-
-    const seed = await getSeed(testWallets.SEED_ADMIN);
-    if (!seed) throw new Error("Seed is not found!");
-
-    const chain = chains.find((x) => x.chain_id == CHAIN_ID);
-    if (!chain) throw new Error(`${CHAIN_ID} config is not found!`);
-
-    const gasPrice = getGasPriceFromChainRegistryItem(chain);
-
-    const { signer, owner } = await getSigner(PREFIX, seed);
-
-    const { cwQueryMinterConfig, cwQueryStakingPlatformConfig } =
-      await getCwQueryHelpers(network, RPC);
-
-    const { cwUpdateConfig } = await getCwExecHelpers(
-      network,
-      RPC,
+    const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
+    const gasSimulated = await signingClient.simulate(
       owner,
-      signer
+      contractConfigAndUpdateMsgList.map((x) => x[1]),
+      ""
     );
+    const gasWantedSim = Math.ceil(1.2 * gasSimulated);
 
-    const minterAndStakingPlatformOwner =
-      "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3";
-
-    await cwUpdateConfig(
-      {
-        minterOwner: minterAndStakingPlatformOwner,
-        stakingPlatform: STAKING_PLATFORM_CONTRACT.DATA.ADDRESS,
-        stakingPlatformOwner: minterAndStakingPlatformOwner,
-        minter: MINTER_CONTRACT.DATA.ADDRESS,
-      },
-      gasPrice
+    const tx = await signingClient.signAndBroadcast(
+      owner,
+      contractConfigAndUpdateMsgList.map((x) => x[1]),
+      calculateFee(gasWantedSim, gasPrice)
     );
+    l(tx);
 
-    await cwQueryMinterConfig();
-    await cwQueryStakingPlatformConfig();
+    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson), {
+      encoding: ENCODING,
+    });
   } catch (error) {
     l(error);
   }
 }
 
-main("STARGAZE");
+main();

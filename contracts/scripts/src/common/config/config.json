@@ -1,0 +1,101 @@
+{
+  "CHAINS": [
+    {
+      "NAME": "stargaze",
+      "PREFIX": "stars",
+      "OPTIONS": [
+        {
+          "TYPE": "local",
+          "DENOM": "ustars",
+          "CHAIN_ID": "stargaze-0",
+          "RPC_LIST": [],
+          "GAS_PRICE_AMOUNT": 0.04,
+          "STORE_CODE_GAS_MULTIPLIER": 25,
+          "CONTRACTS": [
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        },
+        {
+          "TYPE": "test",
+          "DENOM": "ustars",
+          "CHAIN_ID": "elgafar-1",
+          "RPC_LIST": [
+            "https://rpc.elgafar-1.stargaze-apis.com:443"
+          ],
+          "GAS_PRICE_AMOUNT": 0.04,
+          "STORE_CODE_GAS_MULTIPLIER": 22,
+          "CONTRACTS": [
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 3601,
+              "ADDRESS": "stars1fulfd2p3g2mpl68vdp7v79y0ws4a3jst8jggft6n4ktng09d92rqjeda83"
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 3602,
+              "ADDRESS": "stars1l4kzu0w9x69tv0p9lyz0xh5fktvm9f5clpzfneym9a6c59mn40tqfq0lc9"
+            }
+          ],
+          "IBC": []
+        },
+        {
+          "TYPE": "main",
+          "DENOM": "ustars",
+          "CHAIN_ID": "stargaze-1",
+          "RPC_LIST": [
+            "https://stargaze-rpc.reece.sh:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1.1,
+          "STORE_CODE_GAS_MULTIPLIER": 19.5,
+          "CONTRACTS": [
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        }
+      ]
+    }
+  ]
+}

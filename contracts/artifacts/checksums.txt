@@ -1,0 +1,2 @@
+76dec22f3600dcac4874dec1e00db581affe4d4f38919e8a6b49de2c928e47ab  oracle-x86_64.wasm
+d9d09ca2c460c402e8913ea419b07c994ef6c65b44ab6e0774a0952756263bcd  lending_platform-x86_64.wasm

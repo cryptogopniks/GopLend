@@ -1,13 +1,228 @@
+import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
+import {
+  CurrencyForTokenUnverified,
+  Decimal,
+} from "../codegen/LendingPlatform.types";
+
+interface QueryContractResponse {
+  address: string;
+  contract_info: {
+    code_id: string;
+    creator: string;
+    admin: string;
+    label: string;
+    created: {
+      block_height: string;
+      tx_index: string;
+    };
+    ibc_port_id: string;
+    extension: {
+      type_url: string;
+      value: string;
+    };
+  };
+}
+
+interface QueryCodeIdsResponse {
+  code_infos: {
+    code_id: string;
+    creator: string;
+    data_hash: string;
+    instantiate_permission: {
+      permission: string;
+      address: string;
+      addresses: string[];
+    };
+  }[];
+  pagination: {
+    next_key: string;
+    total: string;
+  };
+}
+
+// pagination field is ignored
+interface QueryProposalsResponse {
+  proposals: {
+    proposal_id: string;
+    content: {
+      "@type": string;
+      title: string;
+      description: string;
+      run_as: string;
+      wasm_byte_code: string;
+      instantiate_permission: {
+        permission: string;
+        address: string;
+        addresses: string[];
+      };
+      unpin_code: boolean;
+      source: string;
+      builder: string;
+      code_hash: string;
+    };
+    status: string;
+    final_tally_result: {
+      yes: string;
+      abstain: string;
+      no: string;
+      no_with_veto: string;
+    };
+    submit_time: Timestamp;
+    deposit_end_time: Timestamp;
+    total_deposit: Coin[];
+    voting_start_time: Timestamp;
+    voting_end_time: Timestamp;
+  }[];
+}
+
+interface Wallets {
+  SEED_ADMIN: string;
+  SEED_ALICE: string;
+  SEED_BOB: string;
+}
+
+interface StoreArgs {
+  chainId: string;
+  wasmList: Wasm[];
+}
+
+interface MintStruct {
+  amount: number;
+  recipient: string;
+  channelId?: string;
+}
+
+interface MintOverIbcStruct {
+  contractAddress: string;
+  amount: number;
+  recipient: string;
+  channelId?: string;
+}
+
+interface Cw20SendMsg {
+  send: {
+    contract: string;
+    amount: string;
+    msg: string;
+  };
+}
+
+interface Metadata {
+  base: string;
+  denom_units: { aliases: string[]; denom: string; exponent: string }[];
+  description: string;
+  display: string;
+  name: string;
+  symbol: string;
+  uri?: string;
+  uri_hash?: string;
+}
+
+interface SetMetadataMsg {
+  set_metadata: {
+    metadata: Metadata;
+  };
+}
+
+interface LocalInterchainLogs {
+  start_time: number;
+  chains: {
+    chain_id: string;
+    chain_name: string;
+    rpc_address: string;
+    rest_address: string;
+    grpc_address: string;
+    ibc_paths: string[];
+  }[];
+  ibc_channels: {
+    chain_id: string;
+    channel: {
+      state: string;
+      ordering: string;
+      counterparty: {
+        port_id: string;
+        channel_id: string;
+      };
+      connection_hops: string[];
+      version: string;
+      port_id: string;
+      channel_id: string;
+    };
+  }[];
+}
+
+type Wasm = "lending_platform.wasm" | "oracle.wasm";
+
+type ChainType = "main" | "test" | "local";
+
+interface ContractInfo {
+  WASM: Wasm;
+  LABEL: string;
+  INIT_MSG: string;
+  MIGRATE_MSG: string;
+  UPDATE_MSG: string;
+  CODE: number;
+  ADDRESS: string;
+}
+
+interface ChainOption {
+  TYPE: ChainType;
+  DENOM: string;
+  CHAIN_ID: string;
+  RPC_LIST: string[];
+  GAS_PRICE_AMOUNT: number;
+  STORE_CODE_GAS_MULTIPLIER: number;
+  CONTRACTS: ContractInfo[];
+  IBC: IbcConfig[];
+}
+
+interface IbcConfig {
+  COUNTERPARTY_CHAIN_ID: string;
+  CHANNEL_ID: string;
+  PORT: string;
+}
+
+interface ChainItem {
+  NAME: string;
+  PREFIX: string;
+  OPTIONS: ChainOption[];
+}
+
+interface ChainConfig {
+  CHAINS: ChainItem[];
+}
+
+type TokenUnverified =
+  | {
+      native: {
+        denom: string;
+      };
+    }
+  | {
+      cw20: {
+        address: string;
+      };
+    };
 
 interface UpdateConfigStruct {
-  // minter
-  minterOwner?: string;
-  stakingPlatform?: string;
+  // lending platform
+  bglCurrency?: CurrencyForTokenUnverified;
+  bidMinRate?: Decimal;
+  borrowApr?: Decimal;
+  borrowFeeRate?: Decimal;
+  cw20BaseCodeId?: number;
+  discountMaxRate?: Decimal;
+  discountMinRate?: Decimal;
+  liquidationFeeRate?: Decimal;
+  mainCurrency?: CurrencyForTokenUnverified;
+  oracle?: string;
+  owner?: string;
+  schedulerForLendingPlatform?: string;
+  unbondingPeriod?: number;
 
-  // staking platform
-  stakingPlatformOwner?: string;
-  minter?: string;
+  // oracle
+  schedulerForOracle?: string;
 }
 
 interface Pagination {
@@ -186,15 +401,35 @@ type ContractData = {
   ADDRESS: string;
 };
 
-export type { NetworkConfig, NetworkName, ContractsConfig };
+export type {
+  TokenUnverified,
+  ChainType,
+  Wasm,
+  NetworkConfig,
+  NetworkName,
+  ContractsConfig,
+};
 
 export {
   SetMetadataMsg,
   Metadata,
   UpdateConfigStruct,
+  Cw20SendMsg,
+  MintStruct,
+  MintOverIbcStruct,
+  ChainConfig,
+  IbcConfig,
+  ChainOption,
+  LocalInterchainLogs,
+  ContractInfo,
+  ChainItem,
+  Wallets,
+  StoreArgs,
+  QueryProposalsResponse,
+  QueryCodeIdsResponse,
+  QueryContractResponse,
   QueryApprovalsMsg,
   ApprovalsResponse,
-  Cw20SendMsg,
   BaseNetworkConfig,
   ContractData,
   QueryAllOperatorsMsg,
