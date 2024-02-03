@@ -22,16 +22,13 @@ import {
   getWallets,
 } from "./utils";
 
-// TODO: rewrite
 function parseAddressList(events: readonly Event[]): string[] {
-  const rawLog = events.reduce((acc, cur) => acc + cur + "\n", "");
-  const regex = /"_contract_address","value":"(\w+)"/g;
-
-  const addresses = (rawLog.match(regex) || []).map((x) =>
-    x.split(":")[1].replace(/"/g, "")
-  );
-
-  return [...new Set(addresses).values()];
+  return events
+    .filter((x) => x.type === "instantiate")
+    .map(
+      (x) =>
+        x.attributes.find((y) => y.key === "_contract_address")?.value || ""
+    );
 }
 
 async function main() {
@@ -122,7 +119,7 @@ async function main() {
 
                   return {
                     ...contract,
-                    ADDRESS: contractAddress,
+                    ADDRESS: contractAddress || "",
                   };
                 }),
               };

@@ -11,6 +11,10 @@ import {
   getSgQueryHelpers,
   getSgExecHelpers,
 } from "../../common/account/sg-helpers";
+import {
+  getCwExecHelpers,
+  getCwQueryHelpers,
+} from "../../common/account/cw-helpers";
 
 async function main() {
   try {
@@ -18,7 +22,7 @@ async function main() {
       encoding: ENCODING,
     });
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
-    const CHAIN_ID_STARGAZE = "stargaze-0";
+    const CHAIN_ID_STARGAZE = "elgafar-1";
 
     const {
       PREFIX: PREFIX_STARGAZE,
@@ -45,12 +49,45 @@ async function main() {
       PREFIX_STARGAZE,
       testWallets.SEED_ADMIN
     );
+
     const sgQueryHelpersStargaze = await getSgQueryHelpers(RPC_STARGAZE);
     const sgExecHelpersStargaze = await getSgExecHelpers(
       RPC_STARGAZE,
       ownerStargaze,
       signerStargaze
     );
+
+    const { cwQueryLendingPlatformConfig, cwQueryOracleConfig, cwQueryPrices } =
+      await getCwQueryHelpers(CHAIN_ID_STARGAZE, RPC_STARGAZE);
+    const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
+      CHAIN_ID_STARGAZE,
+      RPC_STARGAZE,
+      ownerStargaze,
+      signerStargaze
+    );
+
+    await cwQueryLendingPlatformConfig();
+    await cwQueryOracleConfig();
+
+    await cwUpdateConfig(
+      { schedulerForOracle: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu" },
+      gasPriceStargaze
+    );
+
+    await cwUpdatePrices(
+      [
+        {
+          collection_address:
+            "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+          currency: { token: { native: { denom: "ustars" } }, decimals: 6 },
+          raw_prices: ["100", "200", "300", "400", "500"],
+          trading_volume_per_day: "1000",
+        },
+      ],
+      gasPriceStargaze
+    );
+
+    await cwQueryPrices();
   } catch (error) {
     l(error);
   }

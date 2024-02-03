@@ -1,5 +1,9 @@
 import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
+import {
+  CurrencyForTokenUnverified,
+  Decimal,
+} from "../codegen/LendingPlatform.types";
 
 interface QueryContractResponse {
   address: string;
@@ -94,11 +98,6 @@ interface MintOverIbcStruct {
   amount: number;
   recipient: string;
   channelId?: string;
-}
-
-interface UpdateConfigStruct {
-  basePrefix?: string;
-  cw20Ics20Address?: string;
 }
 
 interface Cw20SendMsg {
@@ -207,13 +206,23 @@ type TokenUnverified =
     };
 
 interface UpdateConfigStruct {
-  // minter
-  minterOwner?: string;
-  stakingPlatform?: string;
+  // lending platform
+  bglCurrency?: CurrencyForTokenUnverified;
+  bidMinRate?: Decimal;
+  borrowApr?: Decimal;
+  borrowFeeRate?: Decimal;
+  cw20BaseCodeId?: number;
+  discountMaxRate?: Decimal;
+  discountMinRate?: Decimal;
+  liquidationFeeRate?: Decimal;
+  mainCurrency?: CurrencyForTokenUnverified;
+  oracle?: string;
+  owner?: string;
+  schedulerForLendingPlatform?: string;
+  unbondingPeriod?: number;
 
-  // staking platform
-  stakingPlatformOwner?: string;
-  minter?: string;
+  // oracle
+  schedulerForOracle?: string;
 }
 
 interface Pagination {

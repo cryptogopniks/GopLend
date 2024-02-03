@@ -19,14 +19,11 @@ import {
   getWallets,
 } from "./utils";
 
-// TODO: rewrite
 function parseCodeIdList(events: readonly Event[]): number[] {
-  const rawLog = events.reduce((acc, cur) => acc + cur + "\n", "");
-  const regex = /"code_id","value":"(\d+)"/g;
-
-  return (rawLog.match(regex) || []).map(
-    (x) => +x.split(":")[1].replace(/"/g, "")
-  );
+  // TODO: reverse?
+  return events
+    .filter((x) => x.type === "store_code")
+    .map((x) => +(x.attributes.find((y) => y.key === "code_id")?.value || ""));
 }
 
 async function main() {
@@ -115,7 +112,7 @@ async function main() {
 
                   return {
                     ...contract,
-                    CODE: codeId,
+                    CODE: codeId || 0,
                   };
                 }),
               };

@@ -29,7 +29,9 @@ const CHAIN_CONFIG: ChainConfig = {
               LABEL: "lending_platform",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 main_currency: {
-                  token: { native: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
+                  },
                   decimals: 6,
                 },
               }),
@@ -60,14 +62,16 @@ const CHAIN_CONFIG: ChainConfig = {
           CHAIN_ID: "elgafar-1",
           RPC_LIST: ["https://rpc.elgafar-1.stargaze-apis.com:443"],
           GAS_PRICE_AMOUNT: 0.04,
-          STORE_CODE_GAS_MULTIPLIER: 19.5,
+          STORE_CODE_GAS_MULTIPLIER: 22,
           CONTRACTS: [
             {
               WASM: "lending_platform.wasm",
               LABEL: "lending_platform",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 main_currency: {
-                  token: { native: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
+                  },
                   decimals: 6,
                 },
               }),
@@ -75,8 +79,9 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson({}),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3601,
+              ADDRESS:
+                "stars1fulfd2p3g2mpl68vdp7v79y0ws4a3jst8jggft6n4ktng09d92rqjeda83",
             },
             {
               WASM: "oracle.wasm",
@@ -86,8 +91,9 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson({}),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3602,
+              ADDRESS:
+                "stars1l4kzu0w9x69tv0p9lyz0xh5fktvm9f5clpzfneym9a6c59mn40tqfq0lc9",
             },
           ],
           IBC: [],
@@ -105,7 +111,9 @@ const CHAIN_CONFIG: ChainConfig = {
               LABEL: "lending_platform",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 main_currency: {
-                  token: { native: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  },
                   decimals: 6,
                 },
               }),
