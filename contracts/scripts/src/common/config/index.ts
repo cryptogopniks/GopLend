@@ -38,7 +38,13 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-0]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  ),
+                },
+              }),
               CODE: 0,
               ADDRESS: "",
             },
@@ -49,7 +55,11 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  scheduler: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                },
+              }),
               CODE: 0,
               ADDRESS: "",
             },
@@ -78,7 +88,13 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  ),
+                },
+              }),
               CODE: 3601,
               ADDRESS:
                 "stars1fulfd2p3g2mpl68vdp7v79y0ws4a3jst8jggft6n4ktng09d92rqjeda83",
@@ -90,7 +106,11 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  scheduler: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                },
+              }),
               CODE: 3602,
               ADDRESS:
                 "stars1l4kzu0w9x69tv0p9lyz0xh5fktvm9f5clpzfneym9a6c59mn40tqfq0lc9",
@@ -120,7 +140,13 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  ),
+                },
+              }),
               CODE: 0,
               ADDRESS: "",
             },
@@ -131,7 +157,11 @@ const CHAIN_CONFIG: ChainConfig = {
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
-              UPDATE_MSG: toJson({}),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  scheduler: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                },
+              }),
               CODE: 0,
               ADDRESS: "",
             },

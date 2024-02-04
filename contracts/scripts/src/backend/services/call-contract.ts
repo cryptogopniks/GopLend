@@ -66,13 +66,8 @@ async function main() {
       signerStargaze
     );
 
-    await cwQueryLendingPlatformConfig();
-    await cwQueryOracleConfig();
-
-    await cwUpdateConfig(
-      { schedulerForOracle: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu" },
-      gasPriceStargaze
-    );
+    // await cwQueryLendingPlatformConfig();
+    // await cwQueryOracleConfig();
 
     await cwUpdatePrices(
       [

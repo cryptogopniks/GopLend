@@ -20,7 +20,6 @@ import {
 } from "./utils";
 
 function parseCodeIdList(events: readonly Event[]): number[] {
-  // TODO: reverse?
   return events
     .filter((x) => x.type === "store_code")
     .map((x) => +(x.attributes.find((y) => y.key === "code_id")?.value || ""));
