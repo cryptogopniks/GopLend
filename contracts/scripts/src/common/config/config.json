@@ -8,18 +8,20 @@
           "TYPE": "local",
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-0",
-          "RPC_LIST": [],
+          "RPC_LIST": [
+            "http://127.0.0.1:33565"
+          ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
           "CONTRACTS": [
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-0]|DENOM!\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "UPDATE_MSG": "{\"update_config\":{\"scheduler\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
+              "CODE": 5,
+              "ADDRESS": "stars1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqan7eqa"
             },
             {
               "WASM": "oracle.wasm",
@@ -46,7 +48,7 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=elgafar-1]|DENOM!\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"stars1l4kzu0w9x69tv0p9lyz0xh5fktvm9f5clpzfneym9a6c59mn40tqfq0lc9\"}}",
               "CODE": 3601,
@@ -77,7 +79,7 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-1]|DENOM!\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"\"}}",
               "CODE": 0,

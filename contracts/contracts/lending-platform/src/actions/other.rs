@@ -7,8 +7,8 @@ use goplend_base::{
     assets::{Currency, Token},
     error::ContractError,
     lending_platform::{
-        msg::MigrateMsg,
-        state::{BGL_CURRENCY_DECIMALS, CONFIG, CONTRACT_NAME},
+        msg::{MigrateMsg, SudoMsg},
+        state::{BGL_CURRENCY_DECIMALS, BLOCK_COUNTER, CONFIG, CONTRACT_NAME},
         types::Config,
     },
     utils::unwrap_field,
@@ -49,6 +49,14 @@ pub fn save_cw20_address(
     })?;
 
     Ok(Response::new().add_attributes([("cw20_address", cw20_address)]))
+}
+
+pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
+    if let SudoMsg::BeginBlock {} = msg {
+        BLOCK_COUNTER.save(deps.storage, &env.block.height)?;
+    }
+
+    Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }
 
 pub fn migrate_contract(

@@ -11,6 +11,12 @@ function getLast<T>(arr: T[]) {
   return arr[arr.length - 1];
 }
 
+async function wait(delayInMilliseconds: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayInMilliseconds);
+  });
+}
+
 class Request {
   private req: AxiosInstance;
 
@@ -41,4 +47,4 @@ function decrypt(encryptedData: string, key: string): string | undefined {
   }
 }
 
-export { Request, l, getLast, encrypt, decrypt };
+export { Request, l, getLast, wait, encrypt, decrypt };

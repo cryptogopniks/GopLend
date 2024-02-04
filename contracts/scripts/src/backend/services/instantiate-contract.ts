@@ -22,6 +22,16 @@ import {
   getWallets,
 } from "./utils";
 
+function parseAddressListLegacy(rawLog: string): string[] {
+  const regex = /"_contract_address","value":"(\w+)"/g;
+
+  const addresses = (rawLog.match(regex) || []).map((x) =>
+    x.split(":")[1].replace(/"/g, "")
+  );
+
+  return [...new Set(addresses).values()];
+}
+
 function parseAddressList(events: readonly Event[]): string[] {
   return events
     .filter((x) => x.type === "instantiate")
@@ -91,13 +101,26 @@ async function main() {
     );
     const gasWantedSim = Math.ceil(1.2 * gasSimulated);
 
-    const { events } = await signingClient.signAndBroadcast(
-      owner,
-      contractConfigAndInitMsgList.map((x) => x[1]),
-      calculateFee(gasWantedSim, gasPrice)
-    );
+    // legacy
+    if (chainId === "stargaze-0") {
+      const tx = (await signingClient.signAndBroadcast(
+        owner,
+        contractConfigAndInitMsgList.map((x) => x[1]),
+        calculateFee(gasWantedSim, gasPrice)
+      )) as unknown as { rawLog: string };
 
-    addressList = parseAddressList(events);
+      addressList = parseAddressListLegacy(tx.rawLog);
+    }
+    // default
+    else {
+      const { events } = await signingClient.signAndBroadcast(
+        owner,
+        contractConfigAndInitMsgList.map((x) => x[1]),
+        calculateFee(gasWantedSim, gasPrice)
+      );
+
+      addressList = parseAddressList(events);
+    }
 
     // update CONFIG with contract addresses
     for (const i in contractConfigAndInitMsgList) {

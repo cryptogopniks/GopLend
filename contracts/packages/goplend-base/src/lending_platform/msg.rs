@@ -33,6 +33,13 @@ pub struct MigrateMsg {
 }
 
 #[cw_serde]
+pub enum SudoMsg {
+    BeginBlock {},
+
+    EndBlock {},
+}
+
+#[cw_serde]
 pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
 
@@ -162,6 +169,9 @@ pub enum QueryMsg {
 
     #[returns(Vec<QueryCollectionsResponseItem>)]
     QueryCollections { addresses: Option<Vec<String>> },
+
+    #[returns(u64)]
+    QueryBlockCounter {},
 }
 
 #[cw_serde]

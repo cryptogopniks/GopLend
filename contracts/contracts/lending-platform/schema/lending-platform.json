@@ -1210,6 +1210,19 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "query_block_counter"
+        ],
+        "properties": {
+          "query_block_counter": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     ]
   },
@@ -1268,6 +1281,13 @@
           "type": "string"
         }
       }
+    },
+    "query_block_counter": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "uint64",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     },
     "query_borrowers": {
       "$schema": "http://json-schema.org/draft-07/schema#",

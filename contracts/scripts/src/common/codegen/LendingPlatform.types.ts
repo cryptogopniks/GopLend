@@ -192,6 +192,8 @@ export type QueryMsg = {
   query_collections: {
     addresses?: string[] | null;
   };
+} | {
+  query_block_counter: {};
 };
 export interface MigrateMsg {
   version: string;
@@ -204,6 +206,7 @@ export interface Balances {
   total_main_currency_pool: Uint128;
   total_unbonded: Uint128;
 }
+export type Uint64 = number;
 export type Addr = string;
 export type ArrayOfQueryBorrowersResponseItem = QueryBorrowersResponseItem[];
 export interface QueryBorrowersResponseItem {

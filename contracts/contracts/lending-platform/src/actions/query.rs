@@ -9,8 +9,8 @@ use goplend_base::{
             QueryLiquidatorsResponseItem, QueryProposalsResponseItem,
         },
         state::{
-            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, DEPOSITORS, LIQUIDATION_BIDS,
-            LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
+            BALANCES, BLOCK_COUNTER, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, DEPOSITORS,
+            LIQUIDATION_BIDS, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, Config, Depositor, LiquidationBid,
@@ -206,4 +206,8 @@ pub fn query_collections(
             collection,
         })
         .collect())
+}
+
+pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
+    Ok(BLOCK_COUNTER.load(deps.storage).unwrap_or_default())
 }
