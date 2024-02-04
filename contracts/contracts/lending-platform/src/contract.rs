@@ -9,7 +9,7 @@ use cw20::Cw20ReceiveMsg;
 use goplend_base::{
     error::ContractError,
     lending_platform::{
-        msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+        msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg},
         state::SAVE_CW20_ADDRESS_REPLY,
     },
 };
@@ -27,7 +27,7 @@ pub fn instantiate(
     try_instantiate(deps, env, info, msg)
 }
 
-/// Exposes all the execute functions available in the contract
+/// Exposes all execute functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
@@ -152,7 +152,7 @@ pub fn execute(
     }
 }
 
-/// Exposes all the queries available in the contract
+/// Exposes all query functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
@@ -193,10 +193,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryCollections { addresses } => {
             to_json_binary(&q::query_collections(deps, env, addresses)?)
         }
+
+        QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }
 }
 
-/// Exposes all the replies available in the contract
+/// Exposes all reply functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
     let Reply { id, result } = reply;
@@ -207,8 +209,17 @@ pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, Contract
     }
 }
 
-/// Used for contract migration
+/// Exposes all migration functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
     o::migrate_contract(deps, env, msg)
+}
+
+/// Exposes all functions that can be called only by Cosmos SDK modules
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
+    match msg {
+        SudoMsg::BeginBlock {} => o::try_process(deps, env, msg),
+        SudoMsg::EndBlock {} => o::try_process(deps, env, msg),
+    }
 }

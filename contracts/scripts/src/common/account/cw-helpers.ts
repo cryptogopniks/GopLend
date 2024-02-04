@@ -817,6 +817,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
+  async function cwQueryBlockCounter() {
+    const res = await lendingPlatformQueryClient.queryBlockCounter();
+    l("\n", res, "\n");
+    return res;
+  }
+
   // oracle
 
   async function cwQueryPrices(collectionAddresses?: string[]) {
@@ -851,6 +857,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
     cwQueryPrices,
     cwQueryOracleConfig,
+
+    cwQueryBlockCounter,
   };
 }
 

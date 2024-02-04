@@ -1,6 +1,8 @@
 import { l } from "../utils";
 import { getSgClient, signAndBroadcastWrapper } from "./clients";
 import { Tendermint37Client } from "@cosmjs/tendermint-rpc";
+import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+import { longify } from "@cosmjs/stargate/build/queryclient";
 import {
   DirectSecp256k1HdWallet,
   OfflineSigner,
@@ -12,6 +14,10 @@ import {
   SigningStargateClient,
   setupBankExtension,
   QueryClient,
+  MsgDelegateEncodeObject,
+  coin,
+  MsgVoteEncodeObject,
+  setupStakingExtension,
 } from "@cosmjs/stargate";
 
 async function getSgExecHelpers(
@@ -39,7 +45,48 @@ async function getSgExecHelpers(
     return tx;
   }
 
+  async function sgDelegate(
+    operatorAddress: string,
+    amount: number,
+    denom: string,
+    gasPrice: string
+  ) {
+    const msg: MsgDelegateEncodeObject = {
+      typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
+      value: {
+        delegatorAddress: owner,
+        validatorAddress: operatorAddress,
+        amount: coin(amount, denom),
+      },
+    };
+
+    const tx = await signAndBroadcast([msg], gasPrice);
+    l("\n", tx, "\n");
+    return tx;
+  }
+
+  async function sgVote(
+    proposalId: number,
+    voteOption: VoteOption,
+    gasPrice: string
+  ) {
+    const msg: MsgVoteEncodeObject = {
+      typeUrl: "/cosmos.gov.v1beta1.MsgVote",
+      value: {
+        voter: owner,
+        proposalId: longify(proposalId),
+        option: voteOption,
+      },
+    };
+
+    const tx = await signAndBroadcast([msg], gasPrice, 1.2);
+    l("\n", tx, "\n");
+    return tx;
+  }
+
   return {
+    sgDelegate,
+    sgVote,
     sgSend,
   };
 }
@@ -48,6 +95,7 @@ async function getSgQueryHelpers(rpc: string) {
   const tmClient = await Tendermint37Client.connect(rpc);
   const queryClient = QueryClient.withExtensions(tmClient);
   const bankExtension = setupBankExtension(queryClient);
+  const stakingExtension = setupStakingExtension(queryClient);
 
   async function getAllBalances(address: string) {
     const res = await bankExtension.bank.allBalances(address);
@@ -61,7 +109,16 @@ async function getSgQueryHelpers(rpc: string) {
     return res;
   }
 
-  return { getAllBalances, getMetadata };
+  async function getValidators() {
+    const { validators } = await stakingExtension.staking.validators(
+      "BOND_STATUS_BONDED"
+    );
+
+    l("\n", validators, "\n");
+    return validators;
+  }
+
+  return { getAllBalances, getMetadata, getValidators };
 }
 
 export { getSgExecHelpers, getSgQueryHelpers };

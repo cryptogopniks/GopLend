@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, Decimal, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Binary, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, Balances, Addr, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, Borrower, Vault, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, Collateral, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, CollectionForAddr, Token, Config, CurrencyForToken, ArrayOfQueryDepositorsResponseItem, QueryDepositorsResponseItem, Depositor, ArrayOfQueryLiquidationBidsResponseItem, QueryLiquidationBidsResponseItem, LiquidationBid, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, Liquidator, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken } from "./LendingPlatform.types";
+import { TokenUnverified, Decimal, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Binary, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, Balances, Uint64, Addr, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, Borrower, Vault, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, Collateral, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, CollectionForAddr, Token, Config, CurrencyForToken, ArrayOfQueryDepositorsResponseItem, QueryDepositorsResponseItem, Depositor, ArrayOfQueryLiquidationBidsResponseItem, QueryLiquidationBidsResponseItem, LiquidationBid, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, Liquidator, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken } from "./LendingPlatform.types";
 export interface LendingPlatformReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
@@ -52,6 +52,7 @@ export interface LendingPlatformReadOnlyInterface {
   }: {
     addresses?: string[];
   }) => Promise<ArrayOfQueryCollectionsResponseItem>;
+  queryBlockCounter: () => Promise<Uint64>;
 }
 export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterface {
   client: CosmWasmClient;
@@ -71,6 +72,7 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
     this.queryLiquidationBidsByLiquidatorAddresses = this.queryLiquidationBidsByLiquidatorAddresses.bind(this);
     this.queryProposals = this.queryProposals.bind(this);
     this.queryCollections = this.queryCollections.bind(this);
+    this.queryBlockCounter = this.queryBlockCounter.bind(this);
   }
 
   queryConfig = async (): Promise<Config> => {
@@ -174,6 +176,11 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
       query_collections: {
         addresses
       }
+    });
+  };
+  queryBlockCounter = async (): Promise<Uint64> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_block_counter: {}
     });
   };
 }

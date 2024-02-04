@@ -54,8 +54,12 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { cwQueryLendingPlatformConfig, cwQueryOracleConfig, cwQueryPrices } =
-      await getCwQueryHelpers(chainId, RPC);
+    const {
+      cwQueryLendingPlatformConfig,
+      cwQueryOracleConfig,
+      cwQueryPrices,
+      cwQueryBlockCounter,
+    } = await getCwQueryHelpers(chainId, RPC);
     const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
       chainId,
       RPC,
@@ -80,6 +84,18 @@ async function main() {
     // );
 
     // await cwQueryPrices();
+
+    let cnt = 20;
+    const checkBlockCounter = async () => {
+      if (cnt--) {
+        setTimeout(async () => {
+          await cwQueryBlockCounter();
+          await checkBlockCounter();
+        }, 300);
+      }
+    };
+
+    await checkBlockCounter();
   } catch (error) {
     l(error);
   }
