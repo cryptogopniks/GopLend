@@ -218,7 +218,6 @@ interface UpdateConfigStruct {
   mainCurrency?: CurrencyForTokenUnverified;
   oracle?: string;
   owner?: string;
-  schedulerForLendingPlatform?: string;
   unbondingPeriod?: number;
 
   // oracle

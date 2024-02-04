@@ -62,7 +62,6 @@ export interface LendingPlatformMsg {
     creationDate: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   claimCollateral: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  process: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
     bglCurrency,
     bidMinRate,
@@ -75,7 +74,6 @@ export interface LendingPlatformMsg {
     mainCurrency,
     oracle,
     owner,
-    scheduler,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -89,7 +87,6 @@ export interface LendingPlatformMsg {
     mainCurrency?: CurrencyForTokenUnverified;
     oracle?: string;
     owner?: string;
-    scheduler?: string;
     unbondingPeriod?: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   createBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
@@ -140,7 +137,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
     this.claimCollateral = this.claimCollateral.bind(this);
-    this.process = this.process.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.createBglToken = this.createBglToken.bind(this);
     this.lock = this.lock.bind(this);
@@ -365,19 +361,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
       })
     };
   };
-  process = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          process: {}
-        })),
-        funds: _funds
-      })
-    };
-  };
   updateConfig = ({
     bglCurrency,
     bidMinRate,
@@ -390,7 +373,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     mainCurrency,
     oracle,
     owner,
-    scheduler,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -404,7 +386,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     mainCurrency?: CurrencyForTokenUnverified;
     oracle?: string;
     owner?: string;
-    scheduler?: string;
     unbondingPeriod?: number;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -425,7 +406,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
             main_currency: mainCurrency,
             oracle,
             owner,
-            scheduler,
             unbonding_period: unbondingPeriod
           }
         })),

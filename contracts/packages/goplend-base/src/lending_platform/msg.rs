@@ -14,7 +14,6 @@ use super::types::{Borrower, Depositor, LiquidationBid, Liquidator};
 pub struct InstantiateMsg {
     pub owner: Option<String>,
     pub oracle: Option<String>,
-    pub scheduler: Option<String>,
     pub main_currency: Currency<TokenUnverified>,
     pub bgl_currency: Option<Currency<TokenUnverified>>,
     pub cw20_base_code_id: Option<u64>,
@@ -34,6 +33,7 @@ pub struct MigrateMsg {
 
 #[cw_serde]
 pub enum SudoMsg {
+    // x/cron
     BeginBlock {},
 
     EndBlock {},
@@ -83,14 +83,10 @@ pub enum ExecuteMsg {
 
     ClaimCollateral {},
 
-    // scheduler
-    Process {},
-
     // admin
     UpdateConfig {
         owner: Option<String>,
         oracle: Option<String>,
-        scheduler: Option<String>,
         main_currency: Option<Currency<TokenUnverified>>,
         bgl_currency: Option<Currency<TokenUnverified>>,
         cw20_base_code_id: Option<u64>,
@@ -170,6 +166,7 @@ pub enum QueryMsg {
     #[returns(Vec<QueryCollectionsResponseItem>)]
     QueryCollections { addresses: Option<Vec<String>> },
 
+    // test
     #[returns(u64)]
     QueryBlockCounter {},
 }

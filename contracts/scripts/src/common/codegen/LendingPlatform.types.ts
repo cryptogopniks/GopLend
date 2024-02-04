@@ -26,7 +26,6 @@ export interface InstantiateMsg {
   main_currency: CurrencyForTokenUnverified;
   oracle?: string | null;
   owner?: string | null;
-  scheduler?: string | null;
   unbonding_period?: number | null;
 }
 export interface CurrencyForTokenUnverified {
@@ -73,8 +72,6 @@ export type ExecuteMsg = {
 } | {
   claim_collateral: {};
 } | {
-  process: {};
-} | {
   update_config: {
     bgl_currency?: CurrencyForTokenUnverified | null;
     bid_min_rate?: Decimal | null;
@@ -87,7 +84,6 @@ export type ExecuteMsg = {
     main_currency?: CurrencyForTokenUnverified | null;
     oracle?: string | null;
     owner?: string | null;
-    scheduler?: string | null;
     unbonding_period?: number | null;
   };
 } | {
@@ -261,7 +257,6 @@ export interface Config {
   main_currency: CurrencyForToken;
   oracle?: Addr | null;
   owner?: Addr | null;
-  scheduler?: Addr | null;
   unbonding_period: number;
 }
 export interface CurrencyForToken {

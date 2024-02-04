@@ -10,7 +10,7 @@ use goplend_base::{
             ExecuteMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryCollectionsResponseItem, QueryDepositorsResponseItem,
             QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem, QueryMsg,
-            QueryProposalsResponseItem,
+            QueryProposalsResponseItem, SudoMsg,
         },
         types::{Balances, CollectionInfo, Config, Proposal},
     },
@@ -97,14 +97,13 @@ pub trait LendingPlatformExtension {
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_process(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+    fn lending_platform_try_process(&mut self) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
         &mut self,
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
         oracle: &Option<String>,
-        scheduler: &Option<ProjectAccount>,
         main_currency: &Option<Currency<TokenUnverified>>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
         cw20_base_code_id: &Option<u64>,
@@ -203,6 +202,8 @@ pub trait LendingPlatformExtension {
         &self,
         addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>>;
+
+    fn lending_platform_query_block_counter(&self) -> StdResult<u64>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -383,14 +384,9 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_process(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn lending_platform_try_process(&mut self) -> StdResult<AppResponse> {
         self.app
-            .execute_contract(
-                sender.into(),
-                self.get_lending_platform_address(),
-                &ExecuteMsg::Process {},
-                &[],
-            )
+            .wasm_sudo(self.get_lending_platform_address(), &SudoMsg::BeginBlock {})
             .map_err(parse_err)
     }
 
@@ -400,7 +396,6 @@ impl LendingPlatformExtension for Project {
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
         oracle: &Option<String>,
-        scheduler: &Option<ProjectAccount>,
         main_currency: &Option<Currency<TokenUnverified>>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
         cw20_base_code_id: &Option<u64>,
@@ -419,7 +414,6 @@ impl LendingPlatformExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     owner: owner.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
-                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
                     main_currency: main_currency.as_ref().map(|x| x.to_owned()),
                     bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                     cw20_base_code_id: cw20_base_code_id.as_ref().map(|x| x.to_owned()),
@@ -701,6 +695,14 @@ impl LendingPlatformExtension for Project {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryCollections { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_block_counter(&self) -> StdResult<u64> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryBlockCounter {},
         )
     }
 }
