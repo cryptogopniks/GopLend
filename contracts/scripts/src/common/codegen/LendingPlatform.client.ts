@@ -237,7 +237,6 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     creationDate: number;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   claimCollateral: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  process: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
     bglCurrency,
     bidMinRate,
@@ -250,7 +249,6 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     mainCurrency,
     oracle,
     owner,
-    scheduler,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -264,7 +262,6 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     mainCurrency?: CurrencyForTokenUnverified;
     oracle?: string;
     owner?: string;
-    scheduler?: string;
     unbondingPeriod?: number;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   createBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
@@ -318,7 +315,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
     this.claimCollateral = this.claimCollateral.bind(this);
-    this.process = this.process.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.createBglToken = this.createBglToken.bind(this);
     this.lock = this.lock.bind(this);
@@ -447,11 +443,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
       claim_collateral: {}
     }, fee, memo, _funds);
   };
-  process = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      process: {}
-    }, fee, memo, _funds);
-  };
   updateConfig = async ({
     bglCurrency,
     bidMinRate,
@@ -464,7 +455,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     mainCurrency,
     oracle,
     owner,
-    scheduler,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -478,7 +468,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     mainCurrency?: CurrencyForTokenUnverified;
     oracle?: string;
     owner?: string;
-    scheduler?: string;
     unbondingPeriod?: number;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
@@ -494,7 +483,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
         main_currency: mainCurrency,
         oracle,
         owner,
-        scheduler,
         unbonding_period: unbondingPeriod
       }
     }, fee, memo, _funds);

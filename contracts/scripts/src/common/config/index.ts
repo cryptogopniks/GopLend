@@ -40,7 +40,7 @@ const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_config: {
-                  scheduler: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                  owner: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
                 },
               }),
               CODE: 0,

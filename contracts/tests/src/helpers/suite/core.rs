@@ -114,7 +114,6 @@ impl Project {
             lending_platform_code_id,
             &None,
             &None,
-            &None,
             &Currency::new(
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
@@ -152,7 +151,6 @@ impl Project {
                 ProjectAccount::Admin,
                 &Some(ProjectAccount::Owner),
                 &Some(project.get_oracle_address().to_string()),
-                &Some(ProjectAccount::SchedulerForLendingPlatform),
                 &None,
                 &None,
                 &Some(project.get_cw20_base_code_id()),

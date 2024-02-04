@@ -48,7 +48,6 @@ pub fn try_instantiate(
             admin: info.sender,
             owner: validate_attr(&mut attrs, api, "owner", &msg.owner)?,
             oracle: validate_attr(&mut attrs, api, "oracle", &msg.oracle)?,
-            scheduler: validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,
             main_currency,
             bgl_currency,
             cw20_base_code_id: msg.cw20_base_code_id.unwrap_or(CW20_CODE_ID),

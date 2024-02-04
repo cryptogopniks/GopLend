@@ -418,13 +418,6 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwProcess(gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.process()],
-      gasPrice
-    );
-  }
-
   async function cwCreateBglToken(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [landingPlatformMsgComposer.createBglToken()],
@@ -525,7 +518,6 @@ async function getCwExecHelpers(
       mainCurrency,
       oracle,
       owner,
-      schedulerForLendingPlatform,
       unbondingPeriod,
       schedulerForOracle,
     } = updateConfigStruct;
@@ -548,7 +540,6 @@ async function getCwExecHelpers(
       mainCurrency ||
       oracle ||
       owner ||
-      schedulerForLendingPlatform ||
       unbondingPeriod
     ) {
       msgList.push(
@@ -564,7 +555,6 @@ async function getCwExecHelpers(
           mainCurrency,
           oracle,
           owner,
-          scheduler: schedulerForLendingPlatform,
           unbondingPeriod,
         })
       );
@@ -589,7 +579,6 @@ async function getCwExecHelpers(
     cwRemoveBid,
     cwUpdateBid,
     cwClaimCollateral,
-    cwProcess,
     cwCreateBglToken,
     cwLock,
     cwUnlock,

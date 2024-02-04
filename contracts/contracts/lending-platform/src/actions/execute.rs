@@ -38,7 +38,6 @@ pub fn try_update_config(
     info: MessageInfo,
     owner: Option<String>,
     oracle: Option<String>,
-    scheduler: Option<String>,
     main_currency: Option<Currency<TokenUnverified>>,
     bgl_currency: Option<Currency<TokenUnverified>>,
     cw20_base_code_id: Option<u64>,
@@ -65,11 +64,6 @@ pub fn try_update_config(
         if let Some(x) = oracle {
             config.oracle = Some(deps.api.addr_validate(&x)?);
             attrs.push(("oracle".to_string(), x));
-        }
-
-        if let Some(x) = scheduler {
-            config.scheduler = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("scheduler".to_string(), x));
         }
 
         if let Some(x) = main_currency {

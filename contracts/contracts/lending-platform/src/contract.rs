@@ -91,12 +91,10 @@ pub fn execute(
 
         ExecuteMsg::ClaimCollateral {} => unimplemented!(),
 
-        ExecuteMsg::Process {} => unimplemented!(),
-
         ExecuteMsg::UpdateConfig {
             owner,
             oracle,
-            scheduler,
+
             main_currency,
             bgl_currency,
             cw20_base_code_id,
@@ -113,7 +111,6 @@ pub fn execute(
             info,
             owner,
             oracle,
-            scheduler,
             main_currency,
             bgl_currency,
             cw20_base_code_id,

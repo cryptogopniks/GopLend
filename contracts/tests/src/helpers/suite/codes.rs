@@ -34,7 +34,6 @@ pub trait WithCodes {
         lending_platform_code_id: u64,
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
-        scheduler: &Option<ProjectAccount>,
         main_currency: &Currency<TokenUnverified>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
         cw20_base_code_id: &Option<u64>,
@@ -89,7 +88,8 @@ impl WithCodes for Project {
                 lending_platform::contract::query,
             )
             .with_reply(lending_platform::contract::reply)
-            .with_migrate(lending_platform::contract::migrate),
+            .with_migrate(lending_platform::contract::migrate)
+            .with_sudo(lending_platform::contract::sudo),
         ))
     }
 
@@ -168,7 +168,6 @@ impl WithCodes for Project {
         lending_platform_code_id: u64,
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
-        scheduler: &Option<ProjectAccount>,
         main_currency: &Currency<TokenUnverified>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
         cw20_base_code_id: &Option<u64>,
@@ -186,7 +185,6 @@ impl WithCodes for Project {
             &goplend_base::lending_platform::msg::InstantiateMsg {
                 owner: owner.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
-                scheduler: scheduler.as_ref().map(|x| x.to_string()),
                 main_currency: main_currency.to_owned(),
                 bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                 cw20_base_code_id: cw20_base_code_id.as_ref().map(|x| x.to_owned()),
