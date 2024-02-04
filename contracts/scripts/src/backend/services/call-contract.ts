@@ -2,7 +2,12 @@ import { getSigner } from "../account/signer";
 import { l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
-import { ENCODING, PATH_TO_CONFIG_JSON, getWallets } from "./utils";
+import {
+  ENCODING,
+  PATH_TO_CONFIG_JSON,
+  getWallets,
+  parseStoreArgs,
+} from "./utils";
 import {
   getChainOptionById,
   getContractByWasm,
@@ -22,48 +27,40 @@ async function main() {
       encoding: ENCODING,
     });
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
-    const CHAIN_ID_STARGAZE = "elgafar-1";
-
+    const { chainId } = parseStoreArgs();
     const {
-      PREFIX: PREFIX_STARGAZE,
+      PREFIX: PREFIX,
       OPTION: {
-        RPC_LIST: [RPC_STARGAZE],
-        DENOM: DENOM_STARGAZE,
-        CONTRACTS: CONTRACTS_STARGAZE,
-        GAS_PRICE_AMOUNT: GAS_PRICE_AMOUNT_STARGAZE,
-        TYPE: TYPE_STARGAZE,
+        RPC_LIST: [RPC],
+        DENOM: DENOM,
+        CONTRACTS: CONTRACTS,
+        GAS_PRICE_AMOUNT: GAS_PRICE_AMOUNT,
+        TYPE: TYPE,
       },
-    } = getChainOptionById(CHAIN_CONFIG, CHAIN_ID_STARGAZE);
+    } = getChainOptionById(CHAIN_CONFIG, chainId);
 
     const LENDING_PLATFORM_CONTRACT = getContractByWasm(
-      CONTRACTS_STARGAZE,
+      CONTRACTS,
       "lending_platform.wasm"
     );
-    const ORACLE_CONTRACT = getContractByWasm(
-      CONTRACTS_STARGAZE,
-      "oracle.wasm"
-    );
-    const gasPriceStargaze = `${GAS_PRICE_AMOUNT_STARGAZE}${DENOM_STARGAZE}`;
-    const testWallets = await getWallets(TYPE_STARGAZE);
-    const { signer: signerStargaze, owner: ownerStargaze } = await getSigner(
-      PREFIX_STARGAZE,
+    const ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
+    const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
+    const testWallets = await getWallets(TYPE);
+    const { signer: signer, owner: owner } = await getSigner(
+      PREFIX,
       testWallets.SEED_ADMIN
     );
 
-    const sgQueryHelpersStargaze = await getSgQueryHelpers(RPC_STARGAZE);
-    const sgExecHelpersStargaze = await getSgExecHelpers(
-      RPC_STARGAZE,
-      ownerStargaze,
-      signerStargaze
-    );
+    const sgQueryHelpers = await getSgQueryHelpers(RPC);
+    const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
     const { cwQueryLendingPlatformConfig, cwQueryOracleConfig, cwQueryPrices } =
-      await getCwQueryHelpers(CHAIN_ID_STARGAZE, RPC_STARGAZE);
+      await getCwQueryHelpers(chainId, RPC);
     const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
-      CHAIN_ID_STARGAZE,
-      RPC_STARGAZE,
-      ownerStargaze,
-      signerStargaze
+      chainId,
+      RPC,
+      owner,
+      signer
     );
 
     await cwQueryLendingPlatformConfig();
@@ -79,7 +76,7 @@ async function main() {
     //       trading_volume_per_day: "1000",
     //     },
     //   ],
-    //   gasPriceStargaze
+    //   gasPrice
     // );
 
     // await cwQueryPrices();

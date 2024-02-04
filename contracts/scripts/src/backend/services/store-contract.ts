@@ -19,6 +19,14 @@ import {
   getWallets,
 } from "./utils";
 
+function parseCodeIdListLegacy(rawLog: string): number[] {
+  const regex = /"code_id","value":"(\d+)"/g;
+
+  return (rawLog.match(regex) || []).map(
+    (x) => +x.split(":")[1].replace(/"/g, "")
+  );
+}
+
 function parseCodeIdList(events: readonly Event[]): number[] {
   return events
     .filter((x) => x.type === "store_code")
@@ -83,13 +91,28 @@ async function main() {
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const fee = calculateFee(gasWantedCalc, gasPrice);
 
-    const { events } = await signingClient.signAndBroadcast(
-      owner,
-      contractConfigAndStoreCodeMsgList.map((x) => x[1]),
-      fee
-    );
+    let codeIdList: number[] = [];
 
-    const codeIdList = parseCodeIdList(events);
+    // legacy
+    if (chainId === "stargaze-0") {
+      const tx = (await signingClient.signAndBroadcast(
+        owner,
+        contractConfigAndStoreCodeMsgList.map((x) => x[1]),
+        fee
+      )) as unknown as { rawLog: string };
+
+      codeIdList = parseCodeIdListLegacy(tx.rawLog);
+    }
+    // default
+    else {
+      const { events } = await signingClient.signAndBroadcast(
+        owner,
+        contractConfigAndStoreCodeMsgList.map((x) => x[1]),
+        fee
+      );
+
+      codeIdList = parseCodeIdList(events);
+    }
 
     // update CONFIG with code id's
     for (const i in contractConfigAndStoreCodeMsgList) {

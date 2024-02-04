@@ -72,10 +72,11 @@ function npm_config() {
 }
 
 function npm_call() {
+  local args="$1"
   local dir="${PWD##*/}"
 
   cd ..
-  npm run call
+  npm run call $args
   cd $dir
 }
 
