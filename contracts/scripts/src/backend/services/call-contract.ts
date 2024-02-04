@@ -66,23 +66,23 @@ async function main() {
       signerStargaze
     );
 
-    // await cwQueryLendingPlatformConfig();
+    await cwQueryLendingPlatformConfig();
     // await cwQueryOracleConfig();
 
-    await cwUpdatePrices(
-      [
-        {
-          collection_address:
-            "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-          currency: { token: { native: { denom: "ustars" } }, decimals: 6 },
-          raw_prices: ["100", "200", "300", "400", "500"],
-          trading_volume_per_day: "1000",
-        },
-      ],
-      gasPriceStargaze
-    );
+    // await cwUpdatePrices(
+    //   [
+    //     {
+    //       collection_address:
+    //         "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+    //       currency: { token: { native: { denom: "ustars" } }, decimals: 6 },
+    //       raw_prices: ["100", "200", "300", "400", "500"],
+    //       trading_volume_per_day: "1000",
+    //     },
+    //   ],
+    //   gasPriceStargaze
+    // );
 
-    await cwQueryPrices();
+    // await cwQueryPrices();
   } catch (error) {
     l(error);
   }

@@ -1,0 +1,77 @@
+{
+    "chains": [
+        {
+            "name": "stargaze",
+            "chain_id": "stargaze-0",
+            "denom": "ustars",
+            "binary": "starsd",
+            "bech32_prefix": "stars",
+            "docker_image": {
+                "repository": "ghcr.io/strangelove-ventures/heighliner/stargaze",
+                "version": "v12.0.0"
+            },
+            "gas_prices": "0%DENOM%",
+            "chain_type": "cosmos",
+            "coin_type": 118,
+            "trusting_period": "112h",
+            "gas_adjustment": 2.0,
+            "number_vals": 1,
+            "number_node": 0,
+            "debugging": true,
+            "block_time": "500ms",
+            "ibc_paths": [],
+            "encoding-options": [
+                "stars"
+            ],
+            "genesis": {
+                "modify": [
+                    {
+                        "key": "app_state.gov.voting_params.voting_period",
+                        "value": "9s"
+                    },
+                    {
+                        "key": "app_state.gov.deposit_params.max_deposit_period",
+                        "value": "3s"
+                    },
+                    {
+                        "key": "app_state.gov.deposit_params.min_deposit.0.denom",
+                        "value": "ustars"
+                    },
+                    {
+                        "key": "app_state.gov.deposit_params.min_deposit.0.amount",
+                        "value": "1"
+                    }
+                ],
+                "accounts": [
+                    {
+                        "name": "admin",
+                        "address": "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                        "amount": "40000000000000%DENOM%",
+                        "mnemonic": "lemon degree side riot dawn spice oblige patch six cross judge grid"
+                    },
+                    {
+                        "name": "alice",
+                        "address": "stars1q5u23ppwrf7jvns33u9rm2xu8u37wyy699v2nx",
+                        "amount": "20000000000000%DENOM%",
+                        "mnemonic": "calm kiss merry zero scheme cotton until shop any air stage bus"
+                    },
+                    {
+                        "name": "bob",
+                        "address": "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u",
+                        "amount": "10000000000000%DENOM%",
+                        "mnemonic": "pizza kiss merit van off quote gym harvest fetch link avocado north"
+                    },
+                    {
+                        "name": "owner",
+                        "address": "stars1r84jhpjt7tfty4hzpsh9wqlkqnjlv8z8gx449k",
+                        "amount": "5000000000000%DENOM%",
+                        "mnemonic": "rose luxury focus exit polar apart fold option garlic base pretty join"
+                    }
+                ],
+                "startup_commands": [
+                    "%BIN% keys add example-key-after --keyring-backend test --home %HOME%"
+                ]
+            }
+        }
+    ]
+}

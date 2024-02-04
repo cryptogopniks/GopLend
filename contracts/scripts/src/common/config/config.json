@@ -8,7 +8,9 @@
           "TYPE": "local",
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-0",
-          "RPC_LIST": [],
+          "RPC_LIST": [
+            "http://127.0.0.1:33565"
+          ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
           "CONTRACTS": [
