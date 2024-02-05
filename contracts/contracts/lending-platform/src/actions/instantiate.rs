@@ -8,11 +8,11 @@ use goplend_base::{
     lending_platform::{
         msg::InstantiateMsg,
         state::{
-            BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME, CW20_CODE_ID,
-            DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
+            BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME,
+            CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
             UNBONDING_PERIOD,
         },
-        types::Config,
+        types::{Balances, Config},
     },
     utils::{validate_attr, Attrs},
 };
@@ -66,6 +66,8 @@ pub fn try_instantiate(
             bid_min_rate: msg.bid_min_rate.unwrap_or(str_to_dec(BID_MIN_RATE)),
         },
     )?;
+
+    BALANCES.save(deps.storage, &Balances::default())?;
 
     IS_LOCKED.save(deps.storage, &false)?;
 

@@ -166,6 +166,9 @@ pub enum QueryMsg {
     #[returns(Vec<QueryCollectionsResponseItem>)]
     QueryCollections { addresses: Option<Vec<String>> },
 
+    #[returns(Decimal)]
+    QueryBglCurrencyToMainCurrencyPrice {},
+
     // test
     #[returns(u64)]
     QueryBlockCounter {},

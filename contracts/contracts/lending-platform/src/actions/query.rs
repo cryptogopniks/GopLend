@@ -1,7 +1,8 @@
-use cosmwasm_std::{Addr, Deps, Env, Order, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult};
 
 use goplend_base::{
     assets::{Funds, Token},
+    converters::u128_to_dec,
     lending_platform::{
         msg::{
             QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
@@ -17,7 +18,7 @@ use goplend_base::{
             Liquidator,
         },
     },
-    utils::filter_by_address_list,
+    utils::{filter_by_address_list, unwrap_field},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -206,6 +207,22 @@ pub fn query_collections(
             collection,
         })
         .collect())
+}
+
+pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdResult<Decimal> {
+    let balances = BALANCES.load(deps.storage)?;
+    // TODO: add decimals
+    // let config = CONFIG.load(deps.storage)?;
+    // let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
+
+    let price = if balances.total_bgl_currency_supply.is_zero() {
+        Decimal::one()
+    } else {
+        u128_to_dec(balances.total_main_currency_pool)
+            / u128_to_dec(balances.total_bgl_currency_supply)
+    };
+
+    Ok(price)
 }
 
 pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
