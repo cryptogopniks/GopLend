@@ -1,17 +1,99 @@
+use goplend_base::{assets::Token, converters::str_to_dec, error::ContractError};
 use speculoos::assert_that;
 
 use cosmwasm_std::StdResult;
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
-    suite::{core::Project, types::ProjectAccount},
+    suite::{
+        core::{assert_error, Project},
+        types::{ProjectAccount, ProjectCoin},
+    },
 };
 
 #[test]
-fn create_bgl_token_default() -> StdResult<()> {
+fn deposit_improper_main_currency() -> StdResult<()> {
     let mut project = Project::new();
 
-    let res = project.lending_platform_query_config()?;
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // deposit improper token
+    let res = project
+        .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Noria)
+        .unwrap_err();
+
+    assert_error(&res, ContractError::WrongAssetType);
+
+    Ok(())
+}
+
+#[test]
+fn deposit_default() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // check user balances
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+
+    let stars_difference = stars_before - stars_after;
+    let bgl_stars_difference = bgl_stars_after - bgl_stars_before;
+
+    assert_that(&stars_difference).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&bgl_stars_difference).is_equal_to(DEPOSIT_AMOUNT);
+
+    // check contract balances
+    let balances = project.lending_platform_query_balances()?;
+
+    assert_that(&balances.total_deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&balances.total_main_currency_pool.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&balances.total_bgl_currency_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
+
+    Ok(())
+}
+
+#[test]
+fn deposit_does_not_change_bgl_price() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
+
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // deposit doesn't change bgl token price
+    let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
+
+    project.lending_platform_try_deposit(
+        ProjectAccount::Bob,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
 
     Ok(())
 }

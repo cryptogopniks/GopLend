@@ -1,4 +1,4 @@
-use cosmwasm_std::{StdResult, Uint128};
+use cosmwasm_std::{Decimal, StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
@@ -202,6 +202,8 @@ pub trait LendingPlatformExtension {
         &self,
         addresses: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>>;
+
+    fn lending_platform_query_bgl_currency_to_main_currency_price(&self) -> StdResult<Decimal>;
 
     fn lending_platform_query_block_counter(&self) -> StdResult<u64>;
 }
@@ -695,6 +697,14 @@ impl LendingPlatformExtension for Project {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryCollections { addresses },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_bgl_currency_to_main_currency_price(&self) -> StdResult<Decimal> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryBglCurrencyToMainCurrencyPrice {},
         )
     }
 

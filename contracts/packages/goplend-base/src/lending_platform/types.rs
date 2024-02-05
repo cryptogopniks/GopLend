@@ -79,6 +79,7 @@ pub struct Liquidator {
     pub collection_addresses: Vec<Addr>,
 }
 
+#[derive(Default)]
 #[cw_serde]
 pub struct Balances {
     pub total_deposited: Uint128,

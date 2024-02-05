@@ -323,6 +323,33 @@ impl Project {
         collection_and_tokens_response_list
     }
 
+    pub fn query_balance(
+        &self,
+        account: ProjectAccount,
+        token: &(impl Into<Token> + Clone),
+    ) -> StdResult<u128> {
+        let token: Token = token.to_owned().into();
+
+        match token {
+            Token::Native { denom } => Ok(self
+                .app
+                .wrap()
+                .query_balance(account.to_string(), denom)?
+                .amount
+                .u128()),
+            Token::Cw20 { address } => {
+                let cw20::BalanceResponse { balance } = self.app.wrap().query_wasm_smart(
+                    address.to_string(),
+                    &cw20::Cw20QueryMsg::Balance {
+                        address: account.to_string(),
+                    },
+                )?;
+
+                Ok(balance.u128())
+            }
+        }
+    }
+
     pub fn query_all_balances(&self, account: ProjectAccount) -> StdResult<Vec<Funds<Token>>> {
         let mut funds_list: Vec<Funds<Token>> = vec![];
 

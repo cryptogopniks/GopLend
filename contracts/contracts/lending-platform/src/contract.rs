@@ -191,6 +191,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_collections(deps, env, addresses)?)
         }
 
+        QueryMsg::QueryBglCurrencyToMainCurrencyPrice {} => {
+            to_json_binary(&q::query_bgl_currency_to_main_currency_price(deps, env)?)
+        }
+
         QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }
 }

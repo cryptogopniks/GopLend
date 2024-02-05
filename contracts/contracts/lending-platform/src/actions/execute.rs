@@ -9,8 +9,8 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BGL_CURRENCY_DECIMALS, COLLECTIONS, CONFIG, CW20_NAME, CW20_SYMBOL, IS_LOCKED,
-            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
+            BALANCES, BGL_CURRENCY_DECIMALS, COLLECTIONS, CONFIG, CW20_NAME, CW20_SYMBOL,
+            IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
         },
         types::{Collection, Config, Proposal, ProposalStatus, ProposalType},
     },
@@ -28,7 +28,46 @@ pub fn try_deposit(
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_deposit")]))
+    let Config {
+        main_currency,
+        bgl_currency,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    // update contract balances
+    let mut balances = BALANCES.load(deps.storage)?;
+
+    // initially 1 bgl_token == 1 main_token
+    let bgl_token_amount = if balances.total_bgl_currency_supply.is_zero() {
+        asset_amount
+    } else {
+        asset_amount * balances.total_bgl_currency_supply / balances.total_main_currency_pool
+    };
+
+    balances.total_deposited += asset_amount;
+    balances.total_main_currency_pool += asset_amount;
+    balances.total_bgl_currency_supply += bgl_token_amount;
+
+    BALANCES.save(deps.storage, &balances)?;
+
+    // mint bgl_token to sender
+    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
+        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
+            recipient: sender_address.to_string(),
+            amount: bgl_token_amount,
+        })?,
+        funds: vec![],
+    });
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_deposit")]))
 }
 
 #[allow(clippy::too_many_arguments)]
