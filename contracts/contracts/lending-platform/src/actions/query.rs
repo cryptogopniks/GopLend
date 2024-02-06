@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
 
 use goplend_base::{
     assets::{Funds, Token},
@@ -225,8 +225,25 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdRe
     Ok(price)
 }
 
+pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
+    let Config {
+        borrow_apr,
+        borrow_fee_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let Balances {
+        total_deposited,
+        total_unbonded,
+        total_borrowed,
+        ..
+    } = BALANCES.load(deps.storage)?;
+
+    let deposit_apr = u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
+        / u128_to_dec(std::cmp::max(total_deposited, Uint128::one()) - total_unbonded);
+
+    Ok(deposit_apr)
+}
+
 pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
     Ok(BLOCK_COUNTER.load(deps.storage).unwrap_or_default())
 }
-
-// TODO: add query apr

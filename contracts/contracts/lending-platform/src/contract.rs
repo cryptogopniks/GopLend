@@ -199,6 +199,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_bgl_currency_to_main_currency_price(deps, env)?)
         }
 
+        QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
+
         QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }
 }
