@@ -88,6 +88,7 @@ pub struct Balances {
     pub total_liquidation_bids: Uint128,
     pub total_main_currency_pool: Uint128,
     pub total_bgl_currency_supply: Uint128,
+    // TODO: add otc pools
 }
 
 #[cw_serde]

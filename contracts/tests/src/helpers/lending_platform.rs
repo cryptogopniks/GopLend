@@ -17,7 +17,7 @@ use goplend_base::{
 };
 
 use crate::helpers::suite::{
-    core::{add_funds_to_exec_msg, Project},
+    core::{add_funds_to_exec_msg, add_token_to_exec_msg, Project},
     types::{ProjectAccount, ProjectAsset, ProjectNft},
 };
 
@@ -33,15 +33,10 @@ pub trait LendingPlatformExtension {
         &mut self,
         sender: ProjectAccount,
         amount: u128,
-        asset: impl Into<ProjectAsset>,
+        asset: &Token,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_withdraw(
-        &mut self,
-        sender: ProjectAccount,
-        amount: u128,
-        asset: impl Into<ProjectAsset>,
-    ) -> StdResult<AppResponse>;
+    fn lending_platform_try_withdraw(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
     fn lending_platform_try_deposit_collateral(
         &mut self,
@@ -227,25 +222,24 @@ impl LendingPlatformExtension for Project {
         &mut self,
         sender: ProjectAccount,
         amount: u128,
-        asset: impl Into<ProjectAsset>,
+        asset: &Token,
     ) -> StdResult<AppResponse> {
         let contract_address = &self.get_lending_platform_address();
         let msg = &ExecuteMsg::Unbond {};
 
-        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+        add_token_to_exec_msg(self, sender, contract_address, msg, amount, asset)
     }
 
     #[track_caller]
-    fn lending_platform_try_withdraw(
-        &mut self,
-        sender: ProjectAccount,
-        amount: u128,
-        asset: impl Into<ProjectAsset>,
-    ) -> StdResult<AppResponse> {
-        let contract_address = &self.get_lending_platform_address();
-        let msg = &ExecuteMsg::Withdraw {};
-
-        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    fn lending_platform_try_withdraw(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Withdraw {},
+                &[],
+            )
+            .map_err(parse_err)
     }
 
     #[track_caller]

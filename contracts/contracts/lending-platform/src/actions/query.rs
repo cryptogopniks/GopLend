@@ -228,3 +228,5 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdRe
 pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
     Ok(BLOCK_COUNTER.load(deps.storage).unwrap_or_default())
 }
+
+// TODO: add query apr

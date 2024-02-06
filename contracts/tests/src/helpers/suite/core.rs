@@ -482,3 +482,39 @@ pub fn add_funds_to_exec_msg<T: Serialize + std::fmt::Debug>(
         }
     }
 }
+
+pub fn add_token_to_exec_msg<T: Serialize + std::fmt::Debug>(
+    project: &mut Project,
+    sender: ProjectAccount,
+    contract_address: &Addr,
+    msg: &T,
+    amount: impl Into<Uint128>,
+    asset: &Token,
+) -> StdResult<AppResponse> {
+    match asset {
+        Token::Native { denom } => project
+            .app
+            .execute_contract(
+                sender.into(),
+                contract_address.to_owned(),
+                msg,
+                &[coin(
+                    Into::<Uint128>::into(amount).u128(),
+                    denom.to_string(),
+                )],
+            )
+            .map_err(parse_err),
+        Token::Cw20 { address } => {
+            let wasm_msg = cw20::Cw20ExecuteMsg::Send {
+                contract: contract_address.to_string(),
+                amount: Into::<Uint128>::into(amount),
+                msg: to_json_binary(msg).unwrap(),
+            };
+
+            project
+                .app
+                .execute_contract(sender.into(), address.to_owned(), &wasm_msg, &[])
+                .map_err(parse_err)
+        }
+    }
+}
