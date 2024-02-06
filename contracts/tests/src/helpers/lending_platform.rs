@@ -116,6 +116,13 @@ pub trait LendingPlatformExtension {
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
+    fn lending_platform_try_deposit_reserve_liquidity(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse>;
+
     fn lending_platform_try_lock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
     fn lending_platform_try_unlock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
@@ -439,6 +446,19 @@ impl LendingPlatformExtension for Project {
                 &[],
             )
             .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_deposit_reserve_liquidity(
+        &mut self,
+        sender: ProjectAccount,
+        amount: u128,
+        asset: impl Into<ProjectAsset>,
+    ) -> StdResult<AppResponse> {
+        let contract_address = &self.get_lending_platform_address();
+        let msg = &ExecuteMsg::DepositReserveLiquidity {};
+
+        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
     }
 
     #[track_caller]

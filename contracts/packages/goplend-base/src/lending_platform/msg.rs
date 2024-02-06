@@ -102,6 +102,8 @@ pub enum ExecuteMsg {
     // admin, owner
     CreateBglToken {},
 
+    DepositReserveLiquidity {},
+
     Lock {},
 
     Unlock {},
