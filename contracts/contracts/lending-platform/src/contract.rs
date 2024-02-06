@@ -55,6 +55,8 @@ pub fn execute(
                 amount,
             } => unimplemented!(),
 
+            ExecuteMsg::DepositReserveLiquidity {} => unimplemented!(),
+
             ExecuteMsg::AcceptProposal { id } => {
                 e::try_accept_proposal(deps, env, info, id, Some(sender), Some(amount))
             }
@@ -125,6 +127,8 @@ pub fn execute(
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
 
+        ExecuteMsg::DepositReserveLiquidity {} => unimplemented!(),
+
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
         ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
@@ -194,6 +198,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryBglCurrencyToMainCurrencyPrice {} => {
             to_json_binary(&q::query_bgl_currency_to_main_currency_price(deps, env)?)
         }
+
+        QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
 
         QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }

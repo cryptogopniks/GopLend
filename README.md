@@ -37,7 +37,7 @@ Initially the price of `bglSTARS` is equal to the price of `STARS`, but as the p
 
 The yield on deposit is calculated as
 ```
-deposit_apr = (BORROW_APR - BORROW_FEE_RATE) * total_borrowed_amount / total_deposited_amount
+deposit_apr = (BORROW_APR - BORROW_FEE_RATE) * total_borrowed_amount / (total_deposited_amount - total_unbonded_amount)
 ```
 where `BORROW_APR` is 25 %, `BORROW_FEE_RATE` is 5 %.
 

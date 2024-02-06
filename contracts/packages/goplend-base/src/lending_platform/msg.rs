@@ -102,6 +102,8 @@ pub enum ExecuteMsg {
     // admin, owner
     CreateBglToken {},
 
+    DepositReserveLiquidity {},
+
     Lock {},
 
     Unlock {},
@@ -168,6 +170,9 @@ pub enum QueryMsg {
 
     #[returns(Decimal)]
     QueryBglCurrencyToMainCurrencyPrice {},
+
+    #[returns(Decimal)]
+    QueryDepositApr {},
 
     // test
     #[returns(u64)]

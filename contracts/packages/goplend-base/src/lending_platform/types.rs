@@ -88,7 +88,8 @@ pub struct Balances {
     pub total_liquidation_bids: Uint128,
     pub total_main_currency_pool: Uint128,
     pub total_bgl_currency_supply: Uint128,
-    // TODO: add otc pools
+    pub reserve_main_currency_pool: Uint128, // reserve liquidity, doesn't affect on other stats
+    pub reserve_bgl_currency_supply: Uint128,
 }
 
 #[cw_serde]
