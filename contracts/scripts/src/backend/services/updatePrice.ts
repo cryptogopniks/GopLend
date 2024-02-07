@@ -15,6 +15,10 @@ const client = new ApolloClient({
 });
 
 
+// network config
+const CHAIN_ID = "elgafar-1";
+const PREFIX = "stars";
+const RPC = "https://rpc.elgafar-1.stargaze-apis.com";
 var address = "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw"
 var amounts
 
@@ -98,13 +102,6 @@ const fetchData = async () => {
 };
 
 fetchData();
-
-
-
-// network config
-const CHAIN_ID = "elgafar-1";
-const PREFIX = "stars";
-const RPC = "https://rpc.elgafar-1.stargaze-apis.com";
 
 
 
