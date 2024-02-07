@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
-    converters::u128_to_dec,
+    converters::{dec256_to_uint128, u128_to_dec, u128_to_dec256},
     error::ContractError,
     lending_platform::{
         state::{
@@ -43,11 +43,15 @@ pub fn try_deposit(
     let mut balances = BALANCES.load(deps.storage)?;
 
     // initially 1 bgl_token == 1 main_token
-    let bgl_token_amount = if balances.total_bgl_currency_supply.is_zero() {
-        asset_amount
+    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
+        / u128_to_dec256(10u128.pow(main_currency.decimals as u32));
+
+    let bgl_token_amount = dec256_to_uint128(if balances.total_bgl_currency_supply.is_zero() {
+        decimals_multiplier * u128_to_dec256(asset_amount)
     } else {
-        asset_amount * balances.total_bgl_currency_supply / balances.total_main_currency_pool
-    };
+        decimals_multiplier * u128_to_dec256(asset_amount * balances.total_bgl_currency_supply)
+            / u128_to_dec256(balances.total_main_currency_pool)
+    });
 
     balances.total_deposited += asset_amount;
     balances.total_main_currency_pool += asset_amount;

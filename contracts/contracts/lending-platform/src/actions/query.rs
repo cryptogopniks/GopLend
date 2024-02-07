@@ -1,8 +1,8 @@
-use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, Decimal256, Deps, Env, Order, StdResult, Uint128};
 
 use goplend_base::{
     assets::{Funds, Token},
-    converters::u128_to_dec,
+    converters::{dec256_to_dec, u128_to_dec, u128_to_dec256},
     lending_platform::{
         msg::{
             QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
@@ -211,18 +211,20 @@ pub fn query_collections(
 
 pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdResult<Decimal> {
     let balances = BALANCES.load(deps.storage)?;
-    // TODO: add decimals
-    // let config = CONFIG.load(deps.storage)?;
-    // let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
+    let config = CONFIG.load(deps.storage)?;
+    let main_currency = config.main_currency;
+    let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
 
     let price = if balances.total_bgl_currency_supply.is_zero() {
-        Decimal::one()
+        Decimal256::one()
     } else {
-        u128_to_dec(balances.total_main_currency_pool)
-            / u128_to_dec(balances.total_bgl_currency_supply)
+        u128_to_dec256(balances.total_main_currency_pool)
+            * u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
+            / (u128_to_dec256(balances.total_bgl_currency_supply)
+                * u128_to_dec256(10u128.pow(main_currency.decimals as u32)))
     };
 
-    Ok(price)
+    Ok(dec256_to_dec(price))
 }
 
 pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
