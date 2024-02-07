@@ -55,7 +55,9 @@ pub fn execute(
                 amount,
             } => unimplemented!(),
 
-            ExecuteMsg::DepositReserveLiquidity {} => unimplemented!(),
+            ExecuteMsg::DepositReserveLiquidity {} => {
+                e::try_deposit_reserve_liquidity(deps, env, info, Some(sender), Some(amount))
+            }
 
             ExecuteMsg::AcceptProposal { id } => {
                 e::try_accept_proposal(deps, env, info, id, Some(sender), Some(amount))
@@ -127,7 +129,9 @@ pub fn execute(
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
 
-        ExecuteMsg::DepositReserveLiquidity {} => unimplemented!(),
+        ExecuteMsg::DepositReserveLiquidity {} => {
+            e::try_deposit_reserve_liquidity(deps, env, info, None, None)
+        }
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 

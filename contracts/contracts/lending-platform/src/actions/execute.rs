@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
-    converters::u128_to_dec,
+    converters::{dec256_to_uint128, u128_to_dec, u128_to_dec256},
     error::ContractError,
     lending_platform::{
         state::{
@@ -43,11 +43,15 @@ pub fn try_deposit(
     let mut balances = BALANCES.load(deps.storage)?;
 
     // initially 1 bgl_token == 1 main_token
-    let bgl_token_amount = if balances.total_bgl_currency_supply.is_zero() {
-        asset_amount
+    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
+        / u128_to_dec256(10u128.pow(main_currency.decimals as u32));
+
+    let bgl_token_amount = dec256_to_uint128(if balances.total_bgl_currency_supply.is_zero() {
+        decimals_multiplier * u128_to_dec256(asset_amount)
     } else {
-        asset_amount * balances.total_bgl_currency_supply / balances.total_main_currency_pool
-    };
+        decimals_multiplier * u128_to_dec256(asset_amount * balances.total_bgl_currency_supply)
+            / u128_to_dec256(balances.total_main_currency_pool)
+    });
 
     balances.total_deposited += asset_amount;
     balances.total_main_currency_pool += asset_amount;
@@ -202,6 +206,66 @@ pub fn try_create_bgl_token(
     Ok(Response::new()
         .add_submessage(submsg)
         .add_attributes([("action", "try_create_bgl_token")]))
+}
+
+pub fn try_deposit_reserve_liquidity(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+
+    let Config {
+        main_currency,
+        bgl_currency,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    // update contract balances
+    let mut balances = BALANCES.load(deps.storage)?;
+
+    // initially 1 bgl_token == 1 main_token
+    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
+        / u128_to_dec256(10u128.pow(main_currency.decimals as u32));
+
+    let bgl_token_amount = dec256_to_uint128(if balances.total_bgl_currency_supply.is_zero() {
+        decimals_multiplier * u128_to_dec256(asset_amount)
+    } else {
+        decimals_multiplier * u128_to_dec256(asset_amount * balances.total_bgl_currency_supply)
+            / u128_to_dec256(balances.total_main_currency_pool)
+    });
+
+    // it doesn't affect on deposit APR
+    balances.total_main_currency_pool += asset_amount;
+    balances.reserve_main_currency_pool += asset_amount;
+    balances.total_bgl_currency_supply += bgl_token_amount;
+    balances.reserve_bgl_currency_supply += bgl_token_amount;
+
+    BALANCES.save(deps.storage, &balances)?;
+
+    // mint bgl_token to sender
+    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
+        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
+            recipient: sender_address.to_string(),
+            amount: bgl_token_amount,
+        })?,
+        funds: vec![],
+    });
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
 }
 
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
