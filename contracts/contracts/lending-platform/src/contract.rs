@@ -43,7 +43,7 @@ pub fn execute(
         }) => match from_json(msg)? {
             ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info, Some(sender), Some(amount)),
 
-            ExecuteMsg::Unbond {} => unimplemented!(),
+            ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, Some(sender), Some(amount)),
 
             ExecuteMsg::Repay {} => unimplemented!(),
 
@@ -68,7 +68,7 @@ pub fn execute(
 
         ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info, None, None),
 
-        ExecuteMsg::Unbond {} => unimplemented!(),
+        ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, None, None),
 
         ExecuteMsg::Withdraw {} => unimplemented!(),
 

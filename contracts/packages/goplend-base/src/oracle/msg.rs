@@ -35,6 +35,7 @@ pub enum QueryMsg {
     QueryPrices {
         collection_addresses: Option<Vec<String>>,
     },
+    // TODO: add block_time query
 }
 
 #[cw_serde]
