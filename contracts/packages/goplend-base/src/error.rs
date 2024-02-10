@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Multiple positions with same creation date are not allowed!")]
+    SameCreationDate,
+
     #[error("Address already exists!")]
     AddressExists,
 

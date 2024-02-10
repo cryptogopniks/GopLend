@@ -33,6 +33,7 @@ pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");
 
+// TODO: replace DEPOSITORS with UNBONDERS
 pub const DEPOSITORS: Map<&Addr, Depositor> = Map::new("depositor by address");
 pub const BORROWERS: Map<&Addr, Borrower> = Map::new("borrower by address");
 pub const COLLATERALS: Map<&Addr, Collateral> = Map::new("collateral by collection address");

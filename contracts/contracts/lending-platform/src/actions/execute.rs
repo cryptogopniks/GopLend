@@ -5,17 +5,20 @@ use cosmwasm_std::{
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
-    converters::{dec256_to_uint128, u128_to_dec, u128_to_dec256},
+    converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, COLLECTIONS, CONFIG, CW20_NAME, CW20_SYMBOL,
-            IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
+            DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
+            SAVE_CW20_ADDRESS_REPLY,
         },
-        types::{Collection, Config, Proposal, ProposalStatus, ProposalType},
+        types::{Collection, Config, Depositor, Proposal, ProposalStatus, ProposalType, Vault},
     },
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
+
+use crate::math::{calc_minted_bgl_token_amount, calc_unbonded_main_token_amount};
 
 pub fn try_deposit(
     deps: DepsMut,
@@ -42,16 +45,13 @@ pub fn try_deposit(
     // update contract balances
     let mut balances = BALANCES.load(deps.storage)?;
 
-    // initially 1 bgl_token == 1 main_token
-    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
-        / u128_to_dec256(10u128.pow(main_currency.decimals as u32));
-
-    let bgl_token_amount = dec256_to_uint128(if balances.total_bgl_currency_supply.is_zero() {
-        decimals_multiplier * u128_to_dec256(asset_amount)
-    } else {
-        decimals_multiplier * u128_to_dec256(asset_amount * balances.total_bgl_currency_supply)
-            / u128_to_dec256(balances.total_main_currency_pool)
-    });
+    let bgl_token_amount = calc_minted_bgl_token_amount(
+        asset_amount,
+        balances.total_main_currency_pool,
+        balances.total_bgl_currency_supply,
+        main_currency.decimals,
+        bgl_currency.decimals,
+    );
 
     balances.total_deposited += asset_amount;
     balances.total_main_currency_pool += asset_amount;
@@ -72,6 +72,89 @@ pub fn try_deposit(
     Ok(Response::new()
         .add_message(msg)
         .add_attributes(vec![("action", "try_deposit")]))
+}
+
+pub fn try_unbond(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        bgl_currency,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    if asset_info != bgl_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    // update balances
+    let mut balances = BALANCES.load(deps.storage)?;
+
+    let main_token_amount = calc_unbonded_main_token_amount(
+        asset_amount,
+        balances.total_main_currency_pool,
+        balances.total_bgl_currency_supply,
+        main_currency.decimals,
+        bgl_currency.decimals,
+    );
+
+    balances.total_unbonded += main_token_amount;
+    balances.total_bgl_currency_supply -= asset_amount;
+
+    BALANCES.save(deps.storage, &balances)?;
+
+    // create unbonding position to withdraw main token later
+    DEPOSITORS.update(deps.storage, &sender_address, |x| -> StdResult<Depositor> {
+        let depositor = match x {
+            Some(mut depositor) => {
+                // don't allow multiple vaults with same creation date
+                let creation_date_list: Vec<u64> =
+                    depositor.unbonded.iter().map(|y| y.creation_date).collect();
+
+                if creation_date_list.contains(&block_time) {
+                    Err(ContractError::SameCreationDate)?;
+                }
+
+                depositor.unbonded.push(Vault {
+                    amount: main_token_amount,
+                    creation_date: block_time,
+                });
+
+                depositor
+            }
+            None => Depositor {
+                unbonded: vec![Vault {
+                    amount: main_token_amount,
+                    creation_date: block_time,
+                }],
+            },
+        };
+
+        Ok(depositor)
+    })?;
+
+    // burn bgl token
+    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
+        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
+            amount: asset_amount,
+        })?,
+        funds: vec![],
+    });
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_unbond")]))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -234,16 +317,13 @@ pub fn try_deposit_reserve_liquidity(
     // update contract balances
     let mut balances = BALANCES.load(deps.storage)?;
 
-    // initially 1 bgl_token == 1 main_token
-    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
-        / u128_to_dec256(10u128.pow(main_currency.decimals as u32));
-
-    let bgl_token_amount = dec256_to_uint128(if balances.total_bgl_currency_supply.is_zero() {
-        decimals_multiplier * u128_to_dec256(asset_amount)
-    } else {
-        decimals_multiplier * u128_to_dec256(asset_amount * balances.total_bgl_currency_supply)
-            / u128_to_dec256(balances.total_main_currency_pool)
-    });
+    let bgl_token_amount = calc_minted_bgl_token_amount(
+        asset_amount,
+        balances.total_main_currency_pool,
+        balances.total_bgl_currency_supply,
+        main_currency.decimals,
+        bgl_currency.decimals,
+    );
 
     // it doesn't affect on deposit APR
     balances.total_main_currency_pool += asset_amount;

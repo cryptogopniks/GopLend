@@ -1,8 +1,7 @@
-use cosmwasm_std::{Addr, Decimal, Decimal256, Deps, Env, Order, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult};
 
 use goplend_base::{
     assets::{Funds, Token},
-    converters::{dec256_to_dec, u128_to_dec, u128_to_dec256},
     lending_platform::{
         msg::{
             QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
@@ -20,6 +19,8 @@ use goplend_base::{
     },
     utils::{filter_by_address_list, unwrap_field},
 };
+
+use crate::math::{calc_bgl_to_main_price, calc_deposit_apr};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -215,16 +216,12 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdRe
     let main_currency = config.main_currency;
     let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
 
-    let price = if balances.total_bgl_currency_supply.is_zero() {
-        Decimal256::one()
-    } else {
-        u128_to_dec256(balances.total_main_currency_pool)
-            * u128_to_dec256(10u128.pow(bgl_currency.decimals as u32))
-            / (u128_to_dec256(balances.total_bgl_currency_supply)
-                * u128_to_dec256(10u128.pow(main_currency.decimals as u32)))
-    };
-
-    Ok(dec256_to_dec(price))
+    Ok(calc_bgl_to_main_price(
+        balances.total_main_currency_pool,
+        balances.total_bgl_currency_supply,
+        main_currency.decimals,
+        bgl_currency.decimals,
+    ))
 }
 
 pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
@@ -240,10 +237,13 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
         ..
     } = BALANCES.load(deps.storage)?;
 
-    let deposit_apr = u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
-        / u128_to_dec(std::cmp::max(total_deposited, Uint128::one()) - total_unbonded);
-
-    Ok(deposit_apr)
+    Ok(calc_deposit_apr(
+        borrow_apr,
+        borrow_fee_rate,
+        total_deposited,
+        total_unbonded,
+        total_borrowed,
+    ))
 }
 
 pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
