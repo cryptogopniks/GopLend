@@ -81,3 +81,27 @@ pub fn calc_ltv(
 
     loan / u128_to_dec(collateral)
 }
+
+pub fn calc_accumulated_loan(
+    borrow_apr: Decimal,
+    accumulated_loan: Uint128,
+    loan: Uint128,
+    block_time: u64,
+    loan_creation_date: u64,
+) -> Uint128 {
+    (u128_to_dec(accumulated_loan)
+        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date)))
+    .to_uint_floor()
+}
+
+pub fn calc_bid_min_multiplier(bid_min_rate: Decimal) -> Decimal {
+    Decimal::one() + bid_min_rate
+}
+
+pub fn calc_bid_max_multiplier(
+    bid_min_rate: Decimal,
+    discount_max_rate: Decimal,
+    discount_min_rate: Decimal,
+) -> Decimal {
+    calc_bid_min_multiplier(bid_min_rate) / (discount_max_rate - discount_min_rate)
+}

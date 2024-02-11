@@ -51,5 +51,6 @@ pub struct QueryPricesResponseItem {
 //     pub address: Addr,
 //     pub currency: Currency<Token>,
 //     pub token_and_price_list: Vec<(String, Uint128)>,
+//     pub collection_price: Uint128,
 //     pub price_update_date: u64,
 // }

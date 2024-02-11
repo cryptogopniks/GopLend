@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Max LTV is exceeded!")]
+    ExceededLtv,
+
     #[error("Collection {val:?} price data is outdated!")]
     OutdatedPrice { val: String },
 

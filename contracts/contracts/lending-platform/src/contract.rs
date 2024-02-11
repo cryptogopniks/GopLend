@@ -78,7 +78,7 @@ pub fn execute(
 
         ExecuteMsg::WithdrawCollateral { collections } => unimplemented!(),
 
-        ExecuteMsg::Borrow { amount } => unimplemented!(),
+        ExecuteMsg::Borrow { amount } => e::try_borrow(deps, env, info, amount),
 
         ExecuteMsg::Repay {} => unimplemented!(),
 

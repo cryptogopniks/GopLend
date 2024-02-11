@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
+    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
     StdResult, SubMsg, Uint128, WasmMsg,
 };
 
@@ -11,15 +11,16 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BGL_CURRENCY_DECIMALS, COLLATERALS, COLLECTIONS, CONFIG, CW20_NAME,
-            CW20_SYMBOL, DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
-            SAVE_CW20_ADDRESS_REPLY,
+            BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
+            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS,
+            PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
         },
         types::{
-            Collateral, Collection, CollectionInfo, Config, Depositor, Proposal, ProposalStatus,
-            ProposalType, Vault,
+            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, Proposal,
+            ProposalStatus, ProposalType, Vault,
         },
     },
+    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
@@ -27,7 +28,10 @@ use crate::{
     helpers::{
         check_authorization, check_collections_holder, check_lockout, verify_proposal_status,
     },
-    math::{calc_minted_bgl_token_amount, calc_unbonded_main_token_amount},
+    math::{
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_ltv, calc_minted_bgl_token_amount,
+        calc_unbonded_main_token_amount,
+    },
 };
 
 pub fn try_deposit(
@@ -219,13 +223,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
             })?,
             funds: vec![],
         }),
-        CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
-            to_address: sender_address.to_string(),
-            amount: coins(
-                amount_to_withdraw.u128(),
-                main_currency.token.try_get_native()?,
-            ),
-        }),
+        get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?,
     ];
 
     Ok(Response::new()
@@ -304,6 +302,120 @@ pub fn try_deposit_collateral(
     Ok(Response::new()
         .add_messages(msg_list)
         .add_attributes(vec![("action", "try_deposit_collateral")]))
+}
+
+pub fn try_borrow(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    amount: Uint128,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        borrow_apr,
+        oracle,
+        discount_max_rate,
+        discount_min_rate,
+        bid_min_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_collection, collateral)| collateral.owner == &sender_address)
+        .collect();
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection, _collateral)| -> StdResult<Uint128> {
+            let oracle::msg::QueryPricesResponseItem {
+                price,
+                price_update_date,
+                ..
+            } = prices.iter().find(|x| x.address == collection).ok_or(
+                ContractError::PriceIsNotFound {
+                    val: collection.to_string(),
+                },
+            )?;
+
+            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+                Err(ContractError::OutdatedPrice {
+                    val: collection.to_string(),
+                })?;
+            }
+
+            let (_collection, collateral) = collection_and_collateral_list
+                .iter()
+                .find(|(collection_address, ..)| collection_address == collection)
+                .ok_or(ContractError::Unauthorized)?;
+
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    borrower.accumulated_loan = calc_accumulated_loan(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    );
+    borrower.loan = Vault {
+        creation_date: block_time,
+        amount,
+    };
+
+    let ltv = calc_ltv(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        collateral_value,
+        block_time,
+        borrower.loan.creation_date,
+    );
+
+    let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+
+    if ltv > ltv_max {
+        Err(ContractError::ExceededLtv)?;
+    }
+
+    // update states
+    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_borrowed += amount;
+
+        Ok(x)
+    })?;
+
+    // create send msg
+    let msg = get_transfer_msg(&sender_address, amount, &main_currency.token)?;
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_borrow")]))
 }
 
 #[allow(clippy::too_many_arguments)]
