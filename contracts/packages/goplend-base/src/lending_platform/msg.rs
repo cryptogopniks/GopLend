@@ -177,6 +177,9 @@ pub enum QueryMsg {
     #[returns(Decimal)]
     QueryDepositApr {},
 
+    #[returns(Decimal)]
+    QueryLtv { borrower: String },
+
     // test
     #[returns(u64)]
     QueryBlockCounter {},

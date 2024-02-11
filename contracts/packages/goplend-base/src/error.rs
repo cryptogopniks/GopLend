@@ -37,6 +37,12 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Collection {val:?} price data is outdated!")]
+    OutdatedPrice { val: String },
+
+    #[error("Collection {val:?} price data is not found!")]
+    PriceIsNotFound { val: String },
+
     #[error("Currency can not be changed after adding liquidity!")]
     ChangingCurrency,
 

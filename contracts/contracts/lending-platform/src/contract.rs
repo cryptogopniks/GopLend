@@ -207,6 +207,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
 
+        QueryMsg::QueryLtv { borrower } => to_json_binary(&q::query_ltv(deps, env, borrower)?),
+
         QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }
 }

@@ -1,7 +1,8 @@
-use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
 
 use goplend_base::{
     assets::{Funds, Token},
+    error::ContractError,
     lending_platform::{
         msg::{
             QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
@@ -17,10 +18,11 @@ use goplend_base::{
             Liquidator,
         },
     },
+    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math::{calc_bgl_to_main_price, calc_deposit_apr};
+use crate::math::{calc_bgl_to_main_price, calc_deposit_apr, calc_ltv};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -243,6 +245,73 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
         total_deposited,
         total_unbonded,
         total_borrowed,
+    ))
+}
+
+pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr, oracle, ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let borrower_address = deps.api.addr_validate(&borrower)?;
+    let borrower = BORROWERS.load(deps.storage, &borrower_address)?;
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_collection, collateral)| collateral.owner == &borrower_address)
+        .collect();
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection, _collateral)| -> StdResult<Uint128> {
+            let oracle::msg::QueryPricesResponseItem {
+                price,
+                price_update_date,
+                ..
+            } = prices.iter().find(|x| x.address == collection).ok_or(
+                ContractError::PriceIsNotFound {
+                    val: collection.to_string(),
+                },
+            )?;
+
+            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+                Err(ContractError::OutdatedPrice {
+                    val: collection.to_string(),
+                })?;
+            }
+
+            let (_collection, collateral) = collection_and_collateral_list
+                .iter()
+                .find(|(collection_address, ..)| collection_address == collection)
+                .ok_or(ContractError::Unauthorized)?;
+
+            // TODO: decimals, other currencies
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    Ok(calc_ltv(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        collateral_value,
+        block_time,
+        borrower.loan.creation_date,
     ))
 }
 
