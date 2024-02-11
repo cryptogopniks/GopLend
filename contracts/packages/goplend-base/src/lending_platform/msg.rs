@@ -104,6 +104,7 @@ pub enum ExecuteMsg {
 
     DepositReserveLiquidity {},
 
+    // TODO: add ReinforceBglToken
     Lock {},
 
     Unlock {},
@@ -130,6 +131,7 @@ pub enum ExecuteMsg {
     },
 }
 
+// TODO: add estimation queries
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -142,6 +144,7 @@ pub enum QueryMsg {
     #[returns(crate::lending_platform::types::Balances)]
     QueryBalances {},
 
+    // TODO: add QueryAvailableAmountToWithdraw
     #[returns(Vec<QueryDepositorsResponseItem>)]
     QueryDepositors { addresses: Option<Vec<String>> },
 

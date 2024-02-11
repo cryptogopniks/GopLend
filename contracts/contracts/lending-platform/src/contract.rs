@@ -70,7 +70,7 @@ pub fn execute(
 
         ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, None, None),
 
-        ExecuteMsg::Withdraw {} => unimplemented!(),
+        ExecuteMsg::Withdraw {} => e::try_withdraw(deps, env, info),
 
         ExecuteMsg::DepositCollateral { collections } => unimplemented!(),
 

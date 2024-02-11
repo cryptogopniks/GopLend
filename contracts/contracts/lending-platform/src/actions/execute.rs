@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Order, Response,
-    StdResult, SubMsg, Uint128, WasmMsg,
+    coins, to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Order,
+    Response, StdResult, SubMsg, Uint128, WasmMsg,
 };
 
 use goplend_base::{
@@ -109,52 +109,115 @@ pub fn try_unbond(
     );
 
     balances.total_unbonded += main_token_amount;
-    balances.total_bgl_currency_supply -= asset_amount;
 
     BALANCES.save(deps.storage, &balances)?;
 
     // create unbonding position to withdraw main token later
     DEPOSITORS.update(deps.storage, &sender_address, |x| -> StdResult<Depositor> {
+        let returned_and_unbonded = (
+            asset_amount,
+            Vault {
+                amount: main_token_amount,
+                creation_date: block_time,
+            },
+        );
+
         let depositor = match x {
             Some(mut depositor) => {
                 // don't allow multiple vaults with same creation date
-                let creation_date_list: Vec<u64> =
-                    depositor.unbonded.iter().map(|y| y.creation_date).collect();
+                let creation_date_list: Vec<u64> = depositor
+                    .returned_and_unbonded
+                    .iter()
+                    .map(|(_returned, unbonded)| unbonded.creation_date)
+                    .collect();
 
                 if creation_date_list.contains(&block_time) {
                     Err(ContractError::SameCreationDate)?;
                 }
 
-                depositor.unbonded.push(Vault {
-                    amount: main_token_amount,
-                    creation_date: block_time,
-                });
+                depositor.returned_and_unbonded.push(returned_and_unbonded);
 
                 depositor
             }
             None => Depositor {
-                unbonded: vec![Vault {
-                    amount: main_token_amount,
-                    creation_date: block_time,
-                }],
+                returned_and_unbonded: vec![returned_and_unbonded],
             },
         };
 
         Ok(depositor)
     })?;
 
-    // burn bgl token
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
-        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
-            amount: asset_amount,
-        })?,
-        funds: vec![],
-    });
+    Ok(Response::new().add_attributes(vec![("action", "try_unbond")]))
+}
+
+pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        bgl_currency,
+        unbonding_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    let mut amount_to_burn = Uint128::zero();
+    let mut amount_to_withdraw = Uint128::zero();
+    let mut depositor = DEPOSITORS.load(deps.storage, &sender_address)?;
+
+    depositor.returned_and_unbonded = depositor
+        .returned_and_unbonded
+        .into_iter()
+        .filter(|(returned, unbonded)| {
+            if block_time >= unbonded.creation_date + unbonding_period {
+                amount_to_burn += returned;
+                amount_to_withdraw += unbonded.amount;
+
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
+
+    DEPOSITORS.save(deps.storage, &sender_address, &depositor)?;
+
+    if amount_to_withdraw.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
+    // update balances, bgl to main ratio was fixed on Unbond
+    let mut balances = BALANCES.load(deps.storage)?;
+
+    balances.total_unbonded -= amount_to_withdraw;
+    balances.total_main_currency_pool -= amount_to_withdraw;
+    balances.total_bgl_currency_supply -= amount_to_burn;
+
+    BALANCES.save(deps.storage, &balances)?;
+
+    // burn bgl token and send main token
+    let msgs = vec![
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
+            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
+                amount: amount_to_burn,
+            })?,
+            funds: vec![],
+        }),
+        CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
+            to_address: sender_address.to_string(),
+            amount: coins(
+                amount_to_withdraw.u128(),
+                main_currency.token.try_get_native()?,
+            ),
+        }),
+    ];
 
     Ok(Response::new()
-        .add_message(msg)
-        .add_attributes(vec![("action", "try_unbond")]))
+        .add_messages(msgs)
+        .add_attributes(vec![("action", "try_withdraw")]))
 }
 
 #[allow(clippy::too_many_arguments)]

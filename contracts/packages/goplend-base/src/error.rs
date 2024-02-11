@@ -55,6 +55,9 @@ pub enum ContractError {
     #[error("Zero trading volume!")]
     ZeroTradingVolume,
 
+    #[error("Zero amount to send!")]
+    ZeroAmount,
+
     #[error("Exceeded prices max amount!")]
     ExceededPricesMaxAmount,
 
