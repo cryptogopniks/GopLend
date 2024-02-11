@@ -1,7 +1,9 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Order,
-    Response, StdResult, SubMsg, Uint128, WasmMsg,
+    coins, to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
+    StdResult, SubMsg, Uint128, WasmMsg,
 };
+
+use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
@@ -9,16 +11,24 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BGL_CURRENCY_DECIMALS, COLLECTIONS, CONFIG, CW20_NAME, CW20_SYMBOL,
-            DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
+            BALANCES, BGL_CURRENCY_DECIMALS, COLLATERALS, COLLECTIONS, CONFIG, CW20_NAME,
+            CW20_SYMBOL, DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
             SAVE_CW20_ADDRESS_REPLY,
         },
-        types::{Collection, Config, Depositor, Proposal, ProposalStatus, ProposalType, Vault},
+        types::{
+            Collateral, Collection, CollectionInfo, Config, Depositor, Proposal, ProposalStatus,
+            ProposalType, Vault,
+        },
     },
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
-use crate::math::{calc_minted_bgl_token_amount, calc_unbonded_main_token_amount};
+use crate::{
+    helpers::{
+        check_authorization, check_collections_holder, check_lockout, verify_proposal_status,
+    },
+    math::{calc_minted_bgl_token_amount, calc_unbonded_main_token_amount},
+};
 
 pub fn try_deposit(
     deps: DepsMut,
@@ -30,6 +40,7 @@ pub fn try_deposit(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let Config {
         main_currency,
@@ -84,6 +95,7 @@ pub fn try_unbond(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
     let Config {
@@ -153,6 +165,7 @@ pub fn try_unbond(
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
     let Config {
@@ -198,7 +211,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     BALANCES.save(deps.storage, &balances)?;
 
     // burn bgl token and send main token
-    let msgs = vec![
+    let msg_list = vec![
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
             msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
@@ -216,8 +229,81 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     ];
 
     Ok(Response::new()
-        .add_messages(msgs)
+        .add_messages(msg_list)
         .add_attributes(vec![("action", "try_withdraw")]))
+}
+
+pub fn try_deposit_collateral(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    // check if nfts are on user balance
+    check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
+
+    let mut msg_list: Vec<CosmosMsg> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+
+        // remove token duplication
+        token_id_list.dedup();
+
+        // add transfer msgs
+        for token_id in &token_id_list {
+            let cw721_msg = Cw721ExecuteMsg::TransferNft {
+                recipient: env.contract.address.to_string(),
+                token_id: token_id.to_string(),
+            };
+
+            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: collection_address.to_string(),
+                msg: to_json_binary(&cw721_msg)?,
+                funds: vec![],
+            });
+
+            msg_list.push(msg);
+        }
+
+        // update collaterals
+        COLLATERALS.update(
+            deps.storage,
+            &collection_address,
+            |x| -> StdResult<Collateral> {
+                let collateral = match x {
+                    Some(mut y) => {
+                        y.token_id_list = vec![y.token_id_list, token_id_list].concat();
+                        y.token_id_list.dedup();
+
+                        y
+                    }
+                    None => Collateral {
+                        owner: sender_address.clone(),
+                        token_id_list,
+                    },
+                };
+
+                Ok(collateral)
+            },
+        )?;
+    }
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attributes(vec![("action", "try_deposit_collateral")]))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -772,91 +858,4 @@ pub fn try_accept_proposal(
     )?;
 
     Ok(Response::new().add_attributes([("action", "try_accept_proposal")]))
-}
-
-fn check_lockout(deps: Deps) -> StdResult<()> {
-    if IS_LOCKED.load(deps.storage)? {
-        Err(ContractError::ContractIsLocked)?;
-    }
-
-    Ok(())
-}
-
-fn verify_proposal_status(
-    proposal: &Proposal<Addr, Token>,
-    expected: ProposalStatus,
-) -> StdResult<()> {
-    let proposal_status = unwrap_field(proposal.proposal_status.as_ref(), "proposal_status")?;
-
-    if proposal_status != &expected {
-        Err(ContractError::WrongProposalStatus)?;
-    }
-
-    Ok(())
-}
-
-fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, owner, .. } = CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
-
-    match auth_type {
-        AuthType::Any => {}
-        AuthType::Admin => {
-            if sender != admin {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::Specified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !is_included {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-    };
-
-    Ok(())
 }
