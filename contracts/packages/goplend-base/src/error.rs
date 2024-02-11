@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Currency can not be changed after adding liquidity!")]
+    ChangingCurrency,
+
     #[error("Multiple positions with same creation date are not allowed!")]
     SameCreationDate,
 

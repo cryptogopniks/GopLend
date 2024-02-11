@@ -242,6 +242,7 @@ pub fn try_update_config(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
+    let balances = BALANCES.load(deps.storage)?;
     let mut attrs = Attrs::init("try_update_config");
 
     CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
@@ -256,11 +257,19 @@ pub fn try_update_config(
         }
 
         if let Some(x) = main_currency {
+            if !balances.total_main_currency_pool.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
             config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
             attrs.push(("main_currency".to_string(), x.token.get_symbol()));
         }
 
         if let Some(x) = bgl_currency {
+            if !balances.total_bgl_currency_supply.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
             config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
             attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
         }
