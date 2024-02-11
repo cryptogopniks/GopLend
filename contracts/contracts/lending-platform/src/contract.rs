@@ -70,13 +70,15 @@ pub fn execute(
 
         ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, None, None),
 
-        ExecuteMsg::Withdraw {} => unimplemented!(),
+        ExecuteMsg::Withdraw {} => e::try_withdraw(deps, env, info),
 
-        ExecuteMsg::DepositCollateral { collections } => unimplemented!(),
+        ExecuteMsg::DepositCollateral { collections } => {
+            e::try_deposit_collateral(deps, env, info, collections)
+        }
 
         ExecuteMsg::WithdrawCollateral { collections } => unimplemented!(),
 
-        ExecuteMsg::Borrow { amount } => unimplemented!(),
+        ExecuteMsg::Borrow { amount } => e::try_borrow(deps, env, info, amount),
 
         ExecuteMsg::Repay {} => unimplemented!(),
 
@@ -204,6 +206,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
 
         QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
+
+        QueryMsg::QueryLtv { borrower } => to_json_binary(&q::query_ltv(deps, env, borrower)?),
 
         QueryMsg::QueryBlockCounter {} => to_json_binary(&q::query_block_counter(deps, env)?),
     }

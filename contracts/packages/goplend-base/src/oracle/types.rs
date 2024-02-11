@@ -3,6 +3,7 @@ use cosmwasm_std::{Addr, Uint128};
 
 use crate::assets::{Currency, TokenUnverified};
 
+// TODO: add offers per token
 #[cw_serde]
 pub struct RawPriceItem {
     pub collection_address: String,

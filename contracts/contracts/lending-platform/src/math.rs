@@ -67,3 +67,41 @@ pub fn calc_deposit_apr(
     u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
         / u128_to_dec(std::cmp::max(total_deposited, Uint128::one()) - total_unbonded)
 }
+
+pub fn calc_ltv(
+    borrow_apr: Decimal,
+    accumulated_loan: Uint128,
+    loan: Uint128,
+    collateral: Uint128,
+    block_time: u64,
+    loan_creation_date: u64,
+) -> Decimal {
+    let loan = u128_to_dec(accumulated_loan)
+        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date));
+
+    loan / u128_to_dec(collateral)
+}
+
+pub fn calc_accumulated_loan(
+    borrow_apr: Decimal,
+    accumulated_loan: Uint128,
+    loan: Uint128,
+    block_time: u64,
+    loan_creation_date: u64,
+) -> Uint128 {
+    (u128_to_dec(accumulated_loan)
+        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date)))
+    .to_uint_floor()
+}
+
+pub fn calc_bid_min_multiplier(bid_min_rate: Decimal) -> Decimal {
+    Decimal::one() + bid_min_rate
+}
+
+pub fn calc_bid_max_multiplier(
+    bid_min_rate: Decimal,
+    discount_max_rate: Decimal,
+    discount_min_rate: Decimal,
+) -> Decimal {
+    calc_bid_min_multiplier(bid_min_rate) / (discount_max_rate - discount_min_rate)
+}

@@ -23,6 +23,8 @@ use crate::helpers::{
     },
 };
 
+pub const INITIAL_LIQUIDITY: u128 = 100_000_000_000;
+
 pub struct Project {
     pub app: App,
     pub logs: WrappedResponse,
@@ -174,6 +176,15 @@ impl Project {
         // create bgl_token
         project
             .lending_platform_try_create_bgl_token(ProjectAccount::Admin)
+            .unwrap();
+
+        // add 100k STARS initial liquidity
+        project
+            .lending_platform_try_deposit_reserve_liquidity(
+                ProjectAccount::Admin,
+                INITIAL_LIQUIDITY,
+                ProjectCoin::Stars,
+            )
             .unwrap();
 
         project

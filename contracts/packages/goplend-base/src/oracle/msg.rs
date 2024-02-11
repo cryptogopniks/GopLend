@@ -1,8 +1,8 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 
 use crate::{
-    assets::{Funds, Token},
+    assets::{Currency, Funds, Token},
     oracle::types::RawPriceItem,
 };
 
@@ -44,3 +44,13 @@ pub struct QueryPricesResponseItem {
     pub price: Funds<Token>,
     pub price_update_date: u64,
 }
+
+// TODO: use
+// #[cw_serde]
+// pub struct QueryPricesResponseItem {
+//     pub address: Addr,
+//     pub currency: Currency<Token>,
+//     pub token_and_price_list: Vec<(String, Uint128)>,
+//     pub collection_price: Uint128,
+//     pub price_update_date: u64,
+// }

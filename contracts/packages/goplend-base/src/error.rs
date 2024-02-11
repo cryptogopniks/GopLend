@@ -37,6 +37,18 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Max LTV is exceeded!")]
+    ExceededLtv,
+
+    #[error("Collection {val:?} price data is outdated!")]
+    OutdatedPrice { val: String },
+
+    #[error("Collection {val:?} price data is not found!")]
+    PriceIsNotFound { val: String },
+
+    #[error("Currency can not be changed after adding liquidity!")]
+    ChangingCurrency,
+
     #[error("Multiple positions with same creation date are not allowed!")]
     SameCreationDate,
 
@@ -54,6 +66,9 @@ pub enum ContractError {
 
     #[error("Zero trading volume!")]
     ZeroTradingVolume,
+
+    #[error("Zero amount to send!")]
+    ZeroAmount,
 
     #[error("Exceeded prices max amount!")]
     ExceededPricesMaxAmount,

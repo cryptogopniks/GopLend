@@ -1,7 +1,9 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Order, Response,
+    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
     StdResult, SubMsg, Uint128, WasmMsg,
 };
+
+use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
@@ -9,16 +11,28 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BGL_CURRENCY_DECIMALS, COLLECTIONS, CONFIG, CW20_NAME, CW20_SYMBOL,
-            DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
-            SAVE_CW20_ADDRESS_REPLY,
+            BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
+            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS,
+            PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
         },
-        types::{Collection, Config, Depositor, Proposal, ProposalStatus, ProposalType, Vault},
+        types::{
+            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, Proposal,
+            ProposalStatus, ProposalType, Vault,
+        },
     },
+    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
-use crate::math::{calc_minted_bgl_token_amount, calc_unbonded_main_token_amount};
+use crate::{
+    helpers::{
+        check_authorization, check_collections_holder, check_lockout, verify_proposal_status,
+    },
+    math::{
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_ltv, calc_minted_bgl_token_amount,
+        calc_unbonded_main_token_amount,
+    },
+};
 
 pub fn try_deposit(
     deps: DepsMut,
@@ -30,6 +44,7 @@ pub fn try_deposit(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let Config {
         main_currency,
@@ -84,6 +99,7 @@ pub fn try_unbond(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
     let Config {
@@ -109,52 +125,297 @@ pub fn try_unbond(
     );
 
     balances.total_unbonded += main_token_amount;
-    balances.total_bgl_currency_supply -= asset_amount;
 
     BALANCES.save(deps.storage, &balances)?;
 
     // create unbonding position to withdraw main token later
     DEPOSITORS.update(deps.storage, &sender_address, |x| -> StdResult<Depositor> {
+        let returned_and_unbonded = (
+            asset_amount,
+            Vault {
+                amount: main_token_amount,
+                creation_date: block_time,
+            },
+        );
+
         let depositor = match x {
             Some(mut depositor) => {
                 // don't allow multiple vaults with same creation date
-                let creation_date_list: Vec<u64> =
-                    depositor.unbonded.iter().map(|y| y.creation_date).collect();
+                let creation_date_list: Vec<u64> = depositor
+                    .returned_and_unbonded
+                    .iter()
+                    .map(|(_returned, unbonded)| unbonded.creation_date)
+                    .collect();
 
                 if creation_date_list.contains(&block_time) {
                     Err(ContractError::SameCreationDate)?;
                 }
 
-                depositor.unbonded.push(Vault {
-                    amount: main_token_amount,
-                    creation_date: block_time,
-                });
+                depositor.returned_and_unbonded.push(returned_and_unbonded);
 
                 depositor
             }
             None => Depositor {
-                unbonded: vec![Vault {
-                    amount: main_token_amount,
-                    creation_date: block_time,
-                }],
+                returned_and_unbonded: vec![returned_and_unbonded],
             },
         };
 
         Ok(depositor)
     })?;
 
-    // burn bgl token
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
-        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
-            amount: asset_amount,
-        })?,
-        funds: vec![],
-    });
+    Ok(Response::new().add_attributes(vec![("action", "try_unbond")]))
+}
+
+pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        bgl_currency,
+        unbonding_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    let mut amount_to_burn = Uint128::zero();
+    let mut amount_to_withdraw = Uint128::zero();
+    let mut depositor = DEPOSITORS.load(deps.storage, &sender_address)?;
+
+    depositor.returned_and_unbonded = depositor
+        .returned_and_unbonded
+        .into_iter()
+        .filter(|(returned, unbonded)| {
+            if block_time >= unbonded.creation_date + unbonding_period {
+                amount_to_burn += returned;
+                amount_to_withdraw += unbonded.amount;
+
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
+
+    DEPOSITORS.save(deps.storage, &sender_address, &depositor)?;
+
+    if amount_to_withdraw.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
+    // update balances, bgl to main ratio was fixed on Unbond
+    let mut balances = BALANCES.load(deps.storage)?;
+
+    balances.total_unbonded -= amount_to_withdraw;
+    balances.total_main_currency_pool -= amount_to_withdraw;
+    balances.total_bgl_currency_supply -= amount_to_burn;
+
+    BALANCES.save(deps.storage, &balances)?;
+
+    // burn bgl token and send main token
+    let msg_list = vec![
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
+            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
+                amount: amount_to_burn,
+            })?,
+            funds: vec![],
+        }),
+        get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?,
+    ];
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attributes(vec![("action", "try_withdraw")]))
+}
+
+pub fn try_deposit_collateral(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    // check if nfts are on user balance
+    check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
+
+    let mut msg_list: Vec<CosmosMsg> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+
+        // remove token duplication
+        token_id_list.dedup();
+
+        // add transfer msgs
+        for token_id in &token_id_list {
+            let cw721_msg = Cw721ExecuteMsg::TransferNft {
+                recipient: env.contract.address.to_string(),
+                token_id: token_id.to_string(),
+            };
+
+            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: collection_address.to_string(),
+                msg: to_json_binary(&cw721_msg)?,
+                funds: vec![],
+            });
+
+            msg_list.push(msg);
+        }
+
+        // update collaterals
+        COLLATERALS.update(
+            deps.storage,
+            &collection_address,
+            |x| -> StdResult<Collateral> {
+                let collateral = match x {
+                    Some(mut y) => {
+                        y.token_id_list = vec![y.token_id_list, token_id_list].concat();
+                        y.token_id_list.dedup();
+
+                        y
+                    }
+                    None => Collateral {
+                        owner: sender_address.clone(),
+                        token_id_list,
+                    },
+                };
+
+                Ok(collateral)
+            },
+        )?;
+    }
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attributes(vec![("action", "try_deposit_collateral")]))
+}
+
+pub fn try_borrow(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    amount: Uint128,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        borrow_apr,
+        oracle,
+        discount_max_rate,
+        discount_min_rate,
+        bid_min_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_collection, collateral)| collateral.owner == &sender_address)
+        .collect();
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection, _collateral)| -> StdResult<Uint128> {
+            let oracle::msg::QueryPricesResponseItem {
+                price,
+                price_update_date,
+                ..
+            } = prices.iter().find(|x| x.address == collection).ok_or(
+                ContractError::PriceIsNotFound {
+                    val: collection.to_string(),
+                },
+            )?;
+
+            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+                Err(ContractError::OutdatedPrice {
+                    val: collection.to_string(),
+                })?;
+            }
+
+            let (_collection, collateral) = collection_and_collateral_list
+                .iter()
+                .find(|(collection_address, ..)| collection_address == collection)
+                .ok_or(ContractError::Unauthorized)?;
+
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    borrower.accumulated_loan = calc_accumulated_loan(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    );
+    borrower.loan = Vault {
+        creation_date: block_time,
+        amount,
+    };
+
+    let ltv = calc_ltv(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        collateral_value,
+        block_time,
+        borrower.loan.creation_date,
+    );
+
+    let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+
+    if ltv > ltv_max {
+        Err(ContractError::ExceededLtv)?;
+    }
+
+    // update states
+    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_borrowed += amount;
+
+        Ok(x)
+    })?;
+
+    // create send msg
+    let msg = get_transfer_msg(&sender_address, amount, &main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_unbond")]))
+        .add_attributes(vec![("action", "try_borrow")]))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -179,6 +440,7 @@ pub fn try_update_config(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
+    let balances = BALANCES.load(deps.storage)?;
     let mut attrs = Attrs::init("try_update_config");
 
     CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
@@ -193,11 +455,19 @@ pub fn try_update_config(
         }
 
         if let Some(x) = main_currency {
+            if !balances.total_main_currency_pool.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
             config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
             attrs.push(("main_currency".to_string(), x.token.get_symbol()));
         }
 
         if let Some(x) = bgl_currency {
+            if !balances.total_bgl_currency_supply.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
             config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
             attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
         }
@@ -700,91 +970,4 @@ pub fn try_accept_proposal(
     )?;
 
     Ok(Response::new().add_attributes([("action", "try_accept_proposal")]))
-}
-
-fn check_lockout(deps: Deps) -> StdResult<()> {
-    if IS_LOCKED.load(deps.storage)? {
-        Err(ContractError::ContractIsLocked)?;
-    }
-
-    Ok(())
-}
-
-fn verify_proposal_status(
-    proposal: &Proposal<Addr, Token>,
-    expected: ProposalStatus,
-) -> StdResult<()> {
-    let proposal_status = unwrap_field(proposal.proposal_status.as_ref(), "proposal_status")?;
-
-    if proposal_status != &expected {
-        Err(ContractError::WrongProposalStatus)?;
-    }
-
-    Ok(())
-}
-
-fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, owner, .. } = CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
-
-    match auth_type {
-        AuthType::Any => {}
-        AuthType::Admin => {
-            if sender != admin {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::Specified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !is_included {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-    };
-
-    Ok(())
 }
