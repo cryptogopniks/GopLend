@@ -248,6 +248,7 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
     ))
 }
 
+// TODO: optimize
 pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let Config {
