@@ -258,6 +258,7 @@ pub fn try_deposit_collateral(
         }
 
         // remove token duplication
+        token_id_list.sort_unstable();
         token_id_list.dedup();
 
         // add transfer msgs
@@ -284,6 +285,7 @@ pub fn try_deposit_collateral(
                 let collateral = match x {
                     Some(mut y) => {
                         y.token_id_list = vec![y.token_id_list, token_id_list].concat();
+                        y.token_id_list.sort_unstable();
                         y.token_id_list.dedup();
 
                         y
@@ -302,6 +304,98 @@ pub fn try_deposit_collateral(
     Ok(Response::new()
         .add_messages(msg_list)
         .add_attributes(vec![("action", "try_deposit_collateral")]))
+}
+
+pub fn try_withdraw_collateral(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    // check if nfts are on contract balance
+    check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
+
+    let mut msg_list: Vec<CosmosMsg> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+
+        // remove token duplication
+        token_id_list.sort_unstable();
+        token_id_list.dedup();
+
+        // add transfer msgs
+        for token_id in &token_id_list {
+            let cw721_msg = Cw721ExecuteMsg::TransferNft {
+                recipient: sender_address.to_string(),
+                token_id: token_id.to_string(),
+            };
+
+            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: collection_address.to_string(),
+                msg: to_json_binary(&cw721_msg)?,
+                funds: vec![],
+            });
+
+            msg_list.push(msg);
+        }
+
+        // update collaterals
+        COLLATERALS.update(
+            deps.storage,
+            &collection_address,
+            |x| -> StdResult<Collateral> {
+                let collateral = match x {
+                    Some(mut y) => {
+                        y.token_id_list = y
+                            .token_id_list
+                            .into_iter()
+                            .filter(|z| !token_id_list.contains(z))
+                            .collect();
+
+                        y
+                    }
+                    None => Collateral {
+                        owner: sender_address.clone(),
+                        token_id_list,
+                    },
+                };
+
+                Ok(collateral)
+            },
+        )?;
+    }
+
+    // check ltv
+    let ltv = crate::actions::query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
+    let Config {
+        discount_max_rate,
+        discount_min_rate,
+        bid_min_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
+    let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+
+    if ltv > ltv_max {
+        Err(ContractError::ExceededLtv)?;
+    }
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
 pub fn try_borrow(
@@ -327,6 +421,7 @@ pub fn try_borrow(
     let oracle = &unwrap_field(oracle, "oracle")?;
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
+    // TODO: refactor
     // get collaterals owned by borrower
     let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)

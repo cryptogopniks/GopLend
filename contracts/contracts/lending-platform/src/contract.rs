@@ -76,7 +76,9 @@ pub fn execute(
             e::try_deposit_collateral(deps, env, info, collections)
         }
 
-        ExecuteMsg::WithdrawCollateral { collections } => unimplemented!(),
+        ExecuteMsg::WithdrawCollateral { collections } => {
+            e::try_withdraw_collateral(deps, env, info, collections)
+        }
 
         ExecuteMsg::Borrow { amount } => e::try_borrow(deps, env, info, amount),
 
