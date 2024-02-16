@@ -45,7 +45,7 @@ pub fn execute(
 
             ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, Some(sender), Some(amount)),
 
-            ExecuteMsg::Repay {} => unimplemented!(),
+            ExecuteMsg::Repay {} => e::try_repay(deps, env, info, Some(sender), Some(amount)),
 
             ExecuteMsg::PlaceBid { collections } => unimplemented!(),
 
@@ -82,7 +82,7 @@ pub fn execute(
 
         ExecuteMsg::Borrow { amount } => e::try_borrow(deps, env, info, amount),
 
-        ExecuteMsg::Repay {} => unimplemented!(),
+        ExecuteMsg::Repay {} => e::try_repay(deps, env, info, None, None),
 
         ExecuteMsg::PlaceBid { collections } => unimplemented!(),
 

@@ -513,6 +513,56 @@ pub fn try_borrow(
         .add_attributes(vec![("action", "try_borrow")]))
 }
 
+pub fn try_repay(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config {
+        main_currency,
+        borrow_apr,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
+
+    borrower.accumulated_loan = calc_accumulated_loan(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    ) - asset_amount;
+
+    borrower.loan = Vault {
+        creation_date: block_time,
+        amount: Uint128::zero(),
+    };
+
+    // update states
+    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_borrowed -= asset_amount;
+
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
     deps: DepsMut,
