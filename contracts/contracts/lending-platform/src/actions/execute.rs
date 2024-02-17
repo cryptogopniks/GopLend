@@ -12,12 +12,12 @@ use goplend_base::{
     lending_platform::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
-            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, PLATFORM_REVENUE, PROPOSALS,
-            PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
+            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS,
+            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
         },
         types::{
-            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, Proposal,
-            ProposalStatus, ProposalType, Vault,
+            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, LiquidationBid,
+            Liquidator, Proposal, ProposalStatus, ProposalType, Vault,
         },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
@@ -561,6 +561,126 @@ pub fn try_repay(
     })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
+}
+
+pub fn try_place_bid(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+    discount: Decimal,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    let mut collection_addresses: Vec<Addr> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+        collection_addresses.push(collection_address.clone());
+
+        // remove token duplication
+        token_id_list.sort_unstable();
+        token_id_list.dedup();
+
+        // update bids
+        LIQUIDATION_BIDS.update(
+            deps.storage,
+            &collection_address,
+            |x| -> StdResult<Vec<LiquidationBid>> {
+                let bid = LiquidationBid {
+                    creation_date: block_time,
+                    liquidator: sender_address.clone(),
+                    token_id_list: token_id_list.clone(),
+                    amount: asset_amount,
+                    discount,
+                };
+
+                let bids = match x {
+                    Some(mut y) => {
+                        let bids_by_liquidator: Vec<LiquidationBid> = y
+                            .iter()
+                            .cloned()
+                            .filter(|z| z.liquidator == sender_address)
+                            .collect();
+
+                        // check if there is no token duplication
+                        if bids_by_liquidator.iter().any(|bid| {
+                            bid.token_id_list
+                                .iter()
+                                .any(|token| token_id_list.contains(token))
+                        }) {
+                            Err(ContractError::NftDuplication)?;
+                        }
+
+                        // don't allow same date bids
+                        if bids_by_liquidator
+                            .iter()
+                            .any(|bid| bid.creation_date == block_time)
+                        {
+                            Err(ContractError::SameCreationDate)?;
+                        }
+
+                        y.push(bid);
+
+                        y
+                    }
+                    None => vec![bid],
+                };
+
+                Ok(bids)
+            },
+        )?;
+    }
+
+    LIQUIDATORS.update(
+        deps.storage,
+        &sender_address,
+        |x| -> StdResult<Liquidator> {
+            let liquidator = match x {
+                Some(mut y) => {
+                    y.collection_addresses =
+                        vec![y.collection_addresses, collection_addresses].concat();
+                    y.collection_addresses.sort_unstable();
+                    y.collection_addresses.dedup();
+
+                    y
+                }
+                None => Liquidator {
+                    collection_addresses,
+                },
+            };
+
+            Ok(liquidator)
+        },
+    )?;
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_liquidation_bids += asset_amount;
+
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
 }
 
 #[allow(clippy::too_many_arguments)]

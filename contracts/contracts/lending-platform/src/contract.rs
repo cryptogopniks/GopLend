@@ -47,12 +47,24 @@ pub fn execute(
 
             ExecuteMsg::Repay {} => e::try_repay(deps, env, info, Some(sender), Some(amount)),
 
-            ExecuteMsg::PlaceBid { collections } => unimplemented!(),
+            ExecuteMsg::PlaceBid {
+                collections,
+                discount,
+            } => e::try_place_bid(
+                deps,
+                env,
+                info,
+                collections,
+                discount,
+                Some(sender),
+                Some(amount),
+            ),
 
             ExecuteMsg::UpdateBid {
                 collections,
                 creation_date,
                 amount,
+                discount,
             } => unimplemented!(),
 
             ExecuteMsg::DepositReserveLiquidity {} => {
@@ -84,7 +96,10 @@ pub fn execute(
 
         ExecuteMsg::Repay {} => e::try_repay(deps, env, info, None, None),
 
-        ExecuteMsg::PlaceBid { collections } => unimplemented!(),
+        ExecuteMsg::PlaceBid {
+            collections,
+            discount,
+        } => e::try_place_bid(deps, env, info, collections, discount, None, None),
 
         ExecuteMsg::RemoveBid {
             collections,
@@ -95,6 +110,7 @@ pub fn execute(
             collections,
             creation_date,
             amount,
+            discount,
         } => unimplemented!(),
 
         ExecuteMsg::ClaimCollateral {} => unimplemented!(),

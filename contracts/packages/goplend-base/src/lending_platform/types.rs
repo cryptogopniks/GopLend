@@ -46,7 +46,7 @@ pub struct CollectionInfo<A: ToString> {
 pub struct LiquidationBid {
     pub creation_date: u64,
     pub liquidator: Addr,
-    pub token_info_list: Vec<String>,
+    pub token_id_list: Vec<String>,
     pub amount: Uint128,
     pub discount: Decimal,
 }

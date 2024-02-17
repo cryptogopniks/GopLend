@@ -67,6 +67,7 @@ pub trait LendingPlatformExtension {
         &mut self,
         sender: ProjectAccount,
         collections: &[CollectionInfo<String>],
+        discount: &str,
         amount: u128,
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
@@ -84,6 +85,7 @@ pub trait LendingPlatformExtension {
         collections: &[CollectionInfo<String>],
         creation_date: u64,
         amount: u128,
+        discount: &str,
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
@@ -325,12 +327,14 @@ impl LendingPlatformExtension for Project {
         &mut self,
         sender: ProjectAccount,
         collections: &[CollectionInfo<String>],
+        discount: &str,
         amount: u128,
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse> {
         let contract_address = &self.get_lending_platform_address();
         let msg = &ExecuteMsg::PlaceBid {
             collections: collections.to_owned(),
+            discount: str_to_dec(discount),
         };
 
         add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
@@ -363,6 +367,7 @@ impl LendingPlatformExtension for Project {
         collections: &[CollectionInfo<String>],
         creation_date: u64,
         amount: u128,
+        discount: &str,
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse> {
         let contract_address = &self.get_lending_platform_address();
@@ -370,6 +375,7 @@ impl LendingPlatformExtension for Project {
             collections: collections.to_owned(),
             creation_date,
             amount: Uint128::from(amount),
+            discount: str_to_dec(discount),
         };
 
         add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
