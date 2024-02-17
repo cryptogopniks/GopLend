@@ -68,6 +68,7 @@ pub enum ExecuteMsg {
     // liquidators
     PlaceBid {
         collections: Vec<CollectionInfo<String>>,
+        discount: Decimal,
     },
 
     RemoveBid {
@@ -79,6 +80,7 @@ pub enum ExecuteMsg {
         collections: Vec<CollectionInfo<String>>,
         creation_date: u64,
         amount: Uint128, // amount is required to decrease bid
+        discount: Decimal,
     },
 
     ClaimCollateral {},
