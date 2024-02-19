@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
+    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Empty, Env, MessageInfo, Order, Response,
     StdResult, SubMsg, Uint128, WasmMsg,
 };
 
@@ -632,6 +632,7 @@ pub fn try_place_bid(
                             Err(ContractError::NftDuplication)?;
                         }
 
+                        // TODO: check if it's required
                         // don't allow same date bids
                         if bids_by_liquidator
                             .iter()
@@ -681,6 +682,162 @@ pub fn try_place_bid(
     })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
+}
+
+pub fn try_update_bid(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+    creation_date: u64,
+    bid_amount: Uint128,
+    discount: Decimal,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+
+    let (sender_address, asset_amount, asset_info) = if sender.is_some() && amount.is_some() {
+        (
+            deps.api.addr_validate(&sender.unwrap_or_default())?,
+            amount.unwrap_or_default(),
+            Token::new_cw20(&info.sender),
+        )
+    } else if sender.is_none() && amount.is_none() {
+        (
+            info.sender.clone(),
+            Uint128::default(),
+            Token::new_native(&String::default()),
+        )
+    } else {
+        Err(ContractError::WrongFundsCombination)?
+    };
+
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let block_time = env.block.time.seconds();
+    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    let mut current_bid_value = Uint128::zero();
+    let mut new_bid_value = Uint128::zero();
+    let mut collection_addresses: Vec<Addr> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+        collection_addresses.push(collection_address.clone());
+
+        // remove token duplication
+        token_id_list.sort_unstable();
+        token_id_list.dedup();
+
+        // update new bid value
+        new_bid_value += bid_amount * Uint128::from(token_id_list.len() as u128);
+
+        // update bids
+        LIQUIDATION_BIDS.update(
+            deps.storage,
+            &collection_address,
+            |x| -> StdResult<Vec<LiquidationBid>> {
+                let bids = match x {
+                    Some(mut y) => {
+                        let bids_by_liquidator: Vec<LiquidationBid> = y
+                            .iter()
+                            .cloned()
+                            .filter(|z| z.liquidator == sender_address)
+                            .collect();
+
+                        // check if all token_id_list are included in bid.token_id_list
+                        if !token_id_list.iter().all(|id| {
+                            bids_by_liquidator
+                                .iter()
+                                .any(|bid| bid.token_id_list.contains(id))
+                        }) {
+                            Err(ContractError::NftIsNotFound)?;
+                        }
+
+                        // replace bids
+                        y = y
+                            .into_iter()
+                            .map(|z| {
+                                if z.creation_date == creation_date {
+                                    // update current bid value
+                                    current_bid_value += z.amount;
+
+                                    LiquidationBid {
+                                        creation_date: block_time,
+                                        liquidator: sender_address.clone(),
+                                        token_id_list: token_id_list.clone(),
+                                        amount: bid_amount,
+                                        discount,
+                                    }
+                                } else {
+                                    z
+                                }
+                            })
+                            .collect();
+
+                        y
+                    }
+                    None => Err(ContractError::CollectionIsNotFound)?,
+                };
+
+                Ok(bids)
+            },
+        )?;
+    }
+
+    let response: Response<Empty> =
+        Response::new().add_attributes(vec![("action", "try_update_bid")]);
+
+    if new_bid_value >= current_bid_value && current_bid_value + asset_amount >= new_bid_value {
+        let amount_to_return = current_bid_value + asset_amount - new_bid_value;
+
+        BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+            x.total_liquidation_bids += new_bid_value - current_bid_value;
+
+            Ok(x)
+        })?;
+
+        if !amount_to_return.is_zero() {
+            let msg = get_transfer_msg(&sender_address, amount_to_return, &asset_info)?;
+
+            return Ok(response.add_message(msg));
+        }
+
+        return Ok(response);
+    }
+
+    if new_bid_value < current_bid_value {
+        let amount_to_return = current_bid_value - new_bid_value + asset_amount;
+
+        BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+            x.total_liquidation_bids -= current_bid_value - new_bid_value;
+
+            Ok(x)
+        })?;
+
+        if !amount_to_return.is_zero() {
+            let msg = get_transfer_msg(&sender_address, amount_to_return, &asset_info)?;
+
+            return Ok(response.add_message(msg));
+        }
+
+        return Ok(response);
+    }
+
+    Err(ContractError::WrongFundsCombination)
 }
 
 #[allow(clippy::too_many_arguments)]

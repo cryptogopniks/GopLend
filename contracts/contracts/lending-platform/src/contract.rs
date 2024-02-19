@@ -63,9 +63,19 @@ pub fn execute(
             ExecuteMsg::UpdateBid {
                 collections,
                 creation_date,
-                amount,
+                amount: bid_amount,
                 discount,
-            } => unimplemented!(),
+            } => e::try_update_bid(
+                deps,
+                env,
+                info,
+                collections,
+                creation_date,
+                bid_amount,
+                discount,
+                Some(sender),
+                Some(amount),
+            ),
 
             ExecuteMsg::DepositReserveLiquidity {} => {
                 e::try_deposit_reserve_liquidity(deps, env, info, Some(sender), Some(amount))
@@ -109,9 +119,19 @@ pub fn execute(
         ExecuteMsg::UpdateBid {
             collections,
             creation_date,
-            amount,
+            amount: bid_amount,
             discount,
-        } => unimplemented!(),
+        } => e::try_update_bid(
+            deps,
+            env,
+            info,
+            collections,
+            creation_date,
+            bid_amount,
+            discount,
+            None,
+            None,
+        ),
 
         ExecuteMsg::ClaimCollateral {} => unimplemented!(),
 
