@@ -684,6 +684,92 @@ pub fn try_place_bid(
     Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
 }
 
+pub fn try_remove_bid(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    collections: Vec<CollectionInfo<String>>,
+    creation_date: u64,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    let mut amount_to_withdraw = Uint128::zero();
+    let mut collection_addresses: Vec<Addr> = vec![];
+
+    for CollectionInfo {
+        collection_address,
+        mut token_id_list,
+    } in collections
+    {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+        collection_addresses.push(collection_address.clone());
+
+        // remove token duplication
+        token_id_list.sort_unstable();
+        token_id_list.dedup();
+
+        // update bids
+        let liquidation_bids = LIQUIDATION_BIDS
+            .load(deps.storage, &collection_address)
+            .map_err(|_| ContractError::CollectionIsNotFound)?;
+
+        let bids_by_liquidator: Vec<LiquidationBid> = liquidation_bids
+            .iter()
+            .cloned()
+            .filter(|z| z.liquidator == sender_address)
+            .collect();
+
+        // check if all token_id_list are included in bid.token_id_list
+        if !token_id_list.iter().all(|id| {
+            bids_by_liquidator
+                .iter()
+                .any(|bid| bid.token_id_list.contains(id))
+        }) {
+            Err(ContractError::NftIsNotFound)?;
+        }
+
+        // remove bids
+        let liquidation_bids = liquidation_bids
+            .into_iter()
+            .filter(|z| {
+                if z.liquidator == sender_address && z.creation_date == creation_date {
+                    amount_to_withdraw += z.amount;
+
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect::<Vec<LiquidationBid>>();
+
+        if !liquidation_bids.is_empty() {
+            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
+        } else {
+            LIQUIDATION_BIDS.remove(deps.storage, &collection_address);
+        }
+    }
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_liquidation_bids -= amount_to_withdraw;
+
+        Ok(x)
+    })?;
+
+    let msg = get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?;
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_remove_bid")]))
+}
+
 pub fn try_update_bid(
     deps: DepsMut,
     env: Env,
@@ -771,7 +857,9 @@ pub fn try_update_bid(
                         y = y
                             .into_iter()
                             .map(|z| {
-                                if z.creation_date == creation_date {
+                                if z.liquidator == sender_address
+                                    && z.creation_date == creation_date
+                                {
                                     // update current bid value
                                     current_bid_value += z.amount;
 

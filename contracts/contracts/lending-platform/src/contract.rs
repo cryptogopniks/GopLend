@@ -114,7 +114,7 @@ pub fn execute(
         ExecuteMsg::RemoveBid {
             collections,
             creation_date,
-        } => unimplemented!(),
+        } => e::try_remove_bid(deps, env, info, collections, creation_date),
 
         ExecuteMsg::UpdateBid {
             collections,
