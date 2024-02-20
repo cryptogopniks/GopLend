@@ -89,11 +89,6 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_claim_collateral(
-        &mut self,
-        sender: ProjectAccount,
-    ) -> StdResult<AppResponse>;
-
     fn lending_platform_try_process(&mut self) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
@@ -379,21 +374,6 @@ impl LendingPlatformExtension for Project {
         };
 
         add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
-    }
-
-    #[track_caller]
-    fn lending_platform_try_claim_collateral(
-        &mut self,
-        sender: ProjectAccount,
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_lending_platform_address(),
-                &ExecuteMsg::ClaimCollateral {},
-                &[],
-            )
-            .map_err(parse_err)
     }
 
     #[track_caller]
