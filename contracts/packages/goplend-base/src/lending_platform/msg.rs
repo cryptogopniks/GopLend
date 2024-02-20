@@ -50,12 +50,13 @@ pub enum ExecuteMsg {
 
     Withdraw {},
 
-    // borrowers
-    DepositCollateral {
+    // borrowers, liquidators
+    WithdrawCollateral {
         collections: Vec<CollectionInfo<String>>,
     },
 
-    WithdrawCollateral {
+    // borrowers
+    DepositCollateral {
         collections: Vec<CollectionInfo<String>>,
     },
 
@@ -82,8 +83,6 @@ pub enum ExecuteMsg {
         amount: Uint128, // amount is required to decrease bid
         discount: Decimal,
     },
-
-    ClaimCollateral {},
 
     // admin
     UpdateConfig {

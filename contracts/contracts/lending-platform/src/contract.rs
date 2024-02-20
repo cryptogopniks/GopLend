@@ -133,8 +133,6 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::ClaimCollateral {} => unimplemented!(),
-
         ExecuteMsg::UpdateConfig {
             owner,
             oracle,
