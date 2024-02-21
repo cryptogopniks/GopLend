@@ -5,7 +5,7 @@ use crate::{
     assets::{Funds, Token},
     lending_platform::types::{
         Balances, Borrower, Collateral, Collection, Config, Depositor, LiquidationBid, Liquidator,
-        Proposal,
+        PaginationConfig, Proposal,
     },
 };
 
@@ -27,8 +27,12 @@ pub const DISCOUNT_MIN_RATE: &str = "0";
 pub const DISCOUNT_MAX_RATE: &str = "0.2";
 pub const BID_MIN_RATE: &str = "0.1";
 
+pub const PAGINATION_AMOUNT: u32 = 10;
+pub const PAGINATION_INDEX: Option<Addr> = None;
+
 pub const IS_LOCKED: Item<bool> = Item::new("is locked");
 pub const CONFIG: Item<Config> = Item::new("config");
+pub const PAGINATION_CONFIG: Item<PaginationConfig> = Item::new("pagination config");
 pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");

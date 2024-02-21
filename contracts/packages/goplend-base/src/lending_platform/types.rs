@@ -108,3 +108,26 @@ pub struct Config {
     pub discount_max_rate: Decimal,
     pub bid_min_rate: Decimal,
 }
+
+#[cw_serde]
+pub struct PaginationConfig {
+    pagination_amount: u32,
+    pub pagination_index: Option<Addr>,
+}
+
+impl PaginationConfig {
+    pub fn new(pagination_amount: u32, pagination_index: &Option<Addr>) -> Self {
+        Self {
+            pagination_amount,
+            pagination_index: pagination_index.to_owned(),
+        }
+    }
+
+    pub fn get_amount(&self) -> u32 {
+        let Self {
+            pagination_amount, ..
+        } = self.to_owned();
+
+        pagination_amount
+    }
+}

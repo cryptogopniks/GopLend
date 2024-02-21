@@ -44,6 +44,7 @@ pub trait WithCodes {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+        pagination_amount: &Option<u32>,
     ) -> Addr;
 
     fn instantiate_oracle(
@@ -178,6 +179,7 @@ impl WithCodes for Project {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+        pagination_amount: &Option<u32>,
     ) -> Addr {
         self.instantiate_contract(
             lending_platform_code_id,
@@ -195,6 +197,7 @@ impl WithCodes for Project {
                 discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
                 discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                 bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
+                pagination_amount: pagination_amount.as_ref().map(|x| x.to_owned()),
             },
         )
     }
