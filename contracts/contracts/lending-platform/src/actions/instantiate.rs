@@ -10,9 +10,9 @@ use goplend_base::{
         state::{
             BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME,
             CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
-            UNBONDING_PERIOD,
+            PAGINATION_AMOUNT, PAGINATION_CONFIG, PAGINATION_INDEX, UNBONDING_PERIOD,
         },
-        types::{Balances, Config},
+        types::{Balances, Config, PaginationConfig},
     },
     utils::{validate_attr, Attrs},
 };
@@ -65,6 +65,13 @@ pub fn try_instantiate(
                 .unwrap_or(str_to_dec(DISCOUNT_MAX_RATE)),
             bid_min_rate: msg.bid_min_rate.unwrap_or(str_to_dec(BID_MIN_RATE)),
         },
+    )?;
+
+    let pagination_amount = msg.pagination_amount.unwrap_or(PAGINATION_AMOUNT);
+
+    PAGINATION_CONFIG.save(
+        deps.storage,
+        &PaginationConfig::new(pagination_amount, &PAGINATION_INDEX),
     )?;
 
     BALANCES.save(deps.storage, &Balances::default())?;

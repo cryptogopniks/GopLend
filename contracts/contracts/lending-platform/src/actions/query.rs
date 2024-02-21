@@ -212,6 +212,7 @@ pub fn query_collections(
         .collect())
 }
 
+// TODO: linear bgl growth (considering borrow_apr)
 pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdResult<Decimal> {
     let balances = BALANCES.load(deps.storage)?;
     let config = CONFIG.load(deps.storage)?;

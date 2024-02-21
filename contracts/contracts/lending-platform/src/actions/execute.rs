@@ -13,11 +13,12 @@ use goplend_base::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
             CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS,
-            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY,
+            PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
+            SAVE_CW20_ADDRESS_REPLY,
         },
         types::{
             Balances, Collateral, Collection, CollectionInfo, Config, Depositor, LiquidationBid,
-            Liquidator, Proposal, ProposalStatus, ProposalType, Vault,
+            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Vault,
         },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
@@ -398,6 +399,7 @@ pub fn try_withdraw_collateral(
         .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
+// TODO: limit total borrowed amount to avoid zero available to withdraw amount
 pub fn try_borrow(
     deps: DepsMut,
     env: Env,
@@ -434,6 +436,7 @@ pub fn try_borrow(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
+    // TODO: limit prices change rate to protect against oracle attack
     let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
@@ -945,6 +948,7 @@ pub fn try_update_config(
     discount_min_rate: Option<Decimal>,
     discount_max_rate: Option<Decimal>,
     bid_min_rate: Option<Decimal>,
+    pagination_amount: Option<u32>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1024,6 +1028,14 @@ pub fn try_update_config(
 
         Ok(config)
     })?;
+
+    if let Some(x) = pagination_amount {
+        let PaginationConfig {
+            pagination_index, ..
+        } = PAGINATION_CONFIG.load(deps.storage)?;
+        PAGINATION_CONFIG.save(deps.storage, &PaginationConfig::new(x, &pagination_index))?;
+        attrs.push(("pagination_amount".to_string(), x.to_string()));
+    }
 
     Ok(Response::new().add_attributes(attrs))
 }

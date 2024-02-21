@@ -24,6 +24,7 @@ pub struct InstantiateMsg {
     pub discount_min_rate: Option<Decimal>,
     pub discount_max_rate: Option<Decimal>,
     pub bid_min_rate: Option<Decimal>,
+    pub pagination_amount: Option<u32>,
 }
 
 #[cw_serde]
@@ -98,6 +99,7 @@ pub enum ExecuteMsg {
         discount_min_rate: Option<Decimal>,
         discount_max_rate: Option<Decimal>,
         bid_min_rate: Option<Decimal>,
+        pagination_amount: Option<u32>,
     },
 
     // admin, owner

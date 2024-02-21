@@ -52,9 +52,11 @@ pub fn save_cw20_address(
 }
 
 pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
-    if let SudoMsg::BeginBlock {} = msg {
-        BLOCK_COUNTER.save(deps.storage, &env.block.height)?;
+    if let SudoMsg::EndBlock {} = msg {
+        return Ok(Response::new().add_attributes(vec![("action", "try_process")]));
     }
+
+    BLOCK_COUNTER.save(deps.storage, &env.block.height)?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }

@@ -136,7 +136,6 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             owner,
             oracle,
-
             main_currency,
             bgl_currency,
             cw20_base_code_id,
@@ -147,6 +146,7 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
+            pagination_amount,
         } => e::try_update_config(
             deps,
             env,
@@ -163,6 +163,7 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
+            pagination_amount,
         ),
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
