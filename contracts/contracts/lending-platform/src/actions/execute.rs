@@ -27,17 +27,18 @@ use goplend_base::{
 
 use crate::{
     helpers::{
-        check_authorization, check_collections_holder, check_lockout, verify_proposal_status,
+        accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
+        verify_proposal_status,
     },
     math::{
-        calc_accumulated_loan, calc_bid_max_multiplier, calc_ltv, calc_minted_bgl_token_amount,
-        calc_unbonded_main_token_amount,
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards, calc_ltv,
+        calc_minted_bgl_token_amount, calc_unbonded_main_token_amount,
     },
 };
 
 pub fn try_deposit(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     sender: Option<String>,
     amount: Option<Uint128>,
@@ -47,9 +48,11 @@ pub fn try_deposit(
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
+    let block_time = env.block.time.seconds();
     let Config {
         main_currency,
         bgl_currency,
+        borrow_apr,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
@@ -61,10 +64,19 @@ pub fn try_deposit(
     // update contract balances
     let mut balances = BALANCES.load(deps.storage)?;
 
+    let expected_rewards = calc_expected_rewards(
+        block_time,
+        balances.total_borrowed.creation_date,
+        borrow_apr,
+        balances.total_borrowed.amount,
+    );
+    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
     let bgl_token_amount = calc_minted_bgl_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
+        rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
@@ -106,6 +118,7 @@ pub fn try_unbond(
     let Config {
         main_currency,
         bgl_currency,
+        borrow_apr,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
@@ -117,10 +130,19 @@ pub fn try_unbond(
     // update balances
     let mut balances = BALANCES.load(deps.storage)?;
 
+    let expected_rewards = calc_expected_rewards(
+        block_time,
+        balances.total_borrowed.creation_date,
+        borrow_apr,
+        balances.total_borrowed.amount,
+    );
+    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
     let main_token_amount = calc_unbonded_main_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
+        rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
@@ -502,8 +524,9 @@ pub fn try_borrow(
     // update states
     BORROWERS.save(deps.storage, &sender_address, &borrower)?;
 
+    accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed += amount;
+        x.total_borrowed.amount += amount;
 
         Ok(x)
     })?;
@@ -557,8 +580,9 @@ pub fn try_repay(
     // update states
     BORROWERS.save(deps.storage, &sender_address, &borrower)?;
 
+    accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed -= asset_amount;
+        x.total_borrowed.amount -= asset_amount;
 
         Ok(x)
     })?;
@@ -934,7 +958,7 @@ pub fn try_update_bid(
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     owner: Option<String>,
     oracle: Option<String>,
@@ -954,6 +978,7 @@ pub fn try_update_config(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
+    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
     let mut attrs = Attrs::init("try_update_config");
 
@@ -1040,6 +1065,7 @@ pub fn try_update_config(
     Ok(Response::new().add_attributes(attrs))
 }
 
+// TODO: use separate minter contract
 pub fn try_create_bgl_token(
     deps: DepsMut,
     env: Env,
@@ -1085,7 +1111,7 @@ pub fn try_create_bgl_token(
 
 pub fn try_deposit_reserve_liquidity(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     sender: Option<String>,
     amount: Option<Uint128>,
@@ -1095,9 +1121,11 @@ pub fn try_deposit_reserve_liquidity(
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
 
+    let block_time = env.block.time.seconds();
     let Config {
         main_currency,
         bgl_currency,
+        borrow_apr,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
@@ -1109,10 +1137,19 @@ pub fn try_deposit_reserve_liquidity(
     // update contract balances
     let mut balances = BALANCES.load(deps.storage)?;
 
+    let expected_rewards = calc_expected_rewards(
+        block_time,
+        balances.total_borrowed.creation_date,
+        borrow_apr,
+        balances.total_borrowed.amount,
+    );
+    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
     let bgl_token_amount = calc_minted_bgl_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
+        rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );

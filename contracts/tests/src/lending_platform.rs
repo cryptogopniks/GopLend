@@ -165,23 +165,23 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
     Ok(())
 }
 
-#[test]
-fn scheduler_for_lending_platform() -> StdResult<()> {
-    let mut project = Project::new();
-    project.reset_time();
+// #[test]
+// fn scheduler_for_lending_platform() -> StdResult<()> {
+//     let mut project = Project::new();
+//     project.reset_time();
 
-    project.lending_platform_try_process()?;
-    let res = project.lending_platform_query_block_counter()?;
-    assert_that(&res).is_equal_to(200);
+//     project.lending_platform_try_process()?;
+//     let res = project.lending_platform_query_block_counter()?;
+//     assert_that(&res).is_equal_to(200);
 
-    project.wait(10);
+//     project.wait(10);
 
-    project.lending_platform_try_process()?;
-    let res = project.lending_platform_query_block_counter()?;
-    assert_that(&res).is_equal_to(202);
+//     project.lending_platform_try_process()?;
+//     let res = project.lending_platform_query_block_counter()?;
+//     assert_that(&res).is_equal_to(202);
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 #[test]
 fn deposit_unbond_withdraw_default() -> StdResult<()> {

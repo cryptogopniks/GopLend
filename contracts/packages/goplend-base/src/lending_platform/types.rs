@@ -57,6 +57,7 @@ pub struct Collateral {
     pub token_id_list: Vec<String>,
 }
 
+#[derive(Default)]
 #[cw_serde]
 pub struct Vault {
     pub creation_date: u64,
@@ -84,7 +85,8 @@ pub struct Liquidator {
 pub struct Balances {
     pub total_deposited: Uint128,
     pub total_unbonded: Uint128,
-    pub total_borrowed: Uint128,
+    pub total_borrowed: Vault,
+    pub expected_accumulated_rewards: Uint128, // used to match all loans by creation date
     pub total_liquidation_bids: Uint128,
     pub total_main_currency_pool: Uint128,
     pub total_bgl_currency_supply: Uint128,

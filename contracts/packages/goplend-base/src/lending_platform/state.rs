@@ -19,6 +19,7 @@ pub const CW20_NAME: &str = "bonded GopLend STARS";
 pub const CW20_SYMBOL: &str = "bglSTARS";
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 
+pub const YEAR_IN_SECONDS: u64 = 365 * 24 * 3600;
 pub const UNBONDING_PERIOD: u64 = 14 * 24 * 3600;
 pub const BORROW_APR: &str = "0.25";
 pub const BORROW_FEE_RATE: &str = "0.05";

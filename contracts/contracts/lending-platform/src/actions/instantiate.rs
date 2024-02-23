@@ -21,12 +21,13 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn try_instantiate(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
+    let block_time = env.block.time.seconds();
     let mut attrs = Attrs::init("try_instantiate");
     let api = deps.api;
 
@@ -74,7 +75,9 @@ pub fn try_instantiate(
         &PaginationConfig::new(pagination_amount, &PAGINATION_INDEX),
     )?;
 
-    BALANCES.save(deps.storage, &Balances::default())?;
+    let mut balances = Balances::default();
+    balances.total_borrowed.creation_date = block_time;
+    BALANCES.save(deps.storage, &balances)?;
 
     IS_LOCKED.save(deps.storage, &false)?;
 

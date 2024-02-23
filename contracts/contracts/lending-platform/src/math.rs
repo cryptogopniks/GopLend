@@ -1,12 +1,34 @@
 use cosmwasm_std::{Decimal, Decimal256, Uint128};
 
-use goplend_base::converters::{dec256_to_dec, dec256_to_uint128, u128_to_dec, u128_to_dec256};
+use goplend_base::{
+    converters::{dec256_to_dec, dec256_to_uint128, u128_to_dec, u128_to_dec256},
+    lending_platform::state::YEAR_IN_SECONDS,
+};
 
-// bgl = m1 * main * bgl_pool / main_pool
+// expected_rewards = borrow_apr * total_borrowed_amount *
+// * (block_time - borrowing_vault_creation_date) / year_in_seconds
+pub fn calc_expected_rewards(
+    block_time: u64,
+    borrowing_vault_creation_date: u64,
+    borrow_apr: Decimal,
+    total_borrowed_amount: Uint128,
+) -> Uint128 {
+    let borrowing_period = block_time - borrowing_vault_creation_date;
+
+    (borrow_apr
+        * u128_to_dec(
+            total_borrowed_amount * Uint128::from(borrowing_period)
+                / Uint128::from(YEAR_IN_SECONDS),
+        ))
+    .to_uint_floor()
+}
+
+// bgl = m1 * main * bgl_pool / (main_pool + accumulated_expected_rewards)
 pub fn calc_minted_bgl_token_amount(
     main_currency_amount: Uint128,
     total_main_currency_pool: Uint128,
     total_bgl_currency_supply: Uint128,
+    accumulated_expected_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Uint128 {
@@ -18,15 +40,16 @@ pub fn calc_minted_bgl_token_amount(
         decimals_multiplier * u128_to_dec256(main_currency_amount)
     } else {
         decimals_multiplier * u128_to_dec256(main_currency_amount * total_bgl_currency_supply)
-            / u128_to_dec256(total_main_currency_pool)
+            / u128_to_dec256(total_main_currency_pool + accumulated_expected_rewards)
     })
 }
 
-// main = m2 * bgl * main_pool / bgl_pool
+// main = m2 * bgl * (main_pool + accumulated_expected_rewards) / bgl_pool
 pub fn calc_unbonded_main_token_amount(
     bgl_currency_amount: Uint128,
     total_main_currency_pool: Uint128,
     total_bgl_currency_supply: Uint128,
+    accumulated_expected_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Uint128 {
@@ -34,7 +57,10 @@ pub fn calc_unbonded_main_token_amount(
         / u128_to_dec256(10u128.pow(bgl_currency_decimals as u32));
 
     dec256_to_uint128(
-        decimals_multiplier * u128_to_dec256(bgl_currency_amount * total_main_currency_pool)
+        decimals_multiplier
+            * u128_to_dec256(
+                bgl_currency_amount * (total_main_currency_pool + accumulated_expected_rewards),
+            )
             / u128_to_dec256(total_bgl_currency_supply),
     )
 }
@@ -42,13 +68,14 @@ pub fn calc_unbonded_main_token_amount(
 pub fn calc_bgl_to_main_price(
     total_main_currency_pool: Uint128,
     total_bgl_currency_supply: Uint128,
+    accumulated_expected_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Decimal {
     let price = if total_bgl_currency_supply.is_zero() {
         Decimal256::one()
     } else {
-        u128_to_dec256(total_main_currency_pool)
+        u128_to_dec256(total_main_currency_pool + accumulated_expected_rewards)
             * u128_to_dec256(10u128.pow(bgl_currency_decimals as u32))
             / (u128_to_dec256(total_bgl_currency_supply)
                 * u128_to_dec256(10u128.pow(main_currency_decimals as u32)))
