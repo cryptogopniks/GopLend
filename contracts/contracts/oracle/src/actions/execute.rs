@@ -12,6 +12,7 @@ use goplend_base::{
     utils::{check_funds, unwrap_field, Attrs, FundsType},
 };
 
+// TODO: move logic on backend
 pub fn try_update_prices(
     deps: DepsMut,
     env: Env,

@@ -22,7 +22,7 @@ use goplend_base::{
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math::{calc_bgl_to_main_price, calc_deposit_apr, calc_ltv};
+use crate::math::{calc_bgl_to_main_price, calc_deposit_apr, calc_expected_rewards, calc_ltv};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -212,16 +212,25 @@ pub fn query_collections(
         .collect())
 }
 
-// TODO: linear bgl growth (considering borrow_apr)
-pub fn query_bgl_currency_to_main_currency_price(deps: Deps, _env: Env) -> StdResult<Decimal> {
+pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdResult<Decimal> {
+    let block_time = env.block.time.seconds();
     let balances = BALANCES.load(deps.storage)?;
     let config = CONFIG.load(deps.storage)?;
     let main_currency = config.main_currency;
     let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
 
+    let expected_rewards = calc_expected_rewards(
+        block_time,
+        balances.total_borrowed.creation_date,
+        config.borrow_apr,
+        balances.total_borrowed.amount,
+    );
+    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
     Ok(calc_bgl_to_main_price(
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
+        rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     ))
@@ -245,7 +254,7 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
         borrow_fee_rate,
         total_deposited,
         total_unbonded,
-        total_borrowed,
+        total_borrowed.amount,
     ))
 }
 

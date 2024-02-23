@@ -14,6 +14,7 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
 }
 
+// TODO: use proper pagination
 pub fn query_prices(
     deps: Deps,
     _env: Env,

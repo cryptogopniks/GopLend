@@ -1,14 +1,16 @@
-use cosmwasm_std::{Addr, Deps, StdResult};
+use cosmwasm_std::{Addr, Deps, StdResult, Storage};
 
 use goplend_base::{
     assets::Token,
     error::ContractError,
     lending_platform::{
-        state::{CONFIG, IS_LOCKED},
-        types::{CollectionInfo, Config, Proposal, ProposalStatus},
+        state::{BALANCES, CONFIG, IS_LOCKED},
+        types::{Balances, CollectionInfo, Config, Proposal, ProposalStatus},
     },
     utils::{unwrap_field, AuthType},
 };
+
+use crate::math::calc_expected_rewards;
 
 pub fn check_lockout(deps: Deps) -> StdResult<()> {
     if IS_LOCKED.load(deps.storage)? {
@@ -145,3 +147,25 @@ pub fn check_collections_holder(
 
     Ok(())
 }
+
+pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -> StdResult<()> {
+    let config = CONFIG.load(storage)?;
+
+    BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
+        let rewards = calc_expected_rewards(
+            block_time,
+            balances.total_borrowed.creation_date,
+            config.borrow_apr,
+            balances.total_borrowed.amount,
+        );
+
+        balances.expected_accumulated_rewards += rewards;
+        balances.total_borrowed.creation_date = block_time;
+
+        Ok(balances)
+    })?;
+
+    Ok(())
+}
+
+// TODO: implement fee collection - PLATFORM_REVENUE
