@@ -267,6 +267,7 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, Con
     o::migrate_contract(deps, env, msg)
 }
 
+// TODO: move to scheduler contract
 /// Exposes all functions that can be called only by Cosmos SDK modules
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {

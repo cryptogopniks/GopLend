@@ -52,7 +52,6 @@ pub fn try_deposit(
     let Config {
         main_currency,
         bgl_currency,
-        borrow_apr,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
@@ -62,21 +61,14 @@ pub fn try_deposit(
     }
 
     // update contract balances
+    accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
-
-    let expected_rewards = calc_expected_rewards(
-        block_time,
-        balances.total_borrowed.creation_date,
-        borrow_apr,
-        balances.total_borrowed.amount,
-    );
-    let rewards = balances.expected_accumulated_rewards + expected_rewards;
 
     let bgl_token_amount = calc_minted_bgl_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
-        rewards,
+        balances.expected_accumulated_rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
@@ -118,7 +110,6 @@ pub fn try_unbond(
     let Config {
         main_currency,
         bgl_currency,
-        borrow_apr,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
@@ -128,21 +119,14 @@ pub fn try_unbond(
     }
 
     // update balances
+    accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
-
-    let expected_rewards = calc_expected_rewards(
-        block_time,
-        balances.total_borrowed.creation_date,
-        borrow_apr,
-        balances.total_borrowed.amount,
-    );
-    let rewards = balances.expected_accumulated_rewards + expected_rewards;
 
     let main_token_amount = calc_unbonded_main_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
-        rewards,
+        balances.expected_accumulated_rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
