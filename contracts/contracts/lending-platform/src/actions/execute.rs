@@ -21,17 +21,17 @@ use goplend_base::{
             Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Vault,
         },
     },
-    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
 use crate::{
+    actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
         verify_proposal_status,
     },
     math::{
-        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards, calc_ltv,
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
         calc_minted_bgl_token_amount, calc_unbonded_main_token_amount,
     },
 };
@@ -386,7 +386,7 @@ pub fn try_withdraw_collateral(
     }
 
     // check ltv
-    let ltv = crate::actions::query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
+    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
     let Config {
         discount_max_rate,
         discount_min_rate,
@@ -420,63 +420,12 @@ pub fn try_borrow(
     let Config {
         main_currency,
         borrow_apr,
-        oracle,
         discount_max_rate,
         discount_min_rate,
         bid_min_rate,
         ..
     } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
-
-    // TODO: refactor
-    // get collaterals owned by borrower
-    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .filter(|(_collection, collateral)| collateral.owner == &sender_address)
-        .collect();
-
-    let collection_addresses: Vec<String> = collection_and_collateral_list
-        .iter()
-        .map(|(collection, _collateral)| collection.to_string())
-        .collect();
-
-    // TODO: limit prices change rate to protect against oracle attack
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-        },
-    )?;
-
-    let collateral_value = collection_and_collateral_list.iter().fold(
-        Ok(Uint128::zero()),
-        |acc, (collection, _collateral)| -> StdResult<Uint128> {
-            let oracle::msg::QueryPricesResponseItem {
-                price,
-                price_update_date,
-                ..
-            } = prices.iter().find(|x| x.address == collection).ok_or(
-                ContractError::PriceIsNotFound {
-                    val: collection.to_string(),
-                },
-            )?;
-
-            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
-                Err(ContractError::OutdatedPrice {
-                    val: collection.to_string(),
-                })?;
-            }
-
-            let (_collection, collateral) = collection_and_collateral_list
-                .iter()
-                .find(|(collection_address, ..)| collection_address == collection)
-                .ok_or(ContractError::Unauthorized)?;
-
-            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
-        },
-    )?;
 
     borrower.accumulated_loan = calc_accumulated_loan(
         borrow_apr,
@@ -490,15 +439,8 @@ pub fn try_borrow(
         amount,
     };
 
-    let ltv = calc_ltv(
-        borrow_apr,
-        borrower.accumulated_loan,
-        borrower.loan.amount,
-        collateral_value,
-        block_time,
-        borrower.loan.creation_date,
-    );
-
+    // check ltv
+    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
     let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
 
     if ltv > ltv_max {
@@ -574,6 +516,7 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
+// TODO: limit max amount of bids per liquidator at 5
 pub fn try_place_bid(
     deps: DepsMut,
     env: Env,
