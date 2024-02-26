@@ -212,7 +212,7 @@ pub struct QueryLiquidatorsResponseItem {
 #[cw_serde]
 pub struct QueryCollateralsResponseItem {
     pub address: Addr,
-    pub collateral: Collateral,
+    pub collateral: Vec<Collateral>,
 }
 
 #[cw_serde]

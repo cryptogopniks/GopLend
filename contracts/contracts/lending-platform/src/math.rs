@@ -109,6 +109,11 @@ pub fn calc_ltv(
     loan / u128_to_dec(collateral)
 }
 
+// liquidation_value = collateral * (ltv - ltv_max) / (1 - ltv_max)
+pub fn calc_liquidation_value(collateral: Uint128, ltv: Decimal, ltv_max: Decimal) -> Uint128 {
+    (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - ltv_max)).to_uint_ceil()
+}
+
 pub fn calc_accumulated_loan(
     borrow_apr: Decimal,
     accumulated_loan: Uint128,

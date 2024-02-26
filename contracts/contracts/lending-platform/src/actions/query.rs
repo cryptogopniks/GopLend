@@ -92,7 +92,7 @@ pub fn query_collaterals(
     _env: Env,
     collection_addresses: Option<Vec<String>>,
 ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
-    let collaterals: Vec<(Addr, Collateral)> = COLLATERALS
+    let collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
         .collect();
@@ -258,7 +258,6 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
     ))
 }
 
-// TODO: optimize
 pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let Config {
@@ -272,14 +271,25 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
-        .filter(|(_collection, collateral)| collateral.owner == &borrower_address)
-        .collect();
+        .map(
+            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                // single collateral per collection
+                let collateral = collaterals
+                    .into_iter()
+                    .find(|collateral| collateral.owner == borrower_address)
+                    .ok_or(ContractError::CollateralIsNotFound)?;
+
+                Ok((collection, collateral))
+            },
+        )
+        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
+    // TODO: limit prices change rate to protect against oracle attack
     let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
@@ -289,27 +299,23 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
 
     let collateral_value = collection_and_collateral_list.iter().fold(
         Ok(Uint128::zero()),
-        |acc, (collection, _collateral)| -> StdResult<Uint128> {
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
             let oracle::msg::QueryPricesResponseItem {
                 price,
                 price_update_date,
                 ..
-            } = prices.iter().find(|x| x.address == collection).ok_or(
-                ContractError::PriceIsNotFound {
-                    val: collection.to_string(),
-                },
-            )?;
+            } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
 
             if block_time - price_update_date > PRICE_UPDATE_PERIOD {
                 Err(ContractError::OutdatedPrice {
-                    val: collection.to_string(),
+                    val: collection_address.to_string(),
                 })?;
             }
-
-            let (_collection, collateral) = collection_and_collateral_list
-                .iter()
-                .find(|(collection_address, ..)| collection_address == collection)
-                .ok_or(ContractError::Unauthorized)?;
 
             // TODO: decimals, other currencies
             Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))

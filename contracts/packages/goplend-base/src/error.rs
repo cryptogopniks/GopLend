@@ -79,6 +79,9 @@ pub enum ContractError {
     #[error("Empty price vector!")]
     EmptyPriceVector,
 
+    #[error("Collateral is not found!")]
+    CollateralIsNotFound,
+
     #[error("Collection already exists!")]
     CollectionDuplication,
 

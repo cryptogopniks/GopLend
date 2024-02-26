@@ -21,17 +21,17 @@ use goplend_base::{
             Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Vault,
         },
     },
-    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
 use crate::{
+    actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
         verify_proposal_status,
     },
     math::{
-        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards, calc_ltv,
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
         calc_minted_bgl_token_amount, calc_unbonded_main_token_amount,
     },
 };
@@ -284,26 +284,46 @@ pub fn try_deposit_collateral(
             msg_list.push(msg);
         }
 
+        // TODO: check proper removal on other Map storages
         // update collaterals
         COLLATERALS.update(
             deps.storage,
             &collection_address,
-            |x| -> StdResult<Collateral> {
-                let collateral = match x {
-                    Some(mut y) => {
-                        y.token_id_list = vec![y.token_id_list, token_id_list].concat();
-                        y.token_id_list.sort_unstable();
-                        y.token_id_list.dedup();
+            |x| -> StdResult<Vec<Collateral>> {
+                let collaterals = match x {
+                    Some(mut collaterals) => {
+                        let current_collateral = collaterals
+                            .iter()
+                            .find(|collateral| collateral.owner == sender_address);
 
-                        y
+                        if current_collateral.is_none() {
+                            collaterals.push(Collateral {
+                                owner: sender_address.to_owned(),
+                                token_id_list: vec![],
+                            });
+                        }
+
+                        collaterals = collaterals
+                            .into_iter()
+                            .map(|mut collateral| {
+                                collateral.token_id_list =
+                                    vec![collateral.token_id_list, token_id_list.clone()].concat();
+                                collateral.token_id_list.sort_unstable();
+                                collateral.token_id_list.dedup();
+
+                                collateral
+                            })
+                            .collect();
+
+                        collaterals
                     }
-                    None => Collateral {
+                    None => vec![Collateral {
                         owner: sender_address.clone(),
                         token_id_list,
-                    },
+                    }],
                 };
 
-                Ok(collateral)
+                Ok(collaterals)
             },
         )?;
     }
@@ -360,33 +380,34 @@ pub fn try_withdraw_collateral(
         }
 
         // update collaterals
-        COLLATERALS.update(
-            deps.storage,
-            &collection_address,
-            |x| -> StdResult<Collateral> {
-                let collateral = match x {
-                    Some(mut y) => {
-                        y.token_id_list = y
-                            .token_id_list
-                            .into_iter()
-                            .filter(|z| !token_id_list.contains(z))
-                            .collect();
+        let collaterals: Vec<Collateral> = COLLATERALS
+            .load(deps.storage, &collection_address)?
+            .into_iter()
+            .map(|mut collateral| {
+                if collateral.owner == sender_address {
+                    collateral.token_id_list = collateral
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| !token_id_list.contains(id))
+                        .collect();
 
-                        y
-                    }
-                    None => Collateral {
-                        owner: sender_address.clone(),
-                        token_id_list,
-                    },
-                };
+                    collateral
+                } else {
+                    collateral
+                }
+            })
+            .filter(|collateral| !collateral.token_id_list.is_empty())
+            .collect();
 
-                Ok(collateral)
-            },
-        )?;
+        if collaterals.is_empty() {
+            COLLATERALS.remove(deps.storage, &collection_address);
+        } else {
+            COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
+        }
     }
 
     // check ltv
-    let ltv = crate::actions::query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
+    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
     let Config {
         discount_max_rate,
         discount_min_rate,
@@ -420,63 +441,12 @@ pub fn try_borrow(
     let Config {
         main_currency,
         borrow_apr,
-        oracle,
         discount_max_rate,
         discount_min_rate,
         bid_min_rate,
         ..
     } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
-
-    // TODO: refactor
-    // get collaterals owned by borrower
-    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .filter(|(_collection, collateral)| collateral.owner == &sender_address)
-        .collect();
-
-    let collection_addresses: Vec<String> = collection_and_collateral_list
-        .iter()
-        .map(|(collection, _collateral)| collection.to_string())
-        .collect();
-
-    // TODO: limit prices change rate to protect against oracle attack
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-        },
-    )?;
-
-    let collateral_value = collection_and_collateral_list.iter().fold(
-        Ok(Uint128::zero()),
-        |acc, (collection, _collateral)| -> StdResult<Uint128> {
-            let oracle::msg::QueryPricesResponseItem {
-                price,
-                price_update_date,
-                ..
-            } = prices.iter().find(|x| x.address == collection).ok_or(
-                ContractError::PriceIsNotFound {
-                    val: collection.to_string(),
-                },
-            )?;
-
-            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
-                Err(ContractError::OutdatedPrice {
-                    val: collection.to_string(),
-                })?;
-            }
-
-            let (_collection, collateral) = collection_and_collateral_list
-                .iter()
-                .find(|(collection_address, ..)| collection_address == collection)
-                .ok_or(ContractError::Unauthorized)?;
-
-            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
-        },
-    )?;
 
     borrower.accumulated_loan = calc_accumulated_loan(
         borrow_apr,
@@ -490,15 +460,8 @@ pub fn try_borrow(
         amount,
     };
 
-    let ltv = calc_ltv(
-        borrow_apr,
-        borrower.accumulated_loan,
-        borrower.loan.amount,
-        collateral_value,
-        block_time,
-        borrower.loan.creation_date,
-    );
-
+    // check ltv
+    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
     let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
 
     if ltv > ltv_max {
@@ -574,6 +537,7 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
+// TODO: limit max amount of bids per liquidator at 5 collections with 5 tokens each
 pub fn try_place_bid(
     deps: DepsMut,
     env: Env,
@@ -875,7 +839,7 @@ pub fn try_update_bid(
                                     current_bid_value += z.amount;
 
                                     LiquidationBid {
-                                        creation_date: block_time,
+                                        creation_date: block_time, // decrease changed bid priority
                                         liquidator: sender_address.clone(),
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,

@@ -1,4 +1,6 @@
-use cosmwasm_std::{Addr, DepsMut, Env, Order, Response, StdResult, Storage, SubMsgResult};
+use cosmwasm_std::{
+    Addr, Decimal, DepsMut, Env, Order, Response, StdResult, Storage, SubMsgResult, Uint128,
+};
 use cw2::{get_contract_version, set_contract_version};
 
 use cw_storage_plus::Bound;
@@ -6,20 +8,24 @@ use semver::Version;
 
 use goplend_base::{
     assets::{Currency, Token},
+    converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
         msg::{MigrateMsg, SudoMsg},
         state::{
-            BGL_CURRENCY_DECIMALS, BLOCK_COUNTER, COLLATERALS, CONFIG, CONTRACT_NAME,
+            BGL_CURRENCY_DECIMALS, BLOCK_COUNTER, BORROWERS, COLLATERALS, CONFIG, CONTRACT_NAME,
             LIQUIDATION_BIDS, PAGINATION_CONFIG, PAGINATION_INDEX,
         },
-        types::{Collateral, Config, LiquidationBid, PaginationConfig},
+        types::{Borrower, Collateral, Config, LiquidationBid, PaginationConfig},
     },
-    oracle,
+    oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::{check_funds, unwrap_field},
 };
 
-use crate::helpers::check_lockout;
+use crate::{
+    helpers::check_lockout,
+    math::{calc_bid_max_multiplier, calc_liquidation_value, calc_ltv},
+};
 
 pub fn save_cw20_address(
     deps: DepsMut,
@@ -78,20 +84,6 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
 
-    // get collaterals owned by borrower
-    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    // query collection prices
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: None,
-        },
-    )?;
-
     // rotate pagination
     let mut pagination_config = PAGINATION_CONFIG.load(deps.storage)?;
     let pagination_amount = pagination_config.get_amount();
@@ -105,34 +97,246 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         }
     };
 
-    let liquidation_bids: Vec<(Addr, Vec<LiquidationBid>)> = LIQUIDATION_BIDS
+    let borrowers: Vec<(Addr, Borrower)> = BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(pagination_amount as usize)
         .flatten()
         .collect();
 
-    let bids_last = liquidation_bids
+    let borrower_last = borrowers
         .last()
         .map(|(pagination_index_new, _)| pagination_index_new.to_owned());
-    let storage_last = LIQUIDATION_BIDS
+    let storage_last = BORROWERS
         .last(deps.storage)?
         .map(|(pagination_index_new, _)| pagination_index_new);
 
-    let pagination_index_new = if bids_last == storage_last {
+    let pagination_index_new = if borrower_last == storage_last {
         None
     } else {
-        bids_last
+        borrower_last
     };
 
     pagination_config.pagination_index = pagination_index_new;
     PAGINATION_CONFIG.save(deps.storage, &pagination_config)?;
 
-    // iterate over bids
-    for (collection_address, bids) in liquidation_bids {
-        // calc ltv
+    // get all collaterals
+    let collection_and_collateral_list: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .collect();
 
-        // aggregate bids by token id
-        for bid in bids {}
+    // collect collection addresses over current page borrowers
+    let borrower_addresses: Vec<Addr> = borrowers
+        .iter()
+        .map(|(address, _)| address.to_owned())
+        .collect();
+
+    let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
+        .iter()
+        .filter(|(_collection_address, collaterals)| {
+            collaterals
+                .iter()
+                .any(|collateral| borrower_addresses.contains(&collateral.owner))
+        })
+        .map(|(collection_address, _)| collection_address.to_string())
+        .collect();
+
+    collection_addresses_by_borrowers.sort_unstable();
+    collection_addresses_by_borrowers.dedup();
+
+    // query collection prices
+    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses_by_borrowers),
+        },
+    )?;
+
+    // TODO: reduce borrowers amount by adding limitations (borrowed amount, collateral size, etc.)
+    // iterate over borrowers
+    for (
+        borrower_address,
+        Borrower {
+            accumulated_loan,
+            loan,
+        },
+    ) in borrowers
+    {
+        // get collaterals owned by borrower
+        let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
+            collection_and_collateral_list
+                .iter()
+                .cloned()
+                .map(
+                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                        // single collateral per collection
+                        let collateral = collaterals
+                            .into_iter()
+                            .find(|collateral| collateral.owner == borrower_address)
+                            .ok_or(ContractError::CollateralIsNotFound)?;
+
+                        Ok((collection, collateral))
+                    },
+                )
+                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+        let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
+            Ok(Uint128::zero()),
+            |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+                let oracle::msg::QueryPricesResponseItem {
+                    price,
+                    price_update_date,
+                    ..
+                } = prices
+                    .iter()
+                    .find(|x| x.address == collection_address)
+                    .ok_or(ContractError::PriceIsNotFound {
+                        val: collection_address.to_string(),
+                    })?;
+
+                // TODO: don't panic, just skip
+                if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+                    Err(ContractError::OutdatedPrice {
+                        val: collection_address.to_string(),
+                    })?;
+                }
+
+                // TODO: decimals, other currencies
+                Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+            },
+        )?;
+
+        // check ltv
+        let ltv = calc_ltv(
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
+
+        // if low liquidate worst part and check again in loop
+        let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+
+        // no liquidation, check next borrower
+        if ltv <= ltv_max {
+            continue;
+        }
+
+        // TODO: doesn't allow big fraction liquidation
+        // calculate how much tokens and what collection must be liquidated to get proper ltv
+        let liquidation_value = calc_liquidation_value(collateral_value, ltv, ltv_max);
+
+        // find bids containing at least 1 borrower's collateral token
+        let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+
+        for (collection_address, collateral) in &collection_and_collateral_list_by_borrower {
+            for bid in LIQUIDATION_BIDS.load(deps.storage, &collection_address)? {
+                if bid
+                    .token_id_list
+                    .iter()
+                    .any(|id| collateral.token_id_list.contains(id))
+                {
+                    collection_and_bid_list.push((collection_address.clone(), bid));
+                }
+            }
+        }
+
+        // TODO: if collection_and_bid_list.is_empty() then accept offers
+
+        // sort bids by discount and creation date
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.discount);
+
+        // find min list of bids to get proper ltv
+        let mut current_liquidation_value = Uint128::zero();
+        let mut liquidated_collection_token_and_price_list: Vec<(Addr, String, Uint128)> = vec![];
+
+        for (collection_address, mut bid) in collection_and_bid_list {
+            if current_liquidation_value >= liquidation_value {
+                break;
+            }
+
+            let (
+                _,
+                Collateral {
+                    token_id_list: token_list_in_collateral,
+                    ..
+                },
+            ) = collection_and_collateral_list_by_borrower
+                .iter()
+                .find(|(collection, _)| collection == collection_address)
+                .ok_or(ContractError::CollectionIsNotFound)?;
+
+            // common tokens for collateral and bid
+            let mut target_tokens: Vec<String> = bid
+                .token_id_list
+                .into_iter()
+                .filter(|id| token_list_in_collateral.contains(id))
+                .rev()
+                .collect();
+
+            if target_tokens.is_empty() {
+                continue;
+            }
+
+            let oracle::msg::QueryPricesResponseItem { price, .. } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            let discounted_price =
+                (u128_to_dec(price.amount) * (Decimal::one() - bid.discount)).to_uint_ceil();
+
+            while !target_tokens.is_empty()
+                && bid.amount >= discounted_price
+                && current_liquidation_value < liquidation_value
+            {
+                let removed_target_token = target_tokens.pop(); // list reversed before
+                if let Some(x) = removed_target_token {
+                    liquidated_collection_token_and_price_list.push((
+                        collection_address.clone(),
+                        x,
+                        discounted_price,
+                    ));
+                }
+
+                bid.amount -= discounted_price;
+                current_liquidation_value += price.amount;
+            }
+
+            // TODO: if current_liquidation_value < liquidation_value then accept offers
+
+            for (collection_address, token_id, price) in &liquidated_collection_token_and_price_list
+            {
+                // update bids
+                let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
+                    .load(deps.storage, &collection_address)?
+                    .into_iter()
+                    .map(|mut bid| {
+                        bid.amount -= price;
+                        bid.token_id_list = bid
+                            .token_id_list
+                            .into_iter()
+                            .filter(|id| id != token_id)
+                            .collect();
+
+                        bid
+                    })
+                    .collect();
+
+                LIQUIDATION_BIDS.save(deps.storage, &collection_address, &bids)?;
+
+                // split collaterals
+                let collaterals = COLLATERALS.load(deps.storage, &collection_address)?;
+
+                // update borrowers
+            }
+        }
     }
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
