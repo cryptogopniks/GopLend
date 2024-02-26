@@ -41,7 +41,7 @@ pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");
 // TODO: replace DEPOSITORS with UNBONDERS
 pub const DEPOSITORS: Map<&Addr, Depositor> = Map::new("depositor by address");
 pub const BORROWERS: Map<&Addr, Borrower> = Map::new("borrower by address");
-pub const COLLATERALS: Map<&Addr, Collateral> = Map::new("collateral by collection address");
+pub const COLLATERALS: Map<&Addr, Vec<Collateral>> = Map::new("collaterals by collection address");
 pub const LIQUIDATORS: Map<&Addr, Liquidator> = Map::new("liquidator by address");
 pub const LIQUIDATION_BIDS: Map<&Addr, Vec<LiquidationBid>> =
     Map::new("liquidation bids by collection address");

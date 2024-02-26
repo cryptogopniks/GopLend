@@ -92,7 +92,7 @@ pub fn query_collaterals(
     _env: Env,
     collection_addresses: Option<Vec<String>>,
 ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
-    let collaterals: Vec<(Addr, Collateral)> = COLLATERALS
+    let collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
         .collect();
@@ -271,8 +271,18 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
-        .filter(|(_collection, collateral)| collateral.owner == &borrower_address)
-        .collect();
+        .map(
+            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                // single collateral per collection
+                let collateral = collaterals
+                    .into_iter()
+                    .find(|collateral| collateral.owner == borrower_address)
+                    .ok_or(ContractError::CollateralIsNotFound)?;
+
+                Ok((collection, collateral))
+            },
+        )
+        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()

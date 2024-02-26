@@ -284,26 +284,46 @@ pub fn try_deposit_collateral(
             msg_list.push(msg);
         }
 
+        // TODO: check proper removal on other Map storages
         // update collaterals
         COLLATERALS.update(
             deps.storage,
             &collection_address,
-            |x| -> StdResult<Collateral> {
-                let collateral = match x {
-                    Some(mut y) => {
-                        y.token_id_list = vec![y.token_id_list, token_id_list].concat();
-                        y.token_id_list.sort_unstable();
-                        y.token_id_list.dedup();
+            |x| -> StdResult<Vec<Collateral>> {
+                let collaterals = match x {
+                    Some(mut collaterals) => {
+                        let current_collateral = collaterals
+                            .iter()
+                            .find(|collateral| collateral.owner == sender_address);
 
-                        y
+                        if current_collateral.is_none() {
+                            collaterals.push(Collateral {
+                                owner: sender_address.to_owned(),
+                                token_id_list: vec![],
+                            });
+                        }
+
+                        collaterals = collaterals
+                            .into_iter()
+                            .map(|mut collateral| {
+                                collateral.token_id_list =
+                                    vec![collateral.token_id_list, token_id_list.clone()].concat();
+                                collateral.token_id_list.sort_unstable();
+                                collateral.token_id_list.dedup();
+
+                                collateral
+                            })
+                            .collect();
+
+                        collaterals
                     }
-                    None => Collateral {
+                    None => vec![Collateral {
                         owner: sender_address.clone(),
                         token_id_list,
-                    },
+                    }],
                 };
 
-                Ok(collateral)
+                Ok(collaterals)
             },
         )?;
     }
@@ -360,29 +380,30 @@ pub fn try_withdraw_collateral(
         }
 
         // update collaterals
-        COLLATERALS.update(
-            deps.storage,
-            &collection_address,
-            |x| -> StdResult<Collateral> {
-                let collateral = match x {
-                    Some(mut y) => {
-                        y.token_id_list = y
-                            .token_id_list
-                            .into_iter()
-                            .filter(|z| !token_id_list.contains(z))
-                            .collect();
+        let collaterals: Vec<Collateral> = COLLATERALS
+            .load(deps.storage, &collection_address)?
+            .into_iter()
+            .map(|mut collateral| {
+                if collateral.owner == sender_address {
+                    collateral.token_id_list = collateral
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| !token_id_list.contains(id))
+                        .collect();
 
-                        y
-                    }
-                    None => Collateral {
-                        owner: sender_address.clone(),
-                        token_id_list,
-                    },
-                };
+                    collateral
+                } else {
+                    collateral
+                }
+            })
+            .filter(|collateral| !collateral.token_id_list.is_empty())
+            .collect();
 
-                Ok(collateral)
-            },
-        )?;
+        if collaterals.is_empty() {
+            COLLATERALS.remove(deps.storage, &collection_address);
+        } else {
+            COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
+        }
     }
 
     // check ltv
