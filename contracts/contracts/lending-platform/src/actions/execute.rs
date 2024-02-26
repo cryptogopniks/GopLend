@@ -516,7 +516,7 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
-// TODO: limit max amount of bids per liquidator at 5
+// TODO: limit max amount of bids per liquidator at 5 collections with 5 tokens each
 pub fn try_place_bid(
     deps: DepsMut,
     env: Env,
@@ -818,7 +818,7 @@ pub fn try_update_bid(
                                     current_bid_value += z.amount;
 
                                     LiquidationBid {
-                                        creation_date: block_time,
+                                        creation_date: block_time, // decrease changed bid priority
                                         liquidator: sender_address.clone(),
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,

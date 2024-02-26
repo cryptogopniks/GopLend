@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Addr, DepsMut, Env, Order, Response, StdResult, Storage, SubMsgResult, Uint128,
+    Addr, Decimal, DepsMut, Env, Order, Response, StdResult, Storage, SubMsgResult, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
 
@@ -8,6 +8,7 @@ use semver::Version;
 
 use goplend_base::{
     assets::{Currency, Token},
+    converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
         msg::{MigrateMsg, SudoMsg},
@@ -147,6 +148,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         },
     )?;
 
+    // TODO: reduce borrowers amount by adding limitations (borrowed amount, collateral size, etc.)
     // iterate over borrowers
     for (
         borrower_address,
@@ -207,10 +209,84 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             continue;
         }
 
-        // calculate how much tokens and what collection must be liquidates to get proper ltv
+        // TODO: doesn't allow big fraction liquidation
+        // calculate how much tokens and what collection must be liquidated to get proper ltv
         let liquidation_value = calc_liquidation_value(collateral_value, ltv, ltv_max);
 
-        // iterate over each collection to decide what to liquidate first
+        // find bids containing at least 1 borrower's collateral token
+        let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+
+        for (collection_address, collateral) in &collection_and_collateral_list_by_borrower {
+            for bid in LIQUIDATION_BIDS.load(deps.storage, &collection_address)? {
+                if bid
+                    .token_id_list
+                    .iter()
+                    .any(|id| collateral.token_id_list.contains(id))
+                {
+                    collection_and_bid_list.push((collection_address.clone(), bid));
+                }
+            }
+        }
+
+        // sort bids by discount and creation date
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
+        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.discount);
+
+        // find min list of bids to get proper ltv
+        let mut current_liquidation_value = Uint128::zero();
+        let mut liquidated_collection_and_token_list: Vec<(Addr, String)> = vec![];
+        // let mut min_collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+
+        for (collection_address, mut bid) in collection_and_bid_list {
+            if current_liquidation_value >= liquidation_value {
+                break;
+            }
+
+            let (
+                _,
+                Collateral {
+                    token_id_list: token_list_in_collateral,
+                    ..
+                },
+            ) = collection_and_collateral_list_by_borrower
+                .iter()
+                .find(|(collection, _)| collection == collection_address)
+                .ok_or(ContractError::CollectionIsNotFound)?;
+
+            // common tokens for collateral and bid
+            let mut target_tokens: Vec<String> = bid
+                .token_id_list
+                .into_iter()
+                .filter(|id| token_list_in_collateral.contains(id))
+                .rev()
+                .collect();
+
+            let oracle::msg::QueryPricesResponseItem { price, .. } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            let discounted_price =
+                (u128_to_dec(price.amount) * (Decimal::one() - bid.discount)).to_uint_ceil();
+
+            while !target_tokens.is_empty()
+                && bid.amount >= discounted_price
+                && current_liquidation_value < liquidation_value
+            {
+                let removed_target_token = target_tokens.pop(); // list reversed before
+                if let Some(x) = removed_target_token {
+                    liquidated_collection_and_token_list.push((collection_address.clone(), x));
+                }
+
+                bid.amount -= discounted_price;
+                current_liquidation_value += price.amount;
+            }
+
+            // update storages
+        }
     }
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
