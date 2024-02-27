@@ -27,7 +27,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        verify_proposal_status,
+        increase_platform_revenue, verify_proposal_status,
     },
     math::{
         calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
@@ -486,6 +486,7 @@ pub fn try_borrow(
         .add_attributes(vec![("action", "try_borrow")]))
 }
 
+// TODO: implement fee collection - PLATFORM_REVENUE
 pub fn try_repay(
     deps: DepsMut,
     env: Env,
@@ -1445,26 +1446,12 @@ pub fn try_accept_proposal(
     };
 
     // update funds
-    let mut funds_list = PLATFORM_REVENUE.load(deps.storage)?;
-
-    let funds = funds_list
-        .iter()
-        .find(|Funds { currency, .. }| currency.token == asset_info);
-
-    if funds.is_none() {
-        funds_list.push(Funds::new(
-            Uint128::zero(),
-            &proposal.listing_price.currency,
-        ));
-    }
-
-    for funds_list_item in funds_list.iter_mut() {
-        if funds_list_item.currency.token == asset_info {
-            funds_list_item.amount += asset_amount;
-        }
-    }
-
-    PLATFORM_REVENUE.save(deps.storage, &funds_list)?;
+    increase_platform_revenue(
+        deps.storage,
+        asset_amount,
+        &asset_info,
+        &proposal.listing_price.currency,
+    )?;
 
     // update proposal status
     PROPOSALS.save(

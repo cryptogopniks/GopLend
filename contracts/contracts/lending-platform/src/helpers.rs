@@ -1,10 +1,10 @@
-use cosmwasm_std::{Addr, Deps, StdResult, Storage};
+use cosmwasm_std::{Addr, Deps, StdResult, Storage, Uint128};
 
 use goplend_base::{
-    assets::Token,
+    assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
-        state::{BALANCES, CONFIG, IS_LOCKED},
+        state::{BALANCES, CONFIG, IS_LOCKED, PLATFORM_REVENUE},
         types::{Balances, CollectionInfo, Config, Proposal, ProposalStatus},
     },
     utils::{unwrap_field, AuthType},
@@ -168,4 +168,29 @@ pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -
     Ok(())
 }
 
-// TODO: implement fee collection - PLATFORM_REVENUE
+pub fn increase_platform_revenue(
+    storage: &mut dyn Storage,
+    asset_amount: Uint128,
+    asset_info: &Token,
+    listing_price_currency: &Currency<Token>,
+) -> StdResult<()> {
+    let mut funds_list = PLATFORM_REVENUE.load(storage)?;
+
+    let funds = funds_list
+        .iter()
+        .find(|Funds { currency, .. }| &currency.token == asset_info);
+
+    if funds.is_none() {
+        funds_list.push(Funds::new(Uint128::zero(), listing_price_currency));
+    }
+
+    for funds_list_item in funds_list.iter_mut() {
+        if &funds_list_item.currency.token == asset_info {
+            funds_list_item.amount += asset_amount;
+        }
+    }
+
+    PLATFORM_REVENUE.save(storage, &funds_list)?;
+
+    Ok(())
+}

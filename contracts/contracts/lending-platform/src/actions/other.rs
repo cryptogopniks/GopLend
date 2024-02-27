@@ -15,18 +15,23 @@ use goplend_base::{
     lending_platform::{
         msg::{MigrateMsg, SudoMsg},
         state::{
-            BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, CONFIG, CONTRACT_NAME, LIQUIDATION_BIDS,
-            PAGINATION_CONFIG,
+            BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, CONFIG, CONTRACT_NAME,
+            LIQUIDATION_BIDS, PAGINATION_CONFIG,
         },
-        types::{Borrower, Collateral, Config, LiquidatedPosition, LiquidationBid, Vault},
+        types::{
+            Balances, Borrower, Collateral, Config, LiquidatedPosition, LiquidationBid, Vault,
+        },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
     utils::unwrap_field,
 };
 
 use crate::{
-    helpers::check_lockout,
-    math::{calc_accumulated_loan, calc_bid_max_multiplier, calc_liquidation_value, calc_ltv},
+    helpers::{check_lockout, increase_platform_revenue},
+    math::{
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
+        calc_liquidation_value, calc_ltv, calc_platform_revenue_on_liquidation,
+    },
 };
 
 pub fn save_cw20_address(
@@ -76,11 +81,13 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
 
     let block_time = env.block.time.seconds();
     let Config {
+        main_currency,
         borrow_apr,
         oracle,
         discount_max_rate,
         discount_min_rate,
         bid_min_rate,
+        liquidation_fee_rate,
         ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
@@ -152,6 +159,10 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             collection_addresses: Some(collection_addresses_by_borrowers),
         },
     )?;
+
+    // accumulators
+    let mut total_liquidation_value = Uint128::zero();
+    let mut total_liquidation_bids = Uint128::zero();
 
     // iterate over borrowers
     for (
@@ -309,6 +320,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                     });
                 }
 
+                total_liquidation_bids += discounted_price;
                 bid.amount -= discounted_price;
                 current_liquidation_value += price.amount;
             }
@@ -367,6 +379,8 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             }
         }
 
+        total_liquidation_value += current_liquidation_value;
+
         let accumulated_loan = calc_accumulated_loan(
             borrow_apr,
             accumulated_loan,
@@ -398,6 +412,52 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             },
         )?;
     }
+
+    // collect platform fee
+    let platform_revenue =
+        calc_platform_revenue_on_liquidation(total_liquidation_value, liquidation_fee_rate);
+    let main_currency_pool_addition = total_liquidation_value - platform_revenue;
+
+    increase_platform_revenue(
+        deps.storage,
+        main_currency_pool_addition,
+        &main_currency.token,
+        &main_currency,
+    )?;
+
+    // update contract balances
+    BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
+        let expected_rewards = calc_expected_rewards(
+            block_time,
+            balances.total_borrowed.creation_date,
+            borrow_apr,
+            balances.total_borrowed.amount,
+        );
+        let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
+        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
+            (
+                balances.total_borrowed.amount - total_liquidation_value,
+                rewards,
+            )
+        } else {
+            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
+            (
+                Uint128::zero(),
+                max(rewards, amount_difference) - amount_difference,
+            )
+        };
+
+        balances.total_main_currency_pool += main_currency_pool_addition;
+        balances.total_borrowed = Vault {
+            amount,
+            creation_date: block_time,
+        };
+        balances.expected_accumulated_rewards = rewards;
+        balances.total_liquidation_bids -= total_liquidation_bids;
+
+        Ok(balances)
+    })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }
