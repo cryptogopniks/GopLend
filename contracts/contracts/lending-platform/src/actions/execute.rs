@@ -426,6 +426,7 @@ pub fn try_withdraw_collateral(
         .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
+// TODO: reduce borrowers amount by adding limitations (collateral size)
 // TODO: limit total borrowed amount to avoid zero available to withdraw amount
 pub fn try_borrow(
     deps: DepsMut,
