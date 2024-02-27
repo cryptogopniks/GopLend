@@ -12,13 +12,12 @@ use goplend_base::{
     lending_platform::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
-            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS,
-            PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
-            SAVE_CW20_ADDRESS_REPLY,
+            CW20_NAME, CW20_SYMBOL, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_CONFIG,
+            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
         },
         types::{
-            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, LiquidationBid,
-            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Vault,
+            Balances, Collateral, Collection, CollectionInfo, Config, LiquidationBid, Liquidator,
+            PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
@@ -28,7 +27,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        verify_proposal_status,
+        increase_platform_revenue, verify_proposal_status,
     },
     math::{
         calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
@@ -136,7 +135,7 @@ pub fn try_unbond(
     BALANCES.save(deps.storage, &balances)?;
 
     // create unbonding position to withdraw main token later
-    DEPOSITORS.update(deps.storage, &sender_address, |x| -> StdResult<Depositor> {
+    UNBONDERS.update(deps.storage, &sender_address, |x| -> StdResult<Unbonder> {
         let returned_and_unbonded = (
             asset_amount,
             Vault {
@@ -145,10 +144,10 @@ pub fn try_unbond(
             },
         );
 
-        let depositor = match x {
-            Some(mut depositor) => {
+        let unbonder = match x {
+            Some(mut unbonder) => {
                 // don't allow multiple vaults with same creation date
-                let creation_date_list: Vec<u64> = depositor
+                let creation_date_list: Vec<u64> = unbonder
                     .returned_and_unbonded
                     .iter()
                     .map(|(_returned, unbonded)| unbonded.creation_date)
@@ -158,16 +157,16 @@ pub fn try_unbond(
                     Err(ContractError::SameCreationDate)?;
                 }
 
-                depositor.returned_and_unbonded.push(returned_and_unbonded);
+                unbonder.returned_and_unbonded.push(returned_and_unbonded);
 
-                depositor
+                unbonder
             }
-            None => Depositor {
+            None => Unbonder {
                 returned_and_unbonded: vec![returned_and_unbonded],
             },
         };
 
-        Ok(depositor)
+        Ok(unbonder)
     })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_unbond")]))
@@ -189,7 +188,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
-    let mut depositor = DEPOSITORS.load(deps.storage, &sender_address)?;
+    let mut depositor = UNBONDERS.load(deps.storage, &sender_address)?;
 
     depositor.returned_and_unbonded = depositor
         .returned_and_unbonded
@@ -206,7 +205,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         })
         .collect();
 
-    DEPOSITORS.save(deps.storage, &sender_address, &depositor)?;
+    UNBONDERS.save(deps.storage, &sender_address, &depositor)?;
 
     if amount_to_withdraw.is_zero() {
         Err(ContractError::ZeroAmount)?;
@@ -426,6 +425,7 @@ pub fn try_withdraw_collateral(
         .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
+// TODO: reduce borrowers amount by adding limitations (collateral size)
 // TODO: limit total borrowed amount to avoid zero available to withdraw amount
 pub fn try_borrow(
     deps: DepsMut,
@@ -486,6 +486,7 @@ pub fn try_borrow(
         .add_attributes(vec![("action", "try_borrow")]))
 }
 
+// TODO: implement fee collection - PLATFORM_REVENUE
 pub fn try_repay(
     deps: DepsMut,
     env: Env,
@@ -1445,26 +1446,12 @@ pub fn try_accept_proposal(
     };
 
     // update funds
-    let mut funds_list = PLATFORM_REVENUE.load(deps.storage)?;
-
-    let funds = funds_list
-        .iter()
-        .find(|Funds { currency, .. }| currency.token == asset_info);
-
-    if funds.is_none() {
-        funds_list.push(Funds::new(
-            Uint128::zero(),
-            &proposal.listing_price.currency,
-        ));
-    }
-
-    for funds_list_item in funds_list.iter_mut() {
-        if funds_list_item.currency.token == asset_info {
-            funds_list_item.amount += asset_amount;
-        }
-    }
-
-    PLATFORM_REVENUE.save(deps.storage, &funds_list)?;
+    increase_platform_revenue(
+        deps.storage,
+        asset_amount,
+        &asset_info,
+        &proposal.listing_price.currency,
+    )?;
 
     // update proposal status
     PROPOSALS.save(

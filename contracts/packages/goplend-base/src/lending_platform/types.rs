@@ -43,6 +43,13 @@ pub struct CollectionInfo<A: ToString> {
 }
 
 #[cw_serde]
+pub struct LiquidatedPosition {
+    pub token_id: String,
+    pub liquidation_price: Uint128,
+    pub liquidator: Addr,
+}
+
+#[cw_serde]
 pub struct LiquidationBid {
     pub creation_date: u64,
     pub liquidator: Addr,
@@ -65,7 +72,7 @@ pub struct Vault {
 }
 
 #[cw_serde]
-pub struct Depositor {
+pub struct Unbonder {
     pub returned_and_unbonded: Vec<(Uint128, Vault)>,
 }
 

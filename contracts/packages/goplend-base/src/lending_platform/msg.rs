@@ -8,7 +8,7 @@ use crate::{
     lending_platform::types::{Collateral, Collection, CollectionInfo, Proposal},
 };
 
-use super::types::{Borrower, Depositor, LiquidationBid, Liquidator};
+use super::types::{Borrower, LiquidationBid, Liquidator, Unbonder};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -151,7 +151,7 @@ pub enum QueryMsg {
     QueryBalances {},
 
     // TODO: add QueryAvailableAmountToWithdraw
-    #[returns(Vec<QueryDepositorsResponseItem>)]
+    #[returns(Vec<QueryUnbondersResponseItem>)]
     QueryDepositors { addresses: Option<Vec<String>> },
 
     #[returns(Vec<QueryBorrowersResponseItem>)]
@@ -192,9 +192,9 @@ pub enum QueryMsg {
 }
 
 #[cw_serde]
-pub struct QueryDepositorsResponseItem {
+pub struct QueryUnbondersResponseItem {
     pub address: Addr,
-    pub depositor: Depositor,
+    pub unbonder: Unbonder,
 }
 
 #[cw_serde]

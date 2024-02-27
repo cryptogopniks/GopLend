@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use cosmwasm_std::{
     Addr, Decimal, DepsMut, Env, Order, Response, StdResult, Storage, SubMsgResult, Uint128,
 };
@@ -13,18 +15,23 @@ use goplend_base::{
     lending_platform::{
         msg::{MigrateMsg, SudoMsg},
         state::{
-            BGL_CURRENCY_DECIMALS, BLOCK_COUNTER, BORROWERS, COLLATERALS, CONFIG, CONTRACT_NAME,
-            LIQUIDATION_BIDS, PAGINATION_CONFIG, PAGINATION_INDEX,
+            BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, CONFIG, CONTRACT_NAME,
+            LIQUIDATION_BIDS, PAGINATION_CONFIG,
         },
-        types::{Borrower, Collateral, Config, LiquidationBid, PaginationConfig},
+        types::{
+            Balances, Borrower, Collateral, Config, LiquidatedPosition, LiquidationBid, Vault,
+        },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
-    utils::{check_funds, unwrap_field},
+    utils::unwrap_field,
 };
 
 use crate::{
-    helpers::check_lockout,
-    math::{calc_bid_max_multiplier, calc_liquidation_value, calc_ltv},
+    helpers::{check_lockout, increase_platform_revenue},
+    math::{
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
+        calc_liquidation_value, calc_ltv, calc_platform_revenue_on_liquidation,
+    },
 };
 
 pub fn save_cw20_address(
@@ -80,6 +87,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         discount_max_rate,
         discount_min_rate,
         bid_min_rate,
+        liquidation_fee_rate,
         ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
@@ -152,7 +160,10 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         },
     )?;
 
-    // TODO: reduce borrowers amount by adding limitations (borrowed amount, collateral size, etc.)
+    // accumulators
+    let mut total_liquidation_value = Uint128::zero();
+    let mut total_liquidation_bids = Uint128::zero();
+
     // iterate over borrowers
     for (
         borrower_address,
@@ -180,6 +191,8 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                 )
                 .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
 
+        let mut is_price_outdated = false;
+
         let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
             Ok(Uint128::zero()),
             |acc, (collection_address, collateral)| -> StdResult<Uint128> {
@@ -194,17 +207,19 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                         val: collection_address.to_string(),
                     })?;
 
-                // TODO: don't panic, just skip
                 if block_time - price_update_date > PRICE_UPDATE_PERIOD {
-                    Err(ContractError::OutdatedPrice {
-                        val: collection_address.to_string(),
-                    })?;
+                    is_price_outdated = true;
                 }
 
                 // TODO: decimals, other currencies
                 Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
             },
         )?;
+
+        // go to next borrower if any price is outdated
+        if is_price_outdated {
+            continue;
+        }
 
         // check ltv
         let ltv = calc_ltv(
@@ -252,7 +267,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
 
         // find min list of bids to get proper ltv
         let mut current_liquidation_value = Uint128::zero();
-        let mut liquidated_collection_token_and_price_list: Vec<(Addr, String, Uint128)> = vec![];
+        let mut liquidated_collection_token_and_price_list: Vec<LiquidatedPosition> = vec![];
 
         for (collection_address, mut bid) in collection_and_bid_list {
             if current_liquidation_value >= liquidation_value {
@@ -297,28 +312,33 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                 && current_liquidation_value < liquidation_value
             {
                 let removed_target_token = target_tokens.pop(); // list reversed before
-                if let Some(x) = removed_target_token {
-                    liquidated_collection_token_and_price_list.push((
-                        collection_address.clone(),
-                        x,
-                        discounted_price,
-                    ));
+                if let Some(id) = removed_target_token {
+                    liquidated_collection_token_and_price_list.push(LiquidatedPosition {
+                        token_id: id,
+                        liquidation_price: discounted_price,
+                        liquidator: bid.liquidator.clone(),
+                    });
                 }
 
+                total_liquidation_bids += discounted_price;
                 bid.amount -= discounted_price;
                 current_liquidation_value += price.amount;
             }
 
-            // TODO: if current_liquidation_value < liquidation_value then accept offers
+            // TODO: if current_liquidation_value < liquidation_value then accept offers partially
 
-            for (collection_address, token_id, price) in &liquidated_collection_token_and_price_list
+            for LiquidatedPosition {
+                token_id,
+                liquidation_price,
+                liquidator,
+            } in &liquidated_collection_token_and_price_list
             {
                 // update bids
                 let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
                     .load(deps.storage, &collection_address)?
                     .into_iter()
                     .map(|mut bid| {
-                        bid.amount -= price;
+                        bid.amount -= liquidation_price;
                         bid.token_id_list = bid
                             .token_id_list
                             .into_iter()
@@ -331,13 +351,113 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
 
                 LIQUIDATION_BIDS.save(deps.storage, &collection_address, &bids)?;
 
-                // split collaterals
-                let collaterals = COLLATERALS.load(deps.storage, &collection_address)?;
+                // update collaterals
+                let collaterals: Vec<Collateral> = COLLATERALS
+                    .load(deps.storage, &collection_address)?
+                    .into_iter()
+                    .map(|mut x| {
+                        if x.owner == borrower_address {
+                            x.token_id_list = x
+                                .token_id_list
+                                .into_iter()
+                                .filter(|id| id != token_id)
+                                .collect();
 
-                // update borrowers
+                            x
+                        } else if x.owner == liquidator {
+                            x.token_id_list.push(token_id.to_string());
+
+                            x
+                        } else {
+                            x
+                        }
+                    })
+                    .filter(|x| !x.token_id_list.is_empty())
+                    .collect();
+
+                COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
             }
         }
+
+        total_liquidation_value += current_liquidation_value;
+
+        let accumulated_loan = calc_accumulated_loan(
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            block_time,
+            loan.creation_date,
+        );
+
+        let (amount, accumulated_loan) = if current_liquidation_value <= loan.amount {
+            (loan.amount - current_liquidation_value, accumulated_loan)
+        } else {
+            let amount_difference = current_liquidation_value - loan.amount;
+            (
+                Uint128::zero(),
+                max(accumulated_loan, amount_difference) - amount_difference,
+            )
+        };
+
+        // update borrowers
+        BORROWERS.save(
+            deps.storage,
+            &borrower_address,
+            &Borrower {
+                accumulated_loan,
+                loan: Vault {
+                    creation_date: block_time,
+                    amount,
+                },
+            },
+        )?;
     }
+
+    // collect platform fee
+    let platform_revenue =
+        calc_platform_revenue_on_liquidation(total_liquidation_value, liquidation_fee_rate);
+    let main_currency_pool_addition = total_liquidation_value - platform_revenue;
+
+    increase_platform_revenue(
+        deps.storage,
+        main_currency_pool_addition,
+        &main_currency.token,
+        &main_currency,
+    )?;
+
+    // update contract balances
+    BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
+        let expected_rewards = calc_expected_rewards(
+            block_time,
+            balances.total_borrowed.creation_date,
+            borrow_apr,
+            balances.total_borrowed.amount,
+        );
+        let rewards = balances.expected_accumulated_rewards + expected_rewards;
+
+        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
+            (
+                balances.total_borrowed.amount - total_liquidation_value,
+                rewards,
+            )
+        } else {
+            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
+            (
+                Uint128::zero(),
+                max(rewards, amount_difference) - amount_difference,
+            )
+        };
+
+        balances.total_main_currency_pool += main_currency_pool_addition;
+        balances.total_borrowed = Vault {
+            amount,
+            creation_date: block_time,
+        };
+        balances.expected_accumulated_rewards = rewards;
+        balances.total_liquidation_bids -= total_liquidation_bids;
+
+        Ok(balances)
+    })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }

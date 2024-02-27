@@ -137,3 +137,14 @@ pub fn calc_bid_max_multiplier(
 ) -> Decimal {
     calc_bid_min_multiplier(bid_min_rate) / (discount_max_rate - discount_min_rate)
 }
+
+pub fn calc_platform_revenue_on_liquidation(
+    liquidation_value: Uint128,
+    liquidation_fee_rate: Decimal,
+) -> Uint128 {
+    (u128_to_dec(liquidation_value) * liquidation_fee_rate).to_uint_ceil()
+}
+
+pub fn calc_platform_revenue_on_repay(repay_amount: Uint128, borrow_fee_rate: Decimal) -> Uint128 {
+    (u128_to_dec(repay_amount) * borrow_fee_rate).to_uint_ceil()
+}
