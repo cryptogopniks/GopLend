@@ -6,16 +6,16 @@ use goplend_base::{
     lending_platform::{
         msg::{
             QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
-            QueryDepositorsResponseItem, QueryLiquidationBidsResponseItem,
-            QueryLiquidatorsResponseItem, QueryProposalsResponseItem,
+            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem,
+            QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
-            BALANCES, BLOCK_COUNTER, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, DEPOSITORS,
-            LIQUIDATION_BIDS, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
+            BALANCES, BLOCK_COUNTER, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS,
+            LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, Config, Depositor, LiquidationBid,
-            Liquidator,
+            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
+            Unbonder,
         },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
@@ -40,15 +40,15 @@ pub fn query_depositors(
     deps: Deps,
     _env: Env,
     addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryDepositorsResponseItem>> {
-    let depositors: Vec<(Addr, Depositor)> = DEPOSITORS
+) -> StdResult<Vec<QueryUnbondersResponseItem>> {
+    let depositors: Vec<(Addr, Unbonder)> = UNBONDERS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
         .collect();
 
     Ok(filter_by_address_list(deps.api, &addresses, &depositors)?
         .into_iter()
-        .map(|(address, depositor)| QueryDepositorsResponseItem { address, depositor })
+        .map(|(address, unbonder)| QueryUnbondersResponseItem { address, unbonder })
         .collect())
 }
 

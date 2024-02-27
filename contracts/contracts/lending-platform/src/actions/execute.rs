@@ -12,13 +12,12 @@ use goplend_base::{
     lending_platform::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
-            CW20_NAME, CW20_SYMBOL, DEPOSITORS, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS,
-            PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER,
-            SAVE_CW20_ADDRESS_REPLY,
+            CW20_NAME, CW20_SYMBOL, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_CONFIG,
+            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
         },
         types::{
-            Balances, Collateral, Collection, CollectionInfo, Config, Depositor, LiquidationBid,
-            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Vault,
+            Balances, Collateral, Collection, CollectionInfo, Config, LiquidationBid, Liquidator,
+            PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
@@ -136,7 +135,7 @@ pub fn try_unbond(
     BALANCES.save(deps.storage, &balances)?;
 
     // create unbonding position to withdraw main token later
-    DEPOSITORS.update(deps.storage, &sender_address, |x| -> StdResult<Depositor> {
+    UNBONDERS.update(deps.storage, &sender_address, |x| -> StdResult<Unbonder> {
         let returned_and_unbonded = (
             asset_amount,
             Vault {
@@ -145,10 +144,10 @@ pub fn try_unbond(
             },
         );
 
-        let depositor = match x {
-            Some(mut depositor) => {
+        let unbonder = match x {
+            Some(mut unbonder) => {
                 // don't allow multiple vaults with same creation date
-                let creation_date_list: Vec<u64> = depositor
+                let creation_date_list: Vec<u64> = unbonder
                     .returned_and_unbonded
                     .iter()
                     .map(|(_returned, unbonded)| unbonded.creation_date)
@@ -158,16 +157,16 @@ pub fn try_unbond(
                     Err(ContractError::SameCreationDate)?;
                 }
 
-                depositor.returned_and_unbonded.push(returned_and_unbonded);
+                unbonder.returned_and_unbonded.push(returned_and_unbonded);
 
-                depositor
+                unbonder
             }
-            None => Depositor {
+            None => Unbonder {
                 returned_and_unbonded: vec![returned_and_unbonded],
             },
         };
 
-        Ok(depositor)
+        Ok(unbonder)
     })?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_unbond")]))
@@ -189,7 +188,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
-    let mut depositor = DEPOSITORS.load(deps.storage, &sender_address)?;
+    let mut depositor = UNBONDERS.load(deps.storage, &sender_address)?;
 
     depositor.returned_and_unbonded = depositor
         .returned_and_unbonded
@@ -206,7 +205,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         })
         .collect();
 
-    DEPOSITORS.save(deps.storage, &sender_address, &depositor)?;
+    UNBONDERS.save(deps.storage, &sender_address, &depositor)?;
 
     if amount_to_withdraw.is_zero() {
         Err(ContractError::ZeroAmount)?;

@@ -8,9 +8,9 @@ use goplend_base::{
     lending_platform::{
         msg::{
             ExecuteMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
-            QueryCollectionsResponseItem, QueryDepositorsResponseItem,
-            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem, QueryMsg,
-            QueryProposalsResponseItem, SudoMsg,
+            QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
+            QueryLiquidatorsResponseItem, QueryMsg, QueryProposalsResponseItem,
+            QueryUnbondersResponseItem, SudoMsg,
         },
         types::{Balances, CollectionInfo, Config, Proposal},
     },
@@ -166,7 +166,7 @@ pub trait LendingPlatformExtension {
     fn lending_platform_query_depositors(
         &self,
         addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryDepositorsResponseItem>>;
+    ) -> StdResult<Vec<QueryUnbondersResponseItem>>;
 
     fn lending_platform_query_borrowers(
         &self,
@@ -593,7 +593,7 @@ impl LendingPlatformExtension for Project {
     fn lending_platform_query_depositors(
         &self,
         addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryDepositorsResponseItem>> {
+    ) -> StdResult<Vec<QueryUnbondersResponseItem>> {
         let addresses = addresses
             .as_ref()
             .map(|x| x.iter().map(|y| y.to_string()).collect());

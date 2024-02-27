@@ -72,7 +72,7 @@ pub struct Vault {
 }
 
 #[cw_serde]
-pub struct Depositor {
+pub struct Unbonder {
     pub returned_and_unbonded: Vec<(Uint128, Vault)>,
 }
 

@@ -4,8 +4,8 @@ use cw_storage_plus::{Item, Map};
 use crate::{
     assets::{Funds, Token},
     lending_platform::types::{
-        Balances, Borrower, Collateral, Collection, Config, Depositor, LiquidationBid, Liquidator,
-        PaginationConfig, Proposal,
+        Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
+        PaginationConfig, Proposal, Unbonder,
     },
 };
 
@@ -38,8 +38,7 @@ pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");
 
-// TODO: replace DEPOSITORS with UNBONDERS
-pub const DEPOSITORS: Map<&Addr, Depositor> = Map::new("depositor by address");
+pub const UNBONDERS: Map<&Addr, Unbonder> = Map::new("unbonder by address");
 pub const BORROWERS: Map<&Addr, Borrower> = Map::new("borrower by address");
 pub const COLLATERALS: Map<&Addr, Vec<Collateral>> = Map::new("collaterals by collection address");
 pub const LIQUIDATORS: Map<&Addr, Liquidator> = Map::new("liquidator by address");
