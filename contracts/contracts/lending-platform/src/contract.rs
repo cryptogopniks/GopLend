@@ -81,6 +81,10 @@ pub fn execute(
                 e::try_deposit_reserve_liquidity(deps, env, info, Some(sender), Some(amount))
             }
 
+            ExecuteMsg::ReinforceBglToken {} => {
+                e::try_reinforce_bgl_token(deps, env, info, Some(sender), Some(amount))
+            }
+
             ExecuteMsg::AcceptProposal { id } => {
                 e::try_accept_proposal(deps, env, info, id, Some(sender), Some(amount))
             }
@@ -172,6 +176,8 @@ pub fn execute(
             e::try_deposit_reserve_liquidity(deps, env, info, None, None)
         }
 
+        ExecuteMsg::ReinforceBglToken {} => e::try_reinforce_bgl_token(deps, env, info, None, None),
+
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
         ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
@@ -206,8 +212,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryBalances {} => to_json_binary(&q::query_balances(deps, env)?),
 
-        QueryMsg::QueryDepositors { addresses } => {
-            to_json_binary(&q::query_depositors(deps, env, addresses)?)
+        QueryMsg::QueryUnbonders { addresses } => {
+            to_json_binary(&q::query_unbonders(deps, env, addresses)?)
         }
 
         QueryMsg::QueryBorrowers { addresses } => {

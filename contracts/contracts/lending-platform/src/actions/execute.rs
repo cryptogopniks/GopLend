@@ -1139,6 +1139,34 @@ pub fn try_deposit_reserve_liquidity(
         .add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
 }
 
+pub fn try_reinforce_bgl_token(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+
+    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    // update contract balances, it doesn't affect on deposit APR and bgl token supply
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_main_currency_pool += asset_amount;
+
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_reinforce_bgl_token")]))
+}
+
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
