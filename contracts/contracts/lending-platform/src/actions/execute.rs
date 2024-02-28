@@ -31,7 +31,8 @@ use crate::{
     },
     math::{
         calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
-        calc_minted_bgl_token_amount, calc_unbonded_main_token_amount,
+        calc_minted_bgl_token_amount, calc_platform_revenue_on_repay,
+        calc_unbonded_main_token_amount,
     },
 };
 
@@ -486,7 +487,6 @@ pub fn try_borrow(
         .add_attributes(vec![("action", "try_borrow")]))
 }
 
-// TODO: implement fee collection - PLATFORM_REVENUE
 pub fn try_repay(
     deps: DepsMut,
     env: Env,
@@ -503,6 +503,7 @@ pub fn try_repay(
     let Config {
         main_currency,
         borrow_apr,
+        borrow_fee_rate,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -510,6 +511,18 @@ pub fn try_repay(
         Err(ContractError::WrongAssetType)?;
     }
 
+    // collect platform fee
+    let platform_revenue = calc_platform_revenue_on_repay(asset_amount, borrow_fee_rate);
+    let received_amount = asset_amount - platform_revenue;
+
+    increase_platform_revenue(
+        deps.storage,
+        platform_revenue,
+        &main_currency.token,
+        &main_currency,
+    )?;
+
+    // accumulate loan
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
     borrower.accumulated_loan = calc_accumulated_loan(
@@ -518,7 +531,7 @@ pub fn try_repay(
         borrower.loan.amount,
         block_time,
         borrower.loan.creation_date,
-    ) - asset_amount;
+    ) - received_amount;
 
     borrower.loan = Vault {
         creation_date: block_time,
@@ -530,7 +543,7 @@ pub fn try_repay(
 
     accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed.amount -= asset_amount;
+        x.total_borrowed.amount -= received_amount;
 
         Ok(x)
     })?;
@@ -1124,6 +1137,34 @@ pub fn try_deposit_reserve_liquidity(
     Ok(Response::new()
         .add_message(msg)
         .add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
+}
+
+pub fn try_reinforce_bgl_token(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    sender: Option<String>,
+    amount: Option<Uint128>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+
+    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    if asset_info != main_currency.token {
+        Err(ContractError::WrongAssetType)?;
+    }
+
+    // update contract balances, it doesn't affect on deposit APR and bgl token supply
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.total_main_currency_pool += asset_amount;
+
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_reinforce_bgl_token")]))
 }
 
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {

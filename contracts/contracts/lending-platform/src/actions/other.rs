@@ -420,7 +420,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
 
     increase_platform_revenue(
         deps.storage,
-        main_currency_pool_addition,
+        platform_revenue,
         &main_currency.token,
         &main_currency,
     )?;

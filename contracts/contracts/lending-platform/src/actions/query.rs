@@ -36,7 +36,7 @@ pub fn query_balances(deps: Deps, _env: Env) -> StdResult<Balances> {
     BALANCES.load(deps.storage)
 }
 
-pub fn query_depositors(
+pub fn query_unbonders(
     deps: Deps,
     _env: Env,
     addresses: Option<Vec<String>>,

@@ -163,7 +163,7 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_balances(&self) -> StdResult<Balances>;
 
-    fn lending_platform_query_depositors(
+    fn lending_platform_query_unbonders(
         &self,
         addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryUnbondersResponseItem>>;
@@ -590,7 +590,7 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_depositors(
+    fn lending_platform_query_unbonders(
         &self,
         addresses: &Option<Vec<ProjectAccount>>,
     ) -> StdResult<Vec<QueryUnbondersResponseItem>> {
@@ -600,7 +600,7 @@ impl LendingPlatformExtension for Project {
 
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryDepositors { addresses },
+            &QueryMsg::QueryUnbonders { addresses },
         )
     }
 
