@@ -275,6 +275,12 @@ fn process_default() -> StdResult<()> {
     // println!("{:#?}", res);
 
     // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -285,6 +291,8 @@ fn process_default() -> StdResult<()> {
                 .collect(),
         }],
     )?;
+
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 100)?;
 
     // // deposit
     // project.lending_platform_try_deposit(

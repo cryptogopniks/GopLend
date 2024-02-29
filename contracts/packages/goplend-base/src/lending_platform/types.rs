@@ -76,6 +76,7 @@ pub struct Unbonder {
     pub returned_and_unbonded: Vec<(Uint128, Vault)>,
 }
 
+#[derive(Default)]
 #[cw_serde]
 pub struct Borrower {
     pub accumulated_loan: Uint128, // used for merging vaults
