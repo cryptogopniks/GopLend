@@ -1,17 +1,18 @@
 use goplend_base::{
-    assets::{Currency, Token, TokenUnverified},
+    assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::ContractError,
+    lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
 };
 use speculoos::assert_that;
 
-use cosmwasm_std::StdResult;
+use cosmwasm_std::{Addr, StdResult};
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     suite::{
         core::{assert_error, Project, INITIAL_LIQUIDITY},
-        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectToken},
+        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
 
@@ -228,6 +229,69 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     assert_that(&balances.total_unbonded.u128()).is_equal_to(0);
     assert_that(&balances.total_main_currency_pool.u128()).is_equal_to(INITIAL_LIQUIDITY);
     assert_that(&balances.total_bgl_currency_supply.u128()).is_equal_to(INITIAL_LIQUIDITY);
+
+    Ok(())
+}
+
+#[test]
+fn process_default() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // let res = project.lending_platform_query_platform_revenue()?;
+    // println!("{:#?}", res);
+
+    // add collateral and borrow
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5", "6"]
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }],
+    )?;
+
+    // // deposit
+    // project.lending_platform_try_deposit(
+    //     ProjectAccount::Alice,
+    //     DEPOSIT_AMOUNT,
+    //     ProjectCoin::Stars,
+    // )?;
 
     Ok(())
 }
