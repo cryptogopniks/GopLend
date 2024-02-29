@@ -16,8 +16,8 @@ use goplend_base::{
             PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
         },
         types::{
-            Balances, Collateral, Collection, CollectionInfo, Config, LiquidationBid, Liquidator,
-            PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
+            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
+            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
@@ -447,19 +447,24 @@ pub fn try_borrow(
         bid_min_rate,
         ..
     } = CONFIG.load(deps.storage)?;
-    let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
-    borrower.accumulated_loan = calc_accumulated_loan(
-        borrow_apr,
-        borrower.accumulated_loan,
-        borrower.loan.amount,
-        block_time,
-        borrower.loan.creation_date,
-    );
-    borrower.loan = Vault {
-        creation_date: block_time,
-        amount,
-    };
+    BORROWERS.update(deps.storage, &sender_address, |x| -> StdResult<Borrower> {
+        let mut borrower = x.unwrap_or_default();
+
+        borrower.accumulated_loan = calc_accumulated_loan(
+            borrow_apr,
+            borrower.accumulated_loan,
+            borrower.loan.amount,
+            block_time,
+            borrower.loan.creation_date,
+        );
+        borrower.loan = Vault {
+            creation_date: block_time,
+            amount,
+        };
+
+        Ok(borrower)
+    })?;
 
     // check ltv
     let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
@@ -470,8 +475,6 @@ pub fn try_borrow(
     }
 
     // update states
-    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
-
     accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
         x.total_borrowed.amount += amount;

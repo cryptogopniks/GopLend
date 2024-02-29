@@ -10,7 +10,8 @@ use goplend_base::{
         state::{
             BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME,
             CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
-            PAGINATION_AMOUNT, PAGINATION_CONFIG, PAGINATION_INDEX, UNBONDING_PERIOD,
+            PAGINATION_AMOUNT, PAGINATION_CONFIG, PAGINATION_INDEX, PLATFORM_REVENUE,
+            PROPOSAL_COUNTER, UNBONDING_PERIOD,
         },
         types::{Balances, Config, PaginationConfig},
     },
@@ -79,6 +80,8 @@ pub fn try_instantiate(
     balances.total_borrowed.creation_date = block_time;
     BALANCES.save(deps.storage, &balances)?;
 
+    PROPOSAL_COUNTER.save(deps.storage, &1)?;
+    PLATFORM_REVENUE.save(deps.storage, &vec![])?;
     IS_LOCKED.save(deps.storage, &false)?;
 
     Ok(Response::new().add_attributes(attrs))
