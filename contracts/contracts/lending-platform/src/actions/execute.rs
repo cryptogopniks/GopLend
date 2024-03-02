@@ -56,6 +56,10 @@ pub fn try_deposit(
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
 
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
@@ -113,6 +117,10 @@ pub fn try_unbond(
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
 
     if asset_info != bgl_currency.token {
         Err(ContractError::WrongAssetType)?;
@@ -248,6 +256,10 @@ pub fn try_deposit_collateral(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
+    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
     // check if nfts are on user balance
     check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
 
@@ -342,6 +354,10 @@ pub fn try_withdraw_collateral(
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+        Err(ContractError::EmptyCollectionList)?;
+    }
 
     // check if nfts are on contract balance
     check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
@@ -510,6 +526,10 @@ pub fn try_repay(
         ..
     } = CONFIG.load(deps.storage)?;
 
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
@@ -570,10 +590,28 @@ pub fn try_place_bid(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+    let Config {
+        main_currency,
+        discount_min_rate,
+        discount_max_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
 
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;
+    }
+
+    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // verify discount
+    if discount < discount_min_rate || discount > discount_max_rate {
+        Err(ContractError::DiscountIsOutOfRange)?;
     }
 
     let mut collection_addresses: Vec<Addr> = vec![];
@@ -689,6 +727,10 @@ pub fn try_remove_bid(
 
     let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
 
+    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
     let mut amount_to_withdraw = Uint128::zero();
     let mut collection_addresses: Vec<Addr> = vec![];
 
@@ -794,10 +836,24 @@ pub fn try_update_bid(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+    let Config {
+        main_currency,
+        discount_min_rate,
+        discount_max_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
 
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;
+    }
+
+    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // verify discount
+    if discount < discount_min_rate || discount > discount_max_rate {
+        Err(ContractError::DiscountIsOutOfRange)?;
     }
 
     let mut current_bid_value = Uint128::zero();
@@ -1095,6 +1151,10 @@ pub fn try_deposit_reserve_liquidity(
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
 
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
@@ -1155,6 +1215,10 @@ pub fn try_reinforce_bgl_token(
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
 
     let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
 
     if asset_info != main_currency.token {
         Err(ContractError::WrongAssetType)?;

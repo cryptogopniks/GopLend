@@ -335,10 +335,22 @@ fn process_default() -> StdResult<()> {
     assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
+    project.lending_platform_try_deposit(ProjectAccount::Admin, AMOUNT, ProjectCoin::Stars)?;
 
     let deposit_apr = project.lending_platform_query_deposit_apr()?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
+
+    // place bid
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["7"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
 
     Ok(())
 }
