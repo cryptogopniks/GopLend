@@ -345,7 +345,7 @@ fn process_default() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["7"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
         }],
         "0",
         800,

@@ -588,7 +588,6 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
-// TODO: don't allow to place bid on token not provided as collateral
 // TODO: limit max amount of bids per liquidator at 5 collections with 5 tokens each
 pub fn try_place_bid(
     deps: DepsMut,
@@ -653,6 +652,19 @@ pub fn try_place_bid(
             Err(ContractError::CollectionIsNotFound)?;
         }
         collection_addresses.push(collection_address.clone());
+
+        // check if token_id's are in collateral
+        let collateral_tokens = COLLATERALS
+            .load(deps.storage, &collection_address)?
+            .into_iter()
+            .fold(vec![], |acc, cur| vec![acc, cur.token_id_list].concat());
+
+        if token_id_list
+            .iter()
+            .any(|token_id| !collateral_tokens.contains(token_id))
+        {
+            Err(ContractError::NftIsNotFound)?;
+        }
 
         // update bids
         LIQUIDATION_BIDS.update(
