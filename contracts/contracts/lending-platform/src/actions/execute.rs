@@ -260,6 +260,17 @@ pub fn try_deposit_collateral(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check token duplication
+    if collections.iter().any(|x| {
+        let mut token_list = x.token_id_list.clone();
+        token_list.sort_unstable();
+        token_list.dedup();
+
+        token_list.len() != x.token_id_list.len()
+    }) {
+        Err(ContractError::NftDuplication)?;
+    }
+
     // check if nfts are on user balance
     check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
 
@@ -267,7 +278,7 @@ pub fn try_deposit_collateral(
 
     for CollectionInfo {
         collection_address,
-        mut token_id_list,
+        token_id_list,
     } in collections
     {
         // validate collection
@@ -275,10 +286,6 @@ pub fn try_deposit_collateral(
         if !COLLECTIONS.has(deps.storage, &collection_address) {
             Err(ContractError::CollectionIsNotFound)?;
         }
-
-        // remove token duplication
-        token_id_list.sort_unstable();
-        token_id_list.dedup();
 
         // add transfer msgs
         for token_id in &token_id_list {
@@ -359,6 +366,17 @@ pub fn try_withdraw_collateral(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check token duplication
+    if collections.iter().any(|x| {
+        let mut token_list = x.token_id_list.clone();
+        token_list.sort_unstable();
+        token_list.dedup();
+
+        token_list.len() != x.token_id_list.len()
+    }) {
+        Err(ContractError::NftDuplication)?;
+    }
+
     // check if nfts are on contract balance
     check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
 
@@ -366,7 +384,7 @@ pub fn try_withdraw_collateral(
 
     for CollectionInfo {
         collection_address,
-        mut token_id_list,
+        token_id_list,
     } in collections
     {
         // validate collection
@@ -374,10 +392,6 @@ pub fn try_withdraw_collateral(
         if !COLLECTIONS.has(deps.storage, &collection_address) {
             Err(ContractError::CollectionIsNotFound)?;
         }
-
-        // remove token duplication
-        token_id_list.sort_unstable();
-        token_id_list.dedup();
 
         // add transfer msgs
         for token_id in &token_id_list {
@@ -574,6 +588,7 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
+// TODO: don't allow to place bid on token not provided as collateral
 // TODO: limit max amount of bids per liquidator at 5 collections with 5 tokens each
 pub fn try_place_bid(
     deps: DepsMut,
@@ -609,6 +624,17 @@ pub fn try_place_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check token duplication
+    if collections.iter().any(|x| {
+        let mut token_list = x.token_id_list.clone();
+        token_list.sort_unstable();
+        token_list.dedup();
+
+        token_list.len() != x.token_id_list.len()
+    }) {
+        Err(ContractError::NftDuplication)?;
+    }
+
     // verify discount
     if discount < discount_min_rate || discount > discount_max_rate {
         Err(ContractError::DiscountIsOutOfRange)?;
@@ -618,7 +644,7 @@ pub fn try_place_bid(
 
     for CollectionInfo {
         collection_address,
-        mut token_id_list,
+        token_id_list,
     } in collections
     {
         // validate collection
@@ -627,10 +653,6 @@ pub fn try_place_bid(
             Err(ContractError::CollectionIsNotFound)?;
         }
         collection_addresses.push(collection_address.clone());
-
-        // remove token duplication
-        token_id_list.sort_unstable();
-        token_id_list.dedup();
 
         // update bids
         LIQUIDATION_BIDS.update(
@@ -731,12 +753,23 @@ pub fn try_remove_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check token duplication
+    if collections.iter().any(|x| {
+        let mut token_list = x.token_id_list.clone();
+        token_list.sort_unstable();
+        token_list.dedup();
+
+        token_list.len() != x.token_id_list.len()
+    }) {
+        Err(ContractError::NftDuplication)?;
+    }
+
     let mut amount_to_withdraw = Uint128::zero();
     let mut collection_addresses: Vec<Addr> = vec![];
 
     for CollectionInfo {
         collection_address,
-        mut token_id_list,
+        token_id_list,
     } in collections
     {
         // validate collection
@@ -745,10 +778,6 @@ pub fn try_remove_bid(
             Err(ContractError::CollectionIsNotFound)?;
         }
         collection_addresses.push(collection_address.clone());
-
-        // remove token duplication
-        token_id_list.sort_unstable();
-        token_id_list.dedup();
 
         // update bids
         let liquidation_bids = LIQUIDATION_BIDS
@@ -851,6 +880,17 @@ pub fn try_update_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check token duplication
+    if collections.iter().any(|x| {
+        let mut token_list = x.token_id_list.clone();
+        token_list.sort_unstable();
+        token_list.dedup();
+
+        token_list.len() != x.token_id_list.len()
+    }) {
+        Err(ContractError::NftDuplication)?;
+    }
+
     // verify discount
     if discount < discount_min_rate || discount > discount_max_rate {
         Err(ContractError::DiscountIsOutOfRange)?;
@@ -862,7 +902,7 @@ pub fn try_update_bid(
 
     for CollectionInfo {
         collection_address,
-        mut token_id_list,
+        token_id_list,
     } in collections
     {
         // validate collection
@@ -871,10 +911,6 @@ pub fn try_update_bid(
             Err(ContractError::CollectionIsNotFound)?;
         }
         collection_addresses.push(collection_address.clone());
-
-        // remove token duplication
-        token_id_list.sort_unstable();
-        token_id_list.dedup();
 
         // update new bid value
         new_bid_value += bid_amount * Uint128::from(token_id_list.len() as u128);
