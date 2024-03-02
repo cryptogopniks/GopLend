@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Discount is out of range!")]
+    DiscountIsOutOfRange,
+
     #[error("Max LTV is exceeded!")]
     ExceededLtv,
 
@@ -81,6 +84,9 @@ pub enum ContractError {
 
     #[error("Collateral is not found!")]
     CollateralIsNotFound,
+
+    #[error("Empty collection list!")]
+    EmptyCollectionList,
 
     #[error("Collection already exists!")]
     CollectionDuplication,

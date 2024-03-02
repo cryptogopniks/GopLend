@@ -2,14 +2,19 @@ use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::ContractError,
-    lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
+    lending_platform::{
+        state::{BORROW_APR, BORROW_FEE_RATE, MAX_DEPOSIT_APR},
+        types::{Collection, CollectionInfo, Proposal, ProposalType},
+    },
+    oracle::types::RawPriceItem,
 };
 use speculoos::assert_that;
 
-use cosmwasm_std::{Addr, StdResult};
+use cosmwasm_std::{Addr, StdResult, Uint128};
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
+    oracle::OracleExtension,
     suite::{
         core::{assert_error, Project, INITIAL_LIQUIDITY},
         types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
@@ -242,7 +247,38 @@ fn process_default() -> StdResult<()> {
         .ok_or(ContractError::AssetIsNotFound)?
         .token;
 
-    const DEPOSIT_AMOUNT: u128 = 1_000;
+    const AMOUNT: u128 = 1_700;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::SchedulerForOracle,
+        &vec![
+            RawPriceItem {
+                collection_address: ProjectNft::Pinjeons.to_string(),
+                currency: Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+                raw_prices: vec![100, 200, 300, 400, 500]
+                    .into_iter()
+                    .map(Uint128::new)
+                    .collect(),
+                trading_volume_per_day: Uint128::new(10_000),
+            },
+            RawPriceItem {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                currency: Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+                raw_prices: vec![600, 700, 800, 900, 1000]
+                    .into_iter()
+                    .map(Uint128::new)
+                    .collect(),
+                trading_volume_per_day: Uint128::new(10_000),
+            },
+        ],
+    )?;
 
     // list collection
     let proposal: &Proposal<String, TokenUnverified> = &Proposal {
@@ -281,6 +317,7 @@ fn process_default() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
+    // collateral value = 800 * 3 = 2_400
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -292,14 +329,28 @@ fn process_default() -> StdResult<()> {
         }],
     )?;
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, 100)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    // // deposit
-    // project.lending_platform_try_deposit(
-    //     ProjectAccount::Alice,
-    //     DEPOSIT_AMOUNT,
-    //     ProjectCoin::Stars,
-    // )?;
+    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
+
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Admin, AMOUNT, ProjectCoin::Stars)?;
+
+    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
+
+    // place bid
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
 
     Ok(())
 }
