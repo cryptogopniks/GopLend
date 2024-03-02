@@ -103,8 +103,9 @@ pub fn calc_ltv(
     block_time: u64,
     loan_creation_date: u64,
 ) -> Decimal {
+    let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
     let loan = u128_to_dec(accumulated_loan)
-        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date));
+        + u128_to_dec(loan) * (Decimal::one() + borrow_apr * borrow_duration);
 
     loan / u128_to_dec(collateral)
 }
@@ -135,7 +136,17 @@ pub fn calc_bid_max_multiplier(
     discount_max_rate: Decimal,
     discount_min_rate: Decimal,
 ) -> Decimal {
-    calc_bid_min_multiplier(bid_min_rate) / (discount_max_rate - discount_min_rate)
+    let one = Decimal::one();
+
+    calc_bid_min_multiplier(bid_min_rate) * (one - discount_min_rate) / (one - discount_max_rate)
+}
+
+pub fn calc_ltv_max(
+    bid_min_rate: Decimal,
+    discount_max_rate: Decimal,
+    discount_min_rate: Decimal,
+) -> Decimal {
+    Decimal::one() / calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate)
 }
 
 pub fn calc_platform_revenue_on_liquidation(

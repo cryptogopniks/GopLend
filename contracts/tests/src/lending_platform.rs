@@ -3,13 +3,15 @@ use goplend_base::{
     converters::str_to_dec,
     error::ContractError,
     lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
+    oracle::types::RawPriceItem,
 };
 use speculoos::assert_that;
 
-use cosmwasm_std::{Addr, StdResult};
+use cosmwasm_std::{Addr, StdResult, Uint128};
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
+    oracle::OracleExtension,
     suite::{
         core::{assert_error, Project, INITIAL_LIQUIDITY},
         types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
@@ -244,6 +246,37 @@ fn process_default() -> StdResult<()> {
 
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::SchedulerForOracle,
+        &vec![
+            RawPriceItem {
+                collection_address: ProjectNft::Pinjeons.to_string(),
+                currency: Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+                raw_prices: vec![100, 200, 300, 400, 500]
+                    .into_iter()
+                    .map(Uint128::new)
+                    .collect(),
+                trading_volume_per_day: Uint128::new(10_000),
+            },
+            RawPriceItem {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                currency: Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+                raw_prices: vec![600, 700, 800, 900, 1000]
+                    .into_iter()
+                    .map(Uint128::new)
+                    .collect(),
+                trading_volume_per_day: Uint128::new(10_000),
+            },
+        ],
+    )?;
+
     // list collection
     let proposal: &Proposal<String, TokenUnverified> = &Proposal {
         proposal_status: None,
@@ -281,6 +314,7 @@ fn process_default() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
+    // collateral value = 800 * 3 = 2_400
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -292,7 +326,7 @@ fn process_default() -> StdResult<()> {
         }],
     )?;
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, 100)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 1_700)?;
 
     // // deposit
     // project.lending_platform_try_deposit(

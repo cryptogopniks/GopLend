@@ -30,7 +30,7 @@ use crate::{
         increase_platform_revenue, verify_proposal_status,
     },
     math::{
-        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
+        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards, calc_ltv_max,
         calc_minted_bgl_token_amount, calc_platform_revenue_on_repay,
         calc_unbonded_main_token_amount,
     },
@@ -468,7 +468,7 @@ pub fn try_borrow(
 
     // check ltv
     let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
-    let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv_max = calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
 
     if ltv > ltv_max {
         Err(ContractError::ExceededLtv)?;
