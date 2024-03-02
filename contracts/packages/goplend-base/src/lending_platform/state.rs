@@ -28,6 +28,8 @@ pub const DISCOUNT_MIN_RATE: &str = "0";
 pub const DISCOUNT_MAX_RATE: &str = "0.2";
 pub const BID_MIN_RATE: &str = "0.1";
 
+pub const MAX_DEPOSIT_APR: &str = "100"; // 10_000 %
+
 pub const PAGINATION_AMOUNT: u32 = 10;
 pub const PAGINATION_INDEX: Option<Addr> = None;
 

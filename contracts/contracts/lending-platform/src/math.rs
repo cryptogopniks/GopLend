@@ -1,8 +1,8 @@
 use cosmwasm_std::{Decimal, Decimal256, Uint128};
 
 use goplend_base::{
-    converters::{dec256_to_dec, dec256_to_uint128, u128_to_dec, u128_to_dec256},
-    lending_platform::state::YEAR_IN_SECONDS,
+    converters::{dec256_to_dec, dec256_to_uint128, str_to_dec, u128_to_dec, u128_to_dec256},
+    lending_platform::state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
 };
 
 // expected_rewards = borrow_apr * total_borrowed_amount *
@@ -91,8 +91,12 @@ pub fn calc_deposit_apr(
     total_unbonded: Uint128,
     total_borrowed: Uint128,
 ) -> Decimal {
+    if total_deposited.is_zero() {
+        return str_to_dec(MAX_DEPOSIT_APR);
+    }
+
     u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
-        / u128_to_dec(std::cmp::max(total_deposited, Uint128::one()) - total_unbonded)
+        / u128_to_dec(total_deposited - total_unbonded)
 }
 
 pub fn calc_ltv(

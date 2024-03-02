@@ -2,7 +2,10 @@ use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::ContractError,
-    lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
+    lending_platform::{
+        state::{BORROW_APR, BORROW_FEE_RATE, MAX_DEPOSIT_APR},
+        types::{Collection, CollectionInfo, Proposal, ProposalType},
+    },
     oracle::types::RawPriceItem,
 };
 use speculoos::assert_that;
@@ -244,7 +247,7 @@ fn process_default() -> StdResult<()> {
         .ok_or(ContractError::AssetIsNotFound)?
         .token;
 
-    const DEPOSIT_AMOUNT: u128 = 1_000;
+    const AMOUNT: u128 = 1_700;
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -326,14 +329,16 @@ fn process_default() -> StdResult<()> {
         }],
     )?;
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, 1_700)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    // // deposit
-    // project.lending_platform_try_deposit(
-    //     ProjectAccount::Alice,
-    //     DEPOSIT_AMOUNT,
-    //     ProjectCoin::Stars,
-    // )?;
+    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
+
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
+
+    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
 
     Ok(())
 }
