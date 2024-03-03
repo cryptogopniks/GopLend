@@ -208,8 +208,6 @@ pub trait LendingPlatformExtension {
     fn lending_platform_query_deposit_apr(&self) -> StdResult<Decimal>;
 
     fn lending_platform_query_ltv(&self, borrower: ProjectAccount) -> StdResult<Decimal>;
-
-    fn lending_platform_query_block_counter(&self) -> StdResult<u64>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -730,14 +728,6 @@ impl LendingPlatformExtension for Project {
             &QueryMsg::QueryLtv {
                 borrower: borrower.to_string(),
             },
-        )
-    }
-
-    #[track_caller]
-    fn lending_platform_query_block_counter(&self) -> StdResult<u64> {
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryBlockCounter {},
         )
     }
 }

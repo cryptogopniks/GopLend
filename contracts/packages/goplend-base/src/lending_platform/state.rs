@@ -9,7 +9,7 @@ use crate::{
     },
 };
 
-pub const CONTRACT_NAME: &str = "crates.io:cryptogopniks-lending-platform";
+pub const CONTRACT_NAME: &str = "cryptogopniks-lending-platform";
 
 pub const MAIN_CURRENCY_DECIMALS: u8 = 6;
 pub const BGL_CURRENCY_DECIMALS: u8 = 6;
@@ -51,6 +51,3 @@ pub const LIQUIDATION_BIDS: Map<&Addr, Vec<LiquidationBid>> =
     Map::new("liquidation bids by collection address");
 pub const PROPOSALS: Map<u32, Proposal<Addr, Token>> = Map::new("proposal by id");
 pub const COLLECTIONS: Map<&Addr, Collection<Addr>> = Map::new("collection by address");
-
-// for tests
-pub const BLOCK_COUNTER: Item<u64> = Item::new("block counter");

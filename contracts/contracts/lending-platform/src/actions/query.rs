@@ -10,8 +10,8 @@ use goplend_base::{
             QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
-            BALANCES, BLOCK_COUNTER, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS,
-            LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
+            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS, LIQUIDATORS,
+            PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
@@ -343,8 +343,4 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         block_time,
         borrower.loan.creation_date,
     ))
-}
-
-pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
-    Ok(BLOCK_COUNTER.load(deps.storage).unwrap_or_default())
 }

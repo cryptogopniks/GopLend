@@ -138,6 +138,7 @@ pub enum ExecuteMsg {
 }
 
 // TODO: add estimation queries
+// TODO: add available to borrow
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -184,10 +185,6 @@ pub enum QueryMsg {
 
     #[returns(Decimal)]
     QueryLtv { borrower: String },
-
-    // test
-    #[returns(u64)]
-    QueryBlockCounter {},
 }
 
 #[cw_serde]
