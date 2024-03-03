@@ -463,6 +463,7 @@ pub fn try_withdraw_collateral(
 }
 
 // TODO: limit total borrowed amount to avoid zero available to withdraw amount
+// don't allow to borrow if available liquidity < 20 % of funds to return depositors
 pub fn try_borrow(
     deps: DepsMut,
     env: Env,
