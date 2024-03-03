@@ -198,9 +198,9 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
-    let mut depositor = UNBONDERS.load(deps.storage, &sender_address)?;
+    let mut unbonder = UNBONDERS.load(deps.storage, &sender_address)?;
 
-    depositor.returned_and_unbonded = depositor
+    unbonder.returned_and_unbonded = unbonder
         .returned_and_unbonded
         .into_iter()
         .filter(|(returned, unbonded)| {
@@ -215,7 +215,11 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         })
         .collect();
 
-    UNBONDERS.save(deps.storage, &sender_address, &depositor)?;
+    if unbonder.returned_and_unbonded.is_empty() {
+        UNBONDERS.remove(deps.storage, &sender_address);
+    } else {
+        UNBONDERS.save(deps.storage, &sender_address, &unbonder)?;
+    }
 
     if amount_to_withdraw.is_zero() {
         Err(ContractError::ZeroAmount)?;

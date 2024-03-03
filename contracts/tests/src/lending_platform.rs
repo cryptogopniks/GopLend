@@ -239,6 +239,40 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 }
 
 #[test]
+fn clear_unbonders_storage() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // unbond
+    project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
+
+    let unbonders = project.lending_platform_query_unbonders(&None)?;
+    assert_that(&unbonders.len()).is_equal_to(1);
+
+    // wait and withdraw
+    project.wait(config.unbonding_period);
+    project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
+
+    let unbonders = project.lending_platform_query_unbonders(&None)?;
+    assert_that(&unbonders.is_empty()).is_equal_to(true);
+
+    Ok(())
+}
+
+#[test]
 fn process_default() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_config()?;
