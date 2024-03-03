@@ -100,7 +100,6 @@ pub fn calc_deposit_apr(
 }
 
 pub fn calc_ltv(
-    ltv_max: Decimal,
     borrow_apr: Decimal,
     accumulated_loan: Uint128,
     loan: Uint128,
@@ -108,8 +107,8 @@ pub fn calc_ltv(
     block_time: u64,
     loan_creation_date: u64,
 ) -> Decimal {
-    if collateral.is_zero() {
-        return ltv_max;
+    if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
+        return Decimal::zero();
     }
 
     let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));

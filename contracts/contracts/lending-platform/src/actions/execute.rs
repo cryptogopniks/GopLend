@@ -309,7 +309,6 @@ pub fn try_deposit_collateral(
             msg_list.push(msg);
         }
 
-        // TODO: check proper removal on other Map storages
         // update collaterals
         COLLATERALS.update(
             deps.storage,

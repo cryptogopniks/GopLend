@@ -22,10 +22,7 @@ use goplend_base::{
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math::{
-    calc_bgl_to_main_price, calc_bid_max_multiplier, calc_deposit_apr, calc_expected_rewards,
-    calc_ltv,
-};
+use crate::math::{calc_bgl_to_main_price, calc_deposit_apr, calc_expected_rewards, calc_ltv};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -264,12 +261,7 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
 pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let Config {
-        borrow_apr,
-        oracle,
-        bid_min_rate,
-        discount_min_rate,
-        discount_max_rate,
-        ..
+        borrow_apr, oracle, ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
@@ -332,10 +324,7 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         },
     )?;
 
-    let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
-
     Ok(calc_ltv(
-        ltv_max,
         borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
