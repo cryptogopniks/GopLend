@@ -172,6 +172,89 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
 }
 
 #[test]
+fn collection_address_duplication() -> StdResult<()> {
+    let mut project = Project::new();
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::SchedulerForOracle,
+        &vec![RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            currency: Currency::new(
+                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                ProjectCoin::Stars.get_decimals(),
+            ),
+            raw_prices: vec![
+                600_000_000,
+                700_000_000,
+                800_000_000,
+                900_000_000,
+                1_000_000_000,
+            ]
+            .into_iter()
+            .map(Uint128::new)
+            .collect(),
+            trading_volume_per_day: Uint128::new(10_000_000_000),
+        }],
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    // collateral value
+    let res = project
+        .lending_platform_try_deposit_collateral(
+            ProjectAccount::Bob,
+            &[
+                CollectionInfo {
+                    collection_address: ProjectNft::Gopniks.to_string(),
+                    token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                },
+                CollectionInfo {
+                    collection_address: ProjectNft::Gopniks.to_string(),
+                    token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                },
+            ],
+        )
+        .unwrap_err();
+
+    assert_error(&res, ContractError::CollectionDuplication);
+
+    Ok(())
+}
+
+#[test]
 fn collateral_value_limitations() -> StdResult<()> {
     let mut project = Project::new();
 
@@ -251,7 +334,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         &Some(1_200_000_000),
     )?;
 
-    // collateral value = 800_000_000 * 3 = 2_400_000_000
+    // collateral value = 800_000_000
     let res = project
         .lending_platform_try_deposit_collateral(
             ProjectAccount::Bob,

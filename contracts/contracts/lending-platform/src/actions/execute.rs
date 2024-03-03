@@ -266,7 +266,18 @@ pub fn try_deposit_collateral(
         Err(ContractError::EmptyCollectionList)?;
     }
 
-    // TODO: check collection address duplication
+    // check collection address duplication
+    let mut collection_addresses: Vec<String> = collections
+        .iter()
+        .map(|x| x.collection_address.to_string())
+        .collect();
+
+    collection_addresses.sort_unstable();
+    collection_addresses.dedup();
+
+    if collections.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
+    }
 
     // check token duplication
     if collections.iter().any(|x| {
@@ -410,8 +421,6 @@ pub fn try_deposit_collateral(
         )?;
     }
 
-    println!("collateral_value {:#?}", collateral_value.u128());
-
     // check collateral value
     if collateral_value < collateral_min_value {
         Err(ContractError::LowCollateral {
@@ -441,6 +450,19 @@ pub fn try_withdraw_collateral(
 
     if collections.iter().all(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection address duplication
+    let mut collection_addresses: Vec<String> = collections
+        .iter()
+        .map(|x| x.collection_address.to_string())
+        .collect();
+
+    collection_addresses.sort_unstable();
+    collection_addresses.dedup();
+
+    if collections.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
     }
 
     // check token duplication
@@ -788,6 +810,19 @@ pub fn try_place_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check collection address duplication
+    let mut collection_addresses: Vec<String> = collections
+        .iter()
+        .map(|x| x.collection_address.to_string())
+        .collect();
+
+    collection_addresses.sort_unstable();
+    collection_addresses.dedup();
+
+    if collections.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
+    }
+
     // limit max token amount
     if collections
         .iter()
@@ -951,6 +986,19 @@ pub fn try_remove_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // check collection address duplication
+    let mut collection_addresses: Vec<String> = collections
+        .iter()
+        .map(|x| x.collection_address.to_string())
+        .collect();
+
+    collection_addresses.sort_unstable();
+    collection_addresses.dedup();
+
+    if collections.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
+    }
+
     // check token duplication
     if collections.iter().any(|x| {
         let mut token_list = x.token_id_list.clone();
@@ -1089,6 +1137,19 @@ pub fn try_update_bid(
 
     if collections.iter().all(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection address duplication
+    let mut collection_addresses: Vec<String> = collections
+        .iter()
+        .map(|x| x.collection_address.to_string())
+        .collect();
+
+    collection_addresses.sort_unstable();
+    collection_addresses.dedup();
+
+    if collections.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
     }
 
     // limit max token amount
