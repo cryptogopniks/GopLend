@@ -834,6 +834,7 @@ pub fn try_remove_bid(
 
     let mut amount_to_withdraw = Uint128::zero();
     let mut collection_addresses: Vec<Addr> = vec![];
+    let mut liquidator = LIQUIDATORS.load(deps.storage, &sender_address)?;
 
     for CollectionInfo {
         collection_address,
@@ -881,11 +882,23 @@ pub fn try_remove_bid(
             })
             .collect::<Vec<LiquidationBid>>();
 
-        if !liquidation_bids.is_empty() {
-            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
-        } else {
+        if liquidation_bids.is_empty() {
             LIQUIDATION_BIDS.remove(deps.storage, &collection_address);
+
+            liquidator.collection_addresses = liquidator
+                .collection_addresses
+                .into_iter()
+                .filter(|x| x != &collection_address)
+                .collect();
+        } else {
+            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
         }
+    }
+
+    if liquidator.collection_addresses.is_empty() {
+        LIQUIDATORS.remove(deps.storage, &sender_address);
+    } else {
+        LIQUIDATORS.save(deps.storage, &sender_address, &liquidator)?;
     }
 
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {

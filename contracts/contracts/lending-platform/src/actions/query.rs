@@ -15,7 +15,7 @@ use goplend_base::{
         },
         types::{
             Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
-            Unbonder, Vault,
+            Unbonder,
         },
     },
     oracle::{self, state::PRICE_UPDATE_PERIOD},
