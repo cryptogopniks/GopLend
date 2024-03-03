@@ -346,7 +346,6 @@ fn clear_borrowers_storage() -> StdResult<()> {
     let borrowers = project.lending_platform_query_borrowers(&None)?;
     assert_that(&borrowers.len()).is_equal_to(1);
 
-    project.wait(3);
     project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
     let borrowers = project.lending_platform_query_borrowers(&None)?;

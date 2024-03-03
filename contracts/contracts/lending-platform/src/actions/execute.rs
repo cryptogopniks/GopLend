@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Empty, Env, MessageInfo, Order, Response,
+    to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
     StdResult, SubMsg, Uint128, WasmMsg,
 };
 
@@ -530,6 +530,8 @@ pub fn try_repay(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new().add_attribute("action", "try_repay");
+
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
@@ -576,12 +578,26 @@ pub fn try_repay(
         borrower.loan.creation_date,
     );
 
-    // TODO: send funds back if it's needed
+    let mut total_borrowed_difference = Uint128::zero();
+
     if received_amount > accumulated_loan {
         let amount_difference = received_amount - accumulated_loan;
-
         borrower.accumulated_loan = Uint128::zero();
-        borrower.loan.amount -= amount_difference;
+
+        if amount_difference > borrower.loan.amount {
+            // send unused funds back
+            response = response.add_message(get_transfer_msg(
+                &sender_address,
+                amount_difference - borrower.loan.amount,
+                &main_currency.token,
+            )?);
+
+            total_borrowed_difference = borrower.loan.amount;
+            borrower.loan.amount = Uint128::zero();
+        } else {
+            total_borrowed_difference = amount_difference;
+            borrower.loan.amount -= amount_difference;
+        }
     } else {
         borrower.accumulated_loan = accumulated_loan - received_amount;
     }
@@ -597,12 +613,12 @@ pub fn try_repay(
 
     accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed.amount -= received_amount;
+        x.total_borrowed.amount -= total_borrowed_difference;
 
         Ok(x)
     })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
+    Ok(response)
 }
 
 pub fn try_place_bid(
@@ -1027,8 +1043,7 @@ pub fn try_update_bid(
         )?;
     }
 
-    let response: Response<Empty> =
-        Response::new().add_attributes(vec![("action", "try_update_bid")]);
+    let response = Response::new().add_attributes(vec![("action", "try_update_bid")]);
 
     if new_bid_value >= current_bid_value && current_bid_value + asset_amount >= new_bid_value {
         let amount_to_return = current_bid_value + asset_amount - new_bid_value;
