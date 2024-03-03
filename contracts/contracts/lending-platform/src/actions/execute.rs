@@ -553,20 +553,6 @@ pub fn try_repay(
         Err(ContractError::WrongAssetType)?;
     }
 
-    // TODO: take fee only from time dependent part
-    // collect platform fee
-    let received_amount = asset_amount;
-    let platform_revenue = Uint128::one();
-    // let platform_revenue = calc_platform_revenue_on_repay(asset_amount, borrow_fee_rate);
-    // let received_amount = asset_amount - platform_revenue;
-
-    increase_platform_revenue(
-        deps.storage,
-        platform_revenue,
-        &main_currency.token,
-        &main_currency,
-    )?;
-
     // accumulate loan
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
@@ -579,10 +565,15 @@ pub fn try_repay(
     );
 
     let mut total_borrowed_difference = Uint128::zero();
+    let platform_revenue: Uint128;
 
-    if received_amount > accumulated_loan {
-        let amount_difference = received_amount - accumulated_loan;
+    if asset_amount > accumulated_loan {
+        let amount_difference = asset_amount - accumulated_loan;
         borrower.accumulated_loan = Uint128::zero();
+
+        // collect platform fee
+        platform_revenue =
+            calc_platform_revenue_on_repay(accumulated_loan, borrow_apr, borrow_fee_rate);
 
         if amount_difference > borrower.loan.amount {
             // send unused funds back
@@ -599,10 +590,21 @@ pub fn try_repay(
             borrower.loan.amount -= amount_difference;
         }
     } else {
-        borrower.accumulated_loan = accumulated_loan - received_amount;
+        borrower.accumulated_loan = accumulated_loan - asset_amount;
+
+        // collect platform fee
+        platform_revenue =
+            calc_platform_revenue_on_repay(asset_amount, borrow_apr, borrow_fee_rate);
     }
 
     borrower.loan.creation_date = block_time;
+
+    increase_platform_revenue(
+        deps.storage,
+        platform_revenue,
+        &main_currency.token,
+        &main_currency,
+    )?;
 
     // update states
     if borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero() {

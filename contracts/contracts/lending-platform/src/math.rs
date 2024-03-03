@@ -162,6 +162,10 @@ pub fn calc_platform_revenue_on_liquidation(
     (u128_to_dec(liquidation_value) * liquidation_fee_rate).to_uint_ceil()
 }
 
-pub fn calc_platform_revenue_on_repay(repay_amount: Uint128, borrow_fee_rate: Decimal) -> Uint128 {
-    (u128_to_dec(repay_amount) * borrow_fee_rate).to_uint_ceil()
+pub fn calc_platform_revenue_on_repay(
+    repay_amount: Uint128,
+    borrow_apr: Decimal,
+    borrow_fee_rate: Decimal,
+) -> Uint128 {
+    (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_floor()
 }
