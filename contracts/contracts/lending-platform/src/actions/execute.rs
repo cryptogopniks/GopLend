@@ -12,8 +12,9 @@ use goplend_base::{
     lending_platform::{
         state::{
             BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
-            CW20_NAME, CW20_SYMBOL, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_CONFIG,
-            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
+            CW20_NAME, CW20_SYMBOL, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_AMOUNT,
+            LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PAGINATION_CONFIG, PLATFORM_REVENUE,
+            PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
@@ -588,7 +589,6 @@ pub fn try_repay(
     Ok(Response::new().add_attributes(vec![("action", "try_repay")]))
 }
 
-// TODO: limit max amount of bids per liquidator at 5 collections with 5 tokens each
 pub fn try_place_bid(
     deps: DepsMut,
     env: Env,
@@ -623,6 +623,14 @@ pub fn try_place_bid(
         Err(ContractError::EmptyCollectionList)?;
     }
 
+    // limit max token amount
+    if collections
+        .iter()
+        .any(|x| x.token_id_list.len() > LIQUIDATION_BID_MAX_TOKEN_AMOUNT)
+    {
+        Err(ContractError::ExceededLiquidationBidNftMaxAmount)?;
+    }
+
     // check token duplication
     if collections.iter().any(|x| {
         let mut token_list = x.token_id_list.clone();
@@ -639,6 +647,7 @@ pub fn try_place_bid(
         Err(ContractError::DiscountIsOutOfRange)?;
     }
 
+    let mut bid_amount_by_liquidator: usize = 0;
     let mut collection_addresses: Vec<Addr> = vec![];
 
     for CollectionInfo {
@@ -657,7 +666,14 @@ pub fn try_place_bid(
         let collateral_tokens = COLLATERALS
             .load(deps.storage, &collection_address)?
             .into_iter()
-            .fold(vec![], |acc, cur| vec![acc, cur.token_id_list].concat());
+            .fold(Ok(vec![]), |acc, cur| -> StdResult<Vec<String>> {
+                // doesn't allow to place bids on own collateral
+                if cur.owner == sender_address {
+                    Err(ContractError::Unauthorized)?;
+                }
+
+                Ok(vec![acc?, cur.token_id_list].concat())
+            })?;
 
         if token_id_list
             .iter()
@@ -696,7 +712,6 @@ pub fn try_place_bid(
                             Err(ContractError::NftDuplication)?;
                         }
 
-                        // TODO: check if it's required
                         // don't allow same date bids
                         if bids_by_liquidator
                             .iter()
@@ -705,6 +720,7 @@ pub fn try_place_bid(
                             Err(ContractError::SameCreationDate)?;
                         }
 
+                        bid_amount_by_liquidator += bids_by_liquidator.len() + 1;
                         y.push(bid);
 
                         y
@@ -715,6 +731,11 @@ pub fn try_place_bid(
                 Ok(bids)
             },
         )?;
+    }
+
+    // limit max collection amount
+    if bid_amount_by_liquidator > LIQUIDATION_BID_MAX_AMOUNT {
+        Err(ContractError::ExceededBidAmount)?;
     }
 
     LIQUIDATORS.update(
@@ -890,6 +911,14 @@ pub fn try_update_bid(
 
     if collections.iter().all(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // limit max token amount
+    if collections
+        .iter()
+        .any(|x| x.token_id_list.len() > LIQUIDATION_BID_MAX_TOKEN_AMOUNT)
+    {
+        Err(ContractError::ExceededLiquidationBidNftMaxAmount)?;
     }
 
     // check token duplication

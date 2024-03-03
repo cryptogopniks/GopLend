@@ -345,6 +345,32 @@ fn process_default() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(100);
+
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(100);
+
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
             token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
         }],
         "0",
