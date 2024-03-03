@@ -37,6 +37,13 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Only {provided_amount:?} {denom:?} is provided while min collateral value is {min_amount:?}")]
+    LowCollateral {
+        provided_amount: u128,
+        min_amount: u128,
+        denom: String,
+    },
+
     #[error("Bids on own collateral are not allowed!")]
     OwnCollateralBids,
 

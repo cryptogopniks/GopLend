@@ -117,6 +117,7 @@ pub struct Config {
     pub discount_min_rate: Decimal,
     pub discount_max_rate: Decimal,
     pub bid_min_rate: Decimal,
+    pub collateral_min_value: Uint128,
 }
 
 #[cw_serde]

@@ -1,5 +1,5 @@
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
+    assets::{Currency, Funds, TokenUnverified},
     converters::str_to_dec,
     error::ContractError,
     lending_platform::{
@@ -10,7 +10,7 @@ use goplend_base::{
 };
 use speculoos::assert_that;
 
-use cosmwasm_std::{Addr, StdResult, Uint128};
+use cosmwasm_std::{StdResult, Uint128};
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
@@ -172,6 +172,130 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
 }
 
 #[test]
+fn collateral_value_limitations() -> StdResult<()> {
+    let mut project = Project::new();
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::SchedulerForOracle,
+        &vec![RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            currency: Currency::new(
+                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                ProjectCoin::Stars.get_decimals(),
+            ),
+            raw_prices: vec![
+                600_000_000,
+                700_000_000,
+                800_000_000,
+                900_000_000,
+                1_000_000_000,
+            ]
+            .into_iter()
+            .map(Uint128::new)
+            .collect(),
+            trading_volume_per_day: Uint128::new(10_000_000_000),
+        }],
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    // set collateral min value
+    project.lending_platform_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(1_200_000_000),
+    )?;
+
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
+    let res = project
+        .lending_platform_try_deposit_collateral(
+            ProjectAccount::Bob,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            }],
+        )
+        .unwrap_err();
+
+    assert_error(&res, "min collateral");
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    let res = project
+        .lending_platform_try_withdraw_collateral(
+            ProjectAccount::Bob,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            }],
+        )
+        .unwrap_err();
+
+    assert_error(&res, "min collateral");
+
+    project.lending_platform_try_withdraw_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    Ok(())
+}
+
+#[test]
 fn deposit_unbond_withdraw_default() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_config()?;
@@ -267,11 +391,17 @@ fn clear_collaterals_storage() -> StdResult<()> {
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
             ),
-            raw_prices: vec![600, 700, 800, 900, 1000]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-            trading_volume_per_day: Uint128::new(10_000),
+            raw_prices: vec![
+                600_000_000,
+                700_000_000,
+                800_000_000,
+                900_000_000,
+                1_000_000_000,
+            ]
+            .into_iter()
+            .map(Uint128::new)
+            .collect(),
+            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -309,7 +439,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
-    // collateral value = 800 * 3 = 2_400
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -356,11 +486,17 @@ fn clear_borrowers_storage() -> StdResult<()> {
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
             ),
-            raw_prices: vec![600, 700, 800, 900, 1000]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-            trading_volume_per_day: Uint128::new(10_000),
+            raw_prices: vec![
+                600_000_000,
+                700_000_000,
+                800_000_000,
+                900_000_000,
+                1_000_000_000,
+            ]
+            .into_iter()
+            .map(Uint128::new)
+            .collect(),
+            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -398,7 +534,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
-    // collateral value = 800 * 3 = 2_400
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -436,11 +572,17 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
             ),
-            raw_prices: vec![600, 700, 800, 900, 1000]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-            trading_volume_per_day: Uint128::new(10_000),
+            raw_prices: vec![
+                600_000_000,
+                700_000_000,
+                800_000_000,
+                900_000_000,
+                1_000_000_000,
+            ]
+            .into_iter()
+            .map(Uint128::new)
+            .collect(),
+            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -478,7 +620,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
-    // collateral value = 800 * 3 = 2_400
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
@@ -547,11 +689,17 @@ fn process_default() -> StdResult<()> {
                     &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                     ProjectCoin::Stars.get_decimals(),
                 ),
-                raw_prices: vec![100, 200, 300, 400, 500]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
+                raw_prices: vec![
+                    100_000_000,
+                    200_000_000,
+                    300_000_000,
+                    400_000_000,
+                    500_000_000,
+                ]
+                .into_iter()
+                .map(Uint128::new)
+                .collect(),
+                trading_volume_per_day: Uint128::new(10_000_000_000),
             },
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -559,11 +707,17 @@ fn process_default() -> StdResult<()> {
                     &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                     ProjectCoin::Stars.get_decimals(),
                 ),
-                raw_prices: vec![600, 700, 800, 900, 1000]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
+                raw_prices: vec![
+                    600_000_000,
+                    700_000_000,
+                    800_000_000,
+                    900_000_000,
+                    1_000_000_000,
+                ]
+                .into_iter()
+                .map(Uint128::new)
+                .collect(),
+                trading_volume_per_day: Uint128::new(10_000_000_000),
             },
         ],
     )?;
@@ -605,7 +759,7 @@ fn process_default() -> StdResult<()> {
         ProjectNft::Gopniks,
     );
 
-    // collateral value = 800 * 3 = 2_400
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {

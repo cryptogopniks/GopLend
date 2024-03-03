@@ -151,6 +151,7 @@ pub fn execute(
             discount_max_rate,
             bid_min_rate,
             pagination_amount,
+            collateral_min_value,
         } => e::try_update_config(
             deps,
             env,
@@ -168,6 +169,7 @@ pub fn execute(
             discount_max_rate,
             bid_min_rate,
             pagination_amount,
+            collateral_min_value,
         ),
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),

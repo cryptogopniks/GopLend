@@ -107,6 +107,7 @@ pub trait LendingPlatformExtension {
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
         pagination_amount: &Option<u32>,
+        collateral_min_value: &Option<u128>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_create_bgl_token(
@@ -399,6 +400,7 @@ impl LendingPlatformExtension for Project {
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
         pagination_amount: &Option<u32>,
+        collateral_min_value: &Option<u128>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -418,6 +420,7 @@ impl LendingPlatformExtension for Project {
                     discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                     bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
                     pagination_amount: pagination_amount.as_ref().map(|x| x.to_owned()),
+                    collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
                 },
                 &[],
             )
