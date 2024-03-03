@@ -109,7 +109,8 @@ pub fn calc_ltv(
 ) -> Decimal {
     let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
     let loan = u128_to_dec(accumulated_loan)
-        + u128_to_dec(loan) * (Decimal::one() + borrow_apr * borrow_duration);
+        + u128_to_dec(loan)
+            * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS));
 
     loan / u128_to_dec(collateral)
 }
@@ -127,7 +128,8 @@ pub fn calc_accumulated_loan(
     loan_creation_date: u64,
 ) -> Uint128 {
     (u128_to_dec(accumulated_loan)
-        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date)))
+        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date))
+            / u128_to_dec(YEAR_IN_SECONDS))
     .to_uint_floor()
 }
 

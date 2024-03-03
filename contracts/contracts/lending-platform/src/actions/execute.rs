@@ -251,6 +251,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         .add_attributes(vec![("action", "try_withdraw")]))
 }
 
+// TODO: reduce borrowers amount by adding limitations (collateral size)
 pub fn try_deposit_collateral(
     deps: DepsMut,
     env: Env,
@@ -461,7 +462,6 @@ pub fn try_withdraw_collateral(
         .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
-// TODO: reduce borrowers amount by adding limitations (collateral size)
 // TODO: limit total borrowed amount to avoid zero available to withdraw amount
 pub fn try_borrow(
     deps: DepsMut,
@@ -493,10 +493,8 @@ pub fn try_borrow(
             block_time,
             borrower.loan.creation_date,
         );
-        borrower.loan = Vault {
-            creation_date: block_time,
-            amount,
-        };
+        borrower.loan.creation_date = block_time;
+        borrower.loan.amount += amount;
 
         Ok(borrower)
     })?;
@@ -553,9 +551,12 @@ pub fn try_repay(
         Err(ContractError::WrongAssetType)?;
     }
 
+    // TODO: take fee only from time dependent part
     // collect platform fee
-    let platform_revenue = calc_platform_revenue_on_repay(asset_amount, borrow_fee_rate);
-    let received_amount = asset_amount - platform_revenue;
+    let received_amount = asset_amount;
+    let platform_revenue = Uint128::one();
+    // let platform_revenue = calc_platform_revenue_on_repay(asset_amount, borrow_fee_rate);
+    // let received_amount = asset_amount - platform_revenue;
 
     increase_platform_revenue(
         deps.storage,
@@ -567,21 +568,32 @@ pub fn try_repay(
     // accumulate loan
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
-    borrower.accumulated_loan = calc_accumulated_loan(
+    let accumulated_loan = calc_accumulated_loan(
         borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
         block_time,
         borrower.loan.creation_date,
-    ) - received_amount;
+    );
 
-    borrower.loan = Vault {
-        creation_date: block_time,
-        amount: Uint128::zero(),
-    };
+    // TODO: send funds back if it's needed
+    if received_amount > accumulated_loan {
+        let amount_difference = received_amount - accumulated_loan;
+
+        borrower.accumulated_loan = Uint128::zero();
+        borrower.loan.amount -= amount_difference;
+    } else {
+        borrower.accumulated_loan = accumulated_loan - received_amount;
+    }
+
+    borrower.loan.creation_date = block_time;
 
     // update states
-    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+    if borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero() {
+        BORROWERS.remove(deps.storage, &sender_address);
+    } else {
+        BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+    }
 
     accumulate_expected_rewards(deps.storage, block_time)?;
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
