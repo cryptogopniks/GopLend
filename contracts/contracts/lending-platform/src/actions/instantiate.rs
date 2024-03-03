@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw2::set_contract_version;
 
 use goplend_base::{
@@ -8,10 +8,10 @@ use goplend_base::{
     lending_platform::{
         msg::InstantiateMsg,
         state::{
-            BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, CONFIG, CONTRACT_NAME,
-            CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
-            PAGINATION_AMOUNT, PAGINATION_CONFIG, PAGINATION_INDEX, PLATFORM_REVENUE,
-            PROPOSAL_COUNTER, UNBONDING_PERIOD,
+            BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, CONFIG,
+            CONTRACT_NAME, CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED,
+            LIQUIDATION_FEE_RATE, PAGINATION_AMOUNT, PAGINATION_CONFIG, PAGINATION_INDEX,
+            PLATFORM_REVENUE, PROPOSAL_COUNTER, UNBONDING_PERIOD,
         },
         types::{Balances, Config, PaginationConfig},
     },
@@ -66,6 +66,9 @@ pub fn try_instantiate(
                 .discount_max_rate
                 .unwrap_or(str_to_dec(DISCOUNT_MAX_RATE)),
             bid_min_rate: msg.bid_min_rate.unwrap_or(str_to_dec(BID_MIN_RATE)),
+            collateral_min_value: msg
+                .collateral_min_value
+                .unwrap_or(Uint128::new(COLLATERAL_MIN_VALUE)),
         },
     )?;
 

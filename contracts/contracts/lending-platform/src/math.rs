@@ -107,9 +107,14 @@ pub fn calc_ltv(
     block_time: u64,
     loan_creation_date: u64,
 ) -> Decimal {
+    if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
+        return Decimal::zero();
+    }
+
     let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
     let loan = u128_to_dec(accumulated_loan)
-        + u128_to_dec(loan) * (Decimal::one() + borrow_apr * borrow_duration);
+        + u128_to_dec(loan)
+            * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS));
 
     loan / u128_to_dec(collateral)
 }
@@ -127,7 +132,8 @@ pub fn calc_accumulated_loan(
     loan_creation_date: u64,
 ) -> Uint128 {
     (u128_to_dec(accumulated_loan)
-        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date)))
+        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date))
+            / u128_to_dec(YEAR_IN_SECONDS))
     .to_uint_floor()
 }
 
@@ -160,6 +166,10 @@ pub fn calc_platform_revenue_on_liquidation(
     (u128_to_dec(liquidation_value) * liquidation_fee_rate).to_uint_ceil()
 }
 
-pub fn calc_platform_revenue_on_repay(repay_amount: Uint128, borrow_fee_rate: Decimal) -> Uint128 {
-    (u128_to_dec(repay_amount) * borrow_fee_rate).to_uint_ceil()
+pub fn calc_platform_revenue_on_repay(
+    repay_amount: Uint128,
+    borrow_apr: Decimal,
+    borrow_fee_rate: Decimal,
+) -> Uint128 {
+    (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_floor()
 }

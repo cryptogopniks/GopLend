@@ -107,6 +107,7 @@ pub trait LendingPlatformExtension {
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
         pagination_amount: &Option<u32>,
+        collateral_min_value: &Option<u128>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_create_bgl_token(
@@ -208,8 +209,6 @@ pub trait LendingPlatformExtension {
     fn lending_platform_query_deposit_apr(&self) -> StdResult<Decimal>;
 
     fn lending_platform_query_ltv(&self, borrower: ProjectAccount) -> StdResult<Decimal>;
-
-    fn lending_platform_query_block_counter(&self) -> StdResult<u64>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -401,6 +400,7 @@ impl LendingPlatformExtension for Project {
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
         pagination_amount: &Option<u32>,
+        collateral_min_value: &Option<u128>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -420,6 +420,7 @@ impl LendingPlatformExtension for Project {
                     discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                     bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
                     pagination_amount: pagination_amount.as_ref().map(|x| x.to_owned()),
+                    collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
                 },
                 &[],
             )
@@ -730,14 +731,6 @@ impl LendingPlatformExtension for Project {
             &QueryMsg::QueryLtv {
                 borrower: borrower.to_string(),
             },
-        )
-    }
-
-    #[track_caller]
-    fn lending_platform_query_block_counter(&self) -> StdResult<u64> {
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryBlockCounter {},
         )
     }
 }

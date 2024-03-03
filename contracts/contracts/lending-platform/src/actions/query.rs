@@ -10,8 +10,8 @@ use goplend_base::{
             QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
-            BALANCES, BLOCK_COUNTER, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS,
-            LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
+            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS, LIQUIDATORS,
+            PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
@@ -265,7 +265,9 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
-    let borrower = BORROWERS.load(deps.storage, &borrower_address)?;
+    let borrower = BORROWERS
+        .load(deps.storage, &borrower_address)
+        .unwrap_or_default();
 
     // get collaterals owned by borrower
     let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
@@ -330,8 +332,4 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         block_time,
         borrower.loan.creation_date,
     ))
-}
-
-pub fn query_block_counter(deps: Deps, _env: Env) -> StdResult<u64> {
-    Ok(BLOCK_COUNTER.load(deps.storage).unwrap_or_default())
 }

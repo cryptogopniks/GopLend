@@ -130,6 +130,7 @@ impl Project {
             &None,
             &None,
             &None,
+            &None,
         );
 
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
@@ -157,6 +158,7 @@ impl Project {
                 &None,
                 &None,
                 &Some(project.get_cw20_base_code_id()),
+                &None,
                 &None,
                 &None,
                 &None,

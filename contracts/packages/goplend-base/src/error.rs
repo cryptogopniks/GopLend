@@ -37,11 +37,24 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Only {provided_amount:?} {denom:?} is provided while min collateral value is {min_amount:?}")]
+    LowCollateral {
+        provided_amount: u128,
+        min_amount: u128,
+        denom: String,
+    },
+
+    #[error("Bids on own collateral are not allowed!")]
+    OwnCollateralBids,
+
     #[error("Discount is out of range!")]
     DiscountIsOutOfRange,
 
     #[error("Max LTV is exceeded!")]
     ExceededLtv,
+
+    #[error("Max bid amount is exceeded!")]
+    ExceededBidAmount,
 
     #[error("Collection {val:?} price data is outdated!")]
     OutdatedPrice { val: String },
@@ -63,6 +76,9 @@ pub enum ContractError {
 
     #[error("NFT already is added!")]
     NftDuplication,
+
+    #[error("Exceeded liquidation bid NFT max amount!")]
+    ExceededLiquidationBidNftMaxAmount,
 
     #[error("Zeros in prices!")]
     ZerosInPrices,

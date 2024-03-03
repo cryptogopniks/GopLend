@@ -222,6 +222,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         }
 
         // check ltv
+        let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
         let ltv = calc_ltv(
             borrow_apr,
             accumulated_loan,
@@ -232,7 +233,6 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         );
 
         // if low liquidate worst part and check again in loop
-        let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
 
         // no liquidation, check next borrower
         if ltv <= ltv_max {

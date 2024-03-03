@@ -25,6 +25,7 @@ pub struct InstantiateMsg {
     pub discount_max_rate: Option<Decimal>,
     pub bid_min_rate: Option<Decimal>,
     pub pagination_amount: Option<u32>,
+    pub collateral_min_value: Option<Uint128>,
 }
 
 #[cw_serde]
@@ -100,6 +101,7 @@ pub enum ExecuteMsg {
         discount_max_rate: Option<Decimal>,
         bid_min_rate: Option<Decimal>,
         pagination_amount: Option<u32>,
+        collateral_min_value: Option<Uint128>,
     },
 
     // admin, owner
@@ -138,6 +140,7 @@ pub enum ExecuteMsg {
 }
 
 // TODO: add estimation queries
+// TODO: add available to borrow
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -184,10 +187,6 @@ pub enum QueryMsg {
 
     #[returns(Decimal)]
     QueryLtv { borrower: String },
-
-    // test
-    #[returns(u64)]
-    QueryBlockCounter {},
 }
 
 #[cw_serde]
