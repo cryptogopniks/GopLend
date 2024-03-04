@@ -33,8 +33,8 @@ use crate::{
     },
     math::{
         calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards, calc_ltv_max,
-        calc_minted_bgl_token_amount, calc_platform_revenue_on_repay,
-        calc_unbonded_main_token_amount,
+        calc_min_available_liquidity, calc_minted_bgl_token_amount, calc_platform_revenue_on_repay,
+        calc_total_available_to_borrow_liquidity, calc_unbonded_main_token_amount,
     },
 };
 
@@ -74,7 +74,7 @@ pub fn try_deposit(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
-        balances.expected_accumulated_rewards,
+        balances.accumulated_expected_rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
@@ -136,7 +136,7 @@ pub fn try_unbond(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
-        balances.expected_accumulated_rewards,
+        balances.accumulated_expected_rewards,
         main_currency.decimals,
         bgl_currency.decimals,
     );
@@ -633,6 +633,7 @@ pub fn try_borrow(
         discount_max_rate,
         discount_min_rate,
         bid_min_rate,
+        min_available_liquidity_multiplier,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -662,11 +663,28 @@ pub fn try_borrow(
 
     // update states
     accumulate_expected_rewards(deps.storage, block_time)?;
-    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed.amount += amount;
 
-        Ok(x)
-    })?;
+    let mut balances = BALANCES.load(deps.storage)?;
+    balances.total_borrowed.amount += amount;
+
+    let min_available_liquidity = calc_min_available_liquidity(
+        min_available_liquidity_multiplier,
+        balances.total_main_currency_pool,
+        balances.reserve_main_currency_pool,
+        balances.accumulated_expected_rewards,
+    );
+
+    let total_available_to_borrow_liquidity = calc_total_available_to_borrow_liquidity(
+        balances.total_main_currency_pool,
+        balances.total_borrowed.amount,
+        min_available_liquidity,
+    );
+
+    if total_available_to_borrow_liquidity.is_zero() {
+        Err(ContractError::LowAvailableLiquidity)?;
+    }
+
+    BALANCES.save(deps.storage, &balances)?;
 
     // create send msg
     let msg = get_transfer_msg(&sender_address, amount, &main_currency.token)?;
@@ -1310,6 +1328,7 @@ pub fn try_update_config(
     bid_min_rate: Option<Decimal>,
     pagination_amount: Option<u32>,
     collateral_min_value: Option<Uint128>,
+    min_available_liquidity_multiplier: Option<Decimal>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1391,6 +1410,14 @@ pub fn try_update_config(
         if let Some(x) = collateral_min_value {
             config.collateral_min_value = x;
             attrs.push(("collateral_min_value".to_string(), x.to_string()));
+        }
+
+        if let Some(x) = min_available_liquidity_multiplier {
+            config.min_available_liquidity_multiplier = x;
+            attrs.push((
+                "min_available_liquidity_multiplier".to_string(),
+                x.to_string(),
+            ));
         }
 
         Ok(config)
@@ -1489,7 +1516,7 @@ pub fn try_deposit_reserve_liquidity(
         borrow_apr,
         balances.total_borrowed.amount,
     );
-    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+    let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
     let bgl_token_amount = calc_minted_bgl_token_amount(
         asset_amount,

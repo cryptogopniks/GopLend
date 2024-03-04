@@ -22,7 +22,10 @@ use goplend_base::{
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math::{calc_bgl_to_main_price, calc_deposit_apr, calc_expected_rewards, calc_ltv};
+use crate::math::{
+    calc_bgl_to_main_price, calc_deposit_apr, calc_expected_rewards, calc_ltv,
+    calc_min_available_liquidity, calc_total_available_to_borrow_liquidity,
+};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -225,7 +228,7 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
         config.borrow_apr,
         balances.total_borrowed.amount,
     );
-    let rewards = balances.expected_accumulated_rewards + expected_rewards;
+    let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
     Ok(calc_bgl_to_main_price(
         balances.total_main_currency_pool,
@@ -332,4 +335,33 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         block_time,
         borrower.loan.creation_date,
     ))
+}
+
+pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdResult<Uint128> {
+    let block_time = env.block.time.seconds();
+    let config = CONFIG.load(deps.storage)?;
+    let balances = BALANCES.load(deps.storage)?;
+
+    let expected_rewards = calc_expected_rewards(
+        block_time,
+        balances.total_borrowed.creation_date,
+        config.borrow_apr,
+        balances.total_borrowed.amount,
+    );
+    let rewards = balances.accumulated_expected_rewards + expected_rewards;
+
+    let min_available_liquidity = calc_min_available_liquidity(
+        config.min_available_liquidity_multiplier,
+        balances.total_main_currency_pool,
+        balances.reserve_main_currency_pool,
+        rewards,
+    );
+
+    let total_available_to_borrow_liquidity = calc_total_available_to_borrow_liquidity(
+        balances.total_main_currency_pool,
+        balances.total_borrowed.amount,
+        min_available_liquidity,
+    );
+
+    Ok(total_available_to_borrow_liquidity)
 }

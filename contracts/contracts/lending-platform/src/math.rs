@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use cosmwasm_std::{Decimal, Decimal256, Uint128};
 
 use goplend_base::{
@@ -172,4 +174,28 @@ pub fn calc_platform_revenue_on_repay(
     borrow_fee_rate: Decimal,
 ) -> Uint128 {
     (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_floor()
+}
+
+pub fn calc_min_available_liquidity(
+    min_available_liquidity_multiplier: Decimal,
+    total_main_currency_pool: Uint128,
+    reserve_main_currency_pool: Uint128,
+    accumulated_expected_rewards: Uint128,
+) -> Uint128 {
+    (min_available_liquidity_multiplier
+        * u128_to_dec(
+            total_main_currency_pool + accumulated_expected_rewards - reserve_main_currency_pool,
+        ))
+    .to_uint_ceil()
+}
+
+pub fn calc_total_available_to_borrow_liquidity(
+    total_main_currency_pool: Uint128,
+    total_borrowed_amount: Uint128,
+    min_available_liquidity: Uint128,
+) -> Uint128 {
+    max(
+        total_main_currency_pool - total_borrowed_amount,
+        min_available_liquidity,
+    ) - min_available_liquidity
 }
