@@ -262,7 +262,7 @@ pub fn try_deposit_collateral(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
-    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+    if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
     }
 
@@ -448,7 +448,7 @@ pub fn try_withdraw_collateral(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
-    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+    if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
     }
 
@@ -806,7 +806,7 @@ pub fn try_place_bid(
         Err(ContractError::WrongAssetType)?;
     }
 
-    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+    if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
     }
 
@@ -982,7 +982,7 @@ pub fn try_remove_bid(
 
     let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
 
-    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+    if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
     }
 
@@ -1135,7 +1135,7 @@ pub fn try_update_bid(
         Err(ContractError::WrongAssetType)?;
     }
 
-    if collections.iter().all(|x| x.token_id_list.is_empty()) {
+    if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
     }
 
