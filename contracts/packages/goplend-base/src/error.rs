@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Low total available to borrow liquidity!")]
+    LowAvailableLiquidity,
+
     #[error("Only {provided_amount:?} {denom:?} is provided while min collateral value is {min_amount:?}")]
     LowCollateral {
         provided_amount: u128,

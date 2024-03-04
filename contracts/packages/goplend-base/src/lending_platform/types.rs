@@ -94,7 +94,7 @@ pub struct Balances {
     pub total_deposited: Uint128,
     pub total_unbonded: Uint128,
     pub total_borrowed: Vault,
-    pub expected_accumulated_rewards: Uint128, // used to match all loans by creation date
+    pub accumulated_expected_rewards: Uint128, // used to match all loans by creation date
     pub total_liquidation_bids: Uint128,
     pub total_main_currency_pool: Uint128,
     pub total_bgl_currency_supply: Uint128,
@@ -118,6 +118,7 @@ pub struct Config {
     pub discount_max_rate: Decimal,
     pub bid_min_rate: Decimal,
     pub collateral_min_value: Uint128,
+    pub min_available_liquidity_multiplier: Decimal,
 }
 
 #[cw_serde]

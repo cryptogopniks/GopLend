@@ -152,6 +152,7 @@ pub fn execute(
             bid_min_rate,
             pagination_amount,
             collateral_min_value,
+            min_available_liquidity_multiplier,
         } => e::try_update_config(
             deps,
             env,
@@ -170,6 +171,7 @@ pub fn execute(
             bid_min_rate,
             pagination_amount,
             collateral_min_value,
+            min_available_liquidity_multiplier,
         ),
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),
@@ -253,6 +255,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
 
         QueryMsg::QueryLtv { borrower } => to_json_binary(&q::query_ltv(deps, env, borrower)?),
+
+        QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
+            to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
+        }
     }
 }
 

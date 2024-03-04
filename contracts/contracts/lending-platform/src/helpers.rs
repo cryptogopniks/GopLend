@@ -159,7 +159,7 @@ pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -
             balances.total_borrowed.amount,
         );
 
-        balances.expected_accumulated_rewards += rewards;
+        balances.accumulated_expected_rewards += rewards;
         balances.total_borrowed.creation_date = block_time;
 
         Ok(balances)

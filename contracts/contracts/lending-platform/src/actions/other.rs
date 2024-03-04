@@ -433,7 +433,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             borrow_apr,
             balances.total_borrowed.amount,
         );
-        let rewards = balances.expected_accumulated_rewards + expected_rewards;
+        let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
         let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
             (
@@ -453,7 +453,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
             amount,
             creation_date: block_time,
         };
-        balances.expected_accumulated_rewards = rewards;
+        balances.accumulated_expected_rewards = rewards;
         balances.total_liquidation_bids -= total_liquidation_bids;
 
         Ok(balances)

@@ -26,6 +26,7 @@ pub struct InstantiateMsg {
     pub bid_min_rate: Option<Decimal>,
     pub pagination_amount: Option<u32>,
     pub collateral_min_value: Option<Uint128>,
+    pub min_available_liquidity_multiplier: Option<Decimal>,
 }
 
 #[cw_serde]
@@ -102,6 +103,7 @@ pub enum ExecuteMsg {
         bid_min_rate: Option<Decimal>,
         pagination_amount: Option<u32>,
         collateral_min_value: Option<Uint128>,
+        min_available_liquidity_multiplier: Option<Decimal>,
     },
 
     // admin, owner
@@ -187,6 +189,9 @@ pub enum QueryMsg {
 
     #[returns(Decimal)]
     QueryLtv { borrower: String },
+
+    #[returns(Uint128)]
+    QueryTotalAvailableToBorrowLiquidity {},
 }
 
 #[cw_serde]

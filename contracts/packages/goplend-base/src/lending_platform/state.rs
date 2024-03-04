@@ -35,6 +35,8 @@ pub const LIQUIDATION_BID_MAX_AMOUNT: usize = 5;
 
 pub const COLLATERAL_MIN_VALUE: u128 = 500_000_000;
 
+pub const MIN_AVAILABLE_LIQUIDITY_MULTIPLIER: &str = "0.15";
+
 pub const PAGINATION_AMOUNT: u32 = 10;
 pub const PAGINATION_INDEX: Option<Addr> = None;
 
