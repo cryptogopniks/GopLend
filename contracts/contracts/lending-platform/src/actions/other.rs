@@ -22,7 +22,7 @@ use goplend_base::{
             Balances, Borrower, Collateral, Config, LiquidatedPosition, LiquidationBid, Vault,
         },
     },
-    oracle::{self, state::PRICE_UPDATE_PERIOD},
+    oracle,
     utils::unwrap_field,
 };
 
@@ -88,6 +88,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         discount_min_rate,
         bid_min_rate,
         liquidation_fee_rate,
+        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
@@ -153,7 +154,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
     collection_addresses_by_borrowers.dedup();
 
     // query collection prices
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses_by_borrowers),
@@ -196,7 +197,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
             Ok(Uint128::zero()),
             |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                let oracle::msg::QueryPricesResponseItem {
+                let oracle::types::PriceItem {
                     price,
                     price_update_date,
                     ..
@@ -207,7 +208,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                         val: collection_address.to_string(),
                     })?;
 
-                if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+                if block_time - price_update_date > price_update_period {
                     is_price_outdated = true;
                 }
 
@@ -297,7 +298,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                 continue;
             }
 
-            let oracle::msg::QueryPricesResponseItem { price, .. } = prices
+            let oracle::types::PriceItem { price, .. } = prices
                 .iter()
                 .find(|x| x.address == collection_address)
                 .ok_or(ContractError::PriceIsNotFound {

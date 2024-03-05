@@ -47,6 +47,7 @@ pub trait WithCodes {
         pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
+        price_update_period: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_oracle(
@@ -184,6 +185,7 @@ impl WithCodes for Project {
         pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
+        price_update_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             lending_platform_code_id,
@@ -206,6 +208,7 @@ impl WithCodes for Project {
                 min_available_liquidity_multiplier: min_available_liquidity_multiplier
                     .as_ref()
                     .map(|x| str_to_dec(x)),
+                price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
             },
         )
     }

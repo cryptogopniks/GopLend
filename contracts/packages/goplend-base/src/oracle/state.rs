@@ -6,10 +6,6 @@ use crate::{
     oracle::types::Config,
 };
 
-pub const PRICES_MAX_AMOUNT: usize = 5;
-pub const AVERAGE_OFFER_PRICE_MULTIPLIER: u128 = 10;
-pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // 5 min
-
 pub const CONTRACT_NAME: &str = "cryptogopniks-oracle";
 
 pub const CONFIG: Item<Config> = Item::new("config");

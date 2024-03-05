@@ -4,8 +4,8 @@ use cw_multi_test::{AppResponse, Executor};
 use goplend_base::{
     error::parse_err,
     oracle::{
-        msg::{ExecuteMsg, QueryMsg, QueryPricesResponseItem},
-        types::{Config, RawPriceItem},
+        msg::{ExecuteMsg, QueryMsg},
+        types::{Config, PriceItem, RawPriceItem},
     },
 };
 
@@ -32,7 +32,9 @@ pub trait OracleExtension {
     fn oracle_query_prices(
         &self,
         collection_addresses: &Option<Vec<ProjectNft>>,
-    ) -> StdResult<Vec<QueryPricesResponseItem>>;
+    ) -> StdResult<Vec<PriceItem>>;
+
+    fn oracle_query_block_time(&self) -> StdResult<u64>;
 }
 
 impl OracleExtension for Project {
@@ -83,7 +85,7 @@ impl OracleExtension for Project {
     fn oracle_query_prices(
         &self,
         collection_addresses: &Option<Vec<ProjectNft>>,
-    ) -> StdResult<Vec<QueryPricesResponseItem>> {
+    ) -> StdResult<Vec<PriceItem>> {
         let collection_addresses = collection_addresses
             .as_ref()
             .map(|x| x.iter().map(|y| y.to_string()).collect());
@@ -94,5 +96,12 @@ impl OracleExtension for Project {
                 collection_addresses,
             },
         )
+    }
+
+    #[track_caller]
+    fn oracle_query_block_time(&self) -> StdResult<u64> {
+        self.app
+            .wrap()
+            .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryBlockTime {})
     }
 }

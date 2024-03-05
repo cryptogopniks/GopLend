@@ -27,6 +27,7 @@ pub struct InstantiateMsg {
     pub pagination_amount: Option<u32>,
     pub collateral_min_value: Option<Uint128>,
     pub min_available_liquidity_multiplier: Option<Decimal>,
+    pub price_update_period: Option<u64>,
 }
 
 #[cw_serde]
@@ -104,6 +105,7 @@ pub enum ExecuteMsg {
         pagination_amount: Option<u32>,
         collateral_min_value: Option<Uint128>,
         min_available_liquidity_multiplier: Option<Decimal>,
+        price_update_period: Option<u64>,
     },
 
     // admin, owner

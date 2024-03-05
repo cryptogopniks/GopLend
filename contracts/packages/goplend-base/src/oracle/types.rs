@@ -1,15 +1,19 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::Addr;
 
-use crate::assets::{Currency, TokenUnverified};
+use crate::assets::{Funds, Token, TokenUnverified};
 
-// TODO: add offers per token
 #[cw_serde]
 pub struct RawPriceItem {
     pub collection_address: String,
-    pub currency: Currency<TokenUnverified>,
-    pub raw_prices: Vec<Uint128>,
-    pub trading_volume_per_day: Uint128,
+    pub price: Funds<TokenUnverified>,
+}
+
+#[cw_serde]
+pub struct PriceItem {
+    pub address: Addr,
+    pub price: Funds<Token>,
+    pub price_update_date: u64,
 }
 
 #[cw_serde]

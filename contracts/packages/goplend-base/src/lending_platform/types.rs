@@ -119,6 +119,7 @@ pub struct Config {
     pub bid_min_rate: Decimal,
     pub collateral_min_value: Uint128,
     pub min_available_liquidity_multiplier: Decimal,
+    pub price_update_period: u64,
 }
 
 #[cw_serde]

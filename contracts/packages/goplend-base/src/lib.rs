@@ -10,6 +10,12 @@ pub mod lending_platform {
     pub mod types;
 }
 
+pub mod minter {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
+}
+
 pub mod assets;
 pub mod constants;
 pub mod converters;

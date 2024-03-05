@@ -109,6 +109,7 @@ pub trait LendingPlatformExtension {
         pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
+        price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_create_bgl_token(
@@ -405,6 +406,7 @@ impl LendingPlatformExtension for Project {
         pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
+        price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -428,6 +430,7 @@ impl LendingPlatformExtension for Project {
                     min_available_liquidity_multiplier: min_available_liquidity_multiplier
                         .as_ref()
                         .map(|x| str_to_dec(x)),
+                    price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
                 },
                 &[],
             )
