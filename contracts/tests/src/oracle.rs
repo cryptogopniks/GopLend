@@ -5,7 +5,7 @@ use cosmwasm_std::{StdResult, Uint128};
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::ContractError,
-    oracle::{msg::QueryPricesResponseItem, types::RawPriceItem},
+    oracle::types::{PriceItem, RawPriceItem},
 };
 
 use crate::helpers::{
@@ -27,27 +27,23 @@ fn default() -> StdResult<()> {
         &vec![
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
+                price: Funds::new(
+                    Uint128::new(300),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
                 ),
-                raw_prices: vec![100, 200, 300, 400, 500]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
             },
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                price: Funds::new(
+                    Uint128::new(800),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                        ProjectToken::Atom.get_decimals(),
+                    ),
                 ),
-                raw_prices: vec![600, 700, 800, 900, 1000]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
             },
         ],
     )?;
@@ -57,7 +53,7 @@ fn default() -> StdResult<()> {
     project.wait(3);
 
     assert_that(&res).is_equal_to(vec![
-        QueryPricesResponseItem {
+        PriceItem {
             address: ProjectNft::Gopniks.into(),
             price: Funds::new(
                 Uint128::new(800),
@@ -68,7 +64,7 @@ fn default() -> StdResult<()> {
             ),
             price_update_date: block_time,
         },
-        QueryPricesResponseItem {
+        PriceItem {
             address: ProjectNft::Pinjeons.into(),
             price: Funds::new(
                 Uint128::new(300),
@@ -94,27 +90,23 @@ fn unauthorized() -> StdResult<()> {
             &vec![
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                    price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
                     ),
-                    raw_prices: vec![100, 200, 300, 400, 500]
-                        .into_iter()
-                        .map(Uint128::new)
-                        .collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
                 },
                 RawPriceItem {
-                    collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                    collection_address: ProjectNft::Gopniks.to_string(),
+                    price: Funds::new(
+                        Uint128::new(800),
+                        &Currency::new(
+                            &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                            ProjectToken::Atom.get_decimals(),
+                        ),
                     ),
-                    raw_prices: vec![100, 200, 300, 400, 500]
-                        .into_iter()
-                        .map(Uint128::new)
-                        .collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
                 },
             ],
         )
@@ -135,27 +127,23 @@ fn duplicated_collections() -> StdResult<()> {
             &vec![
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                    price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
                     ),
-                    raw_prices: vec![100, 200, 300, 400, 500]
-                        .into_iter()
-                        .map(Uint128::new)
-                        .collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
                 },
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                    price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
                     ),
-                    raw_prices: vec![100, 200, 300, 400, 500]
-                        .into_iter()
-                        .map(Uint128::new)
-                        .collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
                 },
             ],
         )
@@ -180,95 +168,6 @@ fn empty_raw_price_item_vec() -> StdResult<()> {
 }
 
 #[test]
-fn empty_price_vec() -> StdResult<()> {
-    let mut project = Project::new();
-
-    let res = project
-        .oracle_try_update_prices(
-            ProjectAccount::SchedulerForOracle,
-            &vec![
-                RawPriceItem {
-                    collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                    raw_prices: vec![].into_iter().map(Uint128::new).collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
-                },
-                RawPriceItem {
-                    collection_address: ProjectNft::Pinjeons.to_string(),
-                    currency: Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                    raw_prices: vec![100, 200, 300, 400, 500]
-                        .into_iter()
-                        .map(Uint128::new)
-                        .collect(),
-                    trading_volume_per_day: Uint128::new(10_000),
-                },
-            ],
-        )
-        .unwrap_err();
-
-    assert_error(&res, ContractError::EmptyPriceVector);
-
-    Ok(())
-}
-
-#[test]
-fn not_enough_prices() -> StdResult<()> {
-    let mut project = Project::new();
-
-    project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
-        &vec![RawPriceItem {
-            collection_address: ProjectNft::Pinjeons.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
-            ),
-            raw_prices: vec![100, 200, 300].into_iter().map(Uint128::new).collect(),
-            trading_volume_per_day: Uint128::new(10_000),
-        }],
-    )?;
-
-    let res = project.oracle_query_prices(&None)?;
-
-    assert_that(&res[0].price.amount.u128()).is_equal_to(120);
-
-    Ok(())
-}
-
-#[test]
-fn too_much_prices() -> StdResult<()> {
-    let mut project = Project::new();
-
-    let res = project
-        .oracle_try_update_prices(
-            ProjectAccount::SchedulerForOracle,
-            &vec![RawPriceItem {
-                collection_address: ProjectNft::Pinjeons.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-                raw_prices: vec![100, 200, 300, 400, 500, 600, 700]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
-            }],
-        )
-        .unwrap_err();
-
-    assert_error(&res, ContractError::ExceededPricesMaxAmount);
-
-    Ok(())
-}
-
-#[test]
 fn zeros_in_prices() -> StdResult<()> {
     let mut project = Project::new();
 
@@ -277,76 +176,18 @@ fn zeros_in_prices() -> StdResult<()> {
             ProjectAccount::SchedulerForOracle,
             &vec![RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
+                price: Funds::new(
+                    Uint128::new(0),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
                 ),
-                raw_prices: vec![100, 200, 0, 400, 500]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(10_000),
             }],
         )
         .unwrap_err();
 
     assert_error(&res, ContractError::ZerosInPrices);
-
-    Ok(())
-}
-
-#[test]
-fn zero_trading_volume() -> StdResult<()> {
-    let mut project = Project::new();
-
-    let res = project
-        .oracle_try_update_prices(
-            ProjectAccount::SchedulerForOracle,
-            &vec![RawPriceItem {
-                collection_address: ProjectNft::Pinjeons.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-                raw_prices: vec![100, 200, 300, 400, 500]
-                    .into_iter()
-                    .map(Uint128::new)
-                    .collect(),
-                trading_volume_per_day: Uint128::new(0),
-            }],
-        )
-        .unwrap_err();
-
-    assert_error(&res, ContractError::ZeroTradingVolume);
-
-    Ok(())
-}
-
-#[test]
-fn low_trading_volume() -> StdResult<()> {
-    let mut project = Project::new();
-
-    project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
-        &vec![RawPriceItem {
-            collection_address: ProjectNft::Pinjeons.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
-            ),
-            raw_prices: vec![100, 200, 300, 400, 500]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-            trading_volume_per_day: Uint128::new(1_500),
-        }],
-    )?;
-
-    let res = project.oracle_query_prices(&None)?;
-
-    // average_offer_price * trading_volume_per_day / liquidity_divider
-    // 300 * 1_500 / 3_000 = 150
-    assert_that(&res[0].price.amount.u128()).is_equal_to(150);
 
     Ok(())
 }

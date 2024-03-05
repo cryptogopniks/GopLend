@@ -21,7 +21,7 @@ use goplend_base::{
             Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
-    oracle::{self, state::PRICE_UPDATE_PERIOD},
+    oracle,
     utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
 };
 
@@ -296,6 +296,7 @@ pub fn try_deposit_collateral(
         oracle,
         main_currency,
         collateral_min_value,
+        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
@@ -305,7 +306,7 @@ pub fn try_deposit_collateral(
         .map(|x| x.collection_address.to_string())
         .collect();
 
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -346,7 +347,7 @@ pub fn try_deposit_collateral(
         }
 
         // get collection price
-        let oracle::msg::QueryPricesResponseItem {
+        let oracle::types::PriceItem {
             price,
             price_update_date,
             ..
@@ -357,7 +358,7 @@ pub fn try_deposit_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+        if block_time - price_update_date > price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -482,6 +483,7 @@ pub fn try_withdraw_collateral(
         oracle,
         main_currency,
         collateral_min_value,
+        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
@@ -491,7 +493,7 @@ pub fn try_withdraw_collateral(
         .map(|x| x.collection_address.to_string())
         .collect();
 
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -533,7 +535,7 @@ pub fn try_withdraw_collateral(
         }
 
         // get collection price
-        let oracle::msg::QueryPricesResponseItem {
+        let oracle::types::PriceItem {
             price,
             price_update_date,
             ..
@@ -544,7 +546,7 @@ pub fn try_withdraw_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+        if block_time - price_update_date > price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -614,8 +616,6 @@ pub fn try_withdraw_collateral(
         .add_attributes(vec![("action", "try_withdraw_collateral")]))
 }
 
-// TODO: limit total borrowed amount to avoid zero available to withdraw amount
-// don't allow to borrow if available liquidity < 20 % of funds to return depositors
 pub fn try_borrow(
     deps: DepsMut,
     env: Env,
@@ -667,6 +667,7 @@ pub fn try_borrow(
     let mut balances = BALANCES.load(deps.storage)?;
     balances.total_borrowed.amount += amount;
 
+    // don't allow to borrow if available liquidity is too low
     let min_available_liquidity = calc_min_available_liquidity(
         min_available_liquidity_multiplier,
         balances.total_main_currency_pool,
@@ -1329,6 +1330,7 @@ pub fn try_update_config(
     pagination_amount: Option<u32>,
     collateral_min_value: Option<Uint128>,
     min_available_liquidity_multiplier: Option<Decimal>,
+    price_update_period: Option<u64>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1418,6 +1420,11 @@ pub fn try_update_config(
                 "min_available_liquidity_multiplier".to_string(),
                 x.to_string(),
             ));
+        }
+
+        if let Some(x) = price_update_period {
+            config.price_update_period = x;
+            attrs.push(("price_update_period".to_string(), x.to_string()));
         }
 
         Ok(config)

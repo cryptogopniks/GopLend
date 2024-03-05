@@ -37,6 +37,8 @@ pub const COLLATERAL_MIN_VALUE: u128 = 500_000_000;
 
 pub const MIN_AVAILABLE_LIQUIDITY_MULTIPLIER: &str = "0.15";
 
+pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
+
 pub const PAGINATION_AMOUNT: u32 = 10;
 pub const PAGINATION_INDEX: Option<Addr> = None;
 

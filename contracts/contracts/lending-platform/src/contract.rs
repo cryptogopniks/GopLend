@@ -153,6 +153,7 @@ pub fn execute(
             pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
+            price_update_period,
         } => e::try_update_config(
             deps,
             env,
@@ -172,6 +173,7 @@ pub fn execute(
             pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
+            price_update_period,
         ),
 
         ExecuteMsg::CreateBglToken {} => e::try_create_bgl_token(deps, env, info),

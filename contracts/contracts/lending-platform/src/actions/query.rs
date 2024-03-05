@@ -18,7 +18,7 @@ use goplend_base::{
             Unbonder,
         },
     },
-    oracle::{self, state::PRICE_UPDATE_PERIOD},
+    oracle,
     utils::{filter_by_address_list, unwrap_field},
 };
 
@@ -264,7 +264,10 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
 pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let Config {
-        borrow_apr, oracle, ..
+        borrow_apr,
+        oracle,
+        price_update_period,
+        ..
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
@@ -295,7 +298,7 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         .collect();
 
     // TODO: limit prices change rate to protect against oracle attack
-    let prices: Vec<oracle::msg::QueryPricesResponseItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -305,7 +308,7 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
     let collateral_value = collection_and_collateral_list.iter().fold(
         Ok(Uint128::zero()),
         |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let oracle::msg::QueryPricesResponseItem {
+            let oracle::types::PriceItem {
                 price,
                 price_update_date,
                 ..
@@ -316,7 +319,7 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_update_date > PRICE_UPDATE_PERIOD {
+            if block_time - price_update_date > price_update_period {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;

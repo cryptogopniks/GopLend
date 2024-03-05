@@ -1,18 +1,15 @@
-use std::cmp::min;
-
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
 
 use goplend_base::{
     assets::{Currency, Funds},
     error::ContractError,
     oracle::{
-        state::{AVERAGE_OFFER_PRICE_MULTIPLIER, CONFIG, PRICES_MAX_AMOUNT, PRICE_AND_DATE_LIST},
+        state::{CONFIG, PRICE_AND_DATE_LIST},
         types::{Config, RawPriceItem},
     },
     utils::{check_funds, unwrap_field, Attrs, FundsType},
 };
 
-// TODO: move logic on backend
 pub fn try_update_prices(
     deps: DepsMut,
     env: Env,
@@ -33,24 +30,17 @@ pub fn try_update_prices(
 
     for RawPriceItem {
         collection_address,
-        currency,
-        raw_prices,
-        trading_volume_per_day,
+        price,
     } in data
     {
-        if raw_prices.is_empty() {
-            Err(ContractError::EmptyPriceVector)?;
-        }
-
-        if raw_prices.len() > PRICES_MAX_AMOUNT {
-            Err(ContractError::ExceededPricesMaxAmount)?;
-        }
-
-        if trading_volume_per_day.is_zero() {
-            Err(ContractError::ZeroTradingVolume)?;
+        if price.amount.is_zero() {
+            Err(ContractError::ZerosInPrices)?;
         }
 
         let collection_address = deps.api.addr_validate(&collection_address)?;
+        let price_token = price.currency.token.verify(deps.api)?;
+        let currency = Currency::new(&price_token, price.currency.decimals);
+        let price = Funds::new(price.amount, &currency);
 
         if PRICE_AND_DATE_LIST.has(deps.storage, &collection_address)
             && PRICE_AND_DATE_LIST
@@ -61,28 +51,7 @@ pub fn try_update_prices(
             Err(ContractError::CollectionDuplication)?;
         }
 
-        let currency = Currency::new(&currency.token.verify(deps.api)?, currency.decimals);
-        let mut average_offer_price = Uint128::zero();
-
-        for raw_price in raw_prices {
-            if raw_price.is_zero() {
-                Err(ContractError::ZerosInPrices)?;
-            }
-
-            average_offer_price += raw_price;
-        }
-
-        average_offer_price /= Uint128::from(PRICES_MAX_AMOUNT as u128);
-
-        let liquidity_divider = Uint128::new(AVERAGE_OFFER_PRICE_MULTIPLIER) * average_offer_price;
-        let trading_volume_per_day = min(trading_volume_per_day, liquidity_divider);
-        let collateral_price = average_offer_price * trading_volume_per_day / liquidity_divider;
-
-        PRICE_AND_DATE_LIST.save(
-            deps.storage,
-            &collection_address,
-            &(Funds::new(collateral_price, &currency), block_time),
-        )?;
+        PRICE_AND_DATE_LIST.save(deps.storage, &collection_address, &(price, block_time))?;
     }
 
     Ok(Response::new().add_attributes(vec![("action", "try_update_prices")]))

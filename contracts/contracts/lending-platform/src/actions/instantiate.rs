@@ -11,8 +11,8 @@ use goplend_base::{
             BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, CONFIG,
             CONTRACT_NAME, CW20_CODE_ID, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED,
             LIQUIDATION_FEE_RATE, MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PAGINATION_AMOUNT,
-            PAGINATION_CONFIG, PAGINATION_INDEX, PLATFORM_REVENUE, PROPOSAL_COUNTER,
-            UNBONDING_PERIOD,
+            PAGINATION_CONFIG, PAGINATION_INDEX, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD,
+            PROPOSAL_COUNTER, UNBONDING_PERIOD,
         },
         types::{Balances, Config, PaginationConfig},
     },
@@ -73,6 +73,7 @@ pub fn try_instantiate(
             min_available_liquidity_multiplier: msg
                 .min_available_liquidity_multiplier
                 .unwrap_or(str_to_dec(MIN_AVAILABLE_LIQUIDITY_MULTIPLIER)),
+            price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
         },
     )?;
 

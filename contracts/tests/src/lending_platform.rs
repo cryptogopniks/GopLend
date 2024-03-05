@@ -180,21 +180,13 @@ fn collection_address_duplication() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(800_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                600_000_000,
-                700_000_000,
-                800_000_000,
-                900_000_000,
-                1_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -263,21 +255,13 @@ fn collateral_value_limitations() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(800_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                600_000_000,
-                700_000_000,
-                800_000_000,
-                900_000_000,
-                1_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -332,6 +316,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         &None,
         &None,
         &Some(1_200_000_000),
+        &None,
         &None,
     )?;
 
@@ -439,21 +424,13 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                60_000_000_000,
-                70_000_000_000,
-                80_000_000_000,
-                90_000_000_000,
-                100_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(1_000_000_000_000),
         }],
     )?;
 
@@ -534,21 +511,13 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                60_000_000_000,
-                70_000_000_000,
-                80_000_000_000,
-                90_000_000_000,
-                100_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(1_000_000_000_000),
         }],
     )?;
 
@@ -569,6 +538,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
+        &None,
         &None,
     )?;
 
@@ -686,21 +656,13 @@ fn clear_collaterals_storage() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                600_000_000,
-                700_000_000,
-                800_000_000,
-                900_000_000,
-                1_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -781,21 +743,13 @@ fn clear_borrowers_storage() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                600_000_000,
-                700_000_000,
-                800_000_000,
-                900_000_000,
-                1_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -867,21 +821,13 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         ProjectAccount::SchedulerForOracle,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            currency: Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
             ),
-            raw_prices: vec![
-                600_000_000,
-                700_000_000,
-                800_000_000,
-                900_000_000,
-                1_000_000_000,
-            ]
-            .into_iter()
-            .map(Uint128::new)
-            .collect(),
-            trading_volume_per_day: Uint128::new(10_000_000_000),
         }],
     )?;
 
@@ -984,39 +930,23 @@ fn process_default() -> StdResult<()> {
         &vec![
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
+                price: Funds::new(
+                    Uint128::new(300_000_000),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
                 ),
-                raw_prices: vec![
-                    100_000_000,
-                    200_000_000,
-                    300_000_000,
-                    400_000_000,
-                    500_000_000,
-                ]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-                trading_volume_per_day: Uint128::new(10_000_000_000),
             },
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                currency: Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
+                price: Funds::new(
+                    Uint128::new(800_000_000),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                        ProjectToken::Atom.get_decimals(),
+                    ),
                 ),
-                raw_prices: vec![
-                    600_000_000,
-                    700_000_000,
-                    800_000_000,
-                    900_000_000,
-                    1_000_000_000,
-                ]
-                .into_iter()
-                .map(Uint128::new)
-                .collect(),
-                trading_volume_per_day: Uint128::new(10_000_000_000),
             },
         ],
     )?;

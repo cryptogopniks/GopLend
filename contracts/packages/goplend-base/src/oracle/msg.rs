@@ -1,10 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Uint128};
 
-use crate::{
-    assets::{Currency, Funds, Token},
-    oracle::types::RawPriceItem,
-};
+use crate::oracle::types::RawPriceItem;
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -31,21 +27,16 @@ pub enum QueryMsg {
     #[returns(crate::oracle::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<QueryPricesResponseItem>)]
+    #[returns(Vec<crate::oracle::types::PriceItem>)]
     QueryPrices {
         collection_addresses: Option<Vec<String>>,
     },
-    // TODO: add block_time query
+
+    #[returns(u64)]
+    QueryBlockTime {},
 }
 
-#[cw_serde]
-pub struct QueryPricesResponseItem {
-    pub address: Addr,
-    pub price: Funds<Token>,
-    pub price_update_date: u64,
-}
-
-// TODO: use
+// TODO: add offers per token
 // #[cw_serde]
 // pub struct QueryPricesResponseItem {
 //     pub address: Addr,
