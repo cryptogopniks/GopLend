@@ -41,5 +41,5 @@ impl Config {
 
 #[cw_serde]
 pub struct QueryCurrenciesFromCreatorResponse {
-    pub denoms: Vec<Currency<Token>>,
+    pub currencies: Vec<Currency<Token>>,
 }
