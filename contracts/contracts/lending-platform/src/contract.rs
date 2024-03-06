@@ -264,6 +264,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
+// /// Exposes all the replies available in the contract
+// #[cfg_attr(not(feature = "library"), entry_point)]
+// pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
+//     let Reply { id: _, result: _ } = reply;
+
+//     Err(ContractError::UndefinedReplyId)
+// }
+
 /// Exposes all reply functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
