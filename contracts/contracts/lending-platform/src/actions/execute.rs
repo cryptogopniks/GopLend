@@ -1,6 +1,6 @@
 use cosmwasm_std::{
     to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
-    StdResult, SubMsg, Uint128, WasmMsg,
+    StdResult, Uint128, WasmMsg,
 };
 
 use cw721::Cw721ExecuteMsg;
@@ -11,18 +11,20 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BGL_CURRENCY_DECIMALS, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG,
-            CW20_NAME, CW20_SYMBOL, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_AMOUNT,
-            LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PAGINATION_CONFIG, PLATFORM_REVENUE,
-            PROPOSALS, PROPOSAL_COUNTER, SAVE_CW20_ADDRESS_REPLY, UNBONDERS,
+            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
+            LIQUIDATION_BID_MAX_AMOUNT, LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS,
+            PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, UNBONDERS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
             Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
-    oracle,
-    utils::{check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType, FundsType},
+    minter, oracle,
+    utils::{
+        add_funds_to_exec_msg, check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType,
+        FundsType,
+    },
 };
 
 use crate::{
@@ -54,9 +56,11 @@ pub fn try_deposit(
     let Config {
         main_currency,
         bgl_currency,
+        minter,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(minter, "minter")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
@@ -87,10 +91,11 @@ pub fn try_deposit(
 
     // mint bgl_token to sender
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
-        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
-            recipient: sender_address.to_string(),
+        contract_addr: minter_address.to_string(),
+        msg: to_json_binary(&minter::msg::ExecuteMsg::Mint {
+            token: bgl_currency.token.into(),
             amount: bgl_token_amount,
+            recipient: sender_address.to_string(),
         })?,
         funds: vec![],
     });
@@ -193,9 +198,11 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         main_currency,
         bgl_currency,
         unbonding_period,
+        minter,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(minter, "minter")?;
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
@@ -237,13 +244,15 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
 
     // burn bgl token and send main token
     let msg_list = vec![
-        CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
-            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Burn {
-                amount: amount_to_burn,
-            })?,
-            funds: vec![],
-        }),
+        add_funds_to_exec_msg(
+            &WasmMsg::Execute {
+                contract_addr: minter_address.to_string(),
+                msg: to_json_binary(&minter::msg::ExecuteMsg::Burn {})?,
+                funds: vec![],
+            },
+            &[(amount_to_burn, bgl_currency.token)],
+        )?
+        .into(),
         get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?,
     ];
 
@@ -1317,9 +1326,11 @@ pub fn try_update_config(
     info: MessageInfo,
     owner: Option<String>,
     oracle: Option<String>,
+    minter: Option<String>,
+    scheduler: Option<String>,
+    marketplace: Option<String>,
     main_currency: Option<Currency<TokenUnverified>>,
     bgl_currency: Option<Currency<TokenUnverified>>,
-    cw20_base_code_id: Option<u64>,
     unbonding_period: Option<u64>,
     borrow_apr: Option<Decimal>,
     borrow_fee_rate: Option<Decimal>,
@@ -1351,6 +1362,21 @@ pub fn try_update_config(
             attrs.push(("oracle".to_string(), x));
         }
 
+        if let Some(x) = minter {
+            config.minter = Some(deps.api.addr_validate(&x)?);
+            attrs.push(("minter".to_string(), x));
+        }
+
+        if let Some(x) = scheduler {
+            config.scheduler = Some(deps.api.addr_validate(&x)?);
+            attrs.push(("scheduler".to_string(), x));
+        }
+
+        if let Some(x) = marketplace {
+            config.marketplace = Some(deps.api.addr_validate(&x)?);
+            attrs.push(("marketplace".to_string(), x));
+        }
+
         if let Some(x) = main_currency {
             if !balances.total_main_currency_pool.is_zero() {
                 Err(ContractError::ChangingCurrency)?;
@@ -1367,11 +1393,6 @@ pub fn try_update_config(
 
             config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
             attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
-        }
-
-        if let Some(x) = cw20_base_code_id {
-            config.cw20_base_code_id = x;
-            attrs.push(("cw20_base_code_id".to_string(), x.to_string()));
         }
 
         if let Some(x) = unbonding_period {
@@ -1441,50 +1462,6 @@ pub fn try_update_config(
     Ok(Response::new().add_attributes(attrs))
 }
 
-// TODO: use separate minter contract
-pub fn try_create_bgl_token(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
-
-    let creator = env.contract.address;
-    let config = CONFIG.load(deps.storage)?;
-
-    if config.bgl_currency.is_some() {
-        Err(ContractError::AddressExists)?;
-    }
-
-    let cw20_msg = cw20_base::msg::InstantiateMsg {
-        name: format!("{}", CW20_NAME),
-        symbol: CW20_SYMBOL.to_string(),
-        decimals: BGL_CURRENCY_DECIMALS,
-        initial_balances: vec![],
-        mint: Some(cw20::MinterResponse {
-            minter: creator.to_string(),
-            cap: None,
-        }),
-        marketing: None,
-    };
-
-    let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
-        admin: Some(creator.to_string()),
-        code_id: config.cw20_base_code_id,
-        label: format!("CryptoGopniks {}", CW20_SYMBOL),
-        msg: to_json_binary(&cw20_msg)?,
-        funds: vec![],
-    });
-
-    let submsg = SubMsg::reply_on_success(msg, SAVE_CW20_ADDRESS_REPLY);
-
-    Ok(Response::new()
-        .add_submessage(submsg)
-        .add_attributes([("action", "try_create_bgl_token")]))
-}
-
 pub fn try_deposit_reserve_liquidity(
     deps: DepsMut,
     env: Env,
@@ -1502,9 +1479,11 @@ pub fn try_deposit_reserve_liquidity(
         main_currency,
         bgl_currency,
         borrow_apr,
+        minter,
         ..
     } = CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(minter, "minter")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
@@ -1544,10 +1523,11 @@ pub fn try_deposit_reserve_liquidity(
 
     // mint bgl_token to sender
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: bgl_currency.token.try_get_cw20()?.to_string(),
-        msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
-            recipient: sender_address.to_string(),
+        contract_addr: minter_address.to_string(),
+        msg: to_json_binary(&minter::msg::ExecuteMsg::Mint {
+            token: bgl_currency.token.into(),
             amount: bgl_token_amount,
+            recipient: sender_address.to_string(),
         })?,
         funds: vec![],
     });

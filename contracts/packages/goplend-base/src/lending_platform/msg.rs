@@ -14,9 +14,11 @@ use super::types::{Borrower, LiquidationBid, Liquidator, Unbonder};
 pub struct InstantiateMsg {
     pub owner: Option<String>,
     pub oracle: Option<String>,
+    pub minter: Option<String>,
+    pub scheduler: Option<String>,
+    pub marketplace: Option<String>,
     pub main_currency: Currency<TokenUnverified>,
     pub bgl_currency: Option<Currency<TokenUnverified>>,
-    pub cw20_base_code_id: Option<u64>,
     pub unbonding_period: Option<u64>,
     pub borrow_apr: Option<Decimal>,
     pub borrow_fee_rate: Option<Decimal>,
@@ -92,9 +94,11 @@ pub enum ExecuteMsg {
     UpdateConfig {
         owner: Option<String>,
         oracle: Option<String>,
+        minter: Option<String>,
+        scheduler: Option<String>,
+        marketplace: Option<String>,
         main_currency: Option<Currency<TokenUnverified>>,
         bgl_currency: Option<Currency<TokenUnverified>>,
-        cw20_base_code_id: Option<u64>,
         unbonding_period: Option<u64>,
         borrow_apr: Option<Decimal>,
         borrow_fee_rate: Option<Decimal>,
@@ -109,10 +113,6 @@ pub enum ExecuteMsg {
     },
 
     // admin, owner
-    CreateBglToken {},
-
-    // TODO: add update metadata
-    //
     DepositReserveLiquidity {},
 
     ReinforceBglToken {},

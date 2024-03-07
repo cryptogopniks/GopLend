@@ -315,6 +315,8 @@ fn collateral_value_limitations() -> StdResult<()> {
         &None,
         &None,
         &None,
+        &None,
+        &None,
         &Some(1_200_000_000),
         &None,
         &None,
@@ -524,6 +526,8 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
+        &None,
+        &None,
         &None,
         &None,
         &None,

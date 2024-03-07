@@ -1,8 +1,11 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Uint128;
 
+use cw20::Logo;
+use cw20_base::msg::InstantiateMarketingInfo;
+
 use crate::{
-    assets::{Currency, Token, TokenUnverified},
+    assets::{Currency, TokenUnverified},
     minter::types::Metadata,
 };
 
@@ -32,7 +35,7 @@ pub enum ExecuteMsg {
         name: String,
         symbol: String,
         decimals: Option<u8>,
-        marketing: Option<cw20_base::msg::InstantiateMarketingInfo>,
+        marketing: Option<InstantiateMarketingInfo>,
     },
 
     Mint {
@@ -57,7 +60,7 @@ pub enum ExecuteMsg {
 
     UploadLogoCw20 {
         token: TokenUnverified,
-        logo: cw20::Logo,
+        logo: Logo,
     },
 
     ChangeAdminNative {
@@ -66,7 +69,7 @@ pub enum ExecuteMsg {
 
     UpdateMinterCw20 {
         token: TokenUnverified,
-        new_minter: Option<String>,
+        new_minter: String,
     },
 
     // admin

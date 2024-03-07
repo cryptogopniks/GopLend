@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
@@ -95,10 +95,12 @@ pub trait LendingPlatformExtension {
         &mut self,
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
-        oracle: &Option<String>,
+        oracle: &Option<Addr>,
+        minter: &Option<Addr>,
+        scheduler: &Option<Addr>,
+        marketplace: &Option<Addr>,
         main_currency: &Option<Currency<TokenUnverified>>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
-        cw20_base_code_id: &Option<u64>,
         unbonding_period: &Option<u64>,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -110,11 +112,6 @@ pub trait LendingPlatformExtension {
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
-    ) -> StdResult<AppResponse>;
-
-    fn lending_platform_try_create_bgl_token(
-        &mut self,
-        sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_deposit_reserve_liquidity(
@@ -392,10 +389,12 @@ impl LendingPlatformExtension for Project {
         &mut self,
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
-        oracle: &Option<String>,
+        oracle: &Option<Addr>,
+        minter: &Option<Addr>,
+        scheduler: &Option<Addr>,
+        marketplace: &Option<Addr>,
         main_currency: &Option<Currency<TokenUnverified>>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
-        cw20_base_code_id: &Option<u64>,
         unbonding_period: &Option<u64>,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -415,9 +414,11 @@ impl LendingPlatformExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     owner: owner.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
+                    minter: minter.as_ref().map(|x| x.to_string()),
+                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                    marketplace: marketplace.as_ref().map(|x| x.to_string()),
                     main_currency: main_currency.as_ref().map(|x| x.to_owned()),
                     bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
-                    cw20_base_code_id: cw20_base_code_id.as_ref().map(|x| x.to_owned()),
                     unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
                     borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
                     borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
@@ -432,21 +433,6 @@ impl LendingPlatformExtension for Project {
                         .map(|x| str_to_dec(x)),
                     price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
                 },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn lending_platform_try_create_bgl_token(
-        &mut self,
-        sender: ProjectAccount,
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_lending_platform_address(),
-                &ExecuteMsg::CreateBglToken {},
                 &[],
             )
             .map_err(parse_err)
