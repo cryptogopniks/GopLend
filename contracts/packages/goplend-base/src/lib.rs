@@ -16,6 +16,16 @@ pub mod minter {
     pub mod types;
 }
 
+pub mod adapters {
+    pub mod scheduler {
+        pub mod kujira {
+            pub mod msg;
+            pub mod state;
+            pub mod types;
+        }
+    }
+}
+
 pub mod assets;
 pub mod constants;
 pub mod converters;
