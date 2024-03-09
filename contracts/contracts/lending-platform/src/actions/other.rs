@@ -29,8 +29,8 @@ use goplend_base::{
 use crate::{
     helpers::{check_lockout, increase_platform_revenue},
     math::{
-        calc_accumulated_loan, calc_bid_max_multiplier, calc_expected_rewards,
-        calc_liquidation_value, calc_ltv, calc_platform_revenue_on_liquidation,
+        calc_accumulated_loan, calc_expected_rewards, calc_liquidation_value, calc_ltv,
+        calc_ltv_max, calc_platform_revenue_on_liquidation,
     },
 };
 
@@ -223,7 +223,7 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
         }
 
         // check ltv
-        let ltv_max = calc_bid_max_multiplier(bid_min_rate, discount_max_rate, discount_min_rate);
+        let ltv_max = calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
         let ltv = calc_ltv(
             borrow_apr,
             accumulated_loan,
@@ -353,8 +353,17 @@ pub fn try_process(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Co
                 LIQUIDATION_BIDS.save(deps.storage, &collection_address, &bids)?;
 
                 // update collaterals
-                let collaterals: Vec<Collateral> = COLLATERALS
-                    .load(deps.storage, &collection_address)?
+                let mut collaterals = COLLATERALS.load(deps.storage, &collection_address)?;
+
+                let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
+                if collaterals_by_liquidator.is_none() {
+                    collaterals.push(Collateral {
+                        owner: liquidator.to_owned(),
+                        token_id_list: vec![],
+                    });
+                }
+
+                collaterals = collaterals
                     .into_iter()
                     .map(|mut x| {
                         if x.owner == borrower_address {
