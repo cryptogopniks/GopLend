@@ -1,4 +1,4 @@
-use std::cmp::max;
+use std::cmp::{max, min};
 
 use cosmwasm_std::{Decimal, Decimal256, Uint128};
 
@@ -123,7 +123,10 @@ pub fn calc_ltv(
 
 // liquidation_value = collateral * (ltv - ltv_max) / (1 - ltv_max)
 pub fn calc_liquidation_value(collateral: Uint128, ltv: Decimal, ltv_max: Decimal) -> Uint128 {
-    (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - ltv_max)).to_uint_ceil()
+    min(
+        (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - ltv_max)).to_uint_ceil(),
+        collateral,
+    )
 }
 
 pub fn calc_accumulated_loan(
@@ -143,7 +146,7 @@ pub fn calc_bid_min_multiplier(bid_min_rate: Decimal) -> Decimal {
     Decimal::one() + bid_min_rate
 }
 
-pub fn calc_bid_max_multiplier(
+fn calc_bid_max_multiplier(
     bid_min_rate: Decimal,
     discount_max_rate: Decimal,
     discount_min_rate: Decimal,

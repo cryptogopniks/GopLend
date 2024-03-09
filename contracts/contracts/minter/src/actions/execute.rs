@@ -166,10 +166,7 @@ pub fn try_mint(
     } else {
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: token_denom,
-            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
-                recipient: sender_address.to_string(),
-                amount,
-            })?,
+            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint { recipient, amount })?,
             funds: vec![],
         });
 
@@ -411,7 +408,7 @@ pub fn try_update_minter_cw20(
     _env: Env,
     info: MessageInfo,
     token: TokenUnverified,
-    new_minter: Option<String>,
+    new_minter: String,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
@@ -429,12 +426,13 @@ pub fn try_update_minter_cw20(
         },
     )?;
 
-    deps.api
-        .addr_validate(&unwrap_field(new_minter.clone(), "new_minter")?)?;
+    deps.api.addr_validate(&new_minter)?;
 
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: token_denom.to_string(),
-        msg: to_json_binary(&cw20::Cw20ExecuteMsg::UpdateMinter { new_minter })?,
+        msg: to_json_binary(&cw20::Cw20ExecuteMsg::UpdateMinter {
+            new_minter: Some(new_minter),
+        })?,
         funds: vec![],
     });
 

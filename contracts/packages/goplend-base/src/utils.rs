@@ -114,7 +114,7 @@ pub fn add_funds_to_exec_msg(
                     msg: to_json_binary(&cw20::Cw20ExecuteMsg::Send {
                         contract: contract_addr.to_string(),
                         amount: amount.to_owned(),
-                        msg: to_json_binary(&msg)?,
+                        msg: msg.to_owned(),
                     })?,
                     funds: vec![],
                 });

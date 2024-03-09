@@ -8,6 +8,7 @@ use crate::{
 
 pub const CONTRACT_NAME: &str = "cryptogopniks-minter";
 
+pub const CW20_CODE_ID: u64 = 1;
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 
 pub const DEFAULT_DECIMALS: u8 = 6;

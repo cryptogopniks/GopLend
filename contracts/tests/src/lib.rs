@@ -5,6 +5,7 @@ pub mod oracle;
 
 pub mod helpers {
     pub mod lending_platform;
+    pub mod minter;
     pub mod oracle;
 
     pub mod suite {

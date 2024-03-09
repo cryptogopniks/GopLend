@@ -9,10 +9,13 @@ use strum::IntoEnumIterator;
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
+    lending_platform::state::{BGL_CURRENCY_DECIMALS, CW20_NAME, CW20_SYMBOL},
+    minter::types::QueryCurrenciesFromCreatorResponse,
 };
 
 use crate::helpers::{
     lending_platform::LendingPlatformExtension,
+    minter::MinterExtension,
     oracle::OracleExtension,
     suite::{
         codes::WithCodes,
@@ -37,6 +40,7 @@ pub struct Project {
     // contract code id
     lending_platform_code_id: u64,
     oracle_code_id: u64,
+    minter_code_id: u64,
 
     // package address
     gopniks_address: Addr,
@@ -45,6 +49,7 @@ pub struct Project {
     // contract address
     lending_platform_address: Addr,
     oracle_address: Addr,
+    minter_address: Addr,
     //
     // other
 }
@@ -60,12 +65,14 @@ impl Project {
             // cw721_base_code_id: 0,
             lending_platform_code_id: 0,
             oracle_code_id: 0,
+            minter_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
 
             lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
+            minter_address: Addr::unchecked(""),
         }
     }
 
@@ -81,6 +88,7 @@ impl Project {
         // contracts
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
+        let minter_code_id = project.store_minter_code();
 
         // instantiate packages
 
@@ -116,6 +124,9 @@ impl Project {
             lending_platform_code_id,
             &None,
             &None,
+            &None,
+            &None,
+            &None,
             &Currency::new(
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
@@ -132,33 +143,66 @@ impl Project {
             &None,
             &None,
             &None,
-            &None,
         );
 
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
+        let minter_address =
+            project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
 
         project = Self {
             cw20_base_code_id,
             lending_platform_code_id,
             oracle_code_id,
+            minter_code_id,
 
             gopniks_address,
             pinjeons_address,
 
             lending_platform_address: lending_platform_address.clone(),
             oracle_address: oracle_address.clone(),
+            minter_address: minter_address.clone(),
 
             ..project
         };
 
         // prepare contracts
         project
+            .oracle_try_update_config(
+                ProjectAccount::Admin,
+                &Some(ProjectAccount::SchedulerForOracle),
+            )
+            .unwrap();
+
+        // create bgl_token
+        project
+            .minter_try_create_cw20(
+                ProjectAccount::Admin,
+                &project.get_lending_platform_address(),
+                CW20_NAME,
+                CW20_SYMBOL,
+                &Some(BGL_CURRENCY_DECIMALS),
+                &None,
+            )
+            .unwrap();
+
+        let QueryCurrenciesFromCreatorResponse { currencies } = project
+            .minter_query_currencies_by_creator(&project.get_lending_platform_address())
+            .unwrap();
+        let bgl_currency = &currencies[0];
+
+        project
             .lending_platform_try_update_config(
                 ProjectAccount::Admin,
                 &Some(ProjectAccount::Owner),
-                &Some(project.get_oracle_address().to_string()),
+                &Some(project.get_oracle_address()),
+                &Some(project.get_minter_address()),
                 &None,
                 &None,
+                &None,
+                &Some(Currency::new(
+                    &bgl_currency.clone().token.into(),
+                    bgl_currency.decimals,
+                )),
                 &Some(project.get_cw20_base_code_id()),
                 &None,
                 &None,
@@ -170,20 +214,7 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &None,
             )
-            .unwrap();
-
-        project
-            .oracle_try_update_config(
-                ProjectAccount::Admin,
-                &Some(ProjectAccount::SchedulerForOracle),
-            )
-            .unwrap();
-
-        // create bgl_token
-        project
-            .lending_platform_try_create_bgl_token(ProjectAccount::Admin)
             .unwrap();
 
         // add 100k STARS initial liquidity
@@ -203,12 +234,16 @@ impl Project {
         self.cw20_base_code_id
     }
 
+    pub fn get_lending_platform_code_id(&self) -> u64 {
+        self.lending_platform_code_id
+    }
+
     pub fn get_oracle_code_id(&self) -> u64 {
         self.oracle_code_id
     }
 
-    pub fn get_lending_platform_code_id(&self) -> u64 {
-        self.lending_platform_code_id
+    pub fn get_minter_code_id(&self) -> u64 {
+        self.minter_code_id
     }
 
     // package address getters
@@ -220,13 +255,17 @@ impl Project {
         self.pinjeons_address.clone()
     }
 
+    // contract address getters
+    pub fn get_lending_platform_address(&self) -> Addr {
+        self.lending_platform_address.clone()
+    }
+
     pub fn get_oracle_address(&self) -> Addr {
         self.oracle_address.clone()
     }
 
-    // contract address getters
-    pub fn get_lending_platform_address(&self) -> Addr {
-        self.lending_platform_address.clone()
+    pub fn get_minter_address(&self) -> Addr {
+        self.minter_address.clone()
     }
 
     // utils

@@ -23,6 +23,7 @@ pub trait WithCodes {
     // store contracts
     fn store_lending_platform_code(&mut self) -> u64;
     fn store_oracle_code(&mut self) -> u64;
+    fn store_minter_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -34,9 +35,11 @@ pub trait WithCodes {
         lending_platform_code_id: u64,
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
+        minter: &Option<Addr>,
+        scheduler: &Option<Addr>,
+        marketplace: &Option<Addr>,
         main_currency: &Currency<TokenUnverified>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
-        cw20_base_code_id: &Option<u64>,
         unbonding_period: &Option<u64>,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -54,6 +57,13 @@ pub trait WithCodes {
         &mut self,
         oracle_code_id: u64,
         scheduler: &Option<ProjectAccount>,
+    ) -> Addr;
+
+    fn instantiate_minter(
+        &mut self,
+        minter_code_id: u64,
+        owner: &Option<ProjectAccount>,
+        cw20_base_code_id: &Option<u64>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -106,6 +116,18 @@ impl WithCodes for Project {
             )
             .with_reply(oracle::contract::reply)
             .with_migrate(oracle::contract::migrate),
+        ))
+    }
+
+    fn store_minter_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                minter::contract::execute,
+                minter::contract::instantiate,
+                minter::contract::query,
+            )
+            .with_reply(minter::contract::reply)
+            .with_migrate(minter::contract::migrate),
         ))
     }
 
@@ -172,9 +194,11 @@ impl WithCodes for Project {
         lending_platform_code_id: u64,
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
+        minter: &Option<Addr>,
+        scheduler: &Option<Addr>,
+        marketplace: &Option<Addr>,
         main_currency: &Currency<TokenUnverified>,
         bgl_currency: &Option<Currency<TokenUnverified>>,
-        cw20_base_code_id: &Option<u64>,
         unbonding_period: &Option<u64>,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -193,9 +217,11 @@ impl WithCodes for Project {
             &goplend_base::lending_platform::msg::InstantiateMsg {
                 owner: owner.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
+                minter: minter.as_ref().map(|x| x.to_string()),
+                scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                marketplace: marketplace.as_ref().map(|x| x.to_string()),
                 main_currency: main_currency.to_owned(),
                 bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
-                cw20_base_code_id: cw20_base_code_id.as_ref().map(|x| x.to_owned()),
                 unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
                 borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
                 borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
@@ -223,6 +249,22 @@ impl WithCodes for Project {
             "oracle",
             &goplend_base::oracle::msg::InstantiateMsg {
                 scheduler: scheduler.as_ref().map(|x| x.to_string()),
+            },
+        )
+    }
+
+    fn instantiate_minter(
+        &mut self,
+        minter_code_id: u64,
+        owner: &Option<ProjectAccount>,
+        cw20_base_code_id: &Option<u64>,
+    ) -> Addr {
+        self.instantiate_contract(
+            minter_code_id,
+            "minter",
+            &goplend_base::minter::msg::InstantiateMsg {
+                owner: owner.as_ref().map(|x| x.to_string()),
+                cw20_base_code_id: cw20_base_code_id.to_owned(),
             },
         )
     }
