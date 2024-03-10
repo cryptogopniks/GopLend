@@ -37,6 +37,10 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    // adapter-scheduler
+    #[error("Scheduler is executed too early!")]
+    EarlyExecution,
+
     #[error("Low total available to borrow liquidity!")]
     LowAvailableLiquidity,
 

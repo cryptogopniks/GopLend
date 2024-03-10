@@ -14,6 +14,7 @@ use goplend_base::{
 };
 
 use crate::helpers::{
+    adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
     oracle::OracleExtension,
@@ -41,6 +42,7 @@ pub struct Project {
     lending_platform_code_id: u64,
     oracle_code_id: u64,
     minter_code_id: u64,
+    adapter_scheduler_kujira_code_id: u64,
 
     // package address
     gopniks_address: Addr,
@@ -50,6 +52,7 @@ pub struct Project {
     lending_platform_address: Addr,
     oracle_address: Addr,
     minter_address: Addr,
+    adapter_scheduler_kujira_address: Addr,
     //
     // other
 }
@@ -66,6 +69,7 @@ impl Project {
             lending_platform_code_id: 0,
             oracle_code_id: 0,
             minter_code_id: 0,
+            adapter_scheduler_kujira_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
@@ -73,6 +77,7 @@ impl Project {
             lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
+            adapter_scheduler_kujira_address: Addr::unchecked(""),
         }
     }
 
@@ -89,6 +94,7 @@ impl Project {
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
+        let adapter_scheduler_kujira_code_id = project.store_adapter_scheduler_kujira_code();
 
         // instantiate packages
 
@@ -143,17 +149,25 @@ impl Project {
             &None,
             &None,
             &None,
+            &None,
         );
-
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
         let minter_address =
             project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
+        let adapter_scheduler_kujira_address = project.instantiate_adapter_scheduler_kujira(
+            adapter_scheduler_kujira_code_id,
+            &None,
+            &None,
+            &None,
+            &None,
+        );
 
         project = Self {
             cw20_base_code_id,
             lending_platform_code_id,
             oracle_code_id,
             minter_code_id,
+            adapter_scheduler_kujira_code_id,
 
             gopniks_address,
             pinjeons_address,
@@ -161,16 +175,14 @@ impl Project {
             lending_platform_address: lending_platform_address.clone(),
             oracle_address: oracle_address.clone(),
             minter_address: minter_address.clone(),
+            adapter_scheduler_kujira_address: adapter_scheduler_kujira_address.clone(),
 
             ..project
         };
 
         // prepare contracts
         project
-            .oracle_try_update_config(
-                ProjectAccount::Admin,
-                &Some(ProjectAccount::SchedulerForOracle),
-            )
+            .oracle_try_update_config(ProjectAccount::Admin, &Some(ProjectAccount::Scheduler))
             .unwrap();
 
         // create bgl_token
@@ -196,7 +208,7 @@ impl Project {
                 &Some(ProjectAccount::Owner),
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
-                &None,
+                &Some(project.get_adapter_scheduler_kujira_address()),
                 &None,
                 &None,
                 &Some(Currency::new(
@@ -214,6 +226,17 @@ impl Project {
                 &None,
                 &None,
                 &None,
+                &None,
+            )
+            .unwrap();
+
+        project
+            .adapter_scheduler_kujira_try_update_config(
+                ProjectAccount::Admin,
+                &Some(project.get_lending_platform_address()),
+                &Some(ProjectAccount::Scheduler.into()),
+                &None,
+                &Some(0),
             )
             .unwrap();
 
@@ -246,6 +269,10 @@ impl Project {
         self.minter_code_id
     }
 
+    pub fn get_adapter_scheduler_kujira_code_id(&self) -> u64 {
+        self.adapter_scheduler_kujira_code_id
+    }
+
     // package address getters
     pub fn get_gopniks_address(&self) -> Addr {
         self.gopniks_address.clone()
@@ -266,6 +293,10 @@ impl Project {
 
     pub fn get_minter_address(&self) -> Addr {
         self.minter_address.clone()
+    }
+
+    pub fn get_adapter_scheduler_kujira_address(&self) -> Addr {
+        self.adapter_scheduler_kujira_address.clone()
     }
 
     // utils

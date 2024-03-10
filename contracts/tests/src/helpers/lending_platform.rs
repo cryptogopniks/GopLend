@@ -10,7 +10,7 @@ use goplend_base::{
             ExecuteMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
             QueryLiquidatorsResponseItem, QueryMsg, QueryProposalsResponseItem,
-            QueryUnbondersResponseItem, SudoMsg,
+            QueryUnbondersResponseItem,
         },
         types::{Balances, CollectionInfo, Config, Proposal},
     },
@@ -89,7 +89,7 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_process(&mut self) -> StdResult<AppResponse>;
+    fn lending_platform_try_process(&mut self, sender: &Addr) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
         &mut self,
@@ -112,6 +112,7 @@ pub trait LendingPlatformExtension {
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
+        is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_deposit_reserve_liquidity(
@@ -378,9 +379,14 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_process(&mut self) -> StdResult<AppResponse> {
+    fn lending_platform_try_process(&mut self, sender: &Addr) -> StdResult<AppResponse> {
         self.app
-            .wasm_sudo(self.get_lending_platform_address(), &SudoMsg::BeginBlock {})
+            .execute_contract(
+                sender.to_owned(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Process {},
+                &[],
+            )
             .map_err(parse_err)
     }
 
@@ -406,6 +412,7 @@ impl LendingPlatformExtension for Project {
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
+        is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -432,6 +439,7 @@ impl LendingPlatformExtension for Project {
                         .as_ref()
                         .map(|x| str_to_dec(x)),
                     price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
+                    is_marketplace_interface_enabled: is_marketplace_interface_enabled.to_owned(),
                 },
                 &[],
             )

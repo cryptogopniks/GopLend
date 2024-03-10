@@ -30,19 +30,12 @@ pub struct InstantiateMsg {
     pub collateral_min_value: Option<Uint128>,
     pub min_available_liquidity_multiplier: Option<Decimal>,
     pub price_update_period: Option<u64>,
+    pub is_marketplace_interface_enabled: Option<bool>,
 }
 
 #[cw_serde]
 pub struct MigrateMsg {
     pub version: String,
-}
-
-#[cw_serde]
-pub enum SudoMsg {
-    // x/cron
-    BeginBlock {},
-
-    EndBlock {},
 }
 
 #[cw_serde]
@@ -90,6 +83,9 @@ pub enum ExecuteMsg {
         discount: Decimal,
     },
 
+    // scheduler
+    Process {},
+
     // admin
     UpdateConfig {
         owner: Option<String>,
@@ -110,6 +106,7 @@ pub enum ExecuteMsg {
         collateral_min_value: Option<Uint128>,
         min_available_liquidity_multiplier: Option<Decimal>,
         price_update_period: Option<u64>,
+        is_marketplace_interface_enabled: Option<bool>,
     },
 
     // admin, owner

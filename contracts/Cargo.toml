@@ -42,3 +42,4 @@ goplend-base = { path = "./packages/goplend-base" }
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }
 minter = { path = "./contracts/minter" }
+adapter-scheduler-kujira = { path = "./contracts/adapter-scheduler-kujira" }

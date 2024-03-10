@@ -23,7 +23,7 @@ pub enum ProjectAccount {
     #[strum(serialize = "owner")]
     Owner,
     #[strum(serialize = "sheduler")]
-    SchedulerForOracle,
+    Scheduler,
 }
 
 impl ProjectAccount {
@@ -33,7 +33,7 @@ impl ProjectAccount {
             ProjectAccount::Alice => DEFAULT_FUNDS_AMOUNT,
             ProjectAccount::Bob => DEFAULT_FUNDS_AMOUNT,
             ProjectAccount::Owner => DEFAULT_FUNDS_AMOUNT,
-            ProjectAccount::SchedulerForOracle => DEFAULT_FUNDS_AMOUNT,
+            ProjectAccount::Scheduler => DEFAULT_FUNDS_AMOUNT,
         }
     }
 }
