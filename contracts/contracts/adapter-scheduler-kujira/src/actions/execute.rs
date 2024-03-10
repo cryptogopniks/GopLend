@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
+    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
 };
 
 use goplend_base::{
@@ -28,7 +28,7 @@ pub fn try_push(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     }
 
     if let ClockSource::Offchain = clock_source {
-        if sender != unwrap_field(offchain_clock, "offchain_clock")? {
+        if !unwrap_field(offchain_clock, "offchain_clock")?.contains(sender) {
             Err(ContractError::Unauthorized)?;
         }
     }
@@ -61,7 +61,7 @@ pub fn try_update_config(
     _env: Env,
     info: MessageInfo,
     lending_platform: Option<String>,
-    offchain_clock: Option<String>,
+    offchain_clock: Option<Vec<String>>,
     clock_source: Option<ClockSource>,
     min_clock_period: Option<u64>,
 ) -> Result<Response, ContractError> {
@@ -80,8 +80,15 @@ pub fn try_update_config(
         }
 
         if let Some(x) = offchain_clock {
-            config.offchain_clock = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("offchain_clock".to_string(), x));
+            config.offchain_clock = Some(
+                x.into_iter()
+                    .map(|y| deps.api.addr_validate(&y))
+                    .collect::<StdResult<Vec<Addr>>>()?,
+            );
+            attrs.push((
+                "offchain_clock".to_string(),
+                format!("{:#?}", config.offchain_clock),
+            ));
         }
 
         if let Some(x) = clock_source {

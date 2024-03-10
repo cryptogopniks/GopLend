@@ -234,7 +234,7 @@ impl Project {
             .adapter_scheduler_kujira_try_update_config(
                 ProjectAccount::Admin,
                 &Some(project.get_lending_platform_address()),
-                &Some(ProjectAccount::Scheduler.into()),
+                &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
                 &Some(0),
             )

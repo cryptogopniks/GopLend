@@ -73,7 +73,7 @@ pub trait WithCodes {
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr;
@@ -298,7 +298,7 @@ impl WithCodes for Project {
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr {
@@ -307,7 +307,9 @@ impl WithCodes for Project {
             "adapter_scheduler_kujira",
             &goplend_base::adapters::scheduler::kujira::msg::InstantiateMsg {
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
-                offchain_clock: offchain_clock.as_ref().map(|x| x.to_string()),
+                offchain_clock: offchain_clock
+                    .as_ref()
+                    .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
                 min_clock_period: min_clock_period.to_owned(),
             },
