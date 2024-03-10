@@ -1,8 +1,12 @@
 use cw_storage_plus::{Deque, Item};
 
-use super::types::Config;
+use super::types::{ClockSource, Config};
 
 pub const CONTRACT_NAME: &str = "cryptogopniks-adapter-scheduler-kujira";
+
+pub const CLOCK_SOURCE: ClockSource = ClockSource::Offchain;
+pub const MIN_CLOCK_PERIOD: u64 = 3;
+pub const LOG_COUNTER: u32 = 0;
 
 pub const CONFIG: Item<Config> = Item::new("config");
 

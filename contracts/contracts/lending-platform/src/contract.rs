@@ -134,6 +134,8 @@ pub fn execute(
             None,
         ),
 
+        ExecuteMsg::Process {} => unimplemented!(),
+
         ExecuteMsg::UpdateConfig {
             owner,
             oracle,

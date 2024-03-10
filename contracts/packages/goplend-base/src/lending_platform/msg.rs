@@ -90,6 +90,9 @@ pub enum ExecuteMsg {
         discount: Decimal,
     },
 
+    // scheduler
+    Process {},
+
     // admin
     UpdateConfig {
         owner: Option<String>,

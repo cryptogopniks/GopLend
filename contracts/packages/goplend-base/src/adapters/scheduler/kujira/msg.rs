@@ -44,5 +44,5 @@ pub enum QueryMsg {
     QueryConfig {},
 
     #[returns(Vec<(u64,u32)>)]
-    QueryLog {},
+    QueryLog { amount: u32 },
 }
