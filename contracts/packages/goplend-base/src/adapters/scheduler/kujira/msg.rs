@@ -15,14 +15,6 @@ pub struct MigrateMsg {
     pub version: String,
 }
 
-// #[cw_serde]
-// pub enum SudoMsg {
-//     // x/cron
-//     BeginBlock {},
-
-//     EndBlock {},
-// }
-
 #[cw_serde]
 pub enum ExecuteMsg {
     // admin

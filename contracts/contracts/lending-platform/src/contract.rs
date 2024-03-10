@@ -8,7 +8,7 @@ use cw20::Cw20ReceiveMsg;
 
 use goplend_base::{
     error::ContractError,
-    lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg},
+    lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
 use crate::actions::{execute as e, instantiate::try_instantiate, other as o, query as q};
@@ -134,7 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Process {} => unimplemented!(),
+        ExecuteMsg::Process {} => e::try_process(deps, env, info),
 
         ExecuteMsg::UpdateConfig {
             owner,
@@ -155,6 +155,7 @@ pub fn execute(
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
+            is_marketplace_interface_enabled,
         } => e::try_update_config(
             deps,
             env,
@@ -177,6 +178,7 @@ pub fn execute(
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
+            is_marketplace_interface_enabled,
         ),
 
         ExecuteMsg::DepositReserveLiquidity {} => {
@@ -277,14 +279,4 @@ pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, Contra
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
     o::migrate_contract(deps, env, msg)
-}
-
-// TODO: move to scheduler contract
-/// Exposes all functions that can be called only by Cosmos SDK modules
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
-    match msg {
-        SudoMsg::BeginBlock {} => o::try_process(deps, env, msg),
-        SudoMsg::EndBlock {} => o::try_process(deps, env, msg),
-    }
 }

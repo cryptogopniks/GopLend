@@ -5,6 +5,7 @@ use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
+    adapters,
     assets::{Currency, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
@@ -24,6 +25,7 @@ pub trait WithCodes {
     fn store_lending_platform_code(&mut self) -> u64;
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
+    fn store_adapter_scheduler_kujira_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -51,6 +53,7 @@ pub trait WithCodes {
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
+        is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr;
 
     fn instantiate_oracle(
@@ -64,6 +67,15 @@ pub trait WithCodes {
         minter_code_id: u64,
         owner: &Option<ProjectAccount>,
         cw20_base_code_id: &Option<u64>,
+    ) -> Addr;
+
+    fn instantiate_adapter_scheduler_kujira(
+        &mut self,
+        adapter_scheduler_kujira_code_id: u64,
+        lending_platform: &Option<Addr>,
+        offchain_clock: &Option<Addr>,
+        clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
+        min_clock_period: &Option<u64>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -102,8 +114,7 @@ impl WithCodes for Project {
                 lending_platform::contract::query,
             )
             .with_reply(lending_platform::contract::reply)
-            .with_migrate(lending_platform::contract::migrate)
-            .with_sudo(lending_platform::contract::sudo),
+            .with_migrate(lending_platform::contract::migrate),
         ))
     }
 
@@ -128,6 +139,18 @@ impl WithCodes for Project {
             )
             .with_reply(minter::contract::reply)
             .with_migrate(minter::contract::migrate),
+        ))
+    }
+
+    fn store_adapter_scheduler_kujira_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                adapter_scheduler_kujira::contract::execute,
+                adapter_scheduler_kujira::contract::instantiate,
+                adapter_scheduler_kujira::contract::query,
+            )
+            .with_reply(adapter_scheduler_kujira::contract::reply)
+            .with_migrate(adapter_scheduler_kujira::contract::migrate),
         ))
     }
 
@@ -210,6 +233,7 @@ impl WithCodes for Project {
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
+        is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr {
         self.instantiate_contract(
             lending_platform_code_id,
@@ -235,6 +259,7 @@ impl WithCodes for Project {
                     .as_ref()
                     .map(|x| str_to_dec(x)),
                 price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
+                is_marketplace_interface_enabled: is_marketplace_interface_enabled.to_owned(),
             },
         )
     }
@@ -265,6 +290,26 @@ impl WithCodes for Project {
             &goplend_base::minter::msg::InstantiateMsg {
                 owner: owner.as_ref().map(|x| x.to_string()),
                 cw20_base_code_id: cw20_base_code_id.to_owned(),
+            },
+        )
+    }
+
+    fn instantiate_adapter_scheduler_kujira(
+        &mut self,
+        adapter_scheduler_kujira_code_id: u64,
+        lending_platform: &Option<Addr>,
+        offchain_clock: &Option<Addr>,
+        clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
+        min_clock_period: &Option<u64>,
+    ) -> Addr {
+        self.instantiate_contract(
+            adapter_scheduler_kujira_code_id,
+            "adapter_scheduler_kujira",
+            &goplend_base::adapters::scheduler::kujira::msg::InstantiateMsg {
+                lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                offchain_clock: offchain_clock.as_ref().map(|x| x.to_string()),
+                clock_source: clock_source.to_owned(),
+                min_clock_period: min_clock_period.to_owned(),
             },
         )
     }

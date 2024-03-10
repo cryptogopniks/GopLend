@@ -1,4 +1,5 @@
 use goplend_base::{
+    adapters::scheduler::kujira::types::ClockSource,
     assets::{Currency, Funds, TokenUnverified},
     converters::str_to_dec,
     error::ContractError,
@@ -18,6 +19,7 @@ use speculoos::assert_that;
 use cosmwasm_std::{Decimal, StdResult, Uint128};
 
 use crate::helpers::{
+    adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
     suite::{
@@ -182,7 +184,7 @@ fn collection_address_duplication() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -257,7 +259,7 @@ fn collateral_value_limitations() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -323,6 +325,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         &None,
         &None,
         &Some(1_200_000_000),
+        &None,
         &None,
         &None,
     )?;
@@ -428,7 +431,7 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -515,7 +518,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -547,6 +550,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
+        &None,
         &None,
         &None,
     )?;
@@ -662,7 +666,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -749,7 +753,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -827,7 +831,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -933,7 +937,7 @@ fn process_default() -> StdResult<()> {
 
     // push prices to oracle
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -965,6 +969,7 @@ fn process_default() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
+        &None,
         &None,
         &None,
     )?;
@@ -1049,7 +1054,7 @@ fn process_default() -> StdResult<()> {
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
 
     // process without liquidations
-    project.lending_platform_try_process()?;
+    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
 
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
@@ -1060,7 +1065,7 @@ fn process_default() -> StdResult<()> {
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
-        ProjectAccount::SchedulerForOracle,
+        ProjectAccount::Scheduler,
         &vec![RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1074,7 +1079,7 @@ fn process_default() -> StdResult<()> {
     )?;
 
     // process with liquidations
-    project.lending_platform_try_process()?;
+    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;

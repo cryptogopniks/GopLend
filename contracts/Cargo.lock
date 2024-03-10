@@ -1192,6 +1192,7 @@ dependencies = [
 name = "tests"
 version = "1.0.0"
 dependencies = [
+ "adapter-scheduler-kujira",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",

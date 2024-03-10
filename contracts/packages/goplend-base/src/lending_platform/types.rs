@@ -122,6 +122,7 @@ pub struct Config {
     pub collateral_min_value: Uint128,
     pub min_available_liquidity_multiplier: Decimal,
     pub price_update_period: u64,
+    pub is_marketplace_interface_enabled: bool,
 }
 
 #[cw_serde]

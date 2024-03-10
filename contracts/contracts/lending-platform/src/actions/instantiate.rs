@@ -9,7 +9,8 @@ use goplend_base::{
         msg::InstantiateMsg,
         state::{
             BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, CONFIG,
-            CONTRACT_NAME, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED, LIQUIDATION_FEE_RATE,
+            CONTRACT_NAME, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED,
+            IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
             MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PAGINATION_AMOUNT, PAGINATION_CONFIG,
             PAGINATION_INDEX, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSAL_COUNTER,
             UNBONDING_PERIOD,
@@ -76,6 +77,9 @@ pub fn try_instantiate(
                 .min_available_liquidity_multiplier
                 .unwrap_or(str_to_dec(MIN_AVAILABLE_LIQUIDITY_MULTIPLIER)),
             price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
+            is_marketplace_interface_enabled: msg
+                .is_marketplace_interface_enabled
+                .unwrap_or(IS_MARKETPLACE_INTERFACE_ENABLED),
         },
     )?;
 

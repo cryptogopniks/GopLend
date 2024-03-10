@@ -35,3 +35,4 @@ goplend-base = { workspace = true }
 lending-platform = { workspace = true }
 oracle = { workspace = true }
 minter = { workspace = true }
+adapter-scheduler-kujira = { workspace = true }

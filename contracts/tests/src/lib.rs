@@ -13,4 +13,10 @@ pub mod helpers {
         pub mod core;
         pub mod types;
     }
+
+    pub mod adapters {
+        pub mod scheduler {
+            pub mod kujira;
+        }
+    }
 }
