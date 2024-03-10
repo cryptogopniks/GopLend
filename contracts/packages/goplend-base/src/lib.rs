@@ -17,6 +17,14 @@ pub mod minter {
 }
 
 pub mod adapters {
+    pub mod marketplace {
+        pub mod kujira {
+            pub mod msg;
+            pub mod state;
+            pub mod types;
+        }
+    }
+
     pub mod scheduler {
         pub mod kujira {
             pub mod msg;
