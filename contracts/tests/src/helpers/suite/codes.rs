@@ -26,6 +26,7 @@ pub trait WithCodes {
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
     fn store_adapter_scheduler_kujira_code(&mut self) -> u64;
+    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -153,6 +154,19 @@ impl WithCodes for Project {
             .with_migrate(adapter_scheduler_kujira::contract::migrate),
         ))
     }
+
+    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64 {
+    //     self.app.store_code(Box::new(
+    //         ContractWrapper::new(
+    //             adapter_scheduler_stargaze::contract::execute,
+    //             adapter_scheduler_stargaze::contract::instantiate,
+    //             adapter_scheduler_stargaze::contract::query,
+    //         )
+    //         .with_reply(adapter_scheduler_stargaze::contract::reply)
+    //         .with_migrate(adapter_scheduler_stargaze::contract::migrate)
+    //         .with_sudo(adapter_scheduler_stargaze::contract::sudo),
+    //     ))
+    // }
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr {

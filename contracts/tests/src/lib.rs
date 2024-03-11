@@ -17,6 +17,7 @@ pub mod helpers {
     pub mod adapters {
         pub mod scheduler {
             pub mod kujira;
+            pub mod stargaze;
         }
     }
 }
