@@ -26,6 +26,7 @@ pub trait WithCodes {
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
     fn store_adapter_scheduler_kujira_code(&mut self) -> u64;
+    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -73,7 +74,7 @@ pub trait WithCodes {
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr;
@@ -153,6 +154,19 @@ impl WithCodes for Project {
             .with_migrate(adapter_scheduler_kujira::contract::migrate),
         ))
     }
+
+    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64 {
+    //     self.app.store_code(Box::new(
+    //         ContractWrapper::new(
+    //             adapter_scheduler_stargaze::contract::execute,
+    //             adapter_scheduler_stargaze::contract::instantiate,
+    //             adapter_scheduler_stargaze::contract::query,
+    //         )
+    //         .with_reply(adapter_scheduler_stargaze::contract::reply)
+    //         .with_migrate(adapter_scheduler_stargaze::contract::migrate)
+    //         .with_sudo(adapter_scheduler_stargaze::contract::sudo),
+    //     ))
+    // }
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr {
@@ -298,7 +312,7 @@ impl WithCodes for Project {
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr {
@@ -307,7 +321,9 @@ impl WithCodes for Project {
             "adapter_scheduler_kujira",
             &goplend_base::adapters::scheduler::kujira::msg::InstantiateMsg {
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
-                offchain_clock: offchain_clock.as_ref().map(|x| x.to_string()),
+                offchain_clock: offchain_clock
+                    .as_ref()
+                    .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
                 min_clock_period: min_clock_period.to_owned(),
             },

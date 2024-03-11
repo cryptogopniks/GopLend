@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
@@ -25,6 +25,19 @@ pub fn try_instantiate(
     let api = deps.api;
     let block_time = env.block.time.seconds();
 
+    let offchain_clock = match msg.offchain_clock {
+        None => None,
+        Some(x) => {
+            attrs.push(("offchain_clock".to_string(), format!("{:#?}", x)));
+
+            Some(
+                x.into_iter()
+                    .map(|y| deps.api.addr_validate(&y))
+                    .collect::<StdResult<Vec<Addr>>>()?,
+            )
+        }
+    };
+
     CONFIG.save(
         deps.storage,
         &Config {
@@ -35,7 +48,7 @@ pub fn try_instantiate(
                 "lending_platform",
                 &msg.lending_platform,
             )?,
-            offchain_clock: validate_attr(&mut attrs, api, "offchain_clock", &msg.offchain_clock)?,
+            offchain_clock,
             clock_source: msg.clock_source.unwrap_or(CLOCK_SOURCE),
             min_clock_period: msg.min_clock_period.unwrap_or(MIN_CLOCK_PERIOD),
         },

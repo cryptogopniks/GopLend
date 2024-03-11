@@ -5,7 +5,7 @@ use super::types::ClockSource;
 #[cw_serde]
 pub struct InstantiateMsg {
     pub lending_platform: Option<String>,
-    pub offchain_clock: Option<String>,
+    pub offchain_clock: Option<Vec<String>>,
     pub clock_source: Option<ClockSource>,
     pub min_clock_period: Option<u64>,
 }
@@ -20,7 +20,7 @@ pub enum ExecuteMsg {
     // admin
     UpdateConfig {
         lending_platform: Option<String>,
-        offchain_clock: Option<String>,
+        offchain_clock: Option<Vec<String>>,
         clock_source: Option<ClockSource>,
         min_clock_period: Option<u64>,
     },

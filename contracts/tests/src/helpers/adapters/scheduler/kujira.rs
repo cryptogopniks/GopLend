@@ -16,7 +16,7 @@ pub trait AdapterSchedulerKujiraExtension {
         &mut self,
         sender: ProjectAccount,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
@@ -38,7 +38,7 @@ impl AdapterSchedulerKujiraExtension for Project {
         &mut self,
         sender: ProjectAccount,
         lending_platform: &Option<Addr>,
-        offchain_clock: &Option<Addr>,
+        offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
@@ -48,7 +48,9 @@ impl AdapterSchedulerKujiraExtension for Project {
                 self.get_adapter_scheduler_kujira_address(),
                 &ExecuteMsg::UpdateConfig {
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
-                    offchain_clock: offchain_clock.as_ref().map(|x| x.to_string()),
+                    offchain_clock: offchain_clock
+                        .as_ref()
+                        .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
                     clock_source: clock_source.to_owned(),
                     min_clock_period: min_clock_period.to_owned(),
                 },
