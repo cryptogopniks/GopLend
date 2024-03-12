@@ -89,7 +89,11 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_process(&mut self, sender: &Addr) -> StdResult<AppResponse>;
+    fn lending_platform_try_process(
+        &mut self,
+        sender: &Addr,
+        borrowers: &Option<Vec<ProjectAccount>>,
+    ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
         &mut self,
@@ -379,12 +383,20 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_process(&mut self, sender: &Addr) -> StdResult<AppResponse> {
+    fn lending_platform_try_process(
+        &mut self,
+        sender: &Addr,
+        borrowers: &Option<Vec<ProjectAccount>>,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.to_owned(),
                 self.get_lending_platform_address(),
-                &ExecuteMsg::Process {},
+                &ExecuteMsg::Process {
+                    borrowers: borrowers
+                        .as_ref()
+                        .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                },
                 &[],
             )
             .map_err(parse_err)

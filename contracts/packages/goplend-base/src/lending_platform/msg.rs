@@ -85,8 +85,7 @@ pub enum ExecuteMsg {
 
     // scheduler
     Process {
-        // TODO: add
-        // borrowers: Option<Vec<String>>,
+        borrowers: Option<Vec<String>>,
     },
 
     // admin

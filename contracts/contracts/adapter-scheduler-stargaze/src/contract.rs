@@ -33,7 +33,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Push {} => e::try_push(deps, env, info),
+        ExecuteMsg::Push { borrowers } => e::try_push(deps, env, info, borrowers),
 
         ExecuteMsg::UpdateConfig {
             lending_platform,

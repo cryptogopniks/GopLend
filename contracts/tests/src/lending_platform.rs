@@ -1054,7 +1054,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
 
     // process without liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
@@ -1079,7 +1083,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -1260,7 +1268,11 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -1438,7 +1450,11 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -1616,7 +1632,11 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -1797,7 +1817,11 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project
         .lending_platform_query_ltv(ProjectAccount::Bob)
@@ -1971,7 +1995,11 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -2149,7 +2177,11 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -2327,7 +2359,11 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     )?;
 
     // process with liquidations
-    project.adapter_scheduler_kujira_try_push(ProjectAccount::Scheduler, ClockSource::Offchain)?;
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &None,
+    )?;
 
     let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -2374,4 +2410,5 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
 
 // TODO: check discount
 // TODO: check multiple liquidators
+// TODO: check targeted liquidations
 // TODO: check marketplace interface
