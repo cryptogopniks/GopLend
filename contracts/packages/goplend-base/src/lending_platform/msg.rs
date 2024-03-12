@@ -84,7 +84,9 @@ pub enum ExecuteMsg {
     },
 
     // scheduler
-    Process {},
+    Process {
+        borrowers: Option<Vec<String>>,
+    },
 
     // admin
     UpdateConfig {
@@ -140,8 +142,7 @@ pub enum ExecuteMsg {
     },
 }
 
-// TODO: add estimation queries
-// TODO: add available to borrow
+// TODO: add available to borrow by user
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -185,10 +186,25 @@ pub enum QueryMsg {
 
     #[returns(Decimal)]
     QueryDepositApr {},
-
+    // TODO: use instead
+    // QueryConditionalDepositApr {
+    //     additional_deposit: Option<Uint128>,
+    //     additional_unbond: Option<Uint128>
+    // },
     #[returns(Decimal)]
     QueryLtv { borrower: String },
+    // TODO: use instead
+    // QueryConditionalLtv {
+    //     additional_collateral: Option<Uint128>,
+    //     additional_loan: Option<Uint128>
+    // },
 
+    // TODO: add
+    // #[returns(Vec<(Addr, Decimal)>)]
+    // QueryLtvList {
+    //     start_after: Option<String>,
+    //     limit: Option<u32>,
+    // },
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
 }

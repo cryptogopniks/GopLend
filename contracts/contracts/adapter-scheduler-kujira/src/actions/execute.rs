@@ -12,7 +12,12 @@ use goplend_base::{
 };
 
 // offchain handler
-pub fn try_push(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_push(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    borrowers: Option<Vec<String>>,
+) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
     let sender = &info.sender;
     let Config {
@@ -47,7 +52,9 @@ pub fn try_push(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
-        msg: to_json_binary(&goplend_base::lending_platform::msg::ExecuteMsg::Process {})?,
+        msg: to_json_binary(&goplend_base::lending_platform::msg::ExecuteMsg::Process {
+            borrowers,
+        })?,
         funds: vec![],
     });
 

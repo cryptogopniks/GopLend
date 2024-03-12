@@ -134,7 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Process {} => e::try_process(deps, env, info),
+        ExecuteMsg::Process { borrowers } => e::try_process(deps, env, info, borrowers),
 
         ExecuteMsg::UpdateConfig {
             owner,

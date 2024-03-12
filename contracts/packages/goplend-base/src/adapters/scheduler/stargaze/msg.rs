@@ -34,7 +34,9 @@ pub enum ExecuteMsg {
     },
 
     // scheduler
-    Push {},
+    Push {
+        borrowers: Option<Vec<String>>,
+    },
 }
 
 #[cw_serde]
