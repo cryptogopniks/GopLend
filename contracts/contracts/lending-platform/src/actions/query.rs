@@ -22,10 +22,7 @@ use goplend_base::{
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math::{
-    calc_bgl_to_main_price, calc_deposit_apr, calc_expected_rewards, calc_ltv,
-    calc_min_available_liquidity, calc_total_available_to_borrow_liquidity,
-};
+use crate::math;
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -222,7 +219,7 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     let main_currency = config.main_currency;
     let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
 
-    let expected_rewards = calc_expected_rewards(
+    let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
         config.borrow_apr,
@@ -230,7 +227,7 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
-    Ok(calc_bgl_to_main_price(
+    Ok(math::calc_bgl_to_main_price(
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
         rewards,
@@ -239,7 +236,11 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     ))
 }
 
-pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
+pub fn query_conditional_deposit_apr(
+    deps: Deps,
+    _env: Env,
+    amount_to_deposit: Option<Uint128>,
+) -> StdResult<Decimal> {
     let Config {
         borrow_apr,
         borrow_fee_rate,
@@ -252,16 +253,23 @@ pub fn query_deposit_apr(deps: Deps, _env: Env) -> StdResult<Decimal> {
         ..
     } = BALANCES.load(deps.storage)?;
 
-    Ok(calc_deposit_apr(
+    Ok(math::calc_conditional_deposit_apr(
         borrow_apr,
         borrow_fee_rate,
+        amount_to_deposit.unwrap_or_default(),
         total_deposited,
         total_unbonded,
         total_borrowed.amount,
     ))
 }
 
-pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
+pub fn query_conditional_ltv(
+    deps: Deps,
+    env: Env,
+    borrower: String,
+    amount_to_deposit: Option<Uint128>,
+    amount_to_borrow: Option<Uint128>,
+) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let Config {
         borrow_apr,
@@ -330,10 +338,12 @@ pub fn query_ltv(deps: Deps, env: Env, borrower: String) -> StdResult<Decimal> {
         },
     )?;
 
-    Ok(calc_ltv(
+    Ok(math::calc_conditional_ltv(
         borrow_apr,
+        amount_to_borrow.unwrap_or_default(),
         borrower.accumulated_loan,
         borrower.loan.amount,
+        amount_to_deposit.unwrap_or_default(),
         collateral_value,
         block_time,
         borrower.loan.creation_date,
@@ -345,7 +355,7 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     let config = CONFIG.load(deps.storage)?;
     let balances = BALANCES.load(deps.storage)?;
 
-    let expected_rewards = calc_expected_rewards(
+    let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
         config.borrow_apr,
@@ -353,14 +363,14 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
-    let min_available_liquidity = calc_min_available_liquidity(
+    let min_available_liquidity = math::calc_min_available_liquidity(
         config.min_available_liquidity_multiplier,
         balances.total_main_currency_pool,
         balances.reserve_main_currency_pool,
         rewards,
     );
 
-    let total_available_to_borrow_liquidity = calc_total_available_to_borrow_liquidity(
+    let total_available_to_borrow_liquidity = math::calc_total_available_to_borrow_liquidity(
         balances.total_main_currency_pool,
         balances.total_borrowed.amount,
         min_available_liquidity,

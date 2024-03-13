@@ -257,9 +257,21 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_bgl_currency_to_main_currency_price(deps, env)?)
         }
 
-        QueryMsg::QueryDepositApr {} => to_json_binary(&q::query_deposit_apr(deps, env)?),
+        QueryMsg::QueryConditionalDepositApr { amount_to_deposit } => to_json_binary(
+            &q::query_conditional_deposit_apr(deps, env, amount_to_deposit)?,
+        ),
 
-        QueryMsg::QueryLtv { borrower } => to_json_binary(&q::query_ltv(deps, env, borrower)?),
+        QueryMsg::QueryConditionalLtv {
+            borrower,
+            amount_to_deposit,
+            amount_to_borrow,
+        } => to_json_binary(&q::query_conditional_ltv(
+            deps,
+            env,
+            borrower,
+            amount_to_deposit,
+            amount_to_borrow,
+        )?),
 
         QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)

@@ -86,9 +86,10 @@ pub fn calc_bgl_to_main_price(
     dec256_to_dec(price)
 }
 
-pub fn calc_deposit_apr(
+pub fn calc_conditional_deposit_apr(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
+    amount_to_deposit: Uint128,
     total_deposited: Uint128,
     total_unbonded: Uint128,
     total_borrowed: Uint128,
@@ -98,17 +99,22 @@ pub fn calc_deposit_apr(
     }
 
     u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
-        / u128_to_dec(total_deposited - total_unbonded)
+        / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
 }
 
-pub fn calc_ltv(
+pub fn calc_conditional_ltv(
     borrow_apr: Decimal,
+    amount_to_borrow: Uint128,
     accumulated_loan: Uint128,
     loan: Uint128,
+    amount_to_deposit: Uint128,
     collateral: Uint128,
     block_time: u64,
     loan_creation_date: u64,
 ) -> Decimal {
+    let collateral = collateral + amount_to_deposit;
+    let accumulated_loan = accumulated_loan + amount_to_borrow;
+
     if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
         return Decimal::zero();
     }

@@ -1022,7 +1022,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
 
-    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
 
     // deposit
@@ -1032,7 +1032,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         ProjectCoin::Stars,
     )?;
 
-    let deposit_apr = project.lending_platform_query_deposit_apr()?;
+    let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
 
     // place bid
@@ -1089,7 +1089,8 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -1274,7 +1275,8 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -1456,7 +1458,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -1638,7 +1641,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -1824,7 +1828,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     let ltv_after = project
-        .lending_platform_query_ltv(ProjectAccount::Bob)
+        .lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)
         .unwrap_err();
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
@@ -2001,7 +2005,8 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -2183,7 +2188,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
@@ -2365,7 +2371,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         &None,
     )?;
 
-    let ltv_after = project.lending_platform_query_ltv(ProjectAccount::Bob)?;
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;

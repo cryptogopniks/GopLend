@@ -37,12 +37,7 @@ use crate::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
         increase_platform_revenue, verify_proposal_status,
     },
-    math::{
-        calc_accumulated_loan, calc_expected_rewards, calc_liquidation_value, calc_ltv,
-        calc_ltv_max, calc_min_available_liquidity, calc_minted_bgl_token_amount,
-        calc_platform_revenue_on_liquidation, calc_platform_revenue_on_repay,
-        calc_total_available_to_borrow_liquidity, calc_unbonded_main_token_amount,
-    },
+    math,
 };
 
 pub fn try_deposit(
@@ -79,7 +74,7 @@ pub fn try_deposit(
     accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
 
-    let bgl_token_amount = calc_minted_bgl_token_amount(
+    let bgl_token_amount = math::calc_minted_bgl_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
@@ -142,7 +137,7 @@ pub fn try_unbond(
     accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
 
-    let main_token_amount = calc_unbonded_main_token_amount(
+    let main_token_amount = math::calc_unbonded_main_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
@@ -611,7 +606,8 @@ pub fn try_withdraw_collateral(
     }
 
     // check ltv
-    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
+    let ltv =
+        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
     let Config {
         discount_max_rate,
         discount_min_rate,
@@ -619,7 +615,7 @@ pub fn try_withdraw_collateral(
         ..
     } = CONFIG.load(deps.storage)?;
 
-    let ltv_max = calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
 
     if ltv > ltv_max {
         Err(ContractError::ExceededLtv)?;
@@ -654,7 +650,7 @@ pub fn try_borrow(
     BORROWERS.update(deps.storage, &sender_address, |x| -> StdResult<Borrower> {
         let mut borrower = x.unwrap_or_default();
 
-        borrower.accumulated_loan = calc_accumulated_loan(
+        borrower.accumulated_loan = math::calc_accumulated_loan(
             borrow_apr,
             borrower.accumulated_loan,
             borrower.loan.amount,
@@ -668,8 +664,9 @@ pub fn try_borrow(
     })?;
 
     // check ltv
-    let ltv = query::query_ltv(deps.as_ref(), env, sender_address.to_string())?;
-    let ltv_max = calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv =
+        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
 
     if ltv > ltv_max {
         Err(ContractError::ExceededLtv)?;
@@ -682,14 +679,14 @@ pub fn try_borrow(
     balances.total_borrowed.amount += amount;
 
     // don't allow to borrow if available liquidity is too low
-    let min_available_liquidity = calc_min_available_liquidity(
+    let min_available_liquidity = math::calc_min_available_liquidity(
         min_available_liquidity_multiplier,
         balances.total_main_currency_pool,
         balances.reserve_main_currency_pool,
         balances.accumulated_expected_rewards,
     );
 
-    let total_available_to_borrow_liquidity = calc_total_available_to_borrow_liquidity(
+    let total_available_to_borrow_liquidity = math::calc_total_available_to_borrow_liquidity(
         balances.total_main_currency_pool,
         balances.total_borrowed.amount,
         min_available_liquidity,
@@ -742,7 +739,7 @@ pub fn try_repay(
     // accumulate loan
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
-    let accumulated_loan = calc_accumulated_loan(
+    let accumulated_loan = math::calc_accumulated_loan(
         borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
@@ -759,7 +756,7 @@ pub fn try_repay(
 
         // collect platform fee
         platform_revenue =
-            calc_platform_revenue_on_repay(accumulated_loan, borrow_apr, borrow_fee_rate);
+            math::calc_platform_revenue_on_repay(accumulated_loan, borrow_apr, borrow_fee_rate);
 
         if amount_difference > borrower.loan.amount {
             // send unused funds back
@@ -780,7 +777,7 @@ pub fn try_repay(
 
         // collect platform fee
         platform_revenue =
-            calc_platform_revenue_on_repay(asset_amount, borrow_apr, borrow_fee_rate);
+            math::calc_platform_revenue_on_repay(asset_amount, borrow_apr, borrow_fee_rate);
     }
 
     borrower.loan.creation_date = block_time;
@@ -1502,11 +1499,13 @@ pub fn try_process(
         }
 
         // check ltv
-        let ltv_max = calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
-        let ltv = calc_ltv(
+        let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+        let ltv = math::calc_conditional_ltv(
             borrow_apr,
+            Uint128::zero(),
             accumulated_loan,
             loan.amount,
+            Uint128::zero(),
             collateral_value,
             block_time,
             loan.creation_date,
@@ -1521,7 +1520,7 @@ pub fn try_process(
 
         // TODO: doesn't allow big fraction liquidation
         // calculate how much tokens and what collection must be liquidated to get proper ltv
-        let liquidation_value = calc_liquidation_value(collateral_value, ltv, ltv_max);
+        let liquidation_value = math::calc_liquidation_value(collateral_value, ltv, ltv_max);
 
         // find bids containing at least 1 borrower's collateral token
         let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
@@ -1670,7 +1669,7 @@ pub fn try_process(
 
         total_liquidation_value += current_liquidation_value;
 
-        let accumulated_loan = calc_accumulated_loan(
+        let accumulated_loan = math::calc_accumulated_loan(
             borrow_apr,
             accumulated_loan,
             loan.amount,
@@ -1704,7 +1703,7 @@ pub fn try_process(
 
     // collect platform fee
     let platform_revenue =
-        calc_platform_revenue_on_liquidation(total_liquidation_value, liquidation_fee_rate);
+        math::calc_platform_revenue_on_liquidation(total_liquidation_value, liquidation_fee_rate);
     let main_currency_pool_addition = total_liquidation_value - platform_revenue;
 
     increase_platform_revenue(
@@ -1716,7 +1715,7 @@ pub fn try_process(
 
     // update contract balances
     BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
-        let expected_rewards = calc_expected_rewards(
+        let expected_rewards = math::calc_expected_rewards(
             block_time,
             balances.total_borrowed.creation_date,
             borrow_apr,
@@ -1937,7 +1936,7 @@ pub fn try_deposit_reserve_liquidity(
     // update contract balances
     let mut balances = BALANCES.load(deps.storage)?;
 
-    let expected_rewards = calc_expected_rewards(
+    let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
         borrow_apr,
@@ -1945,7 +1944,7 @@ pub fn try_deposit_reserve_liquidity(
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
-    let bgl_token_amount = calc_minted_bgl_token_amount(
+    let bgl_token_amount = math::calc_minted_bgl_token_amount(
         asset_amount,
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,

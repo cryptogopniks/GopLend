@@ -185,19 +185,14 @@ pub enum QueryMsg {
     QueryBglCurrencyToMainCurrencyPrice {},
 
     #[returns(Decimal)]
-    QueryDepositApr {},
-    // TODO: use instead
-    // QueryConditionalDepositApr {
-    //     additional_deposit: Option<Uint128>,
-    //     additional_unbond: Option<Uint128>
-    // },
+    QueryConditionalDepositApr { amount_to_deposit: Option<Uint128> },
+
     #[returns(Decimal)]
-    QueryLtv { borrower: String },
-    // TODO: use instead
-    // QueryConditionalLtv {
-    //     additional_collateral: Option<Uint128>,
-    //     additional_loan: Option<Uint128>
-    // },
+    QueryConditionalLtv {
+        borrower: String,
+        amount_to_deposit: Option<Uint128>,
+        amount_to_borrow: Option<Uint128>,
+    },
 
     // TODO: add
     // #[returns(Vec<(Addr, Decimal)>)]
