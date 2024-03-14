@@ -127,12 +127,33 @@ pub fn calc_conditional_ltv(
     loan / u128_to_dec(collateral)
 }
 
+// 0 % discount
+// need to liquidate 2 * 650 = 1_300
+// liquidator will pay 1_300
+// ltv = (1_700 - 1_300) / (1_950 - 1_300) = 0.615
+//
+// 5 % discount
+// need to liquidate 2 * 650 = 1_300
+// liquidator will pay 2 * ceil(650 * 0.95) = 2 * 618 = 1_236
+// ltv = (1_700 - 1_236) / (1_950 - 1_300) = 0.7138
+//
+// ltv_max = (loan - (1 - discount) * liquidation_value) / (collateral - liquidation_value)
+// ltv_max * collateral - ltv_max * liquidation_value = loan - (1 - discount) * liquidation_value
+// (1 - discount - ltv_max) * liquidation_value = loan - ltv_max * collateral
+// liquidation_value = (loan - ltv_max * collateral) / (1 - discount - ltv_max)
+// liquidation_value = collateral * (ltv - ltv_max) / (1 - discount - ltv_max)
+//
+// for discount = 0
 // liquidation_value = collateral * (ltv - ltv_max) / (1 - ltv_max)
 pub fn calc_liquidation_value(collateral: Uint128, ltv: Decimal, ltv_max: Decimal) -> Uint128 {
     min(
         (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - ltv_max)).to_uint_ceil(),
         collateral,
     )
+}
+
+pub fn calc_discounted_price(price: Uint128, discount: Decimal) -> Uint128 {
+    (u128_to_dec(price) * (Decimal::one() - discount)).to_uint_ceil()
 }
 
 pub fn calc_accumulated_loan(
@@ -182,7 +203,7 @@ pub fn calc_platform_revenue_on_repay(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
 ) -> Uint128 {
-    (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_floor()
+    (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_ceil()
 }
 
 pub fn calc_min_available_liquidity(

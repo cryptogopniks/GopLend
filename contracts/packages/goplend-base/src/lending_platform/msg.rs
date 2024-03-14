@@ -142,7 +142,7 @@ pub enum ExecuteMsg {
     },
 }
 
-// TODO: add available to borrow by user
+// TODO: use proper pagination
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -194,14 +194,19 @@ pub enum QueryMsg {
         amount_to_borrow: Option<Uint128>,
     },
 
-    // TODO: add
+    // TODO: add on backend
     // #[returns(Vec<(Addr, Decimal)>)]
     // QueryLtvList {
     //     start_after: Option<String>,
     //     limit: Option<u32>,
     // },
+    //
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
+    //
+    // TODO: add available to borrow by user
+    // #[returns(Uint128)]
+    // QueryAvailableToBorrow { borrower: String },
 }
 
 #[cw_serde]

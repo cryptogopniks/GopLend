@@ -36,7 +36,7 @@ pub enum QueryMsg {
     QueryBlockTime {},
 }
 
-// TODO: add offers per token
+// TODO: add offers per token in v2
 // #[cw_serde]
 // pub struct QueryPricesResponseItem {
 //     pub address: Addr,
