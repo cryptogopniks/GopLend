@@ -287,6 +287,11 @@ pub fn query_conditional_ltv(
     let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
+        .filter(|(_collection, collaterals)| {
+            collaterals
+                .into_iter()
+                .any(|collateral| collateral.owner == borrower_address)
+        })
         .map(
             |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
                 // single collateral per collection
@@ -337,6 +342,12 @@ pub fn query_conditional_ltv(
             Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
         },
     )?;
+
+    if collateral_value.is_zero()
+        && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
+    {
+        Err(ContractError::CollateralIsNotFound)?;
+    }
 
     Ok(math::calc_conditional_ltv(
         borrow_apr,
