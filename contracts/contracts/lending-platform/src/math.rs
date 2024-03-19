@@ -229,3 +229,65 @@ pub fn calc_total_available_to_borrow_liquidity(
         min_available_liquidity,
     ) - min_available_liquidity
 }
+
+pub fn calc_liquidation_sets(
+    collateral_and_discount_list: &Vec<u128>,
+    target_cost: u128,
+) -> Vec<Vec<u128>> {
+    let mut collateral_and_discount_list = collateral_and_discount_list.clone();
+
+    // sort descending
+    // [...] -> [19, 16, 14, 13, 10, 7, 5, 5, 2]
+    collateral_and_discount_list.sort_unstable_by(|a, b| b.cmp(a));
+
+    // get subvector with values <= target_cost
+    // [19, 16, 14, 13, 10, 7, 5, 5, 2] -> [10, 7, 5, 5, 2]
+    let subvector: Vec<u128> = collateral_and_discount_list
+        .iter()
+        .cloned()
+        .filter(|x| x <= &target_cost)
+        .collect();
+
+    // get smallest collateral_list item > target_cost or target_cost if it isn't found
+    let upper_value = collateral_and_discount_list
+        .iter()
+        .rev()
+        .find(|x| x > &&target_cost)
+        .unwrap_or(&target_cost)
+        .to_owned();
+
+    // println!("{:#?}", (upper_value, subvector));
+
+    // iterate over subvector, compare with [target_cost, upper_value] and generate vectors
+    let mut result: Vec<Vec<u128>> = vec![];
+
+    for (i, item) in subvector.iter().cloned().enumerate() {
+        let mut temp: Vec<u128> = vec![item.to_owned()];
+        let mut temp_sum: u128 = item;
+
+        if temp_sum >= target_cost && temp_sum < upper_value {
+            result.push(temp.clone());
+            continue;
+        }
+
+        for item_next in &subvector[(i + 1)..subvector.len()] {
+            let temp_sum_new = temp_sum + item_next.to_owned();
+
+            if temp_sum_new >= upper_value {
+                continue;
+            }
+
+            temp.push(item_next.to_owned());
+
+            if temp_sum_new >= target_cost && temp_sum_new < upper_value {
+                result.push(temp.clone());
+                temp.pop();
+                continue;
+            }
+
+            temp_sum = temp_sum_new;
+        }
+    }
+
+    result
+}

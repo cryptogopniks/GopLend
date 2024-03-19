@@ -2839,7 +2839,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 800;
-    const COLLECTION_PRICE_AFTER: u128 = 510;
+    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT_TO_BORROW: u128 = 3_400;
     const LIQUIDATION_BID: u128 = 8_000;
     const DISCOUNT: &str = "0.1";
@@ -3096,9 +3096,9 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         ],
     }];
 
-    println!("ltv_after {:#?}\n", ltv_after);
-    println!("collaterals_after {:#?}\n", collaterals_after);
-    println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
+    // println!("ltv_after {:#?}\n", ltv_after);
+    // println!("collaterals_after {:#?}\n", collaterals_after);
+    // println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
 
     // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
     // assert_that(&collaterals_after).is_equal_to(expected_collateral);
