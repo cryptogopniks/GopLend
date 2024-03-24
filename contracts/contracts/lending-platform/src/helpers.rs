@@ -14,7 +14,7 @@ use goplend_base::{
             LiquidationBid, Proposal, ProposalStatus,
         },
     },
-    oracle,
+    oracle::{self, types::PriceItem},
     utils::{unwrap_field, AuthType},
 };
 
@@ -296,6 +296,69 @@ pub fn get_collection_prices(
     )?;
 
     Ok(prices)
+}
+
+pub fn get_collaterals_by_borrower(
+    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    borrower_address: &Addr,
+) -> StdResult<Vec<(Addr, Collateral)>> {
+    // get collaterals owned by borrower
+    let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
+        collection_and_collateral_list
+            .iter()
+            .cloned()
+            .map(
+                |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                    // single collateral per collection
+                    let collateral = collaterals
+                        .into_iter()
+                        .find(|collateral| collateral.owner == borrower_address)
+                        .ok_or(ContractError::CollateralIsNotFound)?;
+
+                    Ok((collection, collateral))
+                },
+            )
+            .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+    Ok(collection_and_collateral_list_by_borrower)
+}
+
+pub fn get_collateral_value(
+    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
+    prices: &Vec<PriceItem>,
+    block_time: u64,
+    price_update_period: u64,
+) -> StdResult<Option<Uint128>> {
+    let mut is_price_outdated = false;
+
+    let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let oracle::types::PriceItem {
+                price,
+                price_update_date,
+                ..
+            } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if block_time - price_update_date > price_update_period {
+                is_price_outdated = true;
+            }
+
+            // TODO: decimals, other currencies
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    Ok(if is_price_outdated {
+        None
+    } else {
+        Some(collateral_value)
+    })
 }
 
 pub fn update_liquidation_storages(
