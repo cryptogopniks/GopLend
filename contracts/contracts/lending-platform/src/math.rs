@@ -286,10 +286,12 @@ pub fn match_collaterals_and_bids(
     Ok(bidded_collateral_list)
 }
 
-pub fn calc_liquidation_sets(
+pub fn calc_liquidation_set(
     bidded_collateral_list: &Vec<BiddedCollateralItem>,
     liquidation_value: Uint128,
-) -> Vec<Vec<BiddedCollateralItem>> {
+) -> Vec<BiddedCollateralItem> {
+    const UPPER_VALUE_MULTIPLIER: &str = "1.5";
+
     let mut bidded_collateral_list = bidded_collateral_list.clone();
 
     // sort ascending by creation_date
@@ -299,8 +301,6 @@ pub fn calc_liquidation_sets(
     // sort descending by liquidation_price
     bidded_collateral_list.sort_unstable_by_key(|x| Uint128::MAX - x.liquidation_price);
 
-    // println!("{:#?}", bidded_collateral_list);
-
     // get subvector with values <= liquidation_value
     // [19, 16, 14, 13, 10, 7, 5, 5, 2] -> [10, 7, 5, 5, 2]
     let subvector: Vec<BiddedCollateralItem> = bidded_collateral_list
@@ -309,16 +309,16 @@ pub fn calc_liquidation_sets(
         .filter(|x| x.liquidation_price <= liquidation_value)
         .collect();
 
-    // get smallest collateral_list item > liquidation_value or liquidation_value if it isn't found
+    // get smallest collateral_list item > liquidation_value or 1.5 * liquidation_value if it isn't found
     let upper_value = bidded_collateral_list
         .iter()
         .rev()
         .find(|x| x.liquidation_price > liquidation_value)
         .map(|x| x.liquidation_price)
-        .unwrap_or(liquidation_value)
+        .unwrap_or(
+            (u128_to_dec(liquidation_value) * str_to_dec(UPPER_VALUE_MULTIPLIER)).to_uint_floor(),
+        )
         .to_owned();
-
-    // println!("{:#?}", (upper_value, &subvector));
 
     // iterate over subvector, compare with [liquidation_value, upper_value] and generate vectors
     let mut result: Vec<Vec<BiddedCollateralItem>> = vec![];
@@ -352,7 +352,18 @@ pub fn calc_liquidation_sets(
         }
     }
 
-    println!("{:#?}", result);
+    // liquidate first more expensive collateral items
+    result.sort_unstable_by_key(|x| x.len());
+    // prefer sets with lower sum discount
+    result.sort_unstable_by_key(|x| {
+        x.iter()
+            .fold(Decimal::zero(), |acc, cur| acc + cur.bid_discount)
+    });
+    // choose cheapest set
+    result.sort_unstable_by_key(|x| {
+        x.iter()
+            .fold(Uint128::zero(), |acc, cur| acc + cur.liquidation_price)
+    });
 
-    result
+    result.first().map(|x| x.to_owned()).unwrap_or_default()
 }
