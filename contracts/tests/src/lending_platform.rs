@@ -1123,6 +1123,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
             token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
             amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -1309,6 +1310,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
             token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
             amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -1492,6 +1494,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
             token_id_list: vec![],
             amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -1675,6 +1678,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
             token_id_list: vec![],
             amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -1853,6 +1857,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
             token_id_list: vec![],
             amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -2039,6 +2044,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
             token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
             amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -2222,6 +2228,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
             token_id_list: vec![],
             amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -2405,6 +2412,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
             token_id_list: vec![],
             amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
+            is_offer: false,
         }],
     }];
 
@@ -2599,6 +2607,7 @@ fn single_discount_liquidation() -> StdResult<()> {
                     .u128(),
             ),
             discount: str_to_dec(DISCOUNT),
+            is_offer: false,
         }],
     }];
 
@@ -2806,6 +2815,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT_1),
+                is_offer: false,
             },
             LiquidationBid {
                 creation_date: 1571797429,
@@ -2819,6 +2829,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT_0),
+                is_offer: false,
             },
         ],
     }];
@@ -3079,6 +3090,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT),
+                is_offer: false,
             },
             // LiquidationBid {
             //     creation_date: 1571797429,

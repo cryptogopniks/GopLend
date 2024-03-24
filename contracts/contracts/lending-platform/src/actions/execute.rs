@@ -923,6 +923,7 @@ pub fn try_place_bid(
                     token_id_list: token_id_list.clone(),
                     amount: asset_amount,
                     discount,
+                    is_offer: false,
                 };
 
                 let bids = match x {
@@ -1263,6 +1264,7 @@ pub fn try_update_bid(
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,
                                         discount,
+                                        is_offer: false,
                                     }
                                 } else {
                                     z

@@ -1,10 +1,15 @@
 use std::cmp::{max, min};
 
-use cosmwasm_std::{Decimal, Decimal256, Uint128};
+use cosmwasm_std::{Addr, Decimal, Decimal256, StdResult, Uint128};
 
 use goplend_base::{
     converters::{dec256_to_dec, dec256_to_uint128, str_to_dec, u128_to_dec, u128_to_dec256},
-    lending_platform::state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
+    error::ContractError,
+    lending_platform::{
+        state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
+        types::{BiddedCollateralItem, Collateral, LiquidationBid},
+    },
+    oracle::types::PriceItem,
 };
 
 // expected_rewards = borrow_apr * total_borrowed_amount *
@@ -230,64 +235,124 @@ pub fn calc_total_available_to_borrow_liquidity(
     ) - min_available_liquidity
 }
 
+/// places bid on each collateral token, best bids have higher priority
+pub fn match_collaterals_and_bids(
+    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
+    collection_and_bid_list: &Vec<(Addr, LiquidationBid)>,
+    price_list: &Vec<PriceItem>,
+) -> StdResult<Vec<BiddedCollateralItem>> {
+    let mut collection_and_bid_list = collection_and_bid_list.to_owned();
+
+    // set bids priority
+    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
+    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
+    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.discount);
+    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.is_offer);
+
+    // add best bid for each collateral token
+    let mut bidded_collateral_list: Vec<BiddedCollateralItem> = vec![];
+
+    for (collateral_collection, collateral) in collection_and_collateral_list_by_borrower {
+        let PriceItem { price, .. } = price_list
+            .iter()
+            .find(|x| x.address == collateral_collection)
+            .ok_or(ContractError::PriceIsNotFound {
+                val: collateral_collection.to_string(),
+            })?;
+
+        for token_id in collateral.token_id_list.clone() {
+            for (bid_collection, bid) in collection_and_bid_list.iter_mut() {
+                let discounted_price = calc_discounted_price(price.amount, bid.discount);
+
+                if bid.token_id_list.contains(&token_id) && bid.amount >= discounted_price {
+                    bidded_collateral_list.push(BiddedCollateralItem {
+                        collection: bid_collection.clone(),
+                        token_id: token_id.clone(),
+                        owner: collateral.owner.clone(),
+                        liquidator: bid.liquidator.clone(),
+                        bid_creation_date: bid.creation_date,
+                        liquidation_price: discounted_price,
+                        bid_discount: bid.discount,
+                        is_offer: bid.is_offer,
+                    });
+
+                    bid.amount -= discounted_price;
+                    break;
+                }
+            }
+        }
+    }
+
+    Ok(bidded_collateral_list)
+}
+
 pub fn calc_liquidation_sets(
-    collateral_and_discount_list: &Vec<u128>,
-    target_cost: u128,
-) -> Vec<Vec<u128>> {
-    let mut collateral_and_discount_list = collateral_and_discount_list.clone();
+    bidded_collateral_list: &Vec<BiddedCollateralItem>,
+    liquidation_value: Uint128,
+) -> Vec<Vec<BiddedCollateralItem>> {
+    let mut bidded_collateral_list = bidded_collateral_list.clone();
 
-    // sort descending
-    // [...] -> [19, 16, 14, 13, 10, 7, 5, 5, 2]
-    collateral_and_discount_list.sort_unstable_by(|a, b| b.cmp(a));
+    // sort ascending by creation_date
+    bidded_collateral_list.sort_unstable_by_key(|x| x.bid_creation_date);
+    // sort ascending by discount
+    bidded_collateral_list.sort_unstable_by_key(|x| x.bid_discount);
+    // sort descending by liquidation_price
+    bidded_collateral_list.sort_unstable_by_key(|x| Uint128::MAX - x.liquidation_price);
 
-    // get subvector with values <= target_cost
+    // println!("{:#?}", bidded_collateral_list);
+
+    // get subvector with values <= liquidation_value
     // [19, 16, 14, 13, 10, 7, 5, 5, 2] -> [10, 7, 5, 5, 2]
-    let subvector: Vec<u128> = collateral_and_discount_list
+    let subvector: Vec<BiddedCollateralItem> = bidded_collateral_list
         .iter()
         .cloned()
-        .filter(|x| x <= &target_cost)
+        .filter(|x| x.liquidation_price <= liquidation_value)
         .collect();
 
-    // get smallest collateral_list item > target_cost or target_cost if it isn't found
-    let upper_value = collateral_and_discount_list
+    // get smallest collateral_list item > liquidation_value or liquidation_value if it isn't found
+    let upper_value = bidded_collateral_list
         .iter()
         .rev()
-        .find(|x| x > &&target_cost)
-        .unwrap_or(&target_cost)
+        .find(|x| x.liquidation_price > liquidation_value)
+        .map(|x| x.liquidation_price)
+        .unwrap_or(liquidation_value)
         .to_owned();
 
-    // println!("{:#?}", (upper_value, subvector));
+    // println!("{:#?}", (upper_value, &subvector));
 
-    // iterate over subvector, compare with [target_cost, upper_value] and generate vectors
-    let mut result: Vec<Vec<u128>> = vec![];
+    // iterate over subvector, compare with [liquidation_value, upper_value] and generate vectors
+    let mut result: Vec<Vec<BiddedCollateralItem>> = vec![];
 
-    for (i, item) in subvector.iter().cloned().enumerate() {
-        let mut temp: Vec<u128> = vec![item.to_owned()];
-        let mut temp_sum: u128 = item;
+    for (i, bidded_collateral_item) in subvector.iter().cloned().enumerate() {
+        let mut temp: Vec<BiddedCollateralItem> = vec![bidded_collateral_item.clone()];
+        let mut collateral_sum: Uint128 = bidded_collateral_item.liquidation_price;
 
-        if temp_sum >= target_cost && temp_sum < upper_value {
+        if collateral_sum >= liquidation_value && collateral_sum < upper_value {
             result.push(temp.clone());
             continue;
         }
 
-        for item_next in &subvector[(i + 1)..subvector.len()] {
-            let temp_sum_new = temp_sum + item_next.to_owned();
+        for bidded_collateral_item_next in &subvector[(i + 1)..subvector.len()] {
+            let collateral_sum_next =
+                collateral_sum + bidded_collateral_item_next.liquidation_price.to_owned();
 
-            if temp_sum_new >= upper_value {
+            if collateral_sum_next >= upper_value {
                 continue;
             }
 
-            temp.push(item_next.to_owned());
+            temp.push(bidded_collateral_item_next.to_owned());
 
-            if temp_sum_new >= target_cost && temp_sum_new < upper_value {
+            if collateral_sum_next >= liquidation_value && collateral_sum_next < upper_value {
                 result.push(temp.clone());
                 temp.pop();
                 continue;
             }
 
-            temp_sum = temp_sum_new;
+            collateral_sum = collateral_sum_next;
         }
     }
+
+    println!("{:#?}", result);
 
     result
 }

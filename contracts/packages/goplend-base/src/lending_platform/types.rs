@@ -57,12 +57,25 @@ pub struct LiquidationBid {
     pub token_id_list: Vec<String>,
     pub amount: Uint128,
     pub discount: Decimal,
+    pub is_offer: bool,
 }
 
 #[cw_serde]
 pub struct Collateral {
     pub owner: Addr,
     pub token_id_list: Vec<String>,
+}
+
+#[cw_serde]
+pub struct BiddedCollateralItem {
+    pub collection: Addr,
+    pub token_id: String,
+    pub owner: Addr,
+    pub liquidator: Addr,
+    pub bid_creation_date: u64,
+    pub liquidation_price: Uint128,
+    pub bid_discount: Decimal,
+    pub is_offer: bool,
 }
 
 #[derive(Default)]
