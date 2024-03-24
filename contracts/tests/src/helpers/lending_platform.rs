@@ -210,9 +210,17 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_bgl_currency_to_main_currency_price(&self) -> StdResult<Decimal>;
 
-    fn lending_platform_query_deposit_apr(&self) -> StdResult<Decimal>;
+    fn lending_platform_query_conditional_deposit_apr(
+        &self,
+        amount_to_deposit: &Option<u128>,
+    ) -> StdResult<Decimal>;
 
-    fn lending_platform_query_ltv(&self, borrower: ProjectAccount) -> StdResult<Decimal>;
+    fn lending_platform_query_conditional_ltv(
+        &self,
+        borrower: ProjectAccount,
+        amount_to_deposit: &Option<u128>,
+        amount_to_borrow: &Option<u128>,
+    ) -> StdResult<Decimal>;
 
     fn lending_platform_query_total_available_to_borrow_liquidity(&self) -> StdResult<Uint128>;
 }
@@ -733,19 +741,37 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_deposit_apr(&self) -> StdResult<Decimal> {
+    fn lending_platform_query_conditional_deposit_apr(
+        &self,
+        amount_to_deposit: &Option<u128>,
+    ) -> StdResult<Decimal> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryDepositApr {},
+            &QueryMsg::QueryConditionalDepositApr {
+                amount_to_deposit: amount_to_deposit
+                    .as_ref()
+                    .map(|x| Uint128::new(x.to_owned())),
+            },
         )
     }
 
     #[track_caller]
-    fn lending_platform_query_ltv(&self, borrower: ProjectAccount) -> StdResult<Decimal> {
+    fn lending_platform_query_conditional_ltv(
+        &self,
+        borrower: ProjectAccount,
+        amount_to_deposit: &Option<u128>,
+        amount_to_borrow: &Option<u128>,
+    ) -> StdResult<Decimal> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryLtv {
+            &QueryMsg::QueryConditionalLtv {
                 borrower: borrower.to_string(),
+                amount_to_deposit: amount_to_deposit
+                    .as_ref()
+                    .map(|x| Uint128::new(x.to_owned())),
+                amount_to_borrow: amount_to_borrow
+                    .as_ref()
+                    .map(|x| Uint128::new(x.to_owned())),
             },
         )
     }

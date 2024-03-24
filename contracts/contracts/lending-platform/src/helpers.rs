@@ -1,12 +1,20 @@
-use cosmwasm_std::{Addr, Deps, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Api, Deps, Order, StdResult, Storage, Uint128};
 
+use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
-        state::{BALANCES, CONFIG, IS_LOCKED, PLATFORM_REVENUE},
-        types::{Balances, CollectionInfo, Config, Proposal, ProposalStatus},
+        state::{
+            BALANCES, BORROWERS, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
+            PAGINATION_CONFIG, PLATFORM_REVENUE,
+        },
+        types::{
+            Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo, Config,
+            LiquidationBid, Proposal, ProposalStatus,
+        },
     },
+    oracle::{self, types::PriceItem},
     utils::{unwrap_field, AuthType},
 };
 
@@ -191,6 +199,233 @@ pub fn increase_platform_revenue(
     }
 
     PLATFORM_REVENUE.save(storage, &funds_list)?;
+
+    Ok(())
+}
+
+pub fn get_borrowers(
+    storage: &mut dyn Storage,
+    api: &dyn Api,
+    borrowers: Option<Vec<String>>,
+) -> StdResult<Vec<(Addr, Borrower)>> {
+    let borrowers: Vec<(Addr, Borrower)> = match borrowers {
+        Some(x) => x
+            .iter()
+            .map(|y| {
+                let address = api.addr_validate(y)?;
+                let borrower = BORROWERS.load(storage, &address)?;
+
+                Ok((address, borrower))
+            })
+            .collect::<StdResult<Vec<(Addr, Borrower)>>>()?,
+        // TODO: remove this branch
+        None => {
+            // rotate pagination
+            let mut pagination_config = PAGINATION_CONFIG.load(storage)?;
+            let pagination_amount = pagination_config.get_amount();
+
+            let address;
+            let start_bound = match pagination_config.pagination_index {
+                None => None,
+                Some(x) => {
+                    address = x;
+                    Some(Bound::exclusive(&address))
+                }
+            };
+
+            let borrowers: Vec<(Addr, Borrower)> = BORROWERS
+                .range(storage, start_bound, None, Order::Ascending)
+                .take(pagination_amount as usize)
+                .flatten()
+                .collect();
+
+            let borrower_last = borrowers
+                .last()
+                .map(|(pagination_index_new, _)| pagination_index_new.to_owned());
+            let storage_last = BORROWERS
+                .last(storage)?
+                .map(|(pagination_index_new, _)| pagination_index_new);
+
+            let pagination_index_new = if borrower_last == storage_last {
+                None
+            } else {
+                borrower_last
+            };
+
+            pagination_config.pagination_index = pagination_index_new;
+            PAGINATION_CONFIG.save(storage, &pagination_config)?;
+
+            borrowers
+        }
+    };
+
+    Ok(borrowers)
+}
+
+pub fn get_collection_prices(
+    deps: Deps,
+    borrowers: &Vec<(Addr, Borrower)>,
+    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    oracle: &Addr,
+) -> StdResult<Vec<oracle::types::PriceItem>> {
+    // collect collection addresses over current page borrowers
+    let borrower_addresses: Vec<Addr> = borrowers
+        .iter()
+        .map(|(address, _)| address.to_owned())
+        .collect();
+
+    let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
+        .iter()
+        .filter(|(_collection_address, collaterals)| {
+            collaterals
+                .iter()
+                .any(|collateral| borrower_addresses.contains(&collateral.owner))
+        })
+        .map(|(collection_address, _)| collection_address.to_string())
+        .collect();
+
+    collection_addresses_by_borrowers.sort_unstable();
+    collection_addresses_by_borrowers.dedup();
+
+    // query collection prices
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses_by_borrowers),
+        },
+    )?;
+
+    Ok(prices)
+}
+
+pub fn get_collaterals_by_borrower(
+    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    borrower_address: &Addr,
+) -> StdResult<Vec<(Addr, Collateral)>> {
+    // get collaterals owned by borrower
+    let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
+        collection_and_collateral_list
+            .iter()
+            .cloned()
+            .map(
+                |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                    // single collateral per collection
+                    let collateral = collaterals
+                        .into_iter()
+                        .find(|collateral| collateral.owner == borrower_address)
+                        .ok_or(ContractError::CollateralIsNotFound)?;
+
+                    Ok((collection, collateral))
+                },
+            )
+            .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+    Ok(collection_and_collateral_list_by_borrower)
+}
+
+pub fn get_collateral_value(
+    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
+    prices: &Vec<PriceItem>,
+    block_time: u64,
+    price_update_period: u64,
+) -> StdResult<Option<Uint128>> {
+    let mut is_price_outdated = false;
+
+    let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let oracle::types::PriceItem {
+                price,
+                price_update_date,
+                ..
+            } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if block_time - price_update_date > price_update_period {
+                is_price_outdated = true;
+            }
+
+            // TODO: decimals, other currencies
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    Ok(if is_price_outdated {
+        None
+    } else {
+        Some(collateral_value)
+    })
+}
+
+pub fn update_liquidation_storages(
+    storage: &mut dyn Storage,
+    liquidation_set: &Vec<BiddedCollateralItem>,
+) -> StdResult<()> {
+    for BiddedCollateralItem {
+        collection,
+        token_id,
+        owner,
+        liquidator,
+        liquidation_price,
+        // is_offer, // TODO: add offers handler
+        ..
+    } in liquidation_set
+    {
+        // update bids
+        let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
+            .load(storage, &collection)?
+            .into_iter()
+            .map(|mut bid| {
+                if bid.token_id_list.contains(token_id) {
+                    bid.amount -= liquidation_price;
+                    bid.token_id_list = bid
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| id != token_id)
+                        .collect();
+                }
+
+                bid
+            })
+            .collect();
+
+        LIQUIDATION_BIDS.save(storage, &collection, &bids)?;
+
+        // update collaterals
+        let mut collaterals = COLLATERALS.load(storage, &collection)?;
+
+        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
+        if collaterals_by_liquidator.is_none() {
+            collaterals.push(Collateral {
+                owner: liquidator.to_owned(),
+                token_id_list: vec![],
+            });
+        }
+
+        collaterals = collaterals
+            .into_iter()
+            .map(|mut x| {
+                if x.owner == owner {
+                    x.token_id_list = x
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| id != token_id)
+                        .collect();
+                } else if x.owner == liquidator {
+                    x.token_id_list.push(token_id.to_string());
+                }
+
+                x
+            })
+            .filter(|x| !x.token_id_list.is_empty())
+            .collect();
+
+        COLLATERALS.save(storage, &collection, &collaterals)?;
+    }
 
     Ok(())
 }

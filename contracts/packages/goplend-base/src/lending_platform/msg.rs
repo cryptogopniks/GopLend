@@ -142,7 +142,7 @@ pub enum ExecuteMsg {
     },
 }
 
-// TODO: add available to borrow by user
+// TODO: use proper pagination
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -185,28 +185,28 @@ pub enum QueryMsg {
     QueryBglCurrencyToMainCurrencyPrice {},
 
     #[returns(Decimal)]
-    QueryDepositApr {},
-    // TODO: use instead
-    // QueryConditionalDepositApr {
-    //     additional_deposit: Option<Uint128>,
-    //     additional_unbond: Option<Uint128>
-    // },
-    #[returns(Decimal)]
-    QueryLtv { borrower: String },
-    // TODO: use instead
-    // QueryConditionalLtv {
-    //     additional_collateral: Option<Uint128>,
-    //     additional_loan: Option<Uint128>
-    // },
+    QueryConditionalDepositApr { amount_to_deposit: Option<Uint128> },
 
-    // TODO: add
+    #[returns(Decimal)]
+    QueryConditionalLtv {
+        borrower: String,
+        amount_to_deposit: Option<Uint128>,
+        amount_to_borrow: Option<Uint128>,
+    },
+
+    // TODO: add on backend
     // #[returns(Vec<(Addr, Decimal)>)]
     // QueryLtvList {
     //     start_after: Option<String>,
     //     limit: Option<u32>,
     // },
+    //
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
+    //
+    // TODO: add available to borrow by user
+    // #[returns(Uint128)]
+    // QueryAvailableToBorrow { borrower: String },
 }
 
 #[cw_serde]
