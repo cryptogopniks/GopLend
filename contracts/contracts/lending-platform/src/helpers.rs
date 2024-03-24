@@ -14,6 +14,7 @@ use goplend_base::{
             LiquidationBid, Proposal, ProposalStatus,
         },
     },
+    oracle,
     utils::{unwrap_field, AuthType},
 };
 
@@ -259,6 +260,42 @@ pub fn get_borrowers(
     };
 
     Ok(borrowers)
+}
+
+pub fn get_collection_prices(
+    deps: Deps,
+    borrowers: &Vec<(Addr, Borrower)>,
+    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    oracle: &Addr,
+) -> StdResult<Vec<oracle::types::PriceItem>> {
+    // collect collection addresses over current page borrowers
+    let borrower_addresses: Vec<Addr> = borrowers
+        .iter()
+        .map(|(address, _)| address.to_owned())
+        .collect();
+
+    let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
+        .iter()
+        .filter(|(_collection_address, collaterals)| {
+            collaterals
+                .iter()
+                .any(|collateral| borrower_addresses.contains(&collateral.owner))
+        })
+        .map(|(collection_address, _)| collection_address.to_string())
+        .collect();
+
+    collection_addresses_by_borrowers.sort_unstable();
+    collection_addresses_by_borrowers.dedup();
+
+    // query collection prices
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses_by_borrowers),
+        },
+    )?;
+
+    Ok(prices)
 }
 
 pub fn update_liquidation_storages(

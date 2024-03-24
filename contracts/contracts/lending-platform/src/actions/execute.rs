@@ -7,7 +7,6 @@ use cosmwasm_std::{
 
 use cw721::Cw721ExecuteMsg;
 
-use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::u128_to_dec,
@@ -35,7 +34,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        get_borrowers, increase_platform_revenue, verify_proposal_status,
+        get_borrowers, get_collection_prices, increase_platform_revenue, verify_proposal_status,
     },
     math,
 };
@@ -1364,31 +1363,12 @@ pub fn try_process(
         .flatten()
         .collect();
 
-    // collect collection addresses over current page borrowers
-    let borrower_addresses: Vec<Addr> = borrowers
-        .iter()
-        .map(|(address, _)| address.to_owned())
-        .collect();
-
-    let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
-        .iter()
-        .filter(|(_collection_address, collaterals)| {
-            collaterals
-                .iter()
-                .any(|collateral| borrower_addresses.contains(&collateral.owner))
-        })
-        .map(|(collection_address, _)| collection_address.to_string())
-        .collect();
-
-    collection_addresses_by_borrowers.sort_unstable();
-    collection_addresses_by_borrowers.dedup();
-
-    // query collection prices
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    // get collection prices
+    let prices = get_collection_prices(
+        deps.as_ref(),
+        &borrowers,
+        &collection_and_collateral_list,
         oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses_by_borrowers),
-        },
     )?;
 
     // accumulators
