@@ -4,8 +4,11 @@ use goplend_base::{
     assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
-        state::{BALANCES, CONFIG, IS_LOCKED, PLATFORM_REVENUE},
-        types::{Balances, CollectionInfo, Config, Proposal, ProposalStatus},
+        state::{BALANCES, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE},
+        types::{
+            Balances, BiddedCollateralItem, Collateral, CollectionInfo, Config, LiquidationBid,
+            Proposal, ProposalStatus,
+        },
     },
     utils::{unwrap_field, AuthType},
 };
@@ -191,6 +194,75 @@ pub fn increase_platform_revenue(
     }
 
     PLATFORM_REVENUE.save(storage, &funds_list)?;
+
+    Ok(())
+}
+
+pub fn update_liquidation_storages(
+    storage: &mut dyn Storage,
+    liquidation_set: &Vec<BiddedCollateralItem>,
+) -> StdResult<()> {
+    for BiddedCollateralItem {
+        collection,
+        token_id,
+        owner,
+        liquidator,
+        liquidation_price,
+        // is_offer, // TODO: add offers handler
+        ..
+    } in liquidation_set
+    {
+        // update bids
+        let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
+            .load(storage, &collection)?
+            .into_iter()
+            .map(|mut bid| {
+                if bid.token_id_list.contains(token_id) {
+                    bid.amount -= liquidation_price;
+                    bid.token_id_list = bid
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| id != token_id)
+                        .collect();
+                }
+
+                bid
+            })
+            .collect();
+
+        LIQUIDATION_BIDS.save(storage, &collection, &bids)?;
+
+        // update collaterals
+        let mut collaterals = COLLATERALS.load(storage, &collection)?;
+
+        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
+        if collaterals_by_liquidator.is_none() {
+            collaterals.push(Collateral {
+                owner: liquidator.to_owned(),
+                token_id_list: vec![],
+            });
+        }
+
+        collaterals = collaterals
+            .into_iter()
+            .map(|mut x| {
+                if x.owner == owner {
+                    x.token_id_list = x
+                        .token_id_list
+                        .into_iter()
+                        .filter(|id| id != token_id)
+                        .collect();
+                } else if x.owner == liquidator {
+                    x.token_id_list.push(token_id.to_string());
+                }
+
+                x
+            })
+            .filter(|x| !x.token_id_list.is_empty())
+            .collect();
+
+        COLLATERALS.save(storage, &collection, &collaterals)?;
+    }
 
     Ok(())
 }
