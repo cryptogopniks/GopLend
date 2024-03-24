@@ -1,13 +1,17 @@
-use cosmwasm_std::{Addr, Deps, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Api, Deps, Order, StdResult, Storage, Uint128};
 
+use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
-        state::{BALANCES, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE},
+        state::{
+            BALANCES, BORROWERS, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
+            PAGINATION_CONFIG, PLATFORM_REVENUE,
+        },
         types::{
-            Balances, BiddedCollateralItem, Collateral, CollectionInfo, Config, LiquidationBid,
-            Proposal, ProposalStatus,
+            Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo, Config,
+            LiquidationBid, Proposal, ProposalStatus,
         },
     },
     utils::{unwrap_field, AuthType},
@@ -196,6 +200,65 @@ pub fn increase_platform_revenue(
     PLATFORM_REVENUE.save(storage, &funds_list)?;
 
     Ok(())
+}
+
+pub fn get_borrowers(
+    storage: &mut dyn Storage,
+    api: &dyn Api,
+    borrowers: Option<Vec<String>>,
+) -> StdResult<Vec<(Addr, Borrower)>> {
+    let borrowers: Vec<(Addr, Borrower)> = match borrowers {
+        Some(x) => x
+            .iter()
+            .map(|y| {
+                let address = api.addr_validate(y)?;
+                let borrower = BORROWERS.load(storage, &address)?;
+
+                Ok((address, borrower))
+            })
+            .collect::<StdResult<Vec<(Addr, Borrower)>>>()?,
+        // TODO: remove this branch
+        None => {
+            // rotate pagination
+            let mut pagination_config = PAGINATION_CONFIG.load(storage)?;
+            let pagination_amount = pagination_config.get_amount();
+
+            let address;
+            let start_bound = match pagination_config.pagination_index {
+                None => None,
+                Some(x) => {
+                    address = x;
+                    Some(Bound::exclusive(&address))
+                }
+            };
+
+            let borrowers: Vec<(Addr, Borrower)> = BORROWERS
+                .range(storage, start_bound, None, Order::Ascending)
+                .take(pagination_amount as usize)
+                .flatten()
+                .collect();
+
+            let borrower_last = borrowers
+                .last()
+                .map(|(pagination_index_new, _)| pagination_index_new.to_owned());
+            let storage_last = BORROWERS
+                .last(storage)?
+                .map(|(pagination_index_new, _)| pagination_index_new);
+
+            let pagination_index_new = if borrower_last == storage_last {
+                None
+            } else {
+                borrower_last
+            };
+
+            pagination_config.pagination_index = pagination_index_new;
+            PAGINATION_CONFIG.save(storage, &pagination_config)?;
+
+            borrowers
+        }
+    };
+
+    Ok(borrowers)
 }
 
 pub fn update_liquidation_storages(

@@ -35,7 +35,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        increase_platform_revenue, verify_proposal_status,
+        get_borrowers, increase_platform_revenue, verify_proposal_status,
     },
     math,
 };
@@ -1356,55 +1356,7 @@ pub fn try_process(
         },
     )?;
 
-    let borrowers: Vec<(Addr, Borrower)> = match borrowers {
-        Some(x) => x
-            .iter()
-            .map(|y| {
-                let address = deps.api.addr_validate(y)?;
-                let borrower = BORROWERS.load(deps.storage, &address)?;
-
-                Ok((address, borrower))
-            })
-            .collect::<StdResult<Vec<(Addr, Borrower)>>>()?,
-        None => {
-            // rotate pagination
-            let mut pagination_config = PAGINATION_CONFIG.load(deps.storage)?;
-            let pagination_amount = pagination_config.get_amount();
-
-            let address;
-            let start_bound = match pagination_config.pagination_index {
-                None => None,
-                Some(x) => {
-                    address = x;
-                    Some(Bound::exclusive(&address))
-                }
-            };
-
-            let borrowers: Vec<(Addr, Borrower)> = BORROWERS
-                .range(deps.storage, start_bound, None, Order::Ascending)
-                .take(pagination_amount as usize)
-                .flatten()
-                .collect();
-
-            let borrower_last = borrowers
-                .last()
-                .map(|(pagination_index_new, _)| pagination_index_new.to_owned());
-            let storage_last = BORROWERS
-                .last(deps.storage)?
-                .map(|(pagination_index_new, _)| pagination_index_new);
-
-            let pagination_index_new = if borrower_last == storage_last {
-                None
-            } else {
-                borrower_last
-            };
-
-            pagination_config.pagination_index = pagination_index_new;
-            PAGINATION_CONFIG.save(deps.storage, &pagination_config)?;
-
-            borrowers
-        }
-    };
+    let borrowers = get_borrowers(deps.storage, deps.api, borrowers)?;
 
     // get all collaterals
     let collection_and_collateral_list: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
