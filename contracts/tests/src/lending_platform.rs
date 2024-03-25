@@ -1106,11 +1106,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
             },
         ],
     }];
@@ -1120,8 +1120,8 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         liquidation_bids: vec![LiquidationBid {
             creation_date: 1571797419,
             liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
-            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
+            token_id_list: vec![],
+            amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
             is_offer: false,
         }],
@@ -2850,14 +2850,15 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 800;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
+    const COLLECTION_PRICE_AFTER: u128 = 700;
     const AMOUNT_TO_BORROW: u128 = 3_400;
     const LIQUIDATION_BID: u128 = 8_000;
     const DISCOUNT: &str = "0.1";
 
-    // 20, 0 % discount
-    // liquidator will pay ceil(680 * 0.8) + ceil(680) = 1_224
-    // ltv = (1_700 - 1_224) / 680 = 0.7
+    // 10 % discount
+    // liquidator will pay ceil(800 * 0.9) = 720
+    // ltv = (3400 - 720) / (4500 - 800) = 0.724
+    // ltv = (3400 - 1440) / (4500 - 1600) = 0.675
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -3046,6 +3047,16 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         }],
     )?;
 
+    let ltv_before =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    let collaterals_before = project.lending_platform_query_collaterals(&None)?;
+    let liquidation_bids_before =
+        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+
+    println!("ltv_before {:#?}\n", ltv_before);
+    println!("collaterals_before {:#?}\n", collaterals_before);
+    println!("liquidation_bids_before {:#?}\n", liquidation_bids_before);
+
     // process with liquidations
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
@@ -3108,9 +3119,9 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         ],
     }];
 
-    // println!("ltv_after {:#?}\n", ltv_after);
-    // println!("collaterals_after {:#?}\n", collaterals_after);
-    // println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
+    println!("ltv_after {:#?}\n", ltv_after);
+    println!("collaterals_after {:#?}\n", collaterals_after);
+    println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
 
     // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
     // assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -3123,5 +3134,4 @@ fn multiple_collection_liquidation() -> StdResult<()> {
 // TODO: check priority
 // TODO: check targeted liquidations
 // TODO: check balances changes
-// TODO: implement collateral selector
 // TODO: check marketplace interface

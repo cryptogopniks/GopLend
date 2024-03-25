@@ -388,7 +388,9 @@ pub fn get_collection_and_bid_list(
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
-) -> StdResult<()> {
+) -> StdResult<Uint128> {
+    let mut current_liquidation_value = Uint128::zero();
+
     for BiddedCollateralItem {
         collection,
         token_id,
@@ -399,6 +401,9 @@ pub fn update_liquidation_storages(
         ..
     } in liquidation_set
     {
+        // update current_liquidation_value
+        current_liquidation_value += liquidation_price;
+
         // update bids
         let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
             .load(storage, &collection)?
@@ -451,7 +456,7 @@ pub fn update_liquidation_storages(
         COLLATERALS.save(storage, &collection, &collaterals)?;
     }
 
-    Ok(())
+    Ok(current_liquidation_value)
 }
 
 pub fn update_borrowers_storages(

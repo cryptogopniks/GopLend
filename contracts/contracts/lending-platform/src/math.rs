@@ -132,6 +132,8 @@ pub fn calc_conditional_ltv(
     loan / u128_to_dec(collateral)
 }
 
+// ltv_max = (loan - sum((1 - discount) * liquidation_value)) / (collateral - sum(liquidation_value))
+//
 // 0 % discount
 // need to liquidate 2 * 650 = 1_300
 // liquidator will pay 1_300
@@ -261,12 +263,12 @@ pub fn match_collaterals_and_bids(
             })?;
 
         for token_id in collateral.token_id_list.clone() {
-            for (bid_collection, bid) in collection_and_bid_list.iter_mut() {
+            for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
                 let discounted_price = calc_discounted_price(price.amount, bid.discount);
 
                 if bid.token_id_list.contains(&token_id) && bid.amount >= discounted_price {
                     bidded_collateral_list.push(BiddedCollateralItem {
-                        collection: bid_collection.clone(),
+                        collection: collateral_collection.clone(),
                         token_id: token_id.clone(),
                         owner: collateral.owner.clone(),
                         liquidator: bid.liquidator.clone(),
@@ -286,6 +288,9 @@ pub fn match_collaterals_and_bids(
     Ok(bidded_collateral_list)
 }
 
+// TODO
+// there is no way to calculate liquidation_value properly
+// then ltv must be calculated on each iteration
 pub fn calc_liquidation_set(
     bidded_collateral_list: &Vec<BiddedCollateralItem>,
     liquidation_value: Uint128,
@@ -365,5 +370,8 @@ pub fn calc_liquidation_set(
             .fold(Uint128::zero(), |acc, cur| acc + cur.liquidation_price)
     });
 
-    result.first().map(|x| x.to_owned()).unwrap_or_default()
+    result
+        .first()
+        .map(|x| x.to_owned())
+        .unwrap_or(bidded_collateral_list.to_owned())
 }

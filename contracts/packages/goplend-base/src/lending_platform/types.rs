@@ -43,14 +43,6 @@ pub struct CollectionInfo<A: ToString> {
 }
 
 #[cw_serde]
-pub struct LiquidatedPosition {
-    pub collection_address: Addr,
-    pub token_id: String,
-    pub liquidation_price: Uint128,
-    pub liquidator: Addr,
-}
-
-#[cw_serde]
 pub struct LiquidationBid {
     pub creation_date: u64,
     pub liquidator: Addr,
