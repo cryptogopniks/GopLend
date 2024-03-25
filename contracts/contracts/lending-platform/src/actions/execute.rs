@@ -34,8 +34,9 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        get_borrowers, get_collateral_value, get_collaterals_by_borrower, get_collection_prices,
-        increase_platform_revenue, verify_proposal_status,
+        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
+        get_collection_and_bid_list, get_collection_prices, increase_platform_revenue,
+        update_borrowers_storages, verify_proposal_status,
     },
     math,
 };
@@ -1414,30 +1415,16 @@ pub fn try_process(
             loan.creation_date,
         );
 
-        // if ltv is high liquidate required amount
-
-        // no liquidation, check next borrower
+        // if ltv is low check next borrower, otherwise liquidate required amount
         if ltv <= ltv_max {
             continue;
         }
 
         // find bids containing at least 1 borrower's collateral token
-        let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+        let mut collection_and_bid_list =
+            get_collection_and_bid_list(deps.storage, &collection_and_collateral_list_by_borrower)?;
 
-        for (collection_address, collateral) in &collection_and_collateral_list_by_borrower {
-            for bid in LIQUIDATION_BIDS.load(deps.storage, &collection_address)? {
-                if bid
-                    .token_id_list
-                    .iter()
-                    .any(|id| collateral.token_id_list.contains(id))
-                {
-                    collection_and_bid_list.push((collection_address.clone(), bid));
-                }
-            }
-        }
-
-        // TODO: if collection_and_bid_list.is_empty() then accept offers
-
+        // TODO: replace with match_collaterals_and_bids, calc_liquidation_set
         // sort bids by discount and creation date
         collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
         collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
@@ -1505,10 +1492,9 @@ pub fn try_process(
                 bid.amount -= discounted_price;
                 current_liquidation_value += discounted_price;
             }
-
-            // TODO: if current_liquidation_value < liquidation_value then accept offers partially
         }
 
+        // TODO: replace with update_liquidation_storages
         for LiquidatedPosition {
             collection_address,
             token_id,
@@ -1568,37 +1554,17 @@ pub fn try_process(
             COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
         }
 
+        // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;
 
-        let accumulated_loan = math::calc_accumulated_loan(
-            borrow_apr,
-            accumulated_loan,
-            loan.amount,
-            block_time,
-            loan.creation_date,
-        );
-
-        let (amount, accumulated_loan) = if current_liquidation_value <= loan.amount {
-            (loan.amount - current_liquidation_value, accumulated_loan)
-        } else {
-            let amount_difference = current_liquidation_value - loan.amount;
-            (
-                Uint128::zero(),
-                max(accumulated_loan, amount_difference) - amount_difference,
-            )
-        };
-
-        // update borrowers
-        BORROWERS.save(
+        update_borrowers_storages(
             deps.storage,
+            &loan,
             &borrower_address,
-            &Borrower {
-                accumulated_loan,
-                loan: Vault {
-                    creation_date: block_time,
-                    amount,
-                },
-            },
+            current_liquidation_value,
+            accumulated_loan,
+            block_time,
+            borrow_apr,
         )?;
     }
 
