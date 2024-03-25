@@ -36,7 +36,7 @@ use crate::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
         get_borrowers, get_collateral_value, get_collaterals_by_borrower,
         get_collection_and_bid_list, get_collection_prices, increase_platform_revenue,
-        update_borrowers_storages, verify_proposal_status,
+        update_balances, update_borrowers_storages, verify_proposal_status,
     },
     math,
 };
@@ -1581,38 +1581,14 @@ pub fn try_process(
     )?;
 
     // update contract balances
-    BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
-        let expected_rewards = math::calc_expected_rewards(
-            block_time,
-            balances.total_borrowed.creation_date,
-            borrow_apr,
-            balances.total_borrowed.amount,
-        );
-        let rewards = balances.accumulated_expected_rewards + expected_rewards;
-
-        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
-            (
-                balances.total_borrowed.amount - total_liquidation_value,
-                rewards,
-            )
-        } else {
-            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
-            (
-                Uint128::zero(),
-                max(rewards, amount_difference) - amount_difference,
-            )
-        };
-
-        balances.total_main_currency_pool += main_currency_pool_addition;
-        balances.total_borrowed = Vault {
-            amount,
-            creation_date: block_time,
-        };
-        balances.accumulated_expected_rewards = rewards;
-        balances.total_liquidation_bids -= total_liquidation_bids;
-
-        Ok(balances)
-    })?;
+    update_balances(
+        deps.storage,
+        block_time,
+        borrow_apr,
+        main_currency_pool_addition,
+        total_liquidation_value,
+        total_liquidation_bids,
+    )?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }
