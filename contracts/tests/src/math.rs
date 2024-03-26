@@ -193,6 +193,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(190),
+            collateral_price: Uint128::new(200),
             bid_discount: str_to_dec("0.05"),
             is_offer: false,
         },
@@ -203,6 +204,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(200),
+            collateral_price: Uint128::new(200),
             bid_discount: str_to_dec("0"),
             is_offer: true,
         },
@@ -213,6 +215,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(180),
+            collateral_price: Uint128::new(200),
             bid_discount: str_to_dec("0.1"),
             is_offer: false,
         },
@@ -223,6 +226,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(95),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0.05"),
             is_offer: false,
         },
@@ -233,6 +237,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(80),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0.2"),
             is_offer: false,
         },
@@ -243,6 +248,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(90),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0.1"),
             is_offer: false,
         },
@@ -253,6 +259,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(100),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0"),
             is_offer: true,
         },
@@ -282,13 +289,51 @@ fn calc_liquidation_sets_default() {
         liquidator: Addr::unchecked("alice"),
         bid_creation_date: 0,
         liquidation_price: Uint128::new(price),
+        collateral_price: (u128_to_dec(price)
+            / (Decimal::one() - u128_to_dec(discount as u128) / u128_to_dec(100u128)))
+        .to_uint_ceil(),
         bid_discount: u128_to_dec(discount as u128),
         is_offer: false,
     })
     .collect();
-    let target_cost = Uint128::new(11);
 
-    let liquidation_set = math::calc_liquidation_set(&collateral_list, target_cost);
+    let borrow_apr = str_to_dec("0.25");
+    let discount_max_rate = str_to_dec("0.2");
+    let accumulated_loan = Uint128::zero();
+    let loan = Uint128::new(70);
+    let block_time = 0;
+    let loan_creation_date = 0;
+    let collateral = collateral_list
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur.collateral_price);
+
+    let ltv = math::calc_conditional_ltv(
+        borrow_apr,
+        Uint128::zero(),
+        accumulated_loan,
+        loan,
+        Uint128::zero(),
+        collateral,
+        block_time,
+        loan_creation_date,
+    );
+
+    let ltv_max = str_to_dec("0.5");
+
+    let max_liquidation_value =
+        math::calc_liquidation_value(collateral, discount_max_rate, ltv, ltv_max);
+
+    let liquidation_set = math::calc_liquidation_set(
+        &collateral_list,
+        max_liquidation_value,
+        ltv_max,
+        borrow_apr,
+        accumulated_loan,
+        loan,
+        collateral,
+        block_time,
+        loan_creation_date,
+    );
 
     assert_that(&liquidation_set).is_equal_to(vec![
         BiddedCollateralItem {
@@ -297,7 +342,19 @@ fn calc_liquidation_sets_default() {
             owner: Addr::unchecked("bob"),
             liquidator: Addr::unchecked("alice"),
             bid_creation_date: 0,
-            liquidation_price: Uint128::new(7),
+            liquidation_price: Uint128::new(19),
+            collateral_price: Uint128::new(22),
+            bid_discount: u128_to_dec(10u128),
+            is_offer: false,
+        },
+        BiddedCollateralItem {
+            collection: Addr::unchecked("collection"),
+            token_id: "42".to_string(),
+            owner: Addr::unchecked("bob"),
+            liquidator: Addr::unchecked("alice"),
+            bid_creation_date: 0,
+            liquidation_price: Uint128::new(16),
+            collateral_price: Uint128::new(18),
             bid_discount: u128_to_dec(10u128),
             is_offer: false,
         },
@@ -308,6 +365,7 @@ fn calc_liquidation_sets_default() {
             liquidator: Addr::unchecked("alice"),
             bid_creation_date: 0,
             liquidation_price: Uint128::new(5),
+            collateral_price: Uint128::new(6),
             bid_discount: u128_to_dec(8u128),
             is_offer: false,
         },
@@ -477,14 +535,47 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         ),
     ];
 
-    let liquidation_value = Uint128::new(550);
     let collaterals_and_bids = math::match_collaterals_and_bids(
         &collection_and_collateral_list_by_borrower,
         &collection_and_bid_list,
         &price_list,
     )?;
 
-    let liquidation_set = math::calc_liquidation_set(&collaterals_and_bids, liquidation_value);
+    let borrow_apr = str_to_dec("0.25");
+    let discount_max_rate = str_to_dec("0.2");
+    let accumulated_loan = Uint128::zero();
+    let loan = Uint128::new(600);
+    let block_time = 0;
+    let loan_creation_date = 0;
+    let collateral = Uint128::new(700);
+
+    let ltv = math::calc_conditional_ltv(
+        borrow_apr,
+        Uint128::zero(),
+        accumulated_loan,
+        loan,
+        Uint128::zero(),
+        collateral,
+        block_time,
+        loan_creation_date,
+    );
+
+    let ltv_max = str_to_dec("0.5");
+
+    let max_liquidation_value =
+        math::calc_liquidation_value(collateral, discount_max_rate, ltv, ltv_max);
+
+    let liquidation_set = math::calc_liquidation_set(
+        &collaterals_and_bids,
+        max_liquidation_value,
+        ltv_max,
+        borrow_apr,
+        accumulated_loan,
+        loan,
+        collateral,
+        block_time,
+        loan_creation_date,
+    );
 
     assert_that(&liquidation_set).is_equal_to(vec![
         BiddedCollateralItem {
@@ -494,6 +585,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(190),
+            collateral_price: Uint128::new(200),
             bid_discount: str_to_dec("0.05"),
             is_offer: false,
         },
@@ -504,6 +596,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(180),
+            collateral_price: Uint128::new(200),
             bid_discount: str_to_dec("0.1"),
             is_offer: false,
         },
@@ -514,6 +607,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(100),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0"),
             is_offer: true,
         },
@@ -524,6 +618,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
             liquidation_price: Uint128::new(80),
+            collateral_price: Uint128::new(100),
             bid_discount: str_to_dec("0.2"),
             is_offer: false,
         },

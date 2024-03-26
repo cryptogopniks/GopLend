@@ -1106,11 +1106,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
             },
         ],
     }];
@@ -1120,8 +1120,8 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         liquidation_bids: vec![LiquidationBid {
             creation_date: 1571797419,
             liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
+            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
             discount: Decimal::zero(),
             is_offer: false,
         }],
@@ -2850,7 +2850,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 800;
-    const COLLECTION_PRICE_AFTER: u128 = 700;
+    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT_TO_BORROW: u128 = 3_400;
     const LIQUIDATION_BID: u128 = 8_000;
     const DISCOUNT: &str = "0.1";
@@ -3047,15 +3047,11 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         }],
     )?;
 
-    let ltv_before =
-        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_before = project.lending_platform_query_collaterals(&None)?;
-    let liquidation_bids_before =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-
-    println!("ltv_before {:#?}\n", ltv_before);
-    println!("collaterals_before {:#?}\n", collaterals_before);
-    println!("liquidation_bids_before {:#?}\n", liquidation_bids_before);
+    // let ltv_before =
+    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    // let collaterals_before = project.lending_platform_query_collaterals(&None)?;
+    // let liquidation_bids_before =
+    //     project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
 
     // process with liquidations
     project.adapter_scheduler_kujira_try_push(
@@ -3069,32 +3065,47 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
-    let expected_collateral = vec![QueryCollateralsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        collateral: vec![
-            Collateral {
-                owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-            },
-            Collateral {
-                owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5", "4"].into_iter().map(|x| x.to_string()).collect(),
-            },
-        ],
-    }];
+    let expected_collateral = vec![
+        QueryCollateralsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            collateral: vec![
+                Collateral {
+                    owner: ProjectAccount::Bob.into(),
+                    token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                },
+                Collateral {
+                    owner: ProjectAccount::Alice.into(),
+                    token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                },
+            ],
+        },
+        QueryCollateralsResponseItem {
+            address: ProjectNft::Pinjeons.into(),
+            collateral: vec![
+                Collateral {
+                    owner: ProjectAccount::Bob.into(),
+                    token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                },
+                Collateral {
+                    owner: ProjectAccount::Alice.into(),
+                    token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                },
+            ],
+        },
+    ];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![
-            LiquidationBid {
+    let expected_liquidation_bids_after = vec![
+        QueryLiquidationBidsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec![],
+                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
                 amount: Uint128::new(
-                    LIQUIDATION_BID / 2
+                    LIQUIDATION_BID
                         - (u128_to_dec(COLLECTION_PRICE_AFTER)
                             * (Decimal::one() - str_to_dec(DISCOUNT)))
                         .to_uint_ceil()
@@ -3102,35 +3113,34 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 ),
                 discount: str_to_dec(DISCOUNT),
                 is_offer: false,
-            },
-            // LiquidationBid {
-            //     creation_date: 1571797429,
-            //     liquidator: ProjectAccount::Alice.into(),
-            //     token_id_list: vec![],
-            //     amount: Uint128::new(
-            //         LIQUIDATION_BID / 2
-            //             - (u128_to_dec(COLLECTION_PRICE_AFTER)
-            //                 * (Decimal::one() - str_to_dec(DISCOUNT)))
-            //             .to_uint_ceil()
-            //             .u128(),
-            //     ),
-            //     discount: str_to_dec(DISCOUNT),
-            // },
-        ],
-    }];
+            }],
+        },
+        QueryLiquidationBidsResponseItem {
+            address: ProjectNft::Pinjeons.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(
+                    LIQUIDATION_BID
+                        - 2 * (u128_to_dec(COLLECTION_PRICE_BEFORE)
+                            * (Decimal::one() - str_to_dec(DISCOUNT)))
+                        .to_uint_ceil()
+                        .u128(),
+                ),
+                discount: str_to_dec(DISCOUNT),
+                is_offer: false,
+            }],
+        },
+    ];
 
-    println!("ltv_after {:#?}\n", ltv_after);
-    println!("collaterals_after {:#?}\n", collaterals_after);
-    println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
-
-    // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
-    // assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    // assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.71");
+    assert_that(&collaterals_after).is_equal_to(expected_collateral);
+    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
 
     Ok(())
 }
 
-// TODO: check multiple collections
 // TODO: check priority
 // TODO: check targeted liquidations
 // TODO: check balances changes

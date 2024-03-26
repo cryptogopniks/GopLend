@@ -66,6 +66,7 @@ pub struct BiddedCollateralItem {
     pub liquidator: Addr,
     pub bid_creation_date: u64,
     pub liquidation_price: Uint128,
+    pub collateral_price: Uint128,
     pub bid_discount: Decimal,
     pub is_offer: bool,
 }

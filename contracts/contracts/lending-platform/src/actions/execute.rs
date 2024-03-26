@@ -1429,13 +1429,22 @@ pub fn try_process(
         )?;
 
         // calculate how much tokens and what collection must be liquidated to get proper ltv
-        let liquidation_value = math::calc_liquidation_value(collateral_value, ltv, ltv_max);
-        println!("liquidation_value {:#?}", liquidation_value);
+        // for worst case (max discount)
+        let max_liquidation_value =
+            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
 
-        let liquidation_set =
-            math::calc_liquidation_set(&bidded_collateral_list, liquidation_value);
+        let liquidation_set = math::calc_liquidation_set(
+            &bidded_collateral_list,
+            max_liquidation_value,
+            ltv_max,
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
 
-        println!("liquidation_set {:#?}", liquidation_set);
         let current_liquidation_value =
             update_liquidation_storages(deps.storage, &liquidation_set)?;
 
