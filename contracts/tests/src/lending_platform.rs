@@ -2855,9 +2855,10 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     const LIQUIDATION_BID: u128 = 8_000;
     const DISCOUNT: &str = "0.1";
 
-    // 20, 0 % discount
-    // liquidator will pay ceil(680 * 0.8) + ceil(680) = 1_224
-    // ltv = (1_700 - 1_224) / 680 = 0.7
+    // 10 % discount
+    // liquidator will pay ceil(800 * 0.9) = 720
+    // ltv = (3400 - 720) / (4500 - 800) = 0.724
+    // ltv = (3400 - 1440) / (4500 - 1600) = 0.675
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -3046,6 +3047,12 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         }],
     )?;
 
+    // let ltv_before =
+    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    // let collaterals_before = project.lending_platform_query_collaterals(&None)?;
+    // let liquidation_bids_before =
+    //     project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+
     // process with liquidations
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
@@ -3058,32 +3065,47 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
-    let expected_collateral = vec![QueryCollateralsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        collateral: vec![
-            Collateral {
-                owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-            },
-            Collateral {
-                owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5", "4"].into_iter().map(|x| x.to_string()).collect(),
-            },
-        ],
-    }];
+    let expected_collateral = vec![
+        QueryCollateralsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            collateral: vec![
+                Collateral {
+                    owner: ProjectAccount::Bob.into(),
+                    token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                },
+                Collateral {
+                    owner: ProjectAccount::Alice.into(),
+                    token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                },
+            ],
+        },
+        QueryCollateralsResponseItem {
+            address: ProjectNft::Pinjeons.into(),
+            collateral: vec![
+                Collateral {
+                    owner: ProjectAccount::Bob.into(),
+                    token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                },
+                Collateral {
+                    owner: ProjectAccount::Alice.into(),
+                    token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                },
+            ],
+        },
+    ];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![
-            LiquidationBid {
+    let expected_liquidation_bids_after = vec![
+        QueryLiquidationBidsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec![],
+                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
                 amount: Uint128::new(
-                    LIQUIDATION_BID / 2
+                    LIQUIDATION_BID
                         - (u128_to_dec(COLLECTION_PRICE_AFTER)
                             * (Decimal::one() - str_to_dec(DISCOUNT)))
                         .to_uint_ceil()
@@ -3091,37 +3113,35 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 ),
                 discount: str_to_dec(DISCOUNT),
                 is_offer: false,
-            },
-            // LiquidationBid {
-            //     creation_date: 1571797429,
-            //     liquidator: ProjectAccount::Alice.into(),
-            //     token_id_list: vec![],
-            //     amount: Uint128::new(
-            //         LIQUIDATION_BID / 2
-            //             - (u128_to_dec(COLLECTION_PRICE_AFTER)
-            //                 * (Decimal::one() - str_to_dec(DISCOUNT)))
-            //             .to_uint_ceil()
-            //             .u128(),
-            //     ),
-            //     discount: str_to_dec(DISCOUNT),
-            // },
-        ],
-    }];
+            }],
+        },
+        QueryLiquidationBidsResponseItem {
+            address: ProjectNft::Pinjeons.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(
+                    LIQUIDATION_BID
+                        - 2 * (u128_to_dec(COLLECTION_PRICE_BEFORE)
+                            * (Decimal::one() - str_to_dec(DISCOUNT)))
+                        .to_uint_ceil()
+                        .u128(),
+                ),
+                discount: str_to_dec(DISCOUNT),
+                is_offer: false,
+            }],
+        },
+    ];
 
-    // println!("ltv_after {:#?}\n", ltv_after);
-    // println!("collaterals_after {:#?}\n", collaterals_after);
-    // println!("liquidation_bids_after {:#?}\n", liquidation_bids_after);
-
-    // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
-    // assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    // assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.71");
+    assert_that(&collaterals_after).is_equal_to(expected_collateral);
+    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
 
     Ok(())
 }
 
-// TODO: check multiple collections
 // TODO: check priority
 // TODO: check targeted liquidations
 // TODO: check balances changes
-// TODO: implement collateral selector
 // TODO: check marketplace interface

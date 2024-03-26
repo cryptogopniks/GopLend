@@ -1,4 +1,6 @@
-use cosmwasm_std::{Addr, Api, Deps, Order, StdResult, Storage, Uint128};
+use std::cmp::max;
+
+use cosmwasm_std::{Addr, Api, Decimal, Deps, Order, StdResult, Storage, Uint128};
 
 use cw_storage_plus::Bound;
 use goplend_base::{
@@ -11,14 +13,14 @@ use goplend_base::{
         },
         types::{
             Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo, Config,
-            LiquidationBid, Proposal, ProposalStatus,
+            LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
     oracle::{self, types::PriceItem},
     utils::{unwrap_field, AuthType},
 };
 
-use crate::math::calc_expected_rewards;
+use crate::math::{self, calc_expected_rewards};
 
 pub fn check_lockout(deps: Deps) -> StdResult<()> {
     if IS_LOCKED.load(deps.storage)? {
@@ -361,10 +363,34 @@ pub fn get_collateral_value(
     })
 }
 
+// find bids containing at least 1 borrower's collateral token
+pub fn get_collection_and_bid_list(
+    storage: &mut dyn Storage,
+    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
+) -> StdResult<Vec<(Addr, LiquidationBid)>> {
+    let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+
+    for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
+        for bid in LIQUIDATION_BIDS.load(storage, &collection_address)? {
+            if bid
+                .token_id_list
+                .iter()
+                .any(|id| collateral.token_id_list.contains(id))
+            {
+                collection_and_bid_list.push((collection_address.clone(), bid));
+            }
+        }
+    }
+
+    Ok(collection_and_bid_list)
+}
+
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
-) -> StdResult<()> {
+) -> StdResult<Uint128> {
+    let mut current_liquidation_value = Uint128::zero();
+
     for BiddedCollateralItem {
         collection,
         token_id,
@@ -375,6 +401,9 @@ pub fn update_liquidation_storages(
         ..
     } in liquidation_set
     {
+        // update current_liquidation_value
+        current_liquidation_value += liquidation_price;
+
         // update bids
         let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
             .load(storage, &collection)?
@@ -426,6 +455,94 @@ pub fn update_liquidation_storages(
 
         COLLATERALS.save(storage, &collection, &collaterals)?;
     }
+
+    Ok(current_liquidation_value)
+}
+
+pub fn update_borrowers_storages(
+    storage: &mut dyn Storage,
+    loan: &Vault,
+    borrower_address: &Addr,
+    current_liquidation_value: Uint128,
+    accumulated_loan: Uint128,
+    block_time: u64,
+    borrow_apr: Decimal,
+) -> StdResult<()> {
+    let accumulated_loan = math::calc_accumulated_loan(
+        borrow_apr,
+        accumulated_loan,
+        loan.amount,
+        block_time,
+        loan.creation_date,
+    );
+
+    let (amount, accumulated_loan) = if current_liquidation_value <= loan.amount {
+        (loan.amount - current_liquidation_value, accumulated_loan)
+    } else {
+        let amount_difference = current_liquidation_value - loan.amount;
+        (
+            Uint128::zero(),
+            max(accumulated_loan, amount_difference) - amount_difference,
+        )
+    };
+
+    // update borrowers
+    BORROWERS.save(
+        storage,
+        borrower_address,
+        &Borrower {
+            accumulated_loan,
+            loan: Vault {
+                creation_date: block_time,
+                amount,
+            },
+        },
+    )?;
+
+    Ok(())
+}
+
+pub fn update_balances(
+    storage: &mut dyn Storage,
+    block_time: u64,
+    borrow_apr: Decimal,
+    main_currency_pool_addition: Uint128,
+    total_liquidation_value: Uint128,
+    total_liquidation_bids: Uint128,
+) -> StdResult<()> {
+    // update contract balances
+    BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
+        let expected_rewards = math::calc_expected_rewards(
+            block_time,
+            balances.total_borrowed.creation_date,
+            borrow_apr,
+            balances.total_borrowed.amount,
+        );
+        let rewards = balances.accumulated_expected_rewards + expected_rewards;
+
+        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
+            (
+                balances.total_borrowed.amount - total_liquidation_value,
+                rewards,
+            )
+        } else {
+            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
+            (
+                Uint128::zero(),
+                max(rewards, amount_difference) - amount_difference,
+            )
+        };
+
+        balances.total_main_currency_pool += main_currency_pool_addition;
+        balances.total_borrowed = Vault {
+            amount,
+            creation_date: block_time,
+        };
+        balances.accumulated_expected_rewards = rewards;
+        balances.total_liquidation_bids -= total_liquidation_bids;
+
+        Ok(balances)
+    })?;
 
     Ok(())
 }

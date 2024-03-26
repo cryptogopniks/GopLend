@@ -120,7 +120,11 @@ pub fn calc_conditional_ltv(
     let collateral = collateral + amount_to_deposit;
     let accumulated_loan = accumulated_loan + amount_to_borrow;
 
-    if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
+    // if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
+    //     return Decimal::zero();
+    // }
+
+    if collateral.is_zero() {
         return Decimal::zero();
     }
 
@@ -132,6 +136,8 @@ pub fn calc_conditional_ltv(
     loan / u128_to_dec(collateral)
 }
 
+// ltv_max = (loan - sum((1 - discount) * liquidation_value)) / (collateral - sum(liquidation_value))
+//
 // 0 % discount
 // need to liquidate 2 * 650 = 1_300
 // liquidator will pay 1_300
@@ -150,9 +156,15 @@ pub fn calc_conditional_ltv(
 //
 // for discount = 0
 // liquidation_value = collateral * (ltv - ltv_max) / (1 - ltv_max)
-pub fn calc_liquidation_value(collateral: Uint128, ltv: Decimal, ltv_max: Decimal) -> Uint128 {
+pub fn calc_liquidation_value(
+    collateral: Uint128,
+    discount_rate: Decimal,
+    ltv: Decimal,
+    ltv_max: Decimal,
+) -> Uint128 {
     min(
-        (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - ltv_max)).to_uint_ceil(),
+        (u128_to_dec(collateral) * (ltv - ltv_max) / (Decimal::one() - discount_rate - ltv_max))
+            .to_uint_ceil(),
         collateral,
     )
 }
@@ -261,17 +273,18 @@ pub fn match_collaterals_and_bids(
             })?;
 
         for token_id in collateral.token_id_list.clone() {
-            for (bid_collection, bid) in collection_and_bid_list.iter_mut() {
+            for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
                 let discounted_price = calc_discounted_price(price.amount, bid.discount);
 
                 if bid.token_id_list.contains(&token_id) && bid.amount >= discounted_price {
                     bidded_collateral_list.push(BiddedCollateralItem {
-                        collection: bid_collection.clone(),
+                        collection: collateral_collection.clone(),
                         token_id: token_id.clone(),
                         owner: collateral.owner.clone(),
                         liquidator: bid.liquidator.clone(),
                         bid_creation_date: bid.creation_date,
                         liquidation_price: discounted_price,
+                        collateral_price: price.amount,
                         bid_discount: bid.discount,
                         is_offer: bid.is_offer,
                     });
@@ -286,9 +299,49 @@ pub fn match_collaterals_and_bids(
     Ok(bidded_collateral_list)
 }
 
+fn calc_liquidation_ltv(
+    bidded_collateral: &Vec<BiddedCollateralItem>,
+    borrow_apr: Decimal,
+    accumulated_loan: Uint128,
+    loan: Uint128,
+    collateral: Uint128,
+    block_time: u64,
+    loan_creation_date: u64,
+) -> Decimal {
+    let loan_diff = bidded_collateral
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur.liquidation_price);
+    let collateral_diff = bidded_collateral
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur.collateral_price);
+
+    let collateral = collateral - collateral_diff;
+
+    if collateral.is_zero() {
+        return Decimal::zero();
+    }
+
+    let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
+    let loan = u128_to_dec(accumulated_loan)
+        + u128_to_dec(loan)
+            * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS))
+        - u128_to_dec(loan_diff);
+
+    loan / u128_to_dec(collateral)
+}
+
+// there is no way to calculate liquidation_value properly
+// then ltv must be calculated on each iteration
 pub fn calc_liquidation_set(
     bidded_collateral_list: &Vec<BiddedCollateralItem>,
-    liquidation_value: Uint128,
+    max_liquidation_value: Uint128,
+    ltv_max: Decimal,
+    borrow_apr: Decimal,
+    accumulated_loan: Uint128,
+    loan: Uint128,
+    collateral: Uint128,
+    block_time: u64,
+    loan_creation_date: u64,
 ) -> Vec<BiddedCollateralItem> {
     const UPPER_VALUE_MULTIPLIER: &str = "1.5";
 
@@ -306,17 +359,18 @@ pub fn calc_liquidation_set(
     let subvector: Vec<BiddedCollateralItem> = bidded_collateral_list
         .iter()
         .cloned()
-        .filter(|x| x.liquidation_price <= liquidation_value)
+        .filter(|x| x.liquidation_price <= max_liquidation_value)
         .collect();
 
     // get smallest collateral_list item > liquidation_value or 1.5 * liquidation_value if it isn't found
     let upper_value = bidded_collateral_list
         .iter()
         .rev()
-        .find(|x| x.liquidation_price > liquidation_value)
+        .find(|x| x.liquidation_price > max_liquidation_value)
         .map(|x| x.liquidation_price)
         .unwrap_or(
-            (u128_to_dec(liquidation_value) * str_to_dec(UPPER_VALUE_MULTIPLIER)).to_uint_floor(),
+            (u128_to_dec(max_liquidation_value) * str_to_dec(UPPER_VALUE_MULTIPLIER))
+                .to_uint_floor(),
         )
         .to_owned();
 
@@ -327,7 +381,17 @@ pub fn calc_liquidation_set(
         let mut temp: Vec<BiddedCollateralItem> = vec![bidded_collateral_item.clone()];
         let mut collateral_sum: Uint128 = bidded_collateral_item.liquidation_price;
 
-        if collateral_sum >= liquidation_value && collateral_sum < upper_value {
+        let ltv = calc_liquidation_ltv(
+            &temp,
+            borrow_apr,
+            accumulated_loan,
+            loan,
+            collateral,
+            block_time,
+            loan_creation_date,
+        );
+
+        if ltv <= ltv_max {
             result.push(temp.clone());
             continue;
         }
@@ -342,7 +406,17 @@ pub fn calc_liquidation_set(
 
             temp.push(bidded_collateral_item_next.to_owned());
 
-            if collateral_sum_next >= liquidation_value && collateral_sum_next < upper_value {
+            let ltv = calc_liquidation_ltv(
+                &temp,
+                borrow_apr,
+                accumulated_loan,
+                loan,
+                collateral,
+                block_time,
+                loan_creation_date,
+            );
+
+            if ltv <= ltv_max {
                 result.push(temp.clone());
                 temp.pop();
                 continue;
@@ -365,5 +439,8 @@ pub fn calc_liquidation_set(
             .fold(Uint128::zero(), |acc, cur| acc + cur.liquidation_price)
     });
 
-    result.first().map(|x| x.to_owned()).unwrap_or_default()
+    result
+        .first()
+        .map(|x| x.to_owned())
+        .unwrap_or(bidded_collateral_list.to_owned())
 }

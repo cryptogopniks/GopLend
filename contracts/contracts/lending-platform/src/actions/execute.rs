@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use cosmwasm_std::{
     to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
     StdResult, Uint128, WasmMsg,
@@ -18,9 +16,8 @@ use goplend_base::{
             PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidatedPosition,
-            LiquidationBid, Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType,
-            Unbonder, Vault,
+            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
+            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -34,10 +31,12 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        get_borrowers, get_collateral_value, get_collaterals_by_borrower, get_collection_prices,
-        increase_platform_revenue, verify_proposal_status,
+        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
+        get_collection_and_bid_list, get_collection_prices, increase_platform_revenue,
+        update_balances, update_borrowers_storages, update_liquidation_storages,
+        verify_proposal_status,
     },
-    math,
+    math::{self, match_collaterals_and_bids},
 };
 
 pub fn try_deposit(
@@ -1374,7 +1373,7 @@ pub fn try_process(
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
-    let mut total_liquidation_bids = Uint128::zero();
+    let total_liquidation_bids = Uint128::zero();
 
     // iterate over borrowers
     for (
@@ -1414,191 +1413,52 @@ pub fn try_process(
             loan.creation_date,
         );
 
-        // if ltv is high liquidate required amount
-
-        // no liquidation, check next borrower
+        // if ltv is low check next borrower, otherwise liquidate required amount
         if ltv <= ltv_max {
             continue;
         }
 
         // find bids containing at least 1 borrower's collateral token
-        let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+        let collection_and_bid_list =
+            get_collection_and_bid_list(deps.storage, &collection_and_collateral_list_by_borrower)?;
 
-        for (collection_address, collateral) in &collection_and_collateral_list_by_borrower {
-            for bid in LIQUIDATION_BIDS.load(deps.storage, &collection_address)? {
-                if bid
-                    .token_id_list
-                    .iter()
-                    .any(|id| collateral.token_id_list.contains(id))
-                {
-                    collection_and_bid_list.push((collection_address.clone(), bid));
-                }
-            }
-        }
-
-        // TODO: if collection_and_bid_list.is_empty() then accept offers
-
-        // sort bids by discount and creation date
-        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
-        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
-        collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.discount);
+        let bidded_collateral_list = match_collaterals_and_bids(
+            &collection_and_collateral_list_by_borrower,
+            &collection_and_bid_list,
+            &prices,
+        )?;
 
         // calculate how much tokens and what collection must be liquidated to get proper ltv
-        let liquidation_value = math::calc_liquidation_value(collateral_value, ltv, ltv_max);
+        // for worst case (max discount)
+        let max_liquidation_value =
+            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
 
-        // find min list of bids to get proper ltv
-        let mut current_liquidation_value = Uint128::zero();
-        let mut liquidated_collection_token_and_price_list: Vec<LiquidatedPosition> = vec![];
-
-        for (collection_address, mut bid) in collection_and_bid_list {
-            if current_liquidation_value >= liquidation_value {
-                break;
-            }
-
-            let (
-                _,
-                Collateral {
-                    token_id_list: token_list_in_collateral,
-                    ..
-                },
-            ) = collection_and_collateral_list_by_borrower
-                .iter()
-                .find(|(collection, _)| collection == collection_address)
-                .ok_or(ContractError::CollectionIsNotFound)?;
-
-            // common tokens for collateral and bid
-            let mut target_tokens: Vec<String> = bid
-                .token_id_list
-                .into_iter()
-                .filter(|id| token_list_in_collateral.contains(id))
-                .rev()
-                .collect();
-
-            if target_tokens.is_empty() {
-                continue;
-            }
-
-            let oracle::types::PriceItem { price, .. } = prices
-                .iter()
-                .find(|x| x.address == collection_address)
-                .ok_or(ContractError::PriceIsNotFound {
-                    val: collection_address.to_string(),
-                })?;
-
-            let discounted_price = math::calc_discounted_price(price.amount, bid.discount);
-
-            while !target_tokens.is_empty()
-                && bid.amount >= discounted_price
-                && current_liquidation_value < liquidation_value
-            {
-                let removed_target_token = target_tokens.pop(); // list reversed before
-                if let Some(id) = removed_target_token {
-                    liquidated_collection_token_and_price_list.push(LiquidatedPosition {
-                        collection_address: collection_address.clone(),
-                        token_id: id,
-                        liquidation_price: discounted_price,
-                        liquidator: bid.liquidator.clone(),
-                    });
-                }
-
-                total_liquidation_bids += discounted_price;
-                bid.amount -= discounted_price;
-                current_liquidation_value += discounted_price;
-            }
-
-            // TODO: if current_liquidation_value < liquidation_value then accept offers partially
-        }
-
-        for LiquidatedPosition {
-            collection_address,
-            token_id,
-            liquidation_price,
-            liquidator,
-        } in &liquidated_collection_token_and_price_list
-        {
-            // update bids
-            let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
-                .load(deps.storage, &collection_address)?
-                .into_iter()
-                .map(|mut bid| {
-                    if bid.token_id_list.contains(token_id) {
-                        bid.amount -= liquidation_price;
-                        bid.token_id_list = bid
-                            .token_id_list
-                            .into_iter()
-                            .filter(|id| id != token_id)
-                            .collect();
-                    }
-
-                    bid
-                })
-                .collect();
-
-            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &bids)?;
-
-            // update collaterals
-            let mut collaterals = COLLATERALS.load(deps.storage, &collection_address)?;
-
-            let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-            if collaterals_by_liquidator.is_none() {
-                collaterals.push(Collateral {
-                    owner: liquidator.to_owned(),
-                    token_id_list: vec![],
-                });
-            }
-
-            collaterals = collaterals
-                .into_iter()
-                .map(|mut x| {
-                    if x.owner == borrower_address {
-                        x.token_id_list = x
-                            .token_id_list
-                            .into_iter()
-                            .filter(|id| id != token_id)
-                            .collect();
-                    } else if x.owner == liquidator {
-                        x.token_id_list.push(token_id.to_string());
-                    }
-
-                    x
-                })
-                .filter(|x| !x.token_id_list.is_empty())
-                .collect();
-
-            COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
-        }
-
-        total_liquidation_value += current_liquidation_value;
-
-        let accumulated_loan = math::calc_accumulated_loan(
+        let liquidation_set = math::calc_liquidation_set(
+            &bidded_collateral_list,
+            max_liquidation_value,
+            ltv_max,
             borrow_apr,
             accumulated_loan,
             loan.amount,
+            collateral_value,
             block_time,
             loan.creation_date,
         );
 
-        let (amount, accumulated_loan) = if current_liquidation_value <= loan.amount {
-            (loan.amount - current_liquidation_value, accumulated_loan)
-        } else {
-            let amount_difference = current_liquidation_value - loan.amount;
-            (
-                Uint128::zero(),
-                max(accumulated_loan, amount_difference) - amount_difference,
-            )
-        };
+        let current_liquidation_value =
+            update_liquidation_storages(deps.storage, &liquidation_set)?;
 
-        // update borrowers
-        BORROWERS.save(
+        // update total_liquidation_value and borrowers_storages
+        total_liquidation_value += current_liquidation_value;
+
+        update_borrowers_storages(
             deps.storage,
+            &loan,
             &borrower_address,
-            &Borrower {
-                accumulated_loan,
-                loan: Vault {
-                    creation_date: block_time,
-                    amount,
-                },
-            },
+            current_liquidation_value,
+            accumulated_loan,
+            block_time,
+            borrow_apr,
         )?;
     }
 
@@ -1615,38 +1475,14 @@ pub fn try_process(
     )?;
 
     // update contract balances
-    BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
-        let expected_rewards = math::calc_expected_rewards(
-            block_time,
-            balances.total_borrowed.creation_date,
-            borrow_apr,
-            balances.total_borrowed.amount,
-        );
-        let rewards = balances.accumulated_expected_rewards + expected_rewards;
-
-        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
-            (
-                balances.total_borrowed.amount - total_liquidation_value,
-                rewards,
-            )
-        } else {
-            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
-            (
-                Uint128::zero(),
-                max(rewards, amount_difference) - amount_difference,
-            )
-        };
-
-        balances.total_main_currency_pool += main_currency_pool_addition;
-        balances.total_borrowed = Vault {
-            amount,
-            creation_date: block_time,
-        };
-        balances.accumulated_expected_rewards = rewards;
-        balances.total_liquidation_bids -= total_liquidation_bids;
-
-        Ok(balances)
-    })?;
+    update_balances(
+        deps.storage,
+        block_time,
+        borrow_apr,
+        main_currency_pool_addition,
+        total_liquidation_value,
+        total_liquidation_bids,
+    )?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_process")]))
 }
