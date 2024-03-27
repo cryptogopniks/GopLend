@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod lending_platform;
+#[cfg(test)]
 pub mod math;
 #[cfg(test)]
 pub mod oracle;

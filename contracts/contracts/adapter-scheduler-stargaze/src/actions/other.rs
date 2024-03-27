@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_json_binary, CosmosMsg, DepsMut, Env, Response, Storage, WasmMsg};
+use cosmwasm_std::{DepsMut, Env, Response, Storage};
 use cw2::{get_contract_version, set_contract_version};
 
 use semver::Version;
@@ -21,7 +21,7 @@ pub fn try_push(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Contr
 
     let block_time = env.block.time.seconds();
     let Config {
-        lending_platform,
+        //   lending_platform,
         clock_source,
         min_clock_period,
         ..

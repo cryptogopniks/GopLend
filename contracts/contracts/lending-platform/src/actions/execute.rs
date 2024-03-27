@@ -31,12 +31,10 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
-        get_collection_and_bid_list, get_collection_prices, increase_platform_revenue,
-        update_balances, update_borrowers_storages, update_liquidation_storages,
-        verify_proposal_status,
+        increase_platform_revenue, update_balances, update_borrowers_storages,
+        update_liquidation_storages, verify_proposal_status,
     },
-    math::{self, match_collaterals_and_bids},
+    math,
 };
 
 pub fn try_deposit(

@@ -2635,8 +2635,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -2848,8 +2848,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
