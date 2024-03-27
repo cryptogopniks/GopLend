@@ -8,7 +8,7 @@ use crate::{
     lending_platform::types::{Collateral, Collection, CollectionInfo, Proposal},
 };
 
-use super::types::{Borrower, LiquidationBid, Liquidator, Unbonder};
+use super::types::{Borrower, LiquidationBid, LiquidationItem, Liquidator, Unbonder};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -26,7 +26,6 @@ pub struct InstantiateMsg {
     pub discount_min_rate: Option<Decimal>,
     pub discount_max_rate: Option<Decimal>,
     pub bid_min_rate: Option<Decimal>,
-    pub pagination_amount: Option<u32>,
     pub collateral_min_value: Option<Uint128>,
     pub min_available_liquidity_multiplier: Option<Decimal>,
     pub price_update_period: Option<u64>,
@@ -84,8 +83,8 @@ pub enum ExecuteMsg {
     },
 
     // scheduler
-    Process {
-        borrowers: Option<Vec<String>>,
+    Liquidate {
+        targets: Vec<LiquidationItem>,
     },
 
     // admin
@@ -104,7 +103,6 @@ pub enum ExecuteMsg {
         discount_min_rate: Option<Decimal>,
         discount_max_rate: Option<Decimal>,
         bid_min_rate: Option<Decimal>,
-        pagination_amount: Option<u32>,
         collateral_min_value: Option<Uint128>,
         min_available_liquidity_multiplier: Option<Decimal>,
         price_update_period: Option<u64>,
@@ -194,19 +192,15 @@ pub enum QueryMsg {
         amount_to_borrow: Option<Uint128>,
     },
 
-    // TODO: add on backend
-    // #[returns(Vec<(Addr, Decimal)>)]
-    // QueryLtvList {
-    //     start_after: Option<String>,
-    //     limit: Option<u32>,
-    // },
-    //
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
     //
     // TODO: add available to borrow by user
     // #[returns(Uint128)]
     // QueryAvailableToBorrow { borrower: String },
+    //
+    #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
+    QueryTargets { borrowers: Vec<String> },
 }
 
 #[cw_serde]

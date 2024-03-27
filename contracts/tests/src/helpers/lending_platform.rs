@@ -12,7 +12,7 @@ use goplend_base::{
             QueryLiquidatorsResponseItem, QueryMsg, QueryProposalsResponseItem,
             QueryUnbondersResponseItem,
         },
-        types::{Balances, CollectionInfo, Config, Proposal},
+        types::{Balances, CollectionInfo, Config, LiquidationItem, Proposal},
     },
 };
 
@@ -89,10 +89,10 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_process(
+    fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
@@ -112,7 +112,6 @@ pub trait LendingPlatformExtension {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
-        pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -223,6 +222,11 @@ pub trait LendingPlatformExtension {
     ) -> StdResult<Decimal>;
 
     fn lending_platform_query_total_available_to_borrow_liquidity(&self) -> StdResult<Uint128>;
+
+    fn lending_platform_query_targets(
+        &self,
+        borrowers: &Vec<impl ToString>,
+    ) -> StdResult<Vec<LiquidationItem>>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -391,19 +395,17 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_process(
+    fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.to_owned(),
                 self.get_lending_platform_address(),
-                &ExecuteMsg::Process {
-                    borrowers: borrowers
-                        .as_ref()
-                        .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                &ExecuteMsg::Liquidate {
+                    targets: targets.to_owned(),
                 },
                 &[],
             )
@@ -428,7 +430,6 @@ impl LendingPlatformExtension for Project {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
-        pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -453,7 +454,6 @@ impl LendingPlatformExtension for Project {
                     discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
                     discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                     bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
-                    pagination_amount: pagination_amount.as_ref().map(|x| x.to_owned()),
                     collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
                     min_available_liquidity_multiplier: min_available_liquidity_multiplier
                         .as_ref()
@@ -781,6 +781,19 @@ impl LendingPlatformExtension for Project {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryTotalAvailableToBorrowLiquidity {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_targets(
+        &self,
+        borrowers: &Vec<impl ToString>,
+    ) -> StdResult<Vec<LiquidationItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryTargets {
+                borrowers: borrowers.into_iter().map(|x| x.to_string()).collect(),
+            },
         )
     }
 }

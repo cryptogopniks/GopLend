@@ -59,6 +59,12 @@ pub struct Collateral {
 }
 
 #[cw_serde]
+pub struct LiquidationItem {
+    pub borrower: String,
+    pub liquidation_set: Vec<BiddedCollateralItem>,
+}
+
+#[cw_serde]
 pub struct BiddedCollateralItem {
     pub collection: Addr,
     pub token_id: String,
@@ -109,6 +115,7 @@ pub struct Balances {
     pub reserve_bgl_currency_supply: Uint128,
 }
 
+// TODO: split
 #[cw_serde]
 pub struct Config {
     pub admin: Addr,
@@ -130,27 +137,4 @@ pub struct Config {
     pub min_available_liquidity_multiplier: Decimal,
     pub price_update_period: u64,
     pub is_marketplace_interface_enabled: bool,
-}
-
-#[cw_serde]
-pub struct PaginationConfig {
-    pagination_amount: u32,
-    pub pagination_index: Option<Addr>,
-}
-
-impl PaginationConfig {
-    pub fn new(pagination_amount: u32, pagination_index: &Option<Addr>) -> Self {
-        Self {
-            pagination_amount,
-            pagination_index: pagination_index.to_owned(),
-        }
-    }
-
-    pub fn get_amount(&self) -> u32 {
-        let Self {
-            pagination_amount, ..
-        } = self.to_owned();
-
-        pagination_amount
-    }
 }

@@ -43,16 +43,16 @@ pub fn try_push(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, Contr
     }
     LOG.push_back(deps.storage, &(block_time, cnt))?;
 
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
-        msg: to_json_binary(&goplend_base::lending_platform::msg::ExecuteMsg::Process {
-            borrowers: None,
-        })?,
-        funds: vec![],
-    });
+    // let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+    //     contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
+    //     msg: to_json_binary(
+    //         &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets },
+    //     )?,
+    //     funds: vec![],
+    // });
 
     Ok(Response::new()
-        .add_message(msg)
+        //       .add_message(msg)
         .add_attributes(vec![("action", "try_push")]))
 }
 

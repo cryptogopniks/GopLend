@@ -1,5 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
+use crate::lending_platform::types::LiquidationItem;
+
 use super::types::ClockSource;
 
 #[cw_serde]
@@ -35,7 +37,7 @@ pub enum ExecuteMsg {
 
     // scheduler
     Push {
-        borrowers: Option<Vec<String>>,
+        targets: Vec<LiquidationItem>,
     },
 }
 

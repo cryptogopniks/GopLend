@@ -16,7 +16,7 @@ use goplend_base::{
 use lending_platform::math::calc_ltv_max;
 use speculoos::assert_that;
 
-use cosmwasm_std::{Decimal, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use crate::helpers::{
     adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
@@ -323,7 +323,6 @@ fn collateral_value_limitations() -> StdResult<()> {
         &None,
         &None,
         &None,
-        &None,
         &Some(1_200_000_000),
         &None,
         &None,
@@ -534,7 +533,6 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -967,7 +965,6 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1054,10 +1051,17 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
 
     // process without liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let collaterals_after = project.lending_platform_query_collaterals(&None)?;
@@ -1083,10 +1087,17 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -1175,7 +1186,6 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1270,10 +1280,17 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -1362,7 +1379,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1454,10 +1470,17 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -1546,7 +1569,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1638,10 +1660,17 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -1730,7 +1759,6 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1825,10 +1853,17 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after = project
@@ -1909,7 +1944,6 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2004,10 +2038,17 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -2096,7 +2137,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2188,10 +2228,17 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -2280,7 +2327,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2372,10 +2418,17 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -2456,7 +2509,6 @@ fn single_discount_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -2565,10 +2617,17 @@ fn single_discount_liquidation() -> StdResult<()> {
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -2655,7 +2714,6 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -2772,10 +2830,17 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
@@ -2890,7 +2955,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -3054,10 +3118,17 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     //     project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrowers(&None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =

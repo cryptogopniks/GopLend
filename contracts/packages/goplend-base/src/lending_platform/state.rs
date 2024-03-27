@@ -4,8 +4,8 @@ use cw_storage_plus::{Item, Map};
 use crate::{
     assets::{Funds, Token},
     lending_platform::types::{
-        Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
-        PaginationConfig, Proposal, Unbonder,
+        Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator, Proposal,
+        Unbonder,
     },
 };
 
@@ -38,12 +38,12 @@ pub const MIN_AVAILABLE_LIQUIDITY_MULTIPLIER: &str = "0.15";
 pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
 pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
 
+// TODO: use for queries
 pub const PAGINATION_AMOUNT: u32 = 10;
 pub const PAGINATION_INDEX: Option<Addr> = None;
 
 pub const IS_LOCKED: Item<bool> = Item::new("is locked");
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const PAGINATION_CONFIG: Item<PaginationConfig> = Item::new("pagination config");
 pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");

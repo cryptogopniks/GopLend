@@ -14,15 +14,21 @@ use goplend_base::{
             PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
-            Unbonder,
+            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, LiquidationItem,
+            Liquidator, Unbonder,
         },
     },
     oracle,
     utils::{filter_by_address_list, unwrap_field},
 };
 
-use crate::math;
+use crate::{
+    helpers::{
+        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
+        get_collection_and_bid_list, get_collection_prices,
+    },
+    math::{self, match_collaterals_and_bids},
+};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -388,4 +394,114 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     );
 
     Ok(total_available_to_borrow_liquidity)
+}
+
+pub fn query_targets(
+    deps: Deps,
+    env: Env,
+    borrowers: Vec<String>,
+) -> StdResult<Vec<LiquidationItem>> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr,
+        oracle,
+        discount_max_rate,
+        discount_min_rate,
+        bid_min_rate,
+        price_update_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+
+    let borrowers = get_borrowers(deps.storage, deps.api, &borrowers)?;
+
+    // get all collaterals
+    let collection_and_collateral_list: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .collect();
+
+    // get collection prices
+    let prices = get_collection_prices(deps, &borrowers, &collection_and_collateral_list, oracle)?;
+
+    // accumulators
+    let mut targets: Vec<LiquidationItem> = vec![];
+
+    // iterate over borrowers
+    for (
+        borrower_address,
+        Borrower {
+            accumulated_loan,
+            loan,
+        },
+    ) in borrowers
+    {
+        // get collaterals owned by borrower
+        let collection_and_collateral_list_by_borrower =
+            get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address)?;
+
+        let collateral_value_option = get_collateral_value(
+            &collection_and_collateral_list_by_borrower,
+            &prices,
+            block_time,
+            price_update_period,
+        )?;
+        // go to next borrower if any price is outdated
+        if collateral_value_option.is_none() {
+            continue;
+        }
+        let collateral_value = collateral_value_option.unwrap();
+
+        // check ltv
+        let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+        let ltv = math::calc_conditional_ltv(
+            borrow_apr,
+            Uint128::zero(),
+            accumulated_loan,
+            loan.amount,
+            Uint128::zero(),
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
+
+        // if ltv is low check next borrower, otherwise liquidate required amount
+        if ltv <= ltv_max {
+            continue;
+        }
+
+        // find bids containing at least 1 borrower's collateral token
+        let collection_and_bid_list =
+            get_collection_and_bid_list(deps.storage, &collection_and_collateral_list_by_borrower)?;
+
+        let bidded_collateral_list = match_collaterals_and_bids(
+            &collection_and_collateral_list_by_borrower,
+            &collection_and_bid_list,
+            &prices,
+        )?;
+
+        // calculate how much tokens and what collection must be liquidated to get proper ltv
+        // for worst case (max discount)
+        let max_liquidation_value =
+            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
+
+        let liquidation_set = math::calc_liquidation_set(
+            &bidded_collateral_list,
+            max_liquidation_value,
+            ltv_max,
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
+
+        targets.push(LiquidationItem {
+            borrower: borrower_address.to_string(),
+            liquidation_set,
+        });
+    }
+
+    Ok(targets)
 }

@@ -134,7 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Process { borrowers } => e::try_process(deps, env, info, borrowers),
+        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
         ExecuteMsg::UpdateConfig {
             owner,
@@ -151,7 +151,6 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
-            pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
@@ -174,7 +173,6 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
-            pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
@@ -275,6 +273,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
+        }
+
+        QueryMsg::QueryTargets { borrowers } => {
+            to_json_binary(&q::query_targets(deps, env, borrowers)?)
         }
     }
 }

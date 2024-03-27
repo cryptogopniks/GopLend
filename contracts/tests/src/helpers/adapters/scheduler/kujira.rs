@@ -7,6 +7,7 @@ use goplend_base::{
         types::{ClockSource, Config},
     },
     error::parse_err,
+    lending_platform::types::LiquidationItem,
 };
 
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
@@ -25,7 +26,7 @@ pub trait AdapterSchedulerKujiraExtension {
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config>;
@@ -65,7 +66,7 @@ impl AdapterSchedulerKujiraExtension for Project {
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse> {
         match clock_source {
             ClockSource::Offchain => self
@@ -74,9 +75,7 @@ impl AdapterSchedulerKujiraExtension for Project {
                     sender.into(),
                     self.get_adapter_scheduler_kujira_address(),
                     &ExecuteMsg::Push {
-                        borrowers: borrowers
-                            .as_ref()
-                            .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                        targets: targets.to_owned(),
                     },
                     &[],
                 )
