@@ -14,9 +14,6 @@ pub const CONTRACT_NAME: &str = "cryptogopniks-lending-platform";
 pub const MAIN_CURRENCY_DECIMALS: u8 = 6;
 pub const BGL_CURRENCY_DECIMALS: u8 = 6;
 
-pub const CW20_NAME: &str = "bonded GopLend STARS";
-pub const CW20_SYMBOL: &str = "bglSTARS";
-
 pub const YEAR_IN_SECONDS: u64 = 365 * 24 * 3600;
 pub const UNBONDING_PERIOD: u64 = 14 * 24 * 3600;
 pub const BORROW_APR: &str = "0.25";

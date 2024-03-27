@@ -223,6 +223,12 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_total_available_to_borrow_liquidity(&self) -> StdResult<Uint128>;
 
+    fn lending_platform_query_available_to_borrow(
+        &self,
+        borrower: ProjectAccount,
+        target_ltv: &Option<&str>,
+    ) -> StdResult<Uint128>;
+
     fn lending_platform_query_targets(
         &self,
         borrowers: &Vec<impl ToString>,
@@ -781,6 +787,21 @@ impl LendingPlatformExtension for Project {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryTotalAvailableToBorrowLiquidity {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_available_to_borrow(
+        &self,
+        borrower: ProjectAccount,
+        target_ltv: &Option<&str>,
+    ) -> StdResult<Uint128> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryAvailableToBorrow {
+                borrower: borrower.to_string(),
+                target_ltv: target_ltv.as_ref().map(|x| str_to_dec(x)),
+            },
         )
     }
 

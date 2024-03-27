@@ -396,6 +396,108 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     Ok(total_available_to_borrow_liquidity)
 }
 
+pub fn query_available_to_borrow(
+    deps: Deps,
+    env: Env,
+    borrower: String,
+    target_ltv: Option<Decimal>,
+) -> StdResult<Uint128> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr,
+        oracle,
+        price_update_period,
+        bid_min_rate,
+        discount_max_rate,
+        discount_min_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let borrower_address = deps.api.addr_validate(&borrower)?;
+    let borrower = BORROWERS
+        .load(deps.storage, &borrower_address)
+        .unwrap_or_default();
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_collection, collaterals)| {
+            collaterals
+                .into_iter()
+                .any(|collateral| collateral.owner == borrower_address)
+        })
+        .map(
+            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                // single collateral per collection
+                let collateral = collaterals
+                    .into_iter()
+                    .find(|collateral| collateral.owner == borrower_address)
+                    .ok_or(ContractError::CollateralIsNotFound)?;
+
+                Ok((collection, collateral))
+            },
+        )
+        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    // TODO: limit prices change rate to protect against oracle attack
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let oracle::types::PriceItem {
+                price,
+                price_update_date,
+                ..
+            } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if block_time - price_update_date > price_update_period {
+                Err(ContractError::OutdatedPrice {
+                    val: collection_address.to_string(),
+                })?;
+            }
+
+            // TODO: decimals, other currencies
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    if collateral_value.is_zero()
+        && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
+    {
+        Err(ContractError::CollateralIsNotFound)?;
+    }
+
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv = target_ltv.unwrap_or(ltv_max);
+    let accumulated_loan = math::calc_accumulated_loan(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    );
+    let loan = borrower.loan.amount + accumulated_loan;
+
+    Ok(math::calc_available_to_borrow(ltv, collateral_value, loan))
+}
+
 pub fn query_targets(
     deps: Deps,
     env: Env,

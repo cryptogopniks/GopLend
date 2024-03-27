@@ -275,6 +275,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
         }
 
+        QueryMsg::QueryAvailableToBorrow {
+            borrower,
+            target_ltv,
+        } => to_json_binary(&q::query_available_to_borrow(
+            deps, env, borrower, target_ltv,
+        )?),
+
         QueryMsg::QueryTargets { borrowers } => {
             to_json_binary(&q::query_targets(deps, env, borrowers)?)
         }

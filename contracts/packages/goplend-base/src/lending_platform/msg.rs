@@ -194,11 +194,13 @@ pub enum QueryMsg {
 
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
-    //
-    // TODO: add available to borrow by user
-    // #[returns(Uint128)]
-    // QueryAvailableToBorrow { borrower: String },
-    //
+
+    #[returns(Uint128)]
+    QueryAvailableToBorrow {
+        borrower: String,
+        target_ltv: Option<Decimal>,
+    },
+
     #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
     QueryTargets { borrowers: Vec<String> },
 }

@@ -120,10 +120,6 @@ pub fn calc_conditional_ltv(
     let collateral = collateral + amount_to_deposit;
     let accumulated_loan = accumulated_loan + amount_to_borrow;
 
-    // if collateral.is_zero() && accumulated_loan.is_zero() && loan.is_zero() {
-    //     return Decimal::zero();
-    // }
-
     if collateral.is_zero() {
         return Decimal::zero();
     }
@@ -134,6 +130,20 @@ pub fn calc_conditional_ltv(
             * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS));
 
     loan / u128_to_dec(collateral)
+}
+
+pub fn calc_available_to_borrow(
+    target_ltv: Decimal,
+    collateral: Uint128,
+    loan: Uint128,
+) -> Uint128 {
+    if collateral.is_zero() {
+        return Uint128::zero();
+    }
+
+    let target_loan = (target_ltv * u128_to_dec(collateral)).to_uint_floor();
+
+    target_loan - min(loan, target_loan)
 }
 
 // ltv_max = (loan - sum((1 - discount) * liquidation_value)) / (collateral - sum(liquidation_value))
