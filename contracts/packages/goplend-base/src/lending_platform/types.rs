@@ -84,6 +84,7 @@ pub struct Vault {
     pub amount: Uint128,
 }
 
+#[derive(Default)]
 #[cw_serde]
 pub struct Unbonder {
     pub returned_and_unbonded: Vec<(Uint128, Vault)>,
@@ -96,6 +97,7 @@ pub struct Borrower {
     pub loan: Vault,
 }
 
+#[derive(Default)]
 #[cw_serde]
 pub struct Liquidator {
     pub collection_addresses: Vec<Addr>,

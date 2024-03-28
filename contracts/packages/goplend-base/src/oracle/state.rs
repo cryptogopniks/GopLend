@@ -8,6 +8,9 @@ use crate::{
 
 pub const CONTRACT_NAME: &str = "cryptogopniks-oracle";
 
+pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
+pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;
+
 pub const CONFIG: Item<Config> = Item::new("config");
 
 pub const PRICE_AND_DATE_LIST: Map<&Addr, (Funds<Token>, u64)> = Map::new("price and data list");

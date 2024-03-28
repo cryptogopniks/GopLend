@@ -48,7 +48,7 @@ fn default() -> StdResult<()> {
         ],
     )?;
 
-    let res = project.oracle_query_prices(&None)?;
+    let res = project.oracle_query_prices(&None, &None, &None)?;
 
     project.wait(3);
 

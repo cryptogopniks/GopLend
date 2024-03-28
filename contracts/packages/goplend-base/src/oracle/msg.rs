@@ -30,6 +30,8 @@ pub enum QueryMsg {
     #[returns(Vec<crate::oracle::types::PriceItem>)]
     QueryPrices {
         collection_addresses: Option<Vec<String>>,
+        start_after: Option<String>,
+        limit: Option<u32>,
     },
 
     #[returns(u64)]

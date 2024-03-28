@@ -251,6 +251,8 @@ pub fn get_collection_prices(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses_by_borrowers),
+            start_after: None,
+            limit: None,
         },
     )?;
 

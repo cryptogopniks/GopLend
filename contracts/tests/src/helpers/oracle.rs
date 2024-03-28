@@ -32,6 +32,8 @@ pub trait OracleExtension {
     fn oracle_query_prices(
         &self,
         collection_addresses: &Option<Vec<ProjectNft>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<PriceItem>>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
@@ -85,6 +87,8 @@ impl OracleExtension for Project {
     fn oracle_query_prices(
         &self,
         collection_addresses: &Option<Vec<ProjectNft>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<PriceItem>> {
         let collection_addresses = collection_addresses
             .as_ref()
@@ -94,6 +98,8 @@ impl OracleExtension for Project {
             self.get_oracle_address(),
             &QueryMsg::QueryPrices {
                 collection_addresses,
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
             },
         )
     }

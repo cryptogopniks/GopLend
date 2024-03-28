@@ -202,24 +202,3 @@ fn nonpayable(info: &MessageInfo) -> StdResult<()> {
 
     Ok(())
 }
-
-pub fn filter_by_address_list<T: Clone>(
-    api: &dyn Api,
-    addresses: &Option<Vec<String>>,
-    list: &Vec<(Addr, T)>,
-) -> StdResult<Vec<(Addr, T)>> {
-    if let Some(x) = addresses {
-        let address_list = x
-            .iter()
-            .map(|y| -> StdResult<Addr> { api.addr_validate(y) })
-            .collect::<StdResult<Vec<Addr>>>()?;
-
-        return Ok(list
-            .iter()
-            .cloned()
-            .filter(|(address, _)| address_list.contains(address))
-            .collect::<Vec<(Addr, T)>>());
-    }
-
-    Ok(list.to_owned())
-}

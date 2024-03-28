@@ -35,9 +35,8 @@ pub const MIN_AVAILABLE_LIQUIDITY_MULTIPLIER: &str = "0.15";
 pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
 pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
 
-// TODO: use for queries
-pub const PAGINATION_AMOUNT: u32 = 10;
-pub const PAGINATION_INDEX: Option<Addr> = None;
+pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
+pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;
 
 pub const IS_LOCKED: Item<bool> = Item::new("is locked");
 pub const CONFIG: Item<Config> = Item::new("config");

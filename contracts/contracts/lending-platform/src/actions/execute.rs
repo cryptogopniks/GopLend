@@ -316,6 +316,8 @@ pub fn try_deposit_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
         },
     )?;
 
@@ -503,6 +505,8 @@ pub fn try_withdraw_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
         },
     )?;
 
