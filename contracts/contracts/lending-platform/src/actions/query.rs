@@ -1,5 +1,6 @@
 use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
 
+use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Funds, Token},
     error::ContractError,
@@ -11,18 +12,24 @@ use goplend_base::{
         },
         state::{
             BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS, LIQUIDATORS,
-            PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
+            PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator,
-            Unbonder,
+            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, LiquidationItem,
+            Liquidator, Unbonder,
         },
     },
     oracle,
-    utils::{filter_by_address_list, unwrap_field},
+    utils::unwrap_field,
 };
 
-use crate::math;
+use crate::{
+    helpers::{
+        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
+        get_collection_and_bid_list, get_collection_prices,
+    },
+    math,
+};
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
@@ -36,139 +43,263 @@ pub fn query_balances(deps: Deps, _env: Env) -> StdResult<Balances> {
     BALANCES.load(deps.storage)
 }
 
-pub fn query_unbonders(
+pub fn query_unbonder_list(
     deps: Deps,
     _env: Env,
-    addresses: Option<Vec<String>>,
+    start_after: Option<String>,
+    limit: Option<u32>,
 ) -> StdResult<Vec<QueryUnbondersResponseItem>> {
-    let depositors: Vec<(Addr, Unbonder)> = UNBONDERS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
 
-    Ok(filter_by_address_list(deps.api, &addresses, &depositors)?
-        .into_iter()
-        .map(|(address, unbonder)| QueryUnbondersResponseItem { address, unbonder })
-        .collect())
-}
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
 
-pub fn query_borrowers(
-    deps: Deps,
-    _env: Env,
-    addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-    let borrowers: Vec<(Addr, Borrower)> = BORROWERS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    Ok(filter_by_address_list(deps.api, &addresses, &borrowers)?
-        .into_iter()
-        .map(|(address, borrower)| QueryBorrowersResponseItem { address, borrower })
-        .collect())
-}
-
-pub fn query_liquidators(
-    deps: Deps,
-    _env: Env,
-    addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
-    let liquidators: Vec<(Addr, Liquidator)> = LIQUIDATORS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    Ok(filter_by_address_list(deps.api, &addresses, &liquidators)?
-        .into_iter()
-        .map(|(address, liquidator)| QueryLiquidatorsResponseItem {
-            address,
-            liquidator,
+    Ok(UNBONDERS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, unbonder) = x.unwrap();
+            QueryUnbondersResponseItem { address, unbonder }
         })
         .collect())
 }
 
-pub fn query_collaterals(
+pub fn query_unbonder(deps: Deps, _env: Env, address: String) -> StdResult<Unbonder> {
+    Ok(UNBONDERS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default())
+}
+
+pub fn query_borrower_list(
     deps: Deps,
     _env: Env,
-    collection_addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryCollateralsResponseItem>> {
-    let collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryBorrowersResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
 
-    Ok(
-        filter_by_address_list(deps.api, &collection_addresses, &collaterals)?
-            .into_iter()
-            .map(|(address, collateral)| QueryCollateralsResponseItem {
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    Ok(BORROWERS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, borrower) = x.unwrap();
+            QueryBorrowersResponseItem { address, borrower }
+        })
+        .collect())
+}
+
+pub fn query_borrower(deps: Deps, _env: Env, address: String) -> StdResult<Borrower> {
+    Ok(BORROWERS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default())
+}
+
+pub fn query_liquidator_list(
+    deps: Deps,
+    _env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    Ok(LIQUIDATORS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, liquidator) = x.unwrap();
+            QueryLiquidatorsResponseItem {
+                address,
+                liquidator,
+            }
+        })
+        .collect())
+}
+
+pub fn query_liquidator(deps: Deps, _env: Env, address: String) -> StdResult<Liquidator> {
+    Ok(LIQUIDATORS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default())
+}
+
+pub fn query_collateral_list(
+    deps: Deps,
+    _env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    Ok(COLLATERALS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, collateral) = x.unwrap();
+            QueryCollateralsResponseItem {
                 address,
                 collateral,
+            }
+        })
+        .collect())
+}
+
+pub fn query_collateral(deps: Deps, _env: Env, address: String) -> StdResult<Vec<Collateral>> {
+    Ok(COLLATERALS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default())
+}
+
+pub fn query_liquidation_bids_by_collection_address_list(
+    deps: Deps,
+    _env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    Ok(LIQUIDATION_BIDS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, liquidation_bids) = x.unwrap();
+            QueryLiquidationBidsResponseItem {
+                address,
+                liquidation_bids,
+            }
+        })
+        .collect())
+}
+
+pub fn query_liquidation_bids_by_collection_address(
+    deps: Deps,
+    _env: Env,
+    address: String,
+) -> StdResult<Vec<LiquidationBid>> {
+    Ok(LIQUIDATION_BIDS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default())
+}
+
+pub fn query_liquidation_bids_by_liquidator_address_list(
+    deps: Deps,
+    _env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    let liquidation_bids: Vec<QueryLiquidationBidsResponseItem> = LIQUIDATORS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| -> StdResult<QueryLiquidationBidsResponseItem> {
+            let (
+                liquidator_address,
+                Liquidator {
+                    collection_addresses,
+                },
+            ) = x.unwrap();
+
+            let liquidation_bids = collection_addresses
+                .into_iter()
+                .map(|collection_address| -> StdResult<Vec<LiquidationBid>> {
+                    LIQUIDATION_BIDS.load(deps.storage, &collection_address)
+                })
+                .collect::<StdResult<Vec<Vec<LiquidationBid>>>>()?
+                .into_iter()
+                .flatten()
+                .collect::<Vec<LiquidationBid>>();
+
+            Ok(QueryLiquidationBidsResponseItem {
+                address: liquidator_address,
+                liquidation_bids,
             })
-            .collect(),
-    )
+        })
+        .collect::<StdResult<Vec<QueryLiquidationBidsResponseItem>>>()?;
+
+    Ok(liquidation_bids)
 }
 
-pub fn query_liquidation_bids_by_collection_addresses(
+pub fn query_liquidation_bids_by_liquidator_address(
     deps: Deps,
     _env: Env,
-    addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-    let liquidation_bids: Vec<(Addr, Vec<LiquidationBid>)> = LIQUIDATION_BIDS
-        .range(deps.storage, None, None, Order::Ascending)
+    address: String,
+) -> StdResult<Vec<LiquidationBid>> {
+    let liquidator = LIQUIDATORS
+        .load(deps.storage, &deps.api.addr_validate(&address)?)
+        .unwrap_or_default();
+
+    let liquidation_bids = liquidator
+        .collection_addresses
+        .into_iter()
+        .map(|collection_address| -> StdResult<Vec<LiquidationBid>> {
+            LIQUIDATION_BIDS.load(deps.storage, &collection_address)
+        })
+        .collect::<StdResult<Vec<Vec<LiquidationBid>>>>()?
+        .into_iter()
         .flatten()
-        .collect();
-
-    Ok(
-        filter_by_address_list(deps.api, &addresses, &liquidation_bids)?
-            .into_iter()
-            .map(
-                |(address, liquidation_bids)| QueryLiquidationBidsResponseItem {
-                    address,
-                    liquidation_bids,
-                },
-            )
-            .collect(),
-    )
-}
-
-pub fn query_liquidation_bids_by_liquidator_addresses(
-    deps: Deps,
-    _env: Env,
-    addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-    let liquidators: Vec<(Addr, Liquidator)> = LIQUIDATORS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    let liquidation_bids: Vec<QueryLiquidationBidsResponseItem> =
-        filter_by_address_list(deps.api, &addresses, &liquidators)?
-            .into_iter()
-            .map(
-                |(
-                    liquidator_address,
-                    Liquidator {
-                        collection_addresses,
-                    },
-                )|
-                 -> StdResult<QueryLiquidationBidsResponseItem> {
-                    let liquidation_bids = collection_addresses
-                        .into_iter()
-                        .map(|collection_address| -> StdResult<Vec<LiquidationBid>> {
-                            LIQUIDATION_BIDS.load(deps.storage, &collection_address)
-                        })
-                        .collect::<StdResult<Vec<Vec<LiquidationBid>>>>()?
-                        .into_iter()
-                        .flatten()
-                        .collect::<Vec<LiquidationBid>>();
-
-                    Ok(QueryLiquidationBidsResponseItem {
-                        address: liquidator_address,
-                        liquidation_bids,
-                    })
-                },
-            )
-            .collect::<StdResult<Vec<QueryLiquidationBidsResponseItem>>>()?;
+        .collect::<Vec<LiquidationBid>>();
 
     Ok(liquidation_bids)
 }
@@ -176,40 +307,62 @@ pub fn query_liquidation_bids_by_liquidator_addresses(
 pub fn query_proposals(
     deps: Deps,
     _env: Env,
-    last_amount: Option<u32>,
+    start_after: Option<u32>,
+    limit: Option<u32>,
 ) -> StdResult<Vec<QueryProposalsResponseItem>> {
-    let proposals: Vec<QueryProposalsResponseItem> = PROPOSALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .map(|(id, proposal)| QueryProposalsResponseItem { id, proposal })
-        .collect();
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
 
-    if let Some(x) = last_amount {
-        let x = (x as usize).clamp(0, proposals.len());
-        let from = proposals.len() - x;
-        return Ok(proposals[from..].to_vec());
-    }
+    let start_bound = match start_after {
+        Some(id) => Some(Bound::exclusive(id)),
+        None => None,
+    };
 
-    Ok(proposals)
-}
-
-pub fn query_collections(
-    deps: Deps,
-    _env: Env,
-    addresses: Option<Vec<String>>,
-) -> StdResult<Vec<QueryCollectionsResponseItem>> {
-    let collections: Vec<(Addr, Collection<Addr>)> = COLLECTIONS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    Ok(filter_by_address_list(deps.api, &addresses, &collections)?
-        .into_iter()
-        .map(|(address, collection)| QueryCollectionsResponseItem {
-            address,
-            collection,
+    Ok(PROPOSALS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (id, proposal) = x.unwrap();
+            QueryProposalsResponseItem { id, proposal }
         })
         .collect())
+}
+
+pub fn query_collection_list(
+    deps: Deps,
+    _env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<QueryCollectionsResponseItem>> {
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    Ok(COLLECTIONS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .map(|x| {
+            let (address, collection) = x.unwrap();
+            QueryCollectionsResponseItem {
+                address,
+                collection,
+            }
+        })
+        .collect())
+}
+
+pub fn query_collection(deps: Deps, _env: Env, address: String) -> StdResult<Collection<Addr>> {
+    COLLECTIONS.load(deps.storage, &deps.api.addr_validate(&address)?)
 }
 
 pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdResult<Decimal> {
@@ -263,6 +416,13 @@ pub fn query_conditional_deposit_apr(
     ))
 }
 
+// TODO
+//     #[returns(Vec<(Addr, Decimal)>)]
+//     QueryLtvList {
+//         start_after: Option<String>,
+//         limit: Option<u32>,
+//     },
+
 pub fn query_conditional_ltv(
     deps: Deps,
     env: Env,
@@ -315,6 +475,8 @@ pub fn query_conditional_ltv(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
         },
     )?;
 
@@ -388,4 +550,222 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     );
 
     Ok(total_available_to_borrow_liquidity)
+}
+
+pub fn query_available_to_borrow(
+    deps: Deps,
+    env: Env,
+    borrower: String,
+    target_ltv: Option<Decimal>,
+) -> StdResult<Uint128> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr,
+        oracle,
+        price_update_period,
+        bid_min_rate,
+        discount_max_rate,
+        discount_min_rate,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let borrower_address = deps.api.addr_validate(&borrower)?;
+    let borrower = BORROWERS
+        .load(deps.storage, &borrower_address)
+        .unwrap_or_default();
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_collection, collaterals)| {
+            collaterals
+                .into_iter()
+                .any(|collateral| collateral.owner == borrower_address)
+        })
+        .map(
+            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                // single collateral per collection
+                let collateral = collaterals
+                    .into_iter()
+                    .find(|collateral| collateral.owner == borrower_address)
+                    .ok_or(ContractError::CollateralIsNotFound)?;
+
+                Ok((collection, collateral))
+            },
+        )
+        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    // TODO: limit prices change rate to protect against oracle attack
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let oracle::types::PriceItem {
+                price,
+                price_update_date,
+                ..
+            } = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if block_time - price_update_date > price_update_period {
+                Err(ContractError::OutdatedPrice {
+                    val: collection_address.to_string(),
+                })?;
+            }
+
+            // TODO: decimals, other currencies
+            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+        },
+    )?;
+
+    if collateral_value.is_zero()
+        && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
+    {
+        Err(ContractError::CollateralIsNotFound)?;
+    }
+
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv = target_ltv.unwrap_or(ltv_max);
+    let accumulated_loan = math::calc_accumulated_loan(
+        borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    );
+    let loan = borrower.loan.amount + accumulated_loan;
+
+    Ok(math::calc_available_to_borrow(ltv, collateral_value, loan))
+}
+
+// TODO
+//     #[returns(QueryAmountsResponse)]
+//     QueryAmounts {},
+
+pub fn query_targets(
+    deps: Deps,
+    env: Env,
+    borrowers: Vec<String>,
+) -> StdResult<Vec<LiquidationItem>> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr,
+        oracle,
+        discount_max_rate,
+        discount_min_rate,
+        bid_min_rate,
+        price_update_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+
+    let borrowers = get_borrowers(deps.storage, deps.api, &borrowers)?;
+
+    // get all collaterals
+    let collection_and_collateral_list: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .collect();
+
+    // get collection prices
+    let prices = get_collection_prices(deps, &borrowers, &collection_and_collateral_list, oracle)?;
+
+    // accumulators
+    let mut targets: Vec<LiquidationItem> = vec![];
+
+    // iterate over borrowers
+    for (
+        borrower_address,
+        Borrower {
+            accumulated_loan,
+            loan,
+        },
+    ) in borrowers
+    {
+        // get collaterals owned by borrower
+        let collection_and_collateral_list_by_borrower =
+            get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address)?;
+
+        let collateral_value_option = get_collateral_value(
+            &collection_and_collateral_list_by_borrower,
+            &prices,
+            block_time,
+            price_update_period,
+        )?;
+        // go to next borrower if any price is outdated
+        if collateral_value_option.is_none() {
+            continue;
+        }
+        let collateral_value = collateral_value_option.unwrap();
+
+        // check ltv
+        let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+        let ltv = math::calc_conditional_ltv(
+            borrow_apr,
+            Uint128::zero(),
+            accumulated_loan,
+            loan.amount,
+            Uint128::zero(),
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
+
+        // if ltv is low check next borrower, otherwise liquidate required amount
+        if ltv <= ltv_max {
+            continue;
+        }
+
+        // find bids containing at least 1 borrower's collateral token
+        let collection_and_bid_list =
+            get_collection_and_bid_list(deps.storage, &collection_and_collateral_list_by_borrower)?;
+
+        let bidded_collateral_list = math::match_collaterals_and_bids(
+            &collection_and_collateral_list_by_borrower,
+            &collection_and_bid_list,
+            &prices,
+        )?;
+
+        // calculate how much tokens and what collection must be liquidated to get proper ltv
+        // for worst case (max discount)
+        let max_liquidation_value =
+            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
+
+        let liquidation_set = math::calc_liquidation_set(
+            &bidded_collateral_list,
+            max_liquidation_value,
+            ltv_max,
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            collateral_value,
+            block_time,
+            loan.creation_date,
+        );
+
+        targets.push(LiquidationItem {
+            borrower: borrower_address.to_string(),
+            liquidation_set,
+        });
+    }
+
+    Ok(targets)
 }

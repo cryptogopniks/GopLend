@@ -16,7 +16,7 @@ use goplend_base::{
 use lending_platform::math::calc_ltv_max;
 use speculoos::assert_that;
 
-use cosmwasm_std::{Decimal, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use crate::helpers::{
     adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
@@ -323,7 +323,6 @@ fn collateral_value_limitations() -> StdResult<()> {
         &None,
         &None,
         &None,
-        &None,
         &Some(1_200_000_000),
         &None,
         &None,
@@ -548,7 +547,6 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -647,14 +645,14 @@ fn clear_unbonders_storage() -> StdResult<()> {
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
 
-    let unbonders = project.lending_platform_query_unbonders(&None)?;
+    let unbonders = project.lending_platform_query_unbonder_list(&None, &None)?;
     assert_that(&unbonders.len()).is_equal_to(1);
 
     // wait and withdraw
     project.wait(config.unbonding_period);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
 
-    let unbonders = project.lending_platform_query_unbonders(&None)?;
+    let unbonders = project.lending_platform_query_unbonder_list(&None, &None)?;
     assert_that(&unbonders.is_empty()).is_equal_to(true);
 
     Ok(())
@@ -725,7 +723,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
         }],
     )?;
 
-    let collaterals = project.lending_platform_query_collaterals(&None)?;
+    let collaterals = project.lending_platform_query_collateral_list(&None, &None)?;
     assert_that(&collaterals.len()).is_equal_to(1);
 
     project.lending_platform_try_withdraw_collateral(
@@ -739,7 +737,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
         }],
     )?;
 
-    let collaterals = project.lending_platform_query_collaterals(&None)?;
+    let collaterals = project.lending_platform_query_collateral_list(&None, &None)?;
     assert_that(&collaterals.is_empty()).is_equal_to(true);
 
     Ok(())
@@ -814,12 +812,12 @@ fn clear_borrowers_storage() -> StdResult<()> {
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    let borrowers = project.lending_platform_query_borrowers(&None)?;
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
     assert_that(&borrowers.len()).is_equal_to(1);
 
     project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
-    let borrowers = project.lending_platform_query_borrowers(&None)?;
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
     assert_that(&borrowers.is_empty()).is_equal_to(true);
 
     Ok(())
@@ -902,8 +900,9 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         ProjectCoin::Stars,
     )?;
 
-    let liquidators = project.lending_platform_query_liquidators(&None)?;
-    let bids = project.lending_platform_query_liquidation_bids_by_liquidator_addresses(&None)?;
+    let liquidators = project.lending_platform_query_liquidator_list(&None, &None)?;
+    let bids =
+        project.lending_platform_query_liquidation_bids_by_liquidator_address_list(&None, &None)?;
 
     assert_that(&liquidators.len()).is_equal_to(1);
     assert_that(&bids.len()).is_equal_to(1);
@@ -917,8 +916,9 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         block_time,
     )?;
 
-    let liquidators = project.lending_platform_query_liquidators(&None)?;
-    let bids = project.lending_platform_query_liquidation_bids_by_liquidator_addresses(&None)?;
+    let liquidators = project.lending_platform_query_liquidator_list(&None, &None)?;
+    let bids =
+        project.lending_platform_query_liquidation_bids_by_liquidator_address_list(&None, &None)?;
 
     assert_that(&liquidators.is_empty()).is_equal_to(true);
     assert_that(&bids.is_empty()).is_equal_to(true);
@@ -953,7 +953,6 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -1049,20 +1048,27 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
 
     project.wait(100);
 
-    let collaterals_before = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_before = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_before =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     // process without liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     assert_that(&collaterals_before).is_equal_to(collaterals_after);
     assert_that(&liquidation_bids_before).is_equal_to(liquidation_bids_after);
@@ -1083,17 +1089,24 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -1175,7 +1188,6 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1270,17 +1282,24 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -1362,7 +1381,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1454,17 +1472,24 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -1546,7 +1571,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1638,17 +1662,24 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -1730,7 +1761,6 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -1825,18 +1855,25 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after = project
         .lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)
         .unwrap_err();
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -1909,7 +1946,6 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2004,17 +2040,24 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -2096,7 +2139,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2188,17 +2230,24 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -2280,7 +2329,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         &None,
         &None,
         &None,
-        &None,
         &Some(1),
         &None,
         &None,
@@ -2372,17 +2420,24 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
     let ltv_max = calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
@@ -2456,7 +2511,6 @@ fn single_discount_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -2565,19 +2619,26 @@ fn single_discount_liquidation() -> StdResult<()> {
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -2655,7 +2716,6 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -2772,19 +2832,26 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     )?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
-    let balances_after = project.lending_platform_query_balances()?;
-    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
+    // let balances_after = project.lending_platform_query_balances()?;
+    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -2890,7 +2957,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_config(
         ProjectAccount::Admin,
-        &None,
         &None,
         &None,
         &None,
@@ -3049,22 +3115,29 @@ fn multiple_collection_liquidation() -> StdResult<()> {
 
     // let ltv_before =
     //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    // let collaterals_before = project.lending_platform_query_collaterals(&None)?;
+    // let collaterals_before = project.lending_platform_query_collateral_list(&None,&None)?;
     // let liquidation_bids_before =
-    //     project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+    //     project.lending_platform_query_liquidation_bids_by_collection_address_list(&None,&None)?;
 
     // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address)
+        .collect::<Vec<Addr>>();
+    let targets = project.lending_platform_query_targets(&borrowers)?;
+
     project.adapter_scheduler_kujira_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
-        &None,
+        &targets,
     )?;
 
     let ltv_after =
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    let collaterals_after = project.lending_platform_query_collaterals(&None)?;
+    let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
-        project.lending_platform_query_liquidation_bids_by_collection_addresses(&None)?;
+        project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
     // let balances_after = project.lending_platform_query_balances()?;
     // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 

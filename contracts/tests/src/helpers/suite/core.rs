@@ -9,8 +9,11 @@ use strum::IntoEnumIterator;
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
-    lending_platform::state::{BGL_CURRENCY_DECIMALS, CW20_NAME, CW20_SYMBOL},
-    minter::types::QueryCurrenciesFromCreatorResponse,
+    lending_platform::state::BGL_CURRENCY_DECIMALS,
+    minter::{
+        state::{CW20_NAME, CW20_SYMBOL},
+        types::QueryCurrenciesFromCreatorResponse,
+    },
 };
 
 use crate::helpers::{
@@ -149,7 +152,6 @@ impl Project {
             &None,
             &None,
             &None,
-            &None,
         );
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
         let minter_address =
@@ -216,7 +218,6 @@ impl Project {
                     bgl_currency.decimals,
                 )),
                 &Some(project.get_cw20_base_code_id()),
-                &None,
                 &None,
                 &None,
                 &None,

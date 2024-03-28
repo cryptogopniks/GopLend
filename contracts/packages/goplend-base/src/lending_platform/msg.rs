@@ -8,7 +8,7 @@ use crate::{
     lending_platform::types::{Collateral, Collection, CollectionInfo, Proposal},
 };
 
-use super::types::{Borrower, LiquidationBid, Liquidator, Unbonder};
+use super::types::{Borrower, LiquidationBid, LiquidationItem, Liquidator, Unbonder};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -26,7 +26,6 @@ pub struct InstantiateMsg {
     pub discount_min_rate: Option<Decimal>,
     pub discount_max_rate: Option<Decimal>,
     pub bid_min_rate: Option<Decimal>,
-    pub pagination_amount: Option<u32>,
     pub collateral_min_value: Option<Uint128>,
     pub min_available_liquidity_multiplier: Option<Decimal>,
     pub price_update_period: Option<u64>,
@@ -84,8 +83,8 @@ pub enum ExecuteMsg {
     },
 
     // scheduler
-    Process {
-        borrowers: Option<Vec<String>>,
+    Liquidate {
+        targets: Vec<LiquidationItem>,
     },
 
     // admin
@@ -104,7 +103,6 @@ pub enum ExecuteMsg {
         discount_min_rate: Option<Decimal>,
         discount_max_rate: Option<Decimal>,
         bid_min_rate: Option<Decimal>,
-        pagination_amount: Option<u32>,
         collateral_min_value: Option<Uint128>,
         min_available_liquidity_multiplier: Option<Decimal>,
         price_update_period: Option<u64>,
@@ -142,7 +140,6 @@ pub enum ExecuteMsg {
     },
 }
 
-// TODO: use proper pagination
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -156,36 +153,85 @@ pub enum QueryMsg {
     QueryBalances {},
 
     #[returns(Vec<QueryUnbondersResponseItem>)]
-    QueryUnbonders { addresses: Option<Vec<String>> },
-
-    #[returns(Vec<QueryBorrowersResponseItem>)]
-    QueryBorrowers { addresses: Option<Vec<String>> },
-
-    #[returns(Vec<QueryLiquidatorsResponseItem>)]
-    QueryLiquidators { addresses: Option<Vec<String>> },
-
-    #[returns(Vec<QueryCollateralsResponseItem>)]
-    QueryCollaterals {
-        collection_addresses: Option<Vec<String>>,
+    QueryUnbonderList {
+        start_after: Option<String>,
+        limit: Option<u32>,
     },
 
-    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByCollectionAddresses { addresses: Option<Vec<String>> },
+    #[returns(crate::lending_platform::types::Unbonder)]
+    QueryUnbonder { address: String },
+
+    #[returns(Vec<QueryBorrowersResponseItem>)]
+    QueryBorrowerList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(crate::lending_platform::types::Borrower)]
+    QueryBorrower { address: String },
+
+    #[returns(Vec<QueryLiquidatorsResponseItem>)]
+    QueryLiquidatorList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(crate::lending_platform::types::Liquidator)]
+    QueryLiquidator { address: String },
+
+    #[returns(Vec<QueryCollateralsResponseItem>)]
+    QueryCollateralList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(Vec<crate::lending_platform::types::Collateral>)]
+    QueryCollateral { collection_address: String },
 
     #[returns(Vec<QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByLiquidatorAddresses { addresses: Option<Vec<String>> },
+    QueryLiquidationBidsByCollectionAddressList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    QueryLiquidationBidsByCollectionAddress { address: String },
+
+    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
+    QueryLiquidationBidsByLiquidatorAddressList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    QueryLiquidationBidsByLiquidatorAddress { address: String },
 
     #[returns(Vec<QueryProposalsResponseItem>)]
-    QueryProposals { last_amount: Option<u32> },
+    QueryProposals {
+        start_after: Option<u32>,
+        limit: Option<u32>,
+    },
 
     #[returns(Vec<QueryCollectionsResponseItem>)]
-    QueryCollections { addresses: Option<Vec<String>> },
+    QueryCollectionList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(crate::lending_platform::types::Collection<cosmwasm_std::Addr>)]
+    QueryCollection { address: String },
 
     #[returns(Decimal)]
     QueryBglCurrencyToMainCurrencyPrice {},
 
     #[returns(Decimal)]
     QueryConditionalDepositApr { amount_to_deposit: Option<Uint128> },
+
+    #[returns(Vec<(Addr, Decimal)>)]
+    QueryLtvList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
 
     #[returns(Decimal)]
     QueryConditionalLtv {
@@ -194,19 +240,20 @@ pub enum QueryMsg {
         amount_to_borrow: Option<Uint128>,
     },
 
-    // TODO: add on backend
-    // #[returns(Vec<(Addr, Decimal)>)]
-    // QueryLtvList {
-    //     start_after: Option<String>,
-    //     limit: Option<u32>,
-    // },
-    //
     #[returns(Uint128)]
     QueryTotalAvailableToBorrowLiquidity {},
-    //
-    // TODO: add available to borrow by user
-    // #[returns(Uint128)]
-    // QueryAvailableToBorrow { borrower: String },
+
+    #[returns(Uint128)]
+    QueryAvailableToBorrow {
+        borrower: String,
+        target_ltv: Option<Decimal>,
+    },
+
+    #[returns(QueryAmountsResponse)]
+    QueryAmounts {},
+
+    #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
+    QueryTargets { borrowers: Vec<String> },
 }
 
 #[cw_serde]
@@ -249,4 +296,15 @@ pub struct QueryProposalsResponseItem {
 pub struct QueryCollectionsResponseItem {
     pub address: Addr,
     pub collection: Collection<Addr>,
+}
+
+#[cw_serde]
+pub struct QueryAmountsResponse {
+    pub unbonders: u32,
+    pub borrowers: u32,
+    pub collaterals: u32,
+    pub liquidators: u32,
+    pub liquidation_bids: u32,
+    pub proposals: u32,
+    pub collections: u32,
 }

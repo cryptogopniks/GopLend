@@ -134,7 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Process { borrowers } => e::try_process(deps, env, info, borrowers),
+        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
         ExecuteMsg::UpdateConfig {
             owner,
@@ -151,7 +151,6 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
-            pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
@@ -174,7 +173,6 @@ pub fn execute(
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
-            pagination_amount,
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
@@ -221,36 +219,74 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryBalances {} => to_json_binary(&q::query_balances(deps, env)?),
 
-        QueryMsg::QueryUnbonders { addresses } => {
-            to_json_binary(&q::query_unbonders(deps, env, addresses)?)
+        QueryMsg::QueryUnbonderList { start_after, limit } => {
+            to_json_binary(&q::query_unbonder_list(deps, env, start_after, limit)?)
         }
 
-        QueryMsg::QueryBorrowers { addresses } => {
-            to_json_binary(&q::query_borrowers(deps, env, addresses)?)
+        QueryMsg::QueryUnbonder { address } => {
+            to_json_binary(&q::query_unbonder(deps, env, address)?)
         }
 
-        QueryMsg::QueryLiquidators { addresses } => {
-            to_json_binary(&q::query_liquidators(deps, env, addresses)?)
+        QueryMsg::QueryBorrowerList { start_after, limit } => {
+            to_json_binary(&q::query_borrower_list(deps, env, start_after, limit)?)
         }
 
-        QueryMsg::QueryCollaterals {
-            collection_addresses,
-        } => to_json_binary(&q::query_collaterals(deps, env, collection_addresses)?),
+        QueryMsg::QueryBorrower { address } => {
+            to_json_binary(&q::query_borrower(deps, env, address)?)
+        }
 
-        QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses } => to_json_binary(
-            &q::query_liquidation_bids_by_collection_addresses(deps, env, addresses)?,
+        QueryMsg::QueryLiquidatorList { start_after, limit } => {
+            to_json_binary(&q::query_liquidator_list(deps, env, start_after, limit)?)
+        }
+
+        QueryMsg::QueryLiquidator { address } => {
+            to_json_binary(&q::query_liquidator(deps, env, address)?)
+        }
+
+        QueryMsg::QueryCollateralList { start_after, limit } => {
+            to_json_binary(&q::query_collateral_list(deps, env, start_after, limit)?)
+        }
+
+        QueryMsg::QueryCollateral { collection_address } => {
+            to_json_binary(&q::query_collateral(deps, env, collection_address)?)
+        }
+
+        QueryMsg::QueryLiquidationBidsByCollectionAddressList { start_after, limit } => {
+            to_json_binary(&q::query_liquidation_bids_by_collection_address_list(
+                deps,
+                env,
+                start_after,
+                limit,
+            )?)
+        }
+
+        QueryMsg::QueryLiquidationBidsByCollectionAddress { address } => to_json_binary(
+            &q::query_liquidation_bids_by_collection_address(deps, env, address)?,
         ),
 
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses } => to_json_binary(
-            &q::query_liquidation_bids_by_liquidator_addresses(deps, env, addresses)?,
-        ),
-
-        QueryMsg::QueryProposals { last_amount } => {
-            to_json_binary(&q::query_proposals(deps, env, last_amount)?)
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList { start_after, limit } => {
+            to_json_binary(&q::query_liquidation_bids_by_liquidator_address_list(
+                deps,
+                env,
+                start_after,
+                limit,
+            )?)
         }
 
-        QueryMsg::QueryCollections { addresses } => {
-            to_json_binary(&q::query_collections(deps, env, addresses)?)
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddress { address } => to_json_binary(
+            &q::query_liquidation_bids_by_liquidator_address(deps, env, address)?,
+        ),
+
+        QueryMsg::QueryProposals { start_after, limit } => {
+            to_json_binary(&q::query_proposals(deps, env, start_after, limit)?)
+        }
+
+        QueryMsg::QueryCollectionList { start_after, limit } => {
+            to_json_binary(&q::query_collection_list(deps, env, start_after, limit)?)
+        }
+
+        QueryMsg::QueryCollection { address } => {
+            to_json_binary(&q::query_collection(deps, env, address)?)
         }
 
         QueryMsg::QueryBglCurrencyToMainCurrencyPrice {} => {
@@ -273,8 +309,23 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             amount_to_borrow,
         )?),
 
+        QueryMsg::QueryLtvList { start_after, limit } => unimplemented!(),
+
         QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
+        }
+
+        QueryMsg::QueryAvailableToBorrow {
+            borrower,
+            target_ltv,
+        } => to_json_binary(&q::query_available_to_borrow(
+            deps, env, borrower, target_ltv,
+        )?),
+
+        QueryMsg::QueryAmounts {} => unimplemented!(),
+
+        QueryMsg::QueryTargets { borrowers } => {
+            to_json_binary(&q::query_targets(deps, env, borrowers)?)
         }
     }
 }

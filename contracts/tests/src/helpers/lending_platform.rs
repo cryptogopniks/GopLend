@@ -12,7 +12,10 @@ use goplend_base::{
             QueryLiquidatorsResponseItem, QueryMsg, QueryProposalsResponseItem,
             QueryUnbondersResponseItem,
         },
-        types::{Balances, CollectionInfo, Config, Proposal},
+        types::{
+            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
+            LiquidationItem, Liquidator, Proposal, Unbonder,
+        },
     },
 };
 
@@ -89,10 +92,10 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_process(
+    fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_config(
@@ -112,7 +115,6 @@ pub trait LendingPlatformExtension {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
-        pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -168,45 +170,74 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_balances(&self) -> StdResult<Balances>;
 
-    fn lending_platform_query_unbonders(
+    fn lending_platform_query_unbonder_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryUnbondersResponseItem>>;
 
-    fn lending_platform_query_borrowers(
+    fn lending_platform_query_unbonder(&self, address: ProjectAccount) -> StdResult<Unbonder>;
+
+    fn lending_platform_query_borrower_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryBorrowersResponseItem>>;
 
-    fn lending_platform_query_liquidators(
+    fn lending_platform_query_borrower(&self, address: ProjectAccount) -> StdResult<Borrower>;
+
+    fn lending_platform_query_liquidator_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryLiquidatorsResponseItem>>;
 
-    fn lending_platform_query_collaterals(
+    fn lending_platform_query_liquidator(&self, address: ProjectAccount) -> StdResult<Liquidator>;
+
+    fn lending_platform_query_collateral_list(
         &self,
-        collection_addresses: &Option<Vec<ProjectNft>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
-    fn lending_platform_query_liquidation_bids_by_collection_addresses(
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral>;
+
+    fn lending_platform_query_liquidation_bids_by_collection_address_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
 
-    fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
+    fn lending_platform_query_liquidation_bids_by_collection_address(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        address: ProjectNft,
+    ) -> StdResult<Vec<LiquidationBid>>;
+
+    fn lending_platform_query_liquidation_bids_by_liquidator_address_list(
+        &self,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>>;
+
+    fn lending_platform_query_liquidation_bids_by_liquidator_address(
+        &self,
+        address: ProjectAccount,
+    ) -> StdResult<Vec<LiquidationBid>>;
 
     fn lending_platform_query_proposals(
         &self,
-        last_amount: Option<u32>,
+        start_after: &Option<u32>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryProposalsResponseItem>>;
 
-    fn lending_platform_query_collections(
+    fn lending_platform_query_collection_list(
         &self,
-        addresses: &Option<Vec<ProjectNft>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>>;
+
+    fn lending_platform_query_collection(&self, address: ProjectNft)
+        -> StdResult<Collection<Addr>>;
 
     fn lending_platform_query_bgl_currency_to_main_currency_price(&self) -> StdResult<Decimal>;
 
@@ -223,6 +254,17 @@ pub trait LendingPlatformExtension {
     ) -> StdResult<Decimal>;
 
     fn lending_platform_query_total_available_to_borrow_liquidity(&self) -> StdResult<Uint128>;
+
+    fn lending_platform_query_available_to_borrow(
+        &self,
+        borrower: ProjectAccount,
+        target_ltv: &Option<&str>,
+    ) -> StdResult<Uint128>;
+
+    fn lending_platform_query_targets(
+        &self,
+        borrowers: &Vec<impl ToString>,
+    ) -> StdResult<Vec<LiquidationItem>>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -391,19 +433,17 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_process(
+    fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        borrowers: &Option<Vec<ProjectAccount>>,
+        targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.to_owned(),
                 self.get_lending_platform_address(),
-                &ExecuteMsg::Process {
-                    borrowers: borrowers
-                        .as_ref()
-                        .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                &ExecuteMsg::Liquidate {
+                    targets: targets.to_owned(),
                 },
                 &[],
             )
@@ -428,7 +468,6 @@ impl LendingPlatformExtension for Project {
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
-        pagination_amount: &Option<u32>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -453,7 +492,6 @@ impl LendingPlatformExtension for Project {
                     discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
                     discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                     bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
-                    pagination_amount: pagination_amount.as_ref().map(|x| x.to_owned()),
                     collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
                     min_available_liquidity_multiplier: min_available_liquidity_multiplier
                         .as_ref()
@@ -615,120 +653,201 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_unbonders(
+    fn lending_platform_query_unbonder_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryUnbondersResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryUnbonders { addresses },
-        )
-    }
-
-    #[track_caller]
-    fn lending_platform_query_borrowers(
-        &self,
-        addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryBorrowers { addresses },
-        )
-    }
-
-    #[track_caller]
-    fn lending_platform_query_liquidators(
-        &self,
-        addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryLiquidators { addresses },
-        )
-    }
-
-    #[track_caller]
-    fn lending_platform_query_collaterals(
-        &self,
-        collection_addresses: &Option<Vec<ProjectNft>>,
-    ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
-        let collection_addresses = collection_addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryCollaterals {
-                collection_addresses,
+            &QueryMsg::QueryUnbonderList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
             },
         )
     }
 
     #[track_caller]
-    fn lending_platform_query_liquidation_bids_by_collection_addresses(
-        &self,
-        addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
+    fn lending_platform_query_unbonder(&self, address: ProjectAccount) -> StdResult<Unbonder> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryLiquidationBidsByCollectionAddresses { addresses },
+            &QueryMsg::QueryUnbonder {
+                address: address.to_string(),
+            },
         )
     }
 
     #[track_caller]
-    fn lending_platform_query_liquidation_bids_by_liquidator_addresses(
+    fn lending_platform_query_borrower_list(
         &self,
-        addresses: &Option<Vec<ProjectAccount>>,
-    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryLiquidationBidsByLiquidatorAddresses { addresses },
+            &QueryMsg::QueryBorrowerList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_borrower(&self, address: ProjectAccount) -> StdResult<Borrower> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryBorrower {
+                address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidator_list(
+        &self,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<QueryLiquidatorsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidatorList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidator(&self, address: ProjectAccount) -> StdResult<Liquidator> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidator {
+                address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collateral_list(
+        &self,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollateralList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollateral {
+                collection_address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_collection_address_list(
+        &self,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByCollectionAddressList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_collection_address(
+        &self,
+        address: ProjectNft,
+    ) -> StdResult<Vec<LiquidationBid>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByCollectionAddress {
+                address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_liquidator_address_list(
+        &self,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByLiquidatorAddressList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_liquidation_bids_by_liquidator_address(
+        &self,
+        address: ProjectAccount,
+    ) -> StdResult<Vec<LiquidationBid>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLiquidationBidsByLiquidatorAddress {
+                address: address.to_string(),
+            },
         )
     }
 
     #[track_caller]
     fn lending_platform_query_proposals(
         &self,
-        last_amount: Option<u32>,
+        start_after: &Option<u32>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryProposalsResponseItem>> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryProposals { last_amount },
+            &QueryMsg::QueryProposals {
+                start_after: start_after.to_owned(),
+                limit: limit.to_owned(),
+            },
         )
     }
 
     #[track_caller]
-    fn lending_platform_query_collections(
+    fn lending_platform_query_collection_list(
         &self,
-        addresses: &Option<Vec<ProjectNft>>,
+        start_after: &Option<ProjectNft>,
+        limit: &Option<u32>,
     ) -> StdResult<Vec<QueryCollectionsResponseItem>> {
-        let addresses = addresses
-            .as_ref()
-            .map(|x| x.iter().map(|y| y.to_string()).collect());
-
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryCollections { addresses },
+            &QueryMsg::QueryCollectionList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collection(
+        &self,
+        address: ProjectNft,
+    ) -> StdResult<Collection<Addr>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollection {
+                address: address.to_string(),
+            },
         )
     }
 
@@ -781,6 +900,34 @@ impl LendingPlatformExtension for Project {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryTotalAvailableToBorrowLiquidity {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_available_to_borrow(
+        &self,
+        borrower: ProjectAccount,
+        target_ltv: &Option<&str>,
+    ) -> StdResult<Uint128> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryAvailableToBorrow {
+                borrower: borrower.to_string(),
+                target_ltv: target_ltv.as_ref().map(|x| str_to_dec(x)),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_targets(
+        &self,
+        borrowers: &Vec<impl ToString>,
+    ) -> StdResult<Vec<LiquidationItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryTargets {
+                borrowers: borrowers.into_iter().map(|x| x.to_string()).collect(),
+            },
         )
     }
 }

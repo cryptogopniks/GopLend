@@ -8,6 +8,7 @@ use goplend_base::{
         types::{ClockSource, Config},
     },
     error::ContractError,
+    lending_platform::types::LiquidationItem,
     utils::{check_funds, unwrap_field, Attrs, FundsType},
 };
 
@@ -16,7 +17,7 @@ pub fn try_push(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    borrowers: Option<Vec<String>>,
+    targets: Vec<LiquidationItem>,
 ) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
     let sender = &info.sender;
@@ -52,9 +53,9 @@ pub fn try_push(
 
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
-        msg: to_json_binary(&goplend_base::lending_platform::msg::ExecuteMsg::Process {
-            borrowers,
-        })?,
+        msg: to_json_binary(
+            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets },
+        )?,
         funds: vec![],
     });
 

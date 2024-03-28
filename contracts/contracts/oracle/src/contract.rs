@@ -47,7 +47,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryPrices {
             collection_addresses,
-        } => to_json_binary(&q::query_prices(deps, env, collection_addresses)?),
+            start_after,
+            limit,
+        } => to_json_binary(&q::query_prices(
+            deps,
+            env,
+            collection_addresses,
+            start_after,
+            limit,
+        )?),
 
         QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
     }

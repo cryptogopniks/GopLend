@@ -11,6 +11,8 @@ pub const CONTRACT_NAME: &str = "cryptogopniks-minter";
 pub const CW20_CODE_ID: u64 = 1;
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 
+pub const CW20_NAME: &str = "bonded GopLend STARS";
+pub const CW20_SYMBOL: &str = "bglSTARS";
 pub const DEFAULT_DECIMALS: u8 = 6;
 
 pub const CONFIG: Item<Config> = Item::new("config");

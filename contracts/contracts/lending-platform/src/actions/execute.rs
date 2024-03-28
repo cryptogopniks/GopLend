@@ -13,11 +13,11 @@ use goplend_base::{
         state::{
             BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
             LIQUIDATION_BID_MAX_AMOUNT, LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS,
-            PAGINATION_CONFIG, PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, UNBONDERS,
+            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, UNBONDERS,
         },
         types::{
             Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
-            Liquidator, PaginationConfig, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
+            LiquidationItem, Liquidator, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -31,12 +31,10 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        get_borrowers, get_collateral_value, get_collaterals_by_borrower,
-        get_collection_and_bid_list, get_collection_prices, increase_platform_revenue,
-        update_balances, update_borrowers_storages, update_liquidation_storages,
-        verify_proposal_status,
+        increase_platform_revenue, update_balances, update_borrowers_storages,
+        update_liquidation_storages, verify_proposal_status,
     },
-    math::{self, match_collaterals_and_bids},
+    math,
 };
 
 pub fn try_deposit(
@@ -318,6 +316,8 @@ pub fn try_deposit_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
         },
     )?;
 
@@ -505,6 +505,8 @@ pub fn try_withdraw_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
         },
     )?;
 
@@ -1322,11 +1324,11 @@ pub fn try_update_bid(
     Err(ContractError::WrongFundsCombination)
 }
 
-pub fn try_process(
+pub fn try_liquidate(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    borrowers: Option<Vec<String>>,
+    targets: Vec<LiquidationItem>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1335,16 +1337,10 @@ pub fn try_process(
     let Config {
         main_currency,
         borrow_apr,
-        oracle,
-        discount_max_rate,
-        discount_min_rate,
-        bid_min_rate,
         liquidation_fee_rate,
-        price_update_period,
         scheduler,
         ..
     } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
     let scheduler = unwrap_field(scheduler, "scheduler")?;
 
     check_authorization(
@@ -1355,95 +1351,21 @@ pub fn try_process(
         },
     )?;
 
-    let borrowers = get_borrowers(deps.storage, deps.api, borrowers)?;
-
-    // get all collaterals
-    let collection_and_collateral_list: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
-
-    // get collection prices
-    let prices = get_collection_prices(
-        deps.as_ref(),
-        &borrowers,
-        &collection_and_collateral_list,
-        oracle,
-    )?;
-
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
     let total_liquidation_bids = Uint128::zero();
 
     // iterate over borrowers
-    for (
-        borrower_address,
-        Borrower {
+    for LiquidationItem {
+        borrower,
+        liquidation_set,
+    } in targets
+    {
+        let borrower_address = deps.api.addr_validate(&borrower)?;
+        let Borrower {
             accumulated_loan,
             loan,
-        },
-    ) in borrowers
-    {
-        // get collaterals owned by borrower
-        let collection_and_collateral_list_by_borrower =
-            get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address)?;
-
-        let collateral_value_option = get_collateral_value(
-            &collection_and_collateral_list_by_borrower,
-            &prices,
-            block_time,
-            price_update_period,
-        )?;
-        // go to next borrower if any price is outdated
-        if collateral_value_option.is_none() {
-            continue;
-        }
-        let collateral_value = collateral_value_option.unwrap();
-
-        // check ltv
-        let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
-        let ltv = math::calc_conditional_ltv(
-            borrow_apr,
-            Uint128::zero(),
-            accumulated_loan,
-            loan.amount,
-            Uint128::zero(),
-            collateral_value,
-            block_time,
-            loan.creation_date,
-        );
-
-        // if ltv is low check next borrower, otherwise liquidate required amount
-        if ltv <= ltv_max {
-            continue;
-        }
-
-        // find bids containing at least 1 borrower's collateral token
-        let collection_and_bid_list =
-            get_collection_and_bid_list(deps.storage, &collection_and_collateral_list_by_borrower)?;
-
-        let bidded_collateral_list = match_collaterals_and_bids(
-            &collection_and_collateral_list_by_borrower,
-            &collection_and_bid_list,
-            &prices,
-        )?;
-
-        // calculate how much tokens and what collection must be liquidated to get proper ltv
-        // for worst case (max discount)
-        let max_liquidation_value =
-            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
-
-        let liquidation_set = math::calc_liquidation_set(
-            &bidded_collateral_list,
-            max_liquidation_value,
-            ltv_max,
-            borrow_apr,
-            accumulated_loan,
-            loan.amount,
-            collateral_value,
-            block_time,
-            loan.creation_date,
-        );
+        } = BORROWERS.load(deps.storage, &borrower_address)?;
 
         let current_liquidation_value =
             update_liquidation_storages(deps.storage, &liquidation_set)?;
@@ -1484,7 +1406,7 @@ pub fn try_process(
         total_liquidation_bids,
     )?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_process")]))
+    Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1506,7 +1428,6 @@ pub fn try_update_config(
     discount_min_rate: Option<Decimal>,
     discount_max_rate: Option<Decimal>,
     bid_min_rate: Option<Decimal>,
-    pagination_amount: Option<u32>,
     collateral_min_value: Option<Uint128>,
     min_available_liquidity_multiplier: Option<Decimal>,
     price_update_period: Option<u64>,
@@ -1627,14 +1548,6 @@ pub fn try_update_config(
 
         Ok(config)
     })?;
-
-    if let Some(x) = pagination_amount {
-        let PaginationConfig {
-            pagination_index, ..
-        } = PAGINATION_CONFIG.load(deps.storage)?;
-        PAGINATION_CONFIG.save(deps.storage, &PaginationConfig::new(x, &pagination_index))?;
-        attrs.push(("pagination_amount".to_string(), x.to_string()));
-    }
 
     Ok(Response::new().add_attributes(attrs))
 }

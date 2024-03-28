@@ -1,15 +1,13 @@
 use std::cmp::max;
 
-use cosmwasm_std::{Addr, Api, Decimal, Deps, Order, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Api, Decimal, Deps, StdResult, Storage, Uint128};
 
-use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BORROWERS, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
-            PAGINATION_CONFIG, PLATFORM_REVENUE,
+            BALANCES, BORROWERS, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
         },
         types::{
             Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo, Config,
@@ -206,60 +204,19 @@ pub fn increase_platform_revenue(
 }
 
 pub fn get_borrowers(
-    storage: &mut dyn Storage,
+    storage: &dyn Storage,
     api: &dyn Api,
-    borrowers: Option<Vec<String>>,
+    borrowers: &Vec<String>,
 ) -> StdResult<Vec<(Addr, Borrower)>> {
-    let borrowers: Vec<(Addr, Borrower)> = match borrowers {
-        Some(x) => x
-            .iter()
-            .map(|y| {
-                let address = api.addr_validate(y)?;
-                let borrower = BORROWERS.load(storage, &address)?;
+    let borrowers: Vec<(Addr, Borrower)> = borrowers
+        .iter()
+        .map(|y| {
+            let address = api.addr_validate(y)?;
+            let borrower = BORROWERS.load(storage, &address)?;
 
-                Ok((address, borrower))
-            })
-            .collect::<StdResult<Vec<(Addr, Borrower)>>>()?,
-        // TODO: remove this branch
-        None => {
-            // rotate pagination
-            let mut pagination_config = PAGINATION_CONFIG.load(storage)?;
-            let pagination_amount = pagination_config.get_amount();
-
-            let address;
-            let start_bound = match pagination_config.pagination_index {
-                None => None,
-                Some(x) => {
-                    address = x;
-                    Some(Bound::exclusive(&address))
-                }
-            };
-
-            let borrowers: Vec<(Addr, Borrower)> = BORROWERS
-                .range(storage, start_bound, None, Order::Ascending)
-                .take(pagination_amount as usize)
-                .flatten()
-                .collect();
-
-            let borrower_last = borrowers
-                .last()
-                .map(|(pagination_index_new, _)| pagination_index_new.to_owned());
-            let storage_last = BORROWERS
-                .last(storage)?
-                .map(|(pagination_index_new, _)| pagination_index_new);
-
-            let pagination_index_new = if borrower_last == storage_last {
-                None
-            } else {
-                borrower_last
-            };
-
-            pagination_config.pagination_index = pagination_index_new;
-            PAGINATION_CONFIG.save(storage, &pagination_config)?;
-
-            borrowers
-        }
-    };
+            Ok((address, borrower))
+        })
+        .collect::<StdResult<Vec<(Addr, Borrower)>>>()?;
 
     Ok(borrowers)
 }
@@ -294,6 +251,8 @@ pub fn get_collection_prices(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses_by_borrowers),
+            start_after: None,
+            limit: None,
         },
     )?;
 
@@ -365,7 +324,7 @@ pub fn get_collateral_value(
 
 // find bids containing at least 1 borrower's collateral token
 pub fn get_collection_and_bid_list(
-    storage: &mut dyn Storage,
+    storage: &dyn Storage,
     collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
 ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
     let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];

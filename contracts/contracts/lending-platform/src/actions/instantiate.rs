@@ -11,11 +11,10 @@ use goplend_base::{
             BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, CONFIG,
             CONTRACT_NAME, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED,
             IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
-            MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PAGINATION_AMOUNT, PAGINATION_CONFIG,
-            PAGINATION_INDEX, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSAL_COUNTER,
-            UNBONDING_PERIOD,
+            MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD,
+            PROPOSAL_COUNTER, UNBONDING_PERIOD,
         },
-        types::{Balances, Config, PaginationConfig},
+        types::{Balances, Config},
     },
     utils::{validate_attr, Attrs},
 };
@@ -81,13 +80,6 @@ pub fn try_instantiate(
                 .is_marketplace_interface_enabled
                 .unwrap_or(IS_MARKETPLACE_INTERFACE_ENABLED),
         },
-    )?;
-
-    let pagination_amount = msg.pagination_amount.unwrap_or(PAGINATION_AMOUNT);
-
-    PAGINATION_CONFIG.save(
-        deps.storage,
-        &PaginationConfig::new(pagination_amount, &PAGINATION_INDEX),
     )?;
 
     let mut balances = Balances::default();
