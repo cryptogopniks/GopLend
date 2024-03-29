@@ -6,9 +6,9 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         msg::{
-            QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
-            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem,
-            QueryProposalsResponseItem, QueryUnbondersResponseItem,
+            QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+            QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
+            QueryLiquidatorsResponseItem, QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
             BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS, LIQUIDATORS,
@@ -416,12 +416,113 @@ pub fn query_conditional_deposit_apr(
     ))
 }
 
-// TODO
-//     #[returns(Vec<(Addr, Decimal)>)]
-//     QueryLtvList {
-//         start_after: Option<String>,
-//         limit: Option<u32>,
-//     },
+pub fn query_ltv_list(
+    deps: Deps,
+    env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<(Addr, Decimal)>> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        borrow_apr,
+        oracle,
+        price_update_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: None,
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let all_collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .collect();
+
+    BORROWERS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .flatten()
+        .map(|(borrower_address, borrower)| {
+            // get collaterals owned by borrower
+            let collection_and_collateral_list: Vec<(Addr, Collateral)> = all_collaterals
+                .iter()
+                .filter(|(_collection, collaterals)| {
+                    collaterals
+                        .into_iter()
+                        .any(|collateral| collateral.owner == borrower_address)
+                })
+                .map(
+                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                        // single collateral per collection
+                        let collateral = collaterals
+                            .into_iter()
+                            .find(|collateral| collateral.owner == borrower_address)
+                            .ok_or(ContractError::CollateralIsNotFound)?;
+
+                        Ok((collection.to_owned(), collateral.to_owned()))
+                    },
+                )
+                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+            let collateral_value = collection_and_collateral_list.iter().fold(
+                Ok(Uint128::zero()),
+                |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+                    let oracle::types::PriceItem {
+                        price,
+                        price_update_date,
+                        ..
+                    } = prices
+                        .iter()
+                        .find(|x| x.address == collection_address)
+                        .ok_or(ContractError::PriceIsNotFound {
+                            val: collection_address.to_string(),
+                        })?;
+
+                    if block_time - price_update_date > price_update_period {
+                        Err(ContractError::OutdatedPrice {
+                            val: collection_address.to_string(),
+                        })?;
+                    }
+
+                    Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+                },
+            )?;
+
+            let ltv = math::calc_conditional_ltv(
+                borrow_apr,
+                Uint128::zero(),
+                borrower.accumulated_loan,
+                borrower.loan.amount,
+                Uint128::zero(),
+                collateral_value,
+                block_time,
+                borrower.loan.creation_date,
+            );
+
+            Ok((borrower_address, ltv))
+        })
+        .collect::<StdResult<Vec<(Addr, Decimal)>>>()
+}
 
 pub fn query_conditional_ltv(
     deps: Deps,
@@ -656,9 +757,31 @@ pub fn query_available_to_borrow(
     Ok(math::calc_available_to_borrow(ltv, collateral_value, loan))
 }
 
-// TODO
-//     #[returns(QueryAmountsResponse)]
-//     QueryAmounts {},
+pub fn query_amounts(deps: Deps, _env: Env) -> StdResult<QueryAmountsResponse> {
+    Ok(QueryAmountsResponse {
+        unbonders: UNBONDERS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        borrowers: BORROWERS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        collaterals: COLLATERALS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        liquidators: LIQUIDATORS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        liquidation_bids: LIQUIDATION_BIDS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        proposals: PROPOSALS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        collections: COLLECTIONS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+    })
+}
 
 pub fn query_targets(
     deps: Deps,

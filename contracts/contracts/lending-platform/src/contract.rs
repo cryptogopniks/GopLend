@@ -309,7 +309,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             amount_to_borrow,
         )?),
 
-        QueryMsg::QueryLtvList { start_after, limit } => unimplemented!(),
+        QueryMsg::QueryLtvList { start_after, limit } => {
+            to_json_binary(&q::query_ltv_list(deps, env, start_after, limit)?)
+        }
 
         QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
@@ -322,7 +324,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             deps, env, borrower, target_ltv,
         )?),
 
-        QueryMsg::QueryAmounts {} => unimplemented!(),
+        QueryMsg::QueryAmounts {} => to_json_binary(&q::query_amounts(deps, env)?),
 
         QueryMsg::QueryTargets { borrowers } => {
             to_json_binary(&q::query_targets(deps, env, borrowers)?)

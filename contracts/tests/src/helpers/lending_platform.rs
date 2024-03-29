@@ -7,10 +7,10 @@ use goplend_base::{
     error::parse_err,
     lending_platform::{
         msg::{
-            ExecuteMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
-            QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
-            QueryLiquidatorsResponseItem, QueryMsg, QueryProposalsResponseItem,
-            QueryUnbondersResponseItem,
+            ExecuteMsg, QueryAmountsResponse, QueryBorrowersResponseItem,
+            QueryCollateralsResponseItem, QueryCollectionsResponseItem,
+            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem, QueryMsg,
+            QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         types::{
             Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
@@ -246,6 +246,12 @@ pub trait LendingPlatformExtension {
         amount_to_deposit: &Option<u128>,
     ) -> StdResult<Decimal>;
 
+    fn lending_platform_query_ltv_list(
+        &self,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<(Addr, Decimal)>>;
+
     fn lending_platform_query_conditional_ltv(
         &self,
         borrower: ProjectAccount,
@@ -260,6 +266,8 @@ pub trait LendingPlatformExtension {
         borrower: ProjectAccount,
         target_ltv: &Option<&str>,
     ) -> StdResult<Uint128>;
+
+    fn lending_platform_query_amounts(&self) -> StdResult<QueryAmountsResponse>;
 
     fn lending_platform_query_targets(
         &self,
@@ -875,6 +883,21 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
+    fn lending_platform_query_ltv_list(
+        &self,
+        start_after: &Option<ProjectAccount>,
+        limit: &Option<u32>,
+    ) -> StdResult<Vec<(Addr, Decimal)>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryLtvList {
+                start_after: start_after.as_ref().map(|x| x.to_string()),
+                limit: limit.to_owned(),
+            },
+        )
+    }
+
+    #[track_caller]
     fn lending_platform_query_conditional_ltv(
         &self,
         borrower: ProjectAccount,
@@ -915,6 +938,14 @@ impl LendingPlatformExtension for Project {
                 borrower: borrower.to_string(),
                 target_ltv: target_ltv.as_ref().map(|x| str_to_dec(x)),
             },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_amounts(&self) -> StdResult<QueryAmountsResponse> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryAmounts {},
         )
     }
 
