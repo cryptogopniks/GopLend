@@ -4,7 +4,9 @@ use goplend_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
-        msg::{QueryCollateralsResponseItem, QueryLiquidationBidsResponseItem},
+        msg::{
+            QueryCollateralsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
+        },
         state::{
             BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE,
             MAX_DEPOSIT_APR,
@@ -1095,17 +1097,18 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
-            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after <= ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -1277,17 +1280,18 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
-            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -1456,17 +1460,18 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec![],
+                amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -1635,17 +1640,18 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec![],
+                amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -1809,17 +1815,18 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         }],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec![],
+                amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_error(&ltv_after, ContractError::CollateralIsNotFound);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -1991,17 +1998,18 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-            amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -2170,17 +2178,18 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec![],
+                amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -2349,17 +2358,18 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec![],
-            amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
-            discount: Decimal::zero(),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec![],
+                amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
+                discount: Decimal::zero(),
+                is_offer: false,
+            }],
+        }];
 
     assert_that(&(ltv_after > ltv_max)).is_equal_to(true);
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
@@ -2533,23 +2543,24 @@ fn single_discount_liquidation() -> StdResult<()> {
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![LiquidationBid {
-            creation_date: 1571797419,
-            liquidator: ProjectAccount::Alice.into(),
-            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-            amount: Uint128::new(
-                LIQUIDATION_BID
-                    - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
-                        * (Decimal::one() - str_to_dec(DISCOUNT)))
-                    .to_uint_ceil()
-                    .u128(),
-            ),
-            discount: str_to_dec(DISCOUNT),
-            is_offer: false,
-        }],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: 1571797419,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                amount: Uint128::new(
+                    LIQUIDATION_BID
+                        - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
+                            * (Decimal::one() - str_to_dec(DISCOUNT)))
+                        .to_uint_ceil()
+                        .u128(),
+                ),
+                discount: str_to_dec(DISCOUNT),
+                is_offer: false,
+            }],
+        }];
 
     // TODO
     // println!("{:#?}", platform_revenue);
@@ -2735,39 +2746,40 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         ],
     }];
 
-    let expected_liquidation_bids_after = vec![QueryLiquidationBidsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        liquidation_bids: vec![
-            LiquidationBid {
-                creation_date: 1571797419,
-                liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec![],
-                amount: Uint128::new(
-                    LIQUIDATION_BID / 2
-                        - (u128_to_dec(COLLECTION_PRICE_AFTER)
-                            * (Decimal::one() - str_to_dec(DISCOUNT_1)))
-                        .to_uint_ceil()
-                        .u128(),
-                ),
-                discount: str_to_dec(DISCOUNT_1),
-                is_offer: false,
-            },
-            LiquidationBid {
-                creation_date: 1571797429,
-                liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec![],
-                amount: Uint128::new(
-                    LIQUIDATION_BID / 2
-                        - (u128_to_dec(COLLECTION_PRICE_AFTER)
-                            * (Decimal::one() - str_to_dec(DISCOUNT_0)))
-                        .to_uint_ceil()
-                        .u128(),
-                ),
-                discount: str_to_dec(DISCOUNT_0),
-                is_offer: false,
-            },
-        ],
-    }];
+    let expected_liquidation_bids_after =
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![
+                LiquidationBid {
+                    creation_date: 1571797419,
+                    liquidator: ProjectAccount::Alice.into(),
+                    token_id_list: vec![],
+                    amount: Uint128::new(
+                        LIQUIDATION_BID / 2
+                            - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                                * (Decimal::one() - str_to_dec(DISCOUNT_1)))
+                            .to_uint_ceil()
+                            .u128(),
+                    ),
+                    discount: str_to_dec(DISCOUNT_1),
+                    is_offer: false,
+                },
+                LiquidationBid {
+                    creation_date: 1571797429,
+                    liquidator: ProjectAccount::Alice.into(),
+                    token_id_list: vec![],
+                    amount: Uint128::new(
+                        LIQUIDATION_BID / 2
+                            - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                                * (Decimal::one() - str_to_dec(DISCOUNT_0)))
+                            .to_uint_ceil()
+                            .u128(),
+                    ),
+                    discount: str_to_dec(DISCOUNT_0),
+                    is_offer: false,
+                },
+            ],
+        }];
 
     // TODO
     // println!("{:#?}", platform_revenue);
@@ -3028,8 +3040,8 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     ];
 
     let expected_liquidation_bids_after = vec![
-        QueryLiquidationBidsResponseItem {
-            address: ProjectNft::Gopniks.into(),
+        QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
@@ -3045,8 +3057,8 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 is_offer: false,
             }],
         },
-        QueryLiquidationBidsResponseItem {
-            address: ProjectNft::Pinjeons.into(),
+        QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Pinjeons.into(),
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),

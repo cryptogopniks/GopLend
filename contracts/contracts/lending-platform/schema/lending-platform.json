@@ -2510,10 +2510,10 @@
     },
     "query_liquidation_bids_by_collection_address_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Array_of_QueryLiquidationBidsResponseItem",
+      "title": "Array_of_QueryLiquidationBidsByCollectionAddressListResponseItem",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/QueryLiquidationBidsResponseItem"
+        "$ref": "#/definitions/QueryLiquidationBidsByCollectionAddressListResponseItem"
       },
       "definitions": {
         "Addr": {
@@ -2561,14 +2561,14 @@
           },
           "additionalProperties": false
         },
-        "QueryLiquidationBidsResponseItem": {
+        "QueryLiquidationBidsByCollectionAddressListResponseItem": {
           "type": "object",
           "required": [
-            "address",
+            "collection_address",
             "liquidation_bids"
           ],
           "properties": {
-            "address": {
+            "collection_address": {
               "$ref": "#/definitions/Addr"
             },
             "liquidation_bids": {
@@ -2588,10 +2588,10 @@
     },
     "query_liquidation_bids_by_liquidator_address": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Array_of_LiquidationBid",
+      "title": "Array_of_QueryLiquidationBidsByCollectionAddressListResponseItem",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/LiquidationBid"
+        "$ref": "#/definitions/QueryLiquidationBidsByCollectionAddressListResponseItem"
       },
       "definitions": {
         "Addr": {
@@ -2634,6 +2634,25 @@
               "type": "array",
               "items": {
                 "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "QueryLiquidationBidsByCollectionAddressListResponseItem": {
+          "type": "object",
+          "required": [
+            "collection_address",
+            "liquidation_bids"
+          ],
+          "properties": {
+            "collection_address": {
+              "$ref": "#/definitions/Addr"
+            },
+            "liquidation_bids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/LiquidationBid"
               }
             }
           },
@@ -2647,10 +2666,10 @@
     },
     "query_liquidation_bids_by_liquidator_address_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Array_of_QueryLiquidationBidsResponseItem",
+      "title": "Array_of_QueryLiquidationBidsByLiquidatorAddressListResponseItem",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/QueryLiquidationBidsResponseItem"
+        "$ref": "#/definitions/QueryLiquidationBidsByLiquidatorAddressListResponseItem"
       },
       "definitions": {
         "Addr": {
@@ -2698,14 +2717,14 @@
           },
           "additionalProperties": false
         },
-        "QueryLiquidationBidsResponseItem": {
+        "QueryLiquidationBidsByCollectionAddressListResponseItem": {
           "type": "object",
           "required": [
-            "address",
+            "collection_address",
             "liquidation_bids"
           ],
           "properties": {
-            "address": {
+            "collection_address": {
               "$ref": "#/definitions/Addr"
             },
             "liquidation_bids": {
@@ -2713,6 +2732,25 @@
               "items": {
                 "$ref": "#/definitions/LiquidationBid"
               }
+            }
+          },
+          "additionalProperties": false
+        },
+        "QueryLiquidationBidsByLiquidatorAddressListResponseItem": {
+          "type": "object",
+          "required": [
+            "collection_and_liquidation_bids_list",
+            "liquidator_address"
+          ],
+          "properties": {
+            "collection_and_liquidation_bids_list": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/QueryLiquidationBidsByCollectionAddressListResponseItem"
+              }
+            },
+            "liquidator_address": {
+              "$ref": "#/definitions/Addr"
             }
           },
           "additionalProperties": false

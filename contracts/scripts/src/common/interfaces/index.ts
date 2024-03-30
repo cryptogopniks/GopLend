@@ -152,7 +152,12 @@ interface LocalInterchainLogs {
   }[];
 }
 
-type Wasm = "lending_platform.wasm" | "oracle.wasm";
+type Wasm =
+  | "adapter_scheduler_kujira.wasm"
+  | "adapter_scheduler_stargaze.wasm"
+  | "lending_platform.wasm"
+  | "minter.wasm"
+  | "oracle.wasm";
 
 type ChainType = "main" | "test" | "local";
 

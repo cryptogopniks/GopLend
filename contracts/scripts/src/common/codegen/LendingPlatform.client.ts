@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, Vault, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsResponseItem, QueryLiquidationBidsResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, ArrayOfLiquidationItem, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
+import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, Vault, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, ArrayOfLiquidationItem, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
 export interface LendingPlatformReadOnlyInterface {
   contractAddress: string;
   queryAddressConfig: () => Promise<AddressConfig>;
@@ -68,7 +68,7 @@ export interface LendingPlatformReadOnlyInterface {
   }: {
     limit?: number;
     startAfter?: string;
-  }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
+  }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
   queryLiquidationBidsByCollectionAddress: ({
     address
   }: {
@@ -80,12 +80,12 @@ export interface LendingPlatformReadOnlyInterface {
   }: {
     limit?: number;
     startAfter?: string;
-  }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
+  }) => Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem>;
   queryLiquidationBidsByLiquidatorAddress: ({
     address
   }: {
     address: string;
-  }) => Promise<ArrayOfLiquidationBid>;
+  }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
   queryProposals: ({
     limit,
     startAfter
@@ -310,7 +310,7 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
   }: {
     limit?: number;
     startAfter?: string;
-  }): Promise<ArrayOfQueryLiquidationBidsResponseItem> => {
+  }): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidation_bids_by_collection_address_list: {
         limit,
@@ -335,7 +335,7 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
   }: {
     limit?: number;
     startAfter?: string;
-  }): Promise<ArrayOfQueryLiquidationBidsResponseItem> => {
+  }): Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidation_bids_by_liquidator_address_list: {
         limit,
@@ -347,7 +347,7 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
     address
   }: {
     address: string;
-  }): Promise<ArrayOfLiquidationBid> => {
+  }): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidation_bids_by_liquidator_address: {
         address

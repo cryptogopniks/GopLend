@@ -393,10 +393,15 @@ export interface LiquidationBid {
   liquidator: Addr;
   token_id_list: string[];
 }
-export type ArrayOfQueryLiquidationBidsResponseItem = QueryLiquidationBidsResponseItem[];
-export interface QueryLiquidationBidsResponseItem {
-  address: Addr;
+export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];
+export interface QueryLiquidationBidsByCollectionAddressListResponseItem {
+  collection_address: Addr;
   liquidation_bids: LiquidationBid[];
+}
+export type ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem = QueryLiquidationBidsByLiquidatorAddressListResponseItem[];
+export interface QueryLiquidationBidsByLiquidatorAddressListResponseItem {
+  collection_and_liquidation_bids_list: QueryLiquidationBidsByCollectionAddressListResponseItem[];
+  liquidator_address: Addr;
 }
 export interface Liquidator {
   collection_addresses: Addr[];

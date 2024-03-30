@@ -39,7 +39,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   owner: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
                 },
               }),
@@ -87,7 +87,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   oracle: $(
                     "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
@@ -139,7 +139,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   oracle: $(
                     "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),

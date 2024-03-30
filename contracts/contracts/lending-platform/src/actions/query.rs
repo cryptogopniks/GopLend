@@ -7,8 +7,9 @@ use goplend_base::{
     lending_platform::{
         msg::{
             QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
-            QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
-            QueryLiquidatorsResponseItem, QueryProposalsResponseItem, QueryUnbondersResponseItem,
+            QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
+            QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,
+            QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
@@ -203,7 +204,7 @@ pub fn query_liquidation_bids_by_collection_address_list(
     _env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
-) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
@@ -222,8 +223,8 @@ pub fn query_liquidation_bids_by_collection_address_list(
         .take(limit)
         .map(|x| {
             let (address, liquidation_bids) = x.unwrap();
-            QueryLiquidationBidsResponseItem {
-                address,
+            QueryLiquidationBidsByCollectionAddressListResponseItem {
+                collection_address: address,
                 liquidation_bids,
             }
         })
@@ -245,7 +246,7 @@ pub fn query_liquidation_bids_by_liquidator_address_list(
     _env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
-) -> StdResult<Vec<QueryLiquidationBidsResponseItem>> {
+) -> StdResult<Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>> {
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
@@ -259,10 +260,10 @@ pub fn query_liquidation_bids_by_liquidator_address_list(
         None => None,
     };
 
-    let liquidation_bids: Vec<QueryLiquidationBidsResponseItem> = LIQUIDATORS
+    LIQUIDATORS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
-        .map(|x| -> StdResult<QueryLiquidationBidsResponseItem> {
+        .map(|x| {
             let (
                 liquidator_address,
                 Liquidator {
@@ -270,47 +271,49 @@ pub fn query_liquidation_bids_by_liquidator_address_list(
                 },
             ) = x.unwrap();
 
-            let liquidation_bids = collection_addresses
+            let collection_and_liquidation_bids_list = collection_addresses
                 .into_iter()
-                .map(|collection_address| -> StdResult<Vec<LiquidationBid>> {
-                    LIQUIDATION_BIDS.load(deps.storage, &collection_address)
-                })
-                .collect::<StdResult<Vec<Vec<LiquidationBid>>>>()?
-                .into_iter()
-                .flatten()
-                .collect::<Vec<LiquidationBid>>();
+                .map(|collection_address| {
+                    let liquidation_bids =
+                        LIQUIDATION_BIDS.load(deps.storage, &collection_address)?;
 
-            Ok(QueryLiquidationBidsResponseItem {
-                address: liquidator_address,
-                liquidation_bids,
+                    Ok(QueryLiquidationBidsByCollectionAddressListResponseItem {
+                        collection_address,
+                        liquidation_bids,
+                    })
+                })
+                .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>(
+                )?;
+
+            Ok(QueryLiquidationBidsByLiquidatorAddressListResponseItem {
+                liquidator_address,
+                collection_and_liquidation_bids_list,
             })
         })
-        .collect::<StdResult<Vec<QueryLiquidationBidsResponseItem>>>()?;
-
-    Ok(liquidation_bids)
+        .collect::<StdResult<Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>>>()
 }
 
 pub fn query_liquidation_bids_by_liquidator_address(
     deps: Deps,
     _env: Env,
     address: String,
-) -> StdResult<Vec<LiquidationBid>> {
+) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
     let liquidator = LIQUIDATORS
         .load(deps.storage, &deps.api.addr_validate(&address)?)
         .unwrap_or_default();
 
-    let liquidation_bids = liquidator
+    liquidator
         .collection_addresses
         .into_iter()
-        .map(|collection_address| -> StdResult<Vec<LiquidationBid>> {
-            LIQUIDATION_BIDS.load(deps.storage, &collection_address)
-        })
-        .collect::<StdResult<Vec<Vec<LiquidationBid>>>>()?
-        .into_iter()
-        .flatten()
-        .collect::<Vec<LiquidationBid>>();
+        .map(|collection_address| {
+            let liquidation_bids = LIQUIDATION_BIDS.load(deps.storage, &collection_address)?;
 
-    Ok(liquidation_bids)
+            Ok(QueryLiquidationBidsByCollectionAddressListResponseItem {
+                collection_address,
+                liquidation_bids,
+            })
+        })
+        .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>()
 }
 
 pub fn query_proposals(

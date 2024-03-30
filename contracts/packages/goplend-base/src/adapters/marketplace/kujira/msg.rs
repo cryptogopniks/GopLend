@@ -23,15 +23,32 @@ pub enum ExecuteMsg {
     },
 }
 
+// #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+// QueryLiquidationBidsByCollectionAddressList {
+//     start_after: Option<String>,
+//     limit: Option<u32>,
+// },
+
+// #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+// QueryLiquidationBidsByCollectionAddress { address: String },
+
+// #[returns(Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
+// QueryLiquidationBidsByLiquidatorAddressList {
+//     start_after: Option<String>,
+//     limit: Option<u32>,
+// },
+
+// #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+// QueryLiquidationBidsByLiquidatorAddress { address: String },
+
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
+    // #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
+    // QueryLiquidationBidsByCollectionAddresses { addresses: Option<Vec<String>> },
 
-    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByCollectionAddresses { addresses: Option<Vec<String>> },
-
-    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
-    QueryLiquidationBidsByLiquidatorAddresses { addresses: Option<Vec<String>> },
+    // #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
+    // QueryLiquidationBidsByLiquidatorAddresses { addresses: Option<Vec<String>> },
 }
