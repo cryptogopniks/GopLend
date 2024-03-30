@@ -15,6 +15,5 @@ pub fn query_log(deps: Deps, _env: Env, amount: u32) -> StdResult<Vec<(u64, u32)
         .rev()
         .take(amount as usize)
         .flatten()
-        .map(|x| x)
         .collect())
 }

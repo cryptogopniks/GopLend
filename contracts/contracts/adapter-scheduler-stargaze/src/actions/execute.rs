@@ -105,7 +105,7 @@ pub fn try_update_config(
         }
 
         if let Some(x) = min_clock_period {
-            config.min_clock_period = x.clone();
+            config.min_clock_period = x;
             attrs.push(("min_clock_period".to_string(), x.to_string()));
         }
 

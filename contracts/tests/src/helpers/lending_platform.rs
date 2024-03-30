@@ -96,7 +96,7 @@ pub trait LendingPlatformExtension {
     fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        targets: &Vec<LiquidationItem>,
+        targets: &[LiquidationItem],
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_update_address_config(
@@ -109,6 +109,7 @@ pub trait LendingPlatformExtension {
         marketplace: &Option<Addr>,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn lending_platform_try_update_rate_config(
         &mut self,
         sender: ProjectAccount,
@@ -120,6 +121,7 @@ pub trait LendingPlatformExtension {
         bid_min_rate: &Option<&str>,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn lending_platform_try_update_common_config(
         &mut self,
         sender: ProjectAccount,
@@ -286,7 +288,7 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_targets(
         &self,
-        borrowers: &Vec<impl ToString>,
+        borrowers: &[impl ToString],
     ) -> StdResult<Vec<LiquidationItem>>;
 }
 
@@ -459,7 +461,7 @@ impl LendingPlatformExtension for Project {
     fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
-        targets: &Vec<LiquidationItem>,
+        targets: &[LiquidationItem],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -547,7 +549,7 @@ impl LendingPlatformExtension for Project {
                     main_currency: main_currency.as_ref().map(|x| x.to_owned()),
                     bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                     unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
-                    collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
+                    collateral_min_value: collateral_min_value.map(Uint128::new),
                     min_available_liquidity_multiplier: min_available_liquidity_multiplier
                         .as_ref()
                         .map(|x| str_to_dec(x)),
@@ -1015,12 +1017,12 @@ impl LendingPlatformExtension for Project {
     #[track_caller]
     fn lending_platform_query_targets(
         &self,
-        borrowers: &Vec<impl ToString>,
+        borrowers: &[impl ToString],
     ) -> StdResult<Vec<LiquidationItem>> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryTargets {
-                borrowers: borrowers.into_iter().map(|x| x.to_string()).collect(),
+                borrowers: borrowers.iter().map(|x| x.to_string()).collect(),
             },
         )
     }

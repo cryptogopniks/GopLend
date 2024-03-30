@@ -323,13 +323,13 @@ pub fn query_proposals(
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
 
-    let start_bound = match start_after {
-        Some(id) => Some(Bound::exclusive(id)),
-        None => None,
-    };
-
     Ok(PROPOSALS
-        .range(deps.storage, start_bound, None, Order::Ascending)
+        .range(
+            deps.storage,
+            start_after.map(Bound::exclusive),
+            None,
+            Order::Ascending,
+        )
         .take(limit)
         .map(|x| {
             let (id, proposal) = x.unwrap();
@@ -475,14 +475,14 @@ pub fn query_ltv_list(
                 .iter()
                 .filter(|(_collection, collaterals)| {
                     collaterals
-                        .into_iter()
+                        .iter()
                         .any(|collateral| collateral.owner == borrower_address)
                 })
                 .map(
                     |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
                         // single collateral per collection
                         let collateral = collaterals
-                            .into_iter()
+                            .iter()
                             .find(|collateral| collateral.owner == borrower_address)
                             .ok_or(ContractError::CollateralIsNotFound)?;
 
@@ -554,7 +554,7 @@ pub fn query_conditional_ltv(
         .flatten()
         .filter(|(_collection, collaterals)| {
             collaterals
-                .into_iter()
+                .iter()
                 .any(|collateral| collateral.owner == borrower_address)
         })
         .map(
@@ -680,7 +680,7 @@ pub fn query_available_to_borrow(
         .flatten()
         .filter(|(_collection, collaterals)| {
             collaterals
-                .into_iter()
+                .iter()
                 .any(|collateral| collateral.owner == borrower_address)
         })
         .map(

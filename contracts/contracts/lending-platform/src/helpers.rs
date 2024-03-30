@@ -371,21 +371,17 @@ pub fn update_liquidation_storages(
             .map(|mut bid| {
                 if bid.token_id_list.contains(token_id) {
                     bid.amount -= liquidation_price;
-                    bid.token_id_list = bid
-                        .token_id_list
-                        .into_iter()
-                        .filter(|id| id != token_id)
-                        .collect();
+                    bid.token_id_list.retain(|id| id != token_id);
                 }
 
                 bid
             })
             .collect();
 
-        LIQUIDATION_BIDS.save(storage, &collection, &bids)?;
+        LIQUIDATION_BIDS.save(storage, collection, &bids)?;
 
         // update collaterals
-        let mut collaterals = COLLATERALS.load(storage, &collection)?;
+        let mut collaterals = COLLATERALS.load(storage, collection)?;
 
         let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
         if collaterals_by_liquidator.is_none() {
@@ -399,11 +395,7 @@ pub fn update_liquidation_storages(
             .into_iter()
             .map(|mut x| {
                 if x.owner == owner {
-                    x.token_id_list = x
-                        .token_id_list
-                        .into_iter()
-                        .filter(|id| id != token_id)
-                        .collect();
+                    x.token_id_list.retain(|id| id != token_id);
                 } else if x.owner == liquidator {
                     x.token_id_list.push(token_id.to_string());
                 }
@@ -413,7 +405,7 @@ pub fn update_liquidation_storages(
             .filter(|x| !x.token_id_list.is_empty())
             .collect();
 
-        COLLATERALS.save(storage, &collection, &collaterals)?;
+        COLLATERALS.save(storage, collection, &collaterals)?;
     }
 
     Ok(current_liquidation_value)

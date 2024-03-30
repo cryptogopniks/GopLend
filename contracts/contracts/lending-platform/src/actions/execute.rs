@@ -194,10 +194,9 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     let mut amount_to_withdraw = Uint128::zero();
     let mut unbonder = UNBONDERS.load(deps.storage, &sender_address)?;
 
-    unbonder.returned_and_unbonded = unbonder
+    unbonder
         .returned_and_unbonded
-        .into_iter()
-        .filter(|(returned, unbonded)| {
+        .retain(|(returned, unbonded)| {
             if block_time >= unbonded.creation_date + common_config.unbonding_period {
                 amount_to_burn += returned;
                 amount_to_withdraw += unbonded.amount;
@@ -206,8 +205,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
             } else {
                 true
             }
-        })
-        .collect();
+        });
 
     if unbonder.returned_and_unbonded.is_empty() {
         UNBONDERS.remove(deps.storage, &sender_address);
@@ -551,11 +549,9 @@ pub fn try_withdraw_collateral(
             .into_iter()
             .map(|mut collateral| {
                 if collateral.owner == sender_address {
-                    collateral.token_id_list = collateral
+                    collateral
                         .token_id_list
-                        .into_iter()
-                        .filter(|id| !token_id_list.contains(id))
-                        .collect();
+                        .retain(|id| !token_id_list.contains(id));
 
                     // update collateral value
                     collateral_value +=
@@ -1072,12 +1068,9 @@ pub fn try_remove_bid(
 
         if liquidation_bids.is_empty() {
             LIQUIDATION_BIDS.remove(deps.storage, &collection_address);
-
-            liquidator.collection_addresses = liquidator
+            liquidator
                 .collection_addresses
-                .into_iter()
-                .filter(|x| x != &collection_address)
-                .collect();
+                .retain(|x| x != collection_address);
         } else {
             LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
         }
@@ -1102,6 +1095,7 @@ pub fn try_remove_bid(
         .add_attributes(vec![("action", "try_remove_bid")]))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_bid(
     deps: DepsMut,
     env: Env,
@@ -1123,7 +1117,7 @@ pub fn try_update_bid(
         )
     } else if sender.is_none() && amount.is_none() {
         (
-            info.sender.clone(),
+            info.sender,
             Uint128::default(),
             Token::new_native(&String::default()),
         )
@@ -1381,7 +1375,7 @@ pub fn try_liquidate(
     Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
 }
 
-// #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_address_config(
     deps: DepsMut,
     env: Env,
@@ -1431,7 +1425,7 @@ pub fn try_update_address_config(
     Ok(Response::new().add_attributes(attrs))
 }
 
-// #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_rate_config(
     deps: DepsMut,
     env: Env,
@@ -1487,7 +1481,7 @@ pub fn try_update_rate_config(
     Ok(Response::new().add_attributes(attrs))
 }
 
-// #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_common_config(
     deps: DepsMut,
     env: Env,

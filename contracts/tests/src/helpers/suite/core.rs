@@ -136,16 +136,16 @@ impl Project {
             &None,
             &None,
             &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
             &Currency::new(
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
             ),
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
             &None,
             &None,
             &None,
@@ -174,10 +174,10 @@ impl Project {
             gopniks_address,
             pinjeons_address,
 
-            lending_platform_address: lending_platform_address.clone(),
-            oracle_address: oracle_address.clone(),
-            minter_address: minter_address.clone(),
-            adapter_scheduler_kujira_address: adapter_scheduler_kujira_address.clone(),
+            lending_platform_address,
+            oracle_address,
+            minter_address,
+            adapter_scheduler_kujira_address,
 
             ..project
         };

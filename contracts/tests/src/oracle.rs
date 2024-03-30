@@ -24,7 +24,7 @@ fn default() -> StdResult<()> {
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![
+        &[
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
                 price: Funds::new(
@@ -87,7 +87,7 @@ fn unauthorized() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Admin,
-            &vec![
+            &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
                     price: Funds::new(
@@ -124,7 +124,7 @@ fn duplicated_collections() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
-            &vec![
+            &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
                     price: Funds::new(
@@ -159,7 +159,7 @@ fn empty_raw_price_item_vec() -> StdResult<()> {
     let mut project = Project::new();
 
     let res = project
-        .oracle_try_update_prices(ProjectAccount::Scheduler, &vec![])
+        .oracle_try_update_prices(ProjectAccount::Scheduler, &[])
         .unwrap_err();
 
     assert_error(&res, ContractError::EmptyRawPriceItemVector);
@@ -174,7 +174,7 @@ fn zeros_in_prices() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
-            &vec![RawPriceItem {
+            &[RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
                 price: Funds::new(
                     Uint128::new(0),
