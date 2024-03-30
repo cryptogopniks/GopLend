@@ -8,13 +8,13 @@ use goplend_base::{
     lending_platform::{
         msg::InstantiateMsg,
         state::{
-            BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, CONFIG,
-            CONTRACT_NAME, DISCOUNT_MAX_RATE, DISCOUNT_MIN_RATE, IS_LOCKED,
-            IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
+            ADDRESS_CONFIG, BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE,
+            COLLATERAL_MIN_VALUE, COMMON_CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
+            DISCOUNT_MIN_RATE, IS_LOCKED, IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
             MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD,
-            PROPOSAL_COUNTER, UNBONDING_PERIOD,
+            PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
         },
-        types::{Balances, Config},
+        types::{AddressConfig, Balances, CommonConfig, RateConfig},
     },
     utils::{validate_attr, Attrs},
 };
@@ -45,18 +45,21 @@ pub fn try_instantiate(
         })
         .transpose()?;
 
-    CONFIG.save(
+    ADDRESS_CONFIG.save(
         deps.storage,
-        &Config {
+        &AddressConfig {
             admin: info.sender,
             owner: validate_attr(&mut attrs, api, "owner", &msg.owner)?,
             oracle: validate_attr(&mut attrs, api, "oracle", &msg.oracle)?,
             minter: validate_attr(&mut attrs, api, "minter", &msg.minter)?,
             scheduler: validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,
             marketplace: validate_attr(&mut attrs, api, "marketplace", &msg.marketplace)?,
-            main_currency,
-            bgl_currency,
-            unbonding_period: msg.unbonding_period.unwrap_or(UNBONDING_PERIOD),
+        },
+    )?;
+
+    RATE_CONFIG.save(
+        deps.storage,
+        &RateConfig {
             borrow_apr: msg.borrow_apr.unwrap_or(str_to_dec(BORROW_APR)),
             borrow_fee_rate: msg.borrow_fee_rate.unwrap_or(str_to_dec(BORROW_FEE_RATE)),
             liquidation_fee_rate: msg
@@ -69,6 +72,15 @@ pub fn try_instantiate(
                 .discount_max_rate
                 .unwrap_or(str_to_dec(DISCOUNT_MAX_RATE)),
             bid_min_rate: msg.bid_min_rate.unwrap_or(str_to_dec(BID_MIN_RATE)),
+        },
+    )?;
+
+    COMMON_CONFIG.save(
+        deps.storage,
+        &CommonConfig {
+            main_currency,
+            bgl_currency,
+            unbonding_period: msg.unbonding_period.unwrap_or(UNBONDING_PERIOD),
             collateral_min_value: msg
                 .collateral_min_value
                 .unwrap_or(Uint128::new(COLLATERAL_MIN_VALUE)),

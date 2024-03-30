@@ -108,7 +108,7 @@ fn deposit_zero() -> StdResult<()> {
 #[test]
 fn deposit_default() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -185,7 +185,7 @@ fn collection_address_duplication() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(800_000_000),
@@ -260,7 +260,7 @@ fn collateral_value_limitations() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(800_000_000),
@@ -307,19 +307,8 @@ fn collateral_value_limitations() -> StdResult<()> {
     );
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -376,7 +365,7 @@ fn collateral_value_limitations() -> StdResult<()> {
 #[test]
 fn deposit_unbond_withdraw_default() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -431,7 +420,7 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(80_000_000_000),
@@ -518,7 +507,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(80_000_000_000),
@@ -531,19 +520,8 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -627,7 +605,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
 #[test]
 fn clear_unbonders_storage() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -665,7 +643,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(80_000_000_000),
@@ -752,7 +730,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(80_000_000_000),
@@ -830,7 +808,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(80_000_000_000),
@@ -938,7 +916,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -951,19 +929,8 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1076,7 +1043,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -1159,7 +1126,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -1172,19 +1139,8 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1269,7 +1225,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -1352,7 +1308,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -1365,19 +1321,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1459,7 +1404,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -1542,7 +1487,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -1555,19 +1500,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1649,7 +1583,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -1732,7 +1666,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -1745,19 +1679,8 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1842,7 +1765,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -1917,7 +1840,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -1930,19 +1853,8 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2027,7 +1939,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -2110,7 +2022,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -2123,19 +2035,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2217,7 +2118,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -2300,7 +2201,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -2313,19 +2214,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2407,7 +2297,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -2496,7 +2386,7 @@ fn single_discount_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -2509,19 +2399,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2606,7 +2485,7 @@ fn single_discount_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -2701,7 +2580,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
@@ -2714,19 +2593,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2819,7 +2687,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
@@ -2930,7 +2798,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![
+        &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 price: Funds::new(
@@ -2955,19 +2823,8 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -3101,7 +2958,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &vec![RawPriceItem {
+        &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),

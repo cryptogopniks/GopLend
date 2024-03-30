@@ -26,7 +26,7 @@ pub trait AdapterSchedulerKujiraExtension {
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
-        targets: &Vec<LiquidationItem>,
+        targets: &[LiquidationItem],
     ) -> StdResult<AppResponse>;
 
     fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config>;
@@ -52,7 +52,7 @@ impl AdapterSchedulerKujiraExtension for Project {
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                     offchain_clock: offchain_clock
                         .as_ref()
-                        .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                        .map(|x| x.iter().map(|y| y.to_string()).collect()),
                     clock_source: clock_source.to_owned(),
                     min_clock_period: min_clock_period.to_owned(),
                 },
@@ -66,7 +66,7 @@ impl AdapterSchedulerKujiraExtension for Project {
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
-        targets: &Vec<LiquidationItem>,
+        targets: &[LiquidationItem],
     ) -> StdResult<AppResponse> {
         match clock_source {
             ClockSource::Offchain => self

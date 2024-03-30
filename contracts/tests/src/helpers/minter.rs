@@ -194,7 +194,7 @@ impl MinterExtension for Project {
         let contract_address = &self.get_lending_platform_address();
         let msg = &ExecuteMsg::Burn {};
 
-        add_token_to_exec_msg(self, sender, contract_address, msg, amount, &token)
+        add_token_to_exec_msg(self, sender, contract_address, msg, amount, token)
     }
 
     #[track_caller]

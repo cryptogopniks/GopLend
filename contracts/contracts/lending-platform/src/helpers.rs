@@ -7,10 +7,11 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BORROWERS, COLLATERALS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, IS_LOCKED, LIQUIDATION_BIDS,
+            PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
-            Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo, Config,
+            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
             LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
@@ -42,7 +43,7 @@ pub fn verify_proposal_status(
 }
 
 pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, owner, .. } = CONFIG.load(deps.storage)?;
+    let AddressConfig { admin, owner, .. } = ADDRESS_CONFIG.load(deps.storage)?;
     let owner = unwrap_field(owner, "owner");
 
     match auth_type {
@@ -157,13 +158,13 @@ pub fn check_collections_holder(
 }
 
 pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -> StdResult<()> {
-    let config = CONFIG.load(storage)?;
+    let rate_config = RATE_CONFIG.load(storage)?;
 
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
         let rewards = calc_expected_rewards(
             block_time,
             balances.total_borrowed.creation_date,
-            config.borrow_apr,
+            rate_config.borrow_apr,
             balances.total_borrowed.amount,
         );
 
@@ -206,7 +207,7 @@ pub fn increase_platform_revenue(
 pub fn get_borrowers(
     storage: &dyn Storage,
     api: &dyn Api,
-    borrowers: &Vec<String>,
+    borrowers: &[String],
 ) -> StdResult<Vec<(Addr, Borrower)>> {
     let borrowers: Vec<(Addr, Borrower)> = borrowers
         .iter()
@@ -223,8 +224,8 @@ pub fn get_borrowers(
 
 pub fn get_collection_prices(
     deps: Deps,
-    borrowers: &Vec<(Addr, Borrower)>,
-    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    borrowers: &[(Addr, Borrower)],
+    collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
     oracle: &Addr,
 ) -> StdResult<Vec<oracle::types::PriceItem>> {
     // collect collection addresses over current page borrowers
@@ -260,7 +261,7 @@ pub fn get_collection_prices(
 }
 
 pub fn get_collaterals_by_borrower(
-    collection_and_collateral_list: &Vec<(Addr, Vec<Collateral>)>,
+    collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
     borrower_address: &Addr,
 ) -> StdResult<Vec<(Addr, Collateral)>> {
     // get collaterals owned by borrower
@@ -285,8 +286,8 @@ pub fn get_collaterals_by_borrower(
 }
 
 pub fn get_collateral_value(
-    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
-    prices: &Vec<PriceItem>,
+    collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
+    prices: &[PriceItem],
     block_time: u64,
     price_update_period: u64,
 ) -> StdResult<Option<Uint128>> {
@@ -330,7 +331,7 @@ pub fn get_collection_and_bid_list(
     let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
 
     for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
-        for bid in LIQUIDATION_BIDS.load(storage, &collection_address)? {
+        for bid in LIQUIDATION_BIDS.load(storage, collection_address)? {
             if bid
                 .token_id_list
                 .iter()
@@ -365,26 +366,22 @@ pub fn update_liquidation_storages(
 
         // update bids
         let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
-            .load(storage, &collection)?
+            .load(storage, collection)?
             .into_iter()
             .map(|mut bid| {
                 if bid.token_id_list.contains(token_id) {
                     bid.amount -= liquidation_price;
-                    bid.token_id_list = bid
-                        .token_id_list
-                        .into_iter()
-                        .filter(|id| id != token_id)
-                        .collect();
+                    bid.token_id_list.retain(|id| id != token_id);
                 }
 
                 bid
             })
             .collect();
 
-        LIQUIDATION_BIDS.save(storage, &collection, &bids)?;
+        LIQUIDATION_BIDS.save(storage, collection, &bids)?;
 
         // update collaterals
-        let mut collaterals = COLLATERALS.load(storage, &collection)?;
+        let mut collaterals = COLLATERALS.load(storage, collection)?;
 
         let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
         if collaterals_by_liquidator.is_none() {
@@ -398,11 +395,7 @@ pub fn update_liquidation_storages(
             .into_iter()
             .map(|mut x| {
                 if x.owner == owner {
-                    x.token_id_list = x
-                        .token_id_list
-                        .into_iter()
-                        .filter(|id| id != token_id)
-                        .collect();
+                    x.token_id_list.retain(|id| id != token_id);
                 } else if x.owner == liquidator {
                     x.token_id_list.push(token_id.to_string());
                 }
@@ -412,7 +405,7 @@ pub fn update_liquidation_storages(
             .filter(|x| !x.token_id_list.is_empty())
             .collect();
 
-        COLLATERALS.save(storage, &collection, &collaterals)?;
+        COLLATERALS.save(storage, collection, &collaterals)?;
     }
 
     Ok(current_liquidation_value)

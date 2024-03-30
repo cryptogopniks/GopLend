@@ -47,7 +47,7 @@ pub fn try_create_native(
 
     OWNERS.update(
         deps.storage,
-        &full_denom,
+        full_denom,
         |x| -> StdResult<(Currency<Token>, Addr)> {
             match x {
                 Some(_) => Err(ContractError::DenomExists)?,
@@ -67,6 +67,7 @@ pub fn try_create_native(
         .add_attributes([("action", "try_create_native")]))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn try_create_cw20(
     deps: DepsMut,
     env: Env,
@@ -454,7 +455,7 @@ pub fn try_register_currency(
     let creator = deps.api.addr_validate(&creator)?;
     let token = currency.token.verify(deps.api)?;
     let currency = Currency::new(&token, currency.decimals);
-    let token_denom = match token.clone() {
+    let token_denom = match token {
         Token::Native { denom } => denom,
         Token::Cw20 { address } => address.to_string(),
     };

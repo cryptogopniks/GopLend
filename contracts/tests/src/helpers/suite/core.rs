@@ -136,16 +136,16 @@ impl Project {
             &None,
             &None,
             &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
             &Currency::new(
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
             ),
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
             &None,
             &None,
             &None,
@@ -174,10 +174,10 @@ impl Project {
             gopniks_address,
             pinjeons_address,
 
-            lending_platform_address: lending_platform_address.clone(),
-            oracle_address: oracle_address.clone(),
-            minter_address: minter_address.clone(),
-            adapter_scheduler_kujira_address: adapter_scheduler_kujira_address.clone(),
+            lending_platform_address,
+            oracle_address,
+            minter_address,
+            adapter_scheduler_kujira_address,
 
             ..project
         };
@@ -205,24 +205,24 @@ impl Project {
         let bgl_currency = &currencies[0];
 
         project
-            .lending_platform_try_update_config(
+            .lending_platform_try_update_address_config(
                 ProjectAccount::Admin,
                 &Some(ProjectAccount::Owner),
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
                 &Some(project.get_adapter_scheduler_kujira_address()),
                 &None,
+            )
+            .unwrap();
+
+        project
+            .lending_platform_try_update_common_config(
+                ProjectAccount::Admin,
                 &None,
                 &Some(Currency::new(
                     &bgl_currency.clone().token.into(),
                     bgl_currency.decimals,
                 )),
-                &Some(project.get_cw20_base_code_id()),
-                &None,
-                &None,
-                &None,
-                &None,
-                &None,
                 &None,
                 &None,
                 &None,

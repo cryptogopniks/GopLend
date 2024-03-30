@@ -107,6 +107,7 @@ pub fn calc_conditional_deposit_apr(
         / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn calc_conditional_ltv(
     borrow_apr: Decimal,
     amount_to_borrow: Uint128,
@@ -259,9 +260,9 @@ pub fn calc_total_available_to_borrow_liquidity(
 
 /// places bid on each collateral token, best bids have higher priority
 pub fn match_collaterals_and_bids(
-    collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
-    collection_and_bid_list: &Vec<(Addr, LiquidationBid)>,
-    price_list: &Vec<PriceItem>,
+    collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
+    collection_and_bid_list: &[(Addr, LiquidationBid)],
+    price_list: &[PriceItem],
 ) -> StdResult<Vec<BiddedCollateralItem>> {
     let mut collection_and_bid_list = collection_and_bid_list.to_owned();
 
@@ -310,7 +311,7 @@ pub fn match_collaterals_and_bids(
 }
 
 fn calc_liquidation_ltv(
-    bidded_collateral: &Vec<BiddedCollateralItem>,
+    bidded_collateral: &[BiddedCollateralItem],
     borrow_apr: Decimal,
     accumulated_loan: Uint128,
     loan: Uint128,
@@ -342,8 +343,9 @@ fn calc_liquidation_ltv(
 
 // there is no way to calculate liquidation_value properly
 // then ltv must be calculated on each iteration
+#[allow(clippy::too_many_arguments)]
 pub fn calc_liquidation_set(
-    bidded_collateral_list: &Vec<BiddedCollateralItem>,
+    bidded_collateral_list: &[BiddedCollateralItem],
     max_liquidation_value: Uint128,
     ltv_max: Decimal,
     borrow_apr: Decimal,
@@ -355,7 +357,7 @@ pub fn calc_liquidation_set(
 ) -> Vec<BiddedCollateralItem> {
     const UPPER_VALUE_MULTIPLIER: &str = "1.5";
 
-    let mut bidded_collateral_list = bidded_collateral_list.clone();
+    let mut bidded_collateral_list = bidded_collateral_list.to_owned();
 
     // sort ascending by creation_date
     bidded_collateral_list.sort_unstable_by_key(|x| x.bid_creation_date);

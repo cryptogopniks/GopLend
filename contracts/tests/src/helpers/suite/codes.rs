@@ -33,23 +33,27 @@ pub trait WithCodes {
     fn instantiate_cw721_base_token(&mut self, code_id: u64, project_nft: ProjectNft) -> Addr;
 
     // instantiate contracts
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_lending_platform(
         &mut self,
         lending_platform_code_id: u64,
+
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
         marketplace: &Option<Addr>,
-        main_currency: &Currency<TokenUnverified>,
-        bgl_currency: &Option<Currency<TokenUnverified>>,
-        unbonding_period: &Option<u64>,
+
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
         liquidation_fee_rate: &Option<&str>,
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+
+        main_currency: &Currency<TokenUnverified>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -228,20 +232,23 @@ impl WithCodes for Project {
     fn instantiate_lending_platform(
         &mut self,
         lending_platform_code_id: u64,
+
         owner: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
         marketplace: &Option<Addr>,
-        main_currency: &Currency<TokenUnverified>,
-        bgl_currency: &Option<Currency<TokenUnverified>>,
-        unbonding_period: &Option<u64>,
+
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
         liquidation_fee_rate: &Option<&str>,
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+
+        main_currency: &Currency<TokenUnverified>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -255,17 +262,19 @@ impl WithCodes for Project {
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 minter: minter.as_ref().map(|x| x.to_string()),
                 scheduler: scheduler.as_ref().map(|x| x.to_string()),
-                marketplace: marketplace.as_ref().map(|x| x.to_string()),
-                main_currency: main_currency.to_owned(),
-                bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
-                unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
+
                 borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
                 borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
                 liquidation_fee_rate: liquidation_fee_rate.as_ref().map(|x| str_to_dec(x)),
                 discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
                 discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                 bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
-                collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
+
+                marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                main_currency: main_currency.to_owned(),
+                bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
+                unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
+                collateral_min_value: collateral_min_value.map(Uint128::new),
                 min_available_liquidity_multiplier: min_available_liquidity_multiplier
                     .as_ref()
                     .map(|x| str_to_dec(x)),
@@ -320,7 +329,7 @@ impl WithCodes for Project {
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                 offchain_clock: offchain_clock
                     .as_ref()
-                    .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
+                    .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
                 min_clock_period: min_clock_period.to_owned(),
             },

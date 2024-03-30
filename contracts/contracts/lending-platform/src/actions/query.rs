@@ -6,17 +6,18 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         msg::{
-            QueryBorrowersResponseItem, QueryCollateralsResponseItem, QueryCollectionsResponseItem,
-            QueryLiquidationBidsResponseItem, QueryLiquidatorsResponseItem,
-            QueryProposalsResponseItem, QueryUnbondersResponseItem,
+            QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+            QueryCollectionsResponseItem, QueryLiquidationBidsResponseItem,
+            QueryLiquidatorsResponseItem, QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         state::{
-            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, LIQUIDATION_BIDS, LIQUIDATORS,
-            PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PLATFORM_REVENUE, PROPOSALS, UNBONDERS,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
+            LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
+            PLATFORM_REVENUE, PROPOSALS, RATE_CONFIG, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, Config, LiquidationBid, LiquidationItem,
-            Liquidator, Unbonder,
+            AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig,
+            LiquidationBid, LiquidationItem, Liquidator, RateConfig, Unbonder,
         },
     },
     oracle,
@@ -31,8 +32,16 @@ use crate::{
     math,
 };
 
-pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
-    CONFIG.load(deps.storage)
+pub fn query_address_config(deps: Deps, _env: Env) -> StdResult<AddressConfig> {
+    ADDRESS_CONFIG.load(deps.storage)
+}
+
+pub fn query_rate_config(deps: Deps, _env: Env) -> StdResult<RateConfig> {
+    RATE_CONFIG.load(deps.storage)
+}
+
+pub fn query_common_config(deps: Deps, _env: Env) -> StdResult<CommonConfig> {
+    COMMON_CONFIG.load(deps.storage)
 }
 
 pub fn query_platform_revenue(deps: Deps, _env: Env) -> StdResult<Vec<Funds<Token>>> {
@@ -314,13 +323,13 @@ pub fn query_proposals(
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
 
-    let start_bound = match start_after {
-        Some(id) => Some(Bound::exclusive(id)),
-        None => None,
-    };
-
     Ok(PROPOSALS
-        .range(deps.storage, start_bound, None, Order::Ascending)
+        .range(
+            deps.storage,
+            start_after.map(Bound::exclusive),
+            None,
+            Order::Ascending,
+        )
         .take(limit)
         .map(|x| {
             let (id, proposal) = x.unwrap();
@@ -368,14 +377,15 @@ pub fn query_collection(deps: Deps, _env: Env, address: String) -> StdResult<Col
 pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let balances = BALANCES.load(deps.storage)?;
-    let config = CONFIG.load(deps.storage)?;
-    let main_currency = config.main_currency;
-    let bgl_currency = unwrap_field(config.bgl_currency, "bgl_currency")?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let main_currency = common_config.main_currency;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
 
     let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
-        config.borrow_apr,
+        rate_config.borrow_apr,
         balances.total_borrowed.amount,
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
@@ -394,11 +404,11 @@ pub fn query_conditional_deposit_apr(
     _env: Env,
     amount_to_deposit: Option<Uint128>,
 ) -> StdResult<Decimal> {
-    let Config {
+    let RateConfig {
         borrow_apr,
         borrow_fee_rate,
         ..
-    } = CONFIG.load(deps.storage)?;
+    } = RATE_CONFIG.load(deps.storage)?;
     let Balances {
         total_deposited,
         total_unbonded,
@@ -416,12 +426,110 @@ pub fn query_conditional_deposit_apr(
     ))
 }
 
-// TODO
-//     #[returns(Vec<(Addr, Decimal)>)]
-//     QueryLtvList {
-//         start_after: Option<String>,
-//         limit: Option<u32>,
-//     },
+pub fn query_ltv_list(
+    deps: Deps,
+    env: Env,
+    start_after: Option<String>,
+    limit: Option<u32>,
+) -> StdResult<Vec<(Addr, Decimal)>> {
+    let block_time = env.block.time.seconds();
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+
+    let limit = limit
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
+
+    let binding;
+    let start_bound = match start_after {
+        Some(addr) => {
+            binding = deps.api.addr_validate(&addr)?;
+            Some(Bound::exclusive(&binding))
+        }
+        None => None,
+    };
+
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: None,
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let all_collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .collect();
+
+    BORROWERS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .flatten()
+        .map(|(borrower_address, borrower)| {
+            // get collaterals owned by borrower
+            let collection_and_collateral_list: Vec<(Addr, Collateral)> = all_collaterals
+                .iter()
+                .filter(|(_collection, collaterals)| {
+                    collaterals
+                        .iter()
+                        .any(|collateral| collateral.owner == borrower_address)
+                })
+                .map(
+                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                        // single collateral per collection
+                        let collateral = collaterals
+                            .iter()
+                            .find(|collateral| collateral.owner == borrower_address)
+                            .ok_or(ContractError::CollateralIsNotFound)?;
+
+                        Ok((collection.to_owned(), collateral.to_owned()))
+                    },
+                )
+                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+            let collateral_value = collection_and_collateral_list.iter().fold(
+                Ok(Uint128::zero()),
+                |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+                    let oracle::types::PriceItem {
+                        price,
+                        price_update_date,
+                        ..
+                    } = prices
+                        .iter()
+                        .find(|x| x.address == collection_address)
+                        .ok_or(ContractError::PriceIsNotFound {
+                            val: collection_address.to_string(),
+                        })?;
+
+                    if block_time - price_update_date > common_config.price_update_period {
+                        Err(ContractError::OutdatedPrice {
+                            val: collection_address.to_string(),
+                        })?;
+                    }
+
+                    Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+                },
+            )?;
+
+            let ltv = math::calc_conditional_ltv(
+                rate_config.borrow_apr,
+                Uint128::zero(),
+                borrower.accumulated_loan,
+                borrower.loan.amount,
+                Uint128::zero(),
+                collateral_value,
+                block_time,
+                borrower.loan.creation_date,
+            );
+
+            Ok((borrower_address, ltv))
+        })
+        .collect::<StdResult<Vec<(Addr, Decimal)>>>()
+}
 
 pub fn query_conditional_ltv(
     deps: Deps,
@@ -431,13 +539,10 @@ pub fn query_conditional_ltv(
     amount_to_borrow: Option<Uint128>,
 ) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
-    let Config {
-        borrow_apr,
-        oracle,
-        price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
         .load(deps.storage, &borrower_address)
@@ -449,7 +554,7 @@ pub fn query_conditional_ltv(
         .flatten()
         .filter(|(_collection, collaterals)| {
             collaterals
-                .into_iter()
+                .iter()
                 .any(|collateral| collateral.owner == borrower_address)
         })
         .map(
@@ -494,7 +599,7 @@ pub fn query_conditional_ltv(
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_update_date > price_update_period {
+            if block_time - price_update_date > common_config.price_update_period {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;
@@ -512,7 +617,7 @@ pub fn query_conditional_ltv(
     }
 
     Ok(math::calc_conditional_ltv(
-        borrow_apr,
+        rate_config.borrow_apr,
         amount_to_borrow.unwrap_or_default(),
         borrower.accumulated_loan,
         borrower.loan.amount,
@@ -525,19 +630,20 @@ pub fn query_conditional_ltv(
 
 pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdResult<Uint128> {
     let block_time = env.block.time.seconds();
-    let config = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
     let balances = BALANCES.load(deps.storage)?;
 
     let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
-        config.borrow_apr,
+        rate_config.borrow_apr,
         balances.total_borrowed.amount,
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
     let min_available_liquidity = math::calc_min_available_liquidity(
-        config.min_available_liquidity_multiplier,
+        common_config.min_available_liquidity_multiplier,
         balances.total_main_currency_pool,
         balances.reserve_main_currency_pool,
         rewards,
@@ -559,16 +665,10 @@ pub fn query_available_to_borrow(
     target_ltv: Option<Decimal>,
 ) -> StdResult<Uint128> {
     let block_time = env.block.time.seconds();
-    let Config {
-        borrow_apr,
-        oracle,
-        price_update_period,
-        bid_min_rate,
-        discount_max_rate,
-        discount_min_rate,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
         .load(deps.storage, &borrower_address)
@@ -580,7 +680,7 @@ pub fn query_available_to_borrow(
         .flatten()
         .filter(|(_collection, collaterals)| {
             collaterals
-                .into_iter()
+                .iter()
                 .any(|collateral| collateral.owner == borrower_address)
         })
         .map(
@@ -625,7 +725,7 @@ pub fn query_available_to_borrow(
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_update_date > price_update_period {
+            if block_time - price_update_date > common_config.price_update_period {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;
@@ -642,10 +742,14 @@ pub fn query_available_to_borrow(
         Err(ContractError::CollateralIsNotFound)?;
     }
 
-    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
     let ltv = target_ltv.unwrap_or(ltv_max);
     let accumulated_loan = math::calc_accumulated_loan(
-        borrow_apr,
+        rate_config.borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
         block_time,
@@ -656,9 +760,31 @@ pub fn query_available_to_borrow(
     Ok(math::calc_available_to_borrow(ltv, collateral_value, loan))
 }
 
-// TODO
-//     #[returns(QueryAmountsResponse)]
-//     QueryAmounts {},
+pub fn query_amounts(deps: Deps, _env: Env) -> StdResult<QueryAmountsResponse> {
+    Ok(QueryAmountsResponse {
+        unbonders: UNBONDERS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        borrowers: BORROWERS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        collaterals: COLLATERALS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        liquidators: LIQUIDATORS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        liquidation_bids: LIQUIDATION_BIDS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        proposals: PROPOSALS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+        collections: COLLECTIONS
+            .range(deps.storage, None, None, Order::Ascending)
+            .count() as u32,
+    })
+}
 
 pub fn query_targets(
     deps: Deps,
@@ -666,16 +792,10 @@ pub fn query_targets(
     borrowers: Vec<String>,
 ) -> StdResult<Vec<LiquidationItem>> {
     let block_time = env.block.time.seconds();
-    let Config {
-        borrow_apr,
-        oracle,
-        discount_max_rate,
-        discount_min_rate,
-        bid_min_rate,
-        price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
     let borrowers = get_borrowers(deps.storage, deps.api, &borrowers)?;
 
@@ -708,7 +828,7 @@ pub fn query_targets(
             &collection_and_collateral_list_by_borrower,
             &prices,
             block_time,
-            price_update_period,
+            common_config.price_update_period,
         )?;
         // go to next borrower if any price is outdated
         if collateral_value_option.is_none() {
@@ -717,9 +837,13 @@ pub fn query_targets(
         let collateral_value = collateral_value_option.unwrap();
 
         // check ltv
-        let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+        let ltv_max = math::calc_ltv_max(
+            rate_config.bid_min_rate,
+            rate_config.discount_max_rate,
+            rate_config.discount_min_rate,
+        );
         let ltv = math::calc_conditional_ltv(
-            borrow_apr,
+            rate_config.borrow_apr,
             Uint128::zero(),
             accumulated_loan,
             loan.amount,
@@ -746,14 +870,18 @@ pub fn query_targets(
 
         // calculate how much tokens and what collection must be liquidated to get proper ltv
         // for worst case (max discount)
-        let max_liquidation_value =
-            math::calc_liquidation_value(collateral_value, discount_max_rate, ltv, ltv_max);
+        let max_liquidation_value = math::calc_liquidation_value(
+            collateral_value,
+            rate_config.discount_max_rate,
+            ltv,
+            ltv_max,
+        );
 
         let liquidation_set = math::calc_liquidation_set(
             &bidded_collateral_list,
             max_liquidation_value,
             ltv_max,
-            borrow_apr,
+            rate_config.borrow_apr,
             accumulated_loan,
             loan.amount,
             collateral_value,
