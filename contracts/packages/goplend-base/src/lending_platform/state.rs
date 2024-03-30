@@ -4,8 +4,8 @@ use cw_storage_plus::{Item, Map};
 use crate::{
     assets::{Funds, Token},
     lending_platform::types::{
-        Balances, Borrower, Collateral, Collection, Config, LiquidationBid, Liquidator, Proposal,
-        Unbonder,
+        AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig, LiquidationBid,
+        Liquidator, Proposal, RateConfig, Unbonder,
     },
 };
 
@@ -39,7 +39,9 @@ pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;
 
 pub const IS_LOCKED: Item<bool> = Item::new("is locked");
-pub const CONFIG: Item<Config> = Item::new("config");
+pub const ADDRESS_CONFIG: Item<AddressConfig> = Item::new("address config");
+pub const RATE_CONFIG: Item<RateConfig> = Item::new("rate config");
+pub const COMMON_CONFIG: Item<CommonConfig> = Item::new("common config");
 pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");

@@ -136,26 +136,13 @@ pub fn execute(
 
         ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
-        ExecuteMsg::UpdateConfig {
+        ExecuteMsg::UpdateAddressConfig {
             owner,
             oracle,
             minter,
             scheduler,
             marketplace,
-            main_currency,
-            bgl_currency,
-            unbonding_period,
-            borrow_apr,
-            borrow_fee_rate,
-            liquidation_fee_rate,
-            discount_min_rate,
-            discount_max_rate,
-            bid_min_rate,
-            collateral_min_value,
-            min_available_liquidity_multiplier,
-            price_update_period,
-            is_marketplace_interface_enabled,
-        } => e::try_update_config(
+        } => e::try_update_address_config(
             deps,
             env,
             info,
@@ -164,15 +151,42 @@ pub fn execute(
             minter,
             scheduler,
             marketplace,
-            main_currency,
-            bgl_currency,
-            unbonding_period,
+        ),
+
+        ExecuteMsg::UpdateRateConfig {
             borrow_apr,
             borrow_fee_rate,
             liquidation_fee_rate,
             discount_min_rate,
             discount_max_rate,
             bid_min_rate,
+        } => e::try_update_rate_config(
+            deps,
+            env,
+            info,
+            borrow_apr,
+            borrow_fee_rate,
+            liquidation_fee_rate,
+            discount_min_rate,
+            discount_max_rate,
+            bid_min_rate,
+        ),
+
+        ExecuteMsg::UpdateCommonConfig {
+            main_currency,
+            bgl_currency,
+            unbonding_period,
+            collateral_min_value,
+            min_available_liquidity_multiplier,
+            price_update_period,
+            is_marketplace_interface_enabled,
+        } => e::try_update_common_config(
+            deps,
+            env,
+            info,
+            main_currency,
+            bgl_currency,
+            unbonding_period,
             collateral_min_value,
             min_available_liquidity_multiplier,
             price_update_period,
@@ -213,7 +227,11 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+        QueryMsg::QueryAddressConfig {} => to_json_binary(&q::query_address_config(deps, env)?),
+
+        QueryMsg::QueryRateConfig {} => to_json_binary(&q::query_rate_config(deps, env)?),
+
+        QueryMsg::QueryCommonConfig {} => to_json_binary(&q::query_common_config(deps, env)?),
 
         QueryMsg::QueryPlatformRevenue {} => to_json_binary(&q::query_platform_revenue(deps, env)?),
 

@@ -17,15 +17,17 @@ pub struct InstantiateMsg {
     pub minter: Option<String>,
     pub scheduler: Option<String>,
     pub marketplace: Option<String>,
-    pub main_currency: Currency<TokenUnverified>,
-    pub bgl_currency: Option<Currency<TokenUnverified>>,
-    pub unbonding_period: Option<u64>,
+
     pub borrow_apr: Option<Decimal>,
     pub borrow_fee_rate: Option<Decimal>,
     pub liquidation_fee_rate: Option<Decimal>,
     pub discount_min_rate: Option<Decimal>,
     pub discount_max_rate: Option<Decimal>,
     pub bid_min_rate: Option<Decimal>,
+
+    pub main_currency: Currency<TokenUnverified>,
+    pub bgl_currency: Option<Currency<TokenUnverified>>,
+    pub unbonding_period: Option<u64>,
     pub collateral_min_value: Option<Uint128>,
     pub min_available_liquidity_multiplier: Option<Decimal>,
     pub price_update_period: Option<u64>,
@@ -88,21 +90,27 @@ pub enum ExecuteMsg {
     },
 
     // admin
-    UpdateConfig {
+    UpdateAddressConfig {
         owner: Option<String>,
         oracle: Option<String>,
         minter: Option<String>,
         scheduler: Option<String>,
         marketplace: Option<String>,
-        main_currency: Option<Currency<TokenUnverified>>,
-        bgl_currency: Option<Currency<TokenUnverified>>,
-        unbonding_period: Option<u64>,
+    },
+
+    UpdateRateConfig {
         borrow_apr: Option<Decimal>,
         borrow_fee_rate: Option<Decimal>,
         liquidation_fee_rate: Option<Decimal>,
         discount_min_rate: Option<Decimal>,
         discount_max_rate: Option<Decimal>,
         bid_min_rate: Option<Decimal>,
+    },
+
+    UpdateCommonConfig {
+        main_currency: Option<Currency<TokenUnverified>>,
+        bgl_currency: Option<Currency<TokenUnverified>>,
+        unbonding_period: Option<u64>,
         collateral_min_value: Option<Uint128>,
         min_available_liquidity_multiplier: Option<Decimal>,
         price_update_period: Option<u64>,
@@ -143,8 +151,14 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::lending_platform::types::Config)]
-    QueryConfig {},
+    #[returns(crate::lending_platform::types::AddressConfig)]
+    QueryAddressConfig {},
+
+    #[returns(crate::lending_platform::types::RateConfig)]
+    QueryRateConfig {},
+
+    #[returns(crate::lending_platform::types::CommonConfig)]
+    QueryCommonConfig {},
 
     #[returns(Vec<crate::assets::Funds<crate::assets::Token>>)]
     QueryPlatformRevenue {},

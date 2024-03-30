@@ -6,53 +6,141 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, Decimal, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Binary, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, Balances, Uint64, Addr, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, Borrower, Vault, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, Collateral, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, CollectionForAddr, Token, Config, CurrencyForToken, ArrayOfQueryDepositorsResponseItem, QueryDepositorsResponseItem, Depositor, ArrayOfQueryLiquidationBidsResponseItem, QueryLiquidationBidsResponseItem, LiquidationBid, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, Liquidator, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken } from "./LendingPlatform.types";
+import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, Vault, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsResponseItem, QueryLiquidationBidsResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, ArrayOfLiquidationItem, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
 export interface LendingPlatformReadOnlyInterface {
   contractAddress: string;
-  queryConfig: () => Promise<Config>;
+  queryAddressConfig: () => Promise<AddressConfig>;
+  queryRateConfig: () => Promise<RateConfig>;
+  queryCommonConfig: () => Promise<CommonConfig>;
   queryPlatformRevenue: () => Promise<ArrayOfFundsForToken>;
   queryBalances: () => Promise<Balances>;
-  queryDepositors: ({
-    addresses
+  queryUnbonderList: ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
-  }) => Promise<ArrayOfQueryDepositorsResponseItem>;
-  queryBorrowers: ({
-    addresses
+    limit?: number;
+    startAfter?: string;
+  }) => Promise<ArrayOfQueryUnbondersResponseItem>;
+  queryUnbonder: ({
+    address
   }: {
-    addresses?: string[];
+    address: string;
+  }) => Promise<Unbonder>;
+  queryBorrowerList: ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }) => Promise<ArrayOfQueryBorrowersResponseItem>;
-  queryLiquidators: ({
-    addresses
+  queryBorrower: ({
+    address
   }: {
-    addresses?: string[];
+    address: string;
+  }) => Promise<Borrower>;
+  queryLiquidatorList: ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidatorsResponseItem>;
-  queryCollaterals: ({
-    collectionAddresses
+  queryLiquidator: ({
+    address
   }: {
-    collectionAddresses?: string[];
+    address: string;
+  }) => Promise<Liquidator>;
+  queryCollateralList: ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }) => Promise<ArrayOfQueryCollateralsResponseItem>;
-  queryLiquidationBidsByCollectionAddresses: ({
-    addresses
+  queryCollateral: ({
+    collectionAddress
   }: {
-    addresses?: string[];
-  }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
-  queryLiquidationBidsByLiquidatorAddresses: ({
-    addresses
+    collectionAddress: string;
+  }) => Promise<ArrayOfCollateral>;
+  queryLiquidationBidsByCollectionAddressList: ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
+    limit?: number;
+    startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
+  queryLiquidationBidsByCollectionAddress: ({
+    address
+  }: {
+    address: string;
+  }) => Promise<ArrayOfLiquidationBid>;
+  queryLiquidationBidsByLiquidatorAddressList: ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
+  }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
+  queryLiquidationBidsByLiquidatorAddress: ({
+    address
+  }: {
+    address: string;
+  }) => Promise<ArrayOfLiquidationBid>;
   queryProposals: ({
-    lastAmount
+    limit,
+    startAfter
   }: {
-    lastAmount?: number;
+    limit?: number;
+    startAfter?: number;
   }) => Promise<ArrayOfQueryProposalsResponseItem>;
-  queryCollections: ({
-    addresses
+  queryCollectionList: ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
+    limit?: number;
+    startAfter?: string;
   }) => Promise<ArrayOfQueryCollectionsResponseItem>;
-  queryBlockCounter: () => Promise<Uint64>;
+  queryCollection: ({
+    address
+  }: {
+    address: string;
+  }) => Promise<CollectionForAddr>;
+  queryBglCurrencyToMainCurrencyPrice: () => Promise<Decimal>;
+  queryConditionalDepositApr: ({
+    amountToDeposit
+  }: {
+    amountToDeposit?: Uint128;
+  }) => Promise<Decimal>;
+  queryLtvList: ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
+  }) => Promise<ArrayOfTupleOfAddrAndDecimal>;
+  queryConditionalLtv: ({
+    amountToBorrow,
+    amountToDeposit,
+    borrower
+  }: {
+    amountToBorrow?: Uint128;
+    amountToDeposit?: Uint128;
+    borrower: string;
+  }) => Promise<Decimal>;
+  queryTotalAvailableToBorrowLiquidity: () => Promise<Uint128>;
+  queryAvailableToBorrow: ({
+    borrower,
+    targetLtv
+  }: {
+    borrower: string;
+    targetLtv?: Decimal;
+  }) => Promise<Uint128>;
+  queryAmounts: () => Promise<QueryAmountsResponse>;
+  queryTargets: ({
+    borrowers
+  }: {
+    borrowers: string[];
+  }) => Promise<ArrayOfLiquidationItem>;
 }
 export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterface {
   client: CosmWasmClient;
@@ -61,23 +149,49 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
   constructor(client: CosmWasmClient, contractAddress: string) {
     this.client = client;
     this.contractAddress = contractAddress;
-    this.queryConfig = this.queryConfig.bind(this);
+    this.queryAddressConfig = this.queryAddressConfig.bind(this);
+    this.queryRateConfig = this.queryRateConfig.bind(this);
+    this.queryCommonConfig = this.queryCommonConfig.bind(this);
     this.queryPlatformRevenue = this.queryPlatformRevenue.bind(this);
     this.queryBalances = this.queryBalances.bind(this);
-    this.queryDepositors = this.queryDepositors.bind(this);
-    this.queryBorrowers = this.queryBorrowers.bind(this);
-    this.queryLiquidators = this.queryLiquidators.bind(this);
-    this.queryCollaterals = this.queryCollaterals.bind(this);
-    this.queryLiquidationBidsByCollectionAddresses = this.queryLiquidationBidsByCollectionAddresses.bind(this);
-    this.queryLiquidationBidsByLiquidatorAddresses = this.queryLiquidationBidsByLiquidatorAddresses.bind(this);
+    this.queryUnbonderList = this.queryUnbonderList.bind(this);
+    this.queryUnbonder = this.queryUnbonder.bind(this);
+    this.queryBorrowerList = this.queryBorrowerList.bind(this);
+    this.queryBorrower = this.queryBorrower.bind(this);
+    this.queryLiquidatorList = this.queryLiquidatorList.bind(this);
+    this.queryLiquidator = this.queryLiquidator.bind(this);
+    this.queryCollateralList = this.queryCollateralList.bind(this);
+    this.queryCollateral = this.queryCollateral.bind(this);
+    this.queryLiquidationBidsByCollectionAddressList = this.queryLiquidationBidsByCollectionAddressList.bind(this);
+    this.queryLiquidationBidsByCollectionAddress = this.queryLiquidationBidsByCollectionAddress.bind(this);
+    this.queryLiquidationBidsByLiquidatorAddressList = this.queryLiquidationBidsByLiquidatorAddressList.bind(this);
+    this.queryLiquidationBidsByLiquidatorAddress = this.queryLiquidationBidsByLiquidatorAddress.bind(this);
     this.queryProposals = this.queryProposals.bind(this);
-    this.queryCollections = this.queryCollections.bind(this);
-    this.queryBlockCounter = this.queryBlockCounter.bind(this);
+    this.queryCollectionList = this.queryCollectionList.bind(this);
+    this.queryCollection = this.queryCollection.bind(this);
+    this.queryBglCurrencyToMainCurrencyPrice = this.queryBglCurrencyToMainCurrencyPrice.bind(this);
+    this.queryConditionalDepositApr = this.queryConditionalDepositApr.bind(this);
+    this.queryLtvList = this.queryLtvList.bind(this);
+    this.queryConditionalLtv = this.queryConditionalLtv.bind(this);
+    this.queryTotalAvailableToBorrowLiquidity = this.queryTotalAvailableToBorrowLiquidity.bind(this);
+    this.queryAvailableToBorrow = this.queryAvailableToBorrow.bind(this);
+    this.queryAmounts = this.queryAmounts.bind(this);
+    this.queryTargets = this.queryTargets.bind(this);
   }
 
-  queryConfig = async (): Promise<Config> => {
+  queryAddressConfig = async (): Promise<AddressConfig> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_config: {}
+      query_address_config: {}
+    });
+  };
+  queryRateConfig = async (): Promise<RateConfig> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_rate_config: {}
+    });
+  };
+  queryCommonConfig = async (): Promise<CommonConfig> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_common_config: {}
     });
   };
   queryPlatformRevenue = async (): Promise<ArrayOfFundsForToken> => {
@@ -90,97 +204,275 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
       query_balances: {}
     });
   };
-  queryDepositors = async ({
-    addresses
+  queryUnbonderList = async ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
-  }): Promise<ArrayOfQueryDepositorsResponseItem> => {
+    limit?: number;
+    startAfter?: string;
+  }): Promise<ArrayOfQueryUnbondersResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_depositors: {
-        addresses
+      query_unbonder_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryBorrowers = async ({
-    addresses
+  queryUnbonder = async ({
+    address
   }: {
-    addresses?: string[];
+    address: string;
+  }): Promise<Unbonder> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_unbonder: {
+        address
+      }
+    });
+  };
+  queryBorrowerList = async ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }): Promise<ArrayOfQueryBorrowersResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_borrowers: {
-        addresses
+      query_borrower_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryLiquidators = async ({
-    addresses
+  queryBorrower = async ({
+    address
   }: {
-    addresses?: string[];
+    address: string;
+  }): Promise<Borrower> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_borrower: {
+        address
+      }
+    });
+  };
+  queryLiquidatorList = async ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }): Promise<ArrayOfQueryLiquidatorsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidators: {
-        addresses
+      query_liquidator_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryCollaterals = async ({
-    collectionAddresses
+  queryLiquidator = async ({
+    address
   }: {
-    collectionAddresses?: string[];
+    address: string;
+  }): Promise<Liquidator> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidator: {
+        address
+      }
+    });
+  };
+  queryCollateralList = async ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
   }): Promise<ArrayOfQueryCollateralsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collaterals: {
-        collection_addresses: collectionAddresses
+      query_collateral_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryLiquidationBidsByCollectionAddresses = async ({
-    addresses
+  queryCollateral = async ({
+    collectionAddress
   }: {
-    addresses?: string[];
-  }): Promise<ArrayOfQueryLiquidationBidsResponseItem> => {
+    collectionAddress: string;
+  }): Promise<ArrayOfCollateral> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidation_bids_by_collection_addresses: {
-        addresses
+      query_collateral: {
+        collection_address: collectionAddress
       }
     });
   };
-  queryLiquidationBidsByLiquidatorAddresses = async ({
-    addresses
+  queryLiquidationBidsByCollectionAddressList = async ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
+    limit?: number;
+    startAfter?: string;
   }): Promise<ArrayOfQueryLiquidationBidsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidation_bids_by_liquidator_addresses: {
-        addresses
+      query_liquidation_bids_by_collection_address_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryLiquidationBidsByCollectionAddress = async ({
+    address
+  }: {
+    address: string;
+  }): Promise<ArrayOfLiquidationBid> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_collection_address: {
+        address
+      }
+    });
+  };
+  queryLiquidationBidsByLiquidatorAddressList = async ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
+  }): Promise<ArrayOfQueryLiquidationBidsResponseItem> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_liquidator_address_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryLiquidationBidsByLiquidatorAddress = async ({
+    address
+  }: {
+    address: string;
+  }): Promise<ArrayOfLiquidationBid> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_liquidator_address: {
+        address
       }
     });
   };
   queryProposals = async ({
-    lastAmount
+    limit,
+    startAfter
   }: {
-    lastAmount?: number;
+    limit?: number;
+    startAfter?: number;
   }): Promise<ArrayOfQueryProposalsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_proposals: {
-        last_amount: lastAmount
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryCollections = async ({
-    addresses
+  queryCollectionList = async ({
+    limit,
+    startAfter
   }: {
-    addresses?: string[];
+    limit?: number;
+    startAfter?: string;
   }): Promise<ArrayOfQueryCollectionsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collections: {
-        addresses
+      query_collection_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryBlockCounter = async (): Promise<Uint64> => {
+  queryCollection = async ({
+    address
+  }: {
+    address: string;
+  }): Promise<CollectionForAddr> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_block_counter: {}
+      query_collection: {
+        address
+      }
+    });
+  };
+  queryBglCurrencyToMainCurrencyPrice = async (): Promise<Decimal> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_bgl_currency_to_main_currency_price: {}
+    });
+  };
+  queryConditionalDepositApr = async ({
+    amountToDeposit
+  }: {
+    amountToDeposit?: Uint128;
+  }): Promise<Decimal> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_conditional_deposit_apr: {
+        amount_to_deposit: amountToDeposit
+      }
+    });
+  };
+  queryLtvList = async ({
+    limit,
+    startAfter
+  }: {
+    limit?: number;
+    startAfter?: string;
+  }): Promise<ArrayOfTupleOfAddrAndDecimal> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_ltv_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryConditionalLtv = async ({
+    amountToBorrow,
+    amountToDeposit,
+    borrower
+  }: {
+    amountToBorrow?: Uint128;
+    amountToDeposit?: Uint128;
+    borrower: string;
+  }): Promise<Decimal> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_conditional_ltv: {
+        amount_to_borrow: amountToBorrow,
+        amount_to_deposit: amountToDeposit,
+        borrower
+      }
+    });
+  };
+  queryTotalAvailableToBorrowLiquidity = async (): Promise<Uint128> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_total_available_to_borrow_liquidity: {}
+    });
+  };
+  queryAvailableToBorrow = async ({
+    borrower,
+    targetLtv
+  }: {
+    borrower: string;
+    targetLtv?: Decimal;
+  }): Promise<Uint128> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_available_to_borrow: {
+        borrower,
+        target_ltv: targetLtv
+      }
+    });
+  };
+  queryAmounts = async (): Promise<QueryAmountsResponse> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_amounts: {}
+    });
+  };
+  queryTargets = async ({
+    borrowers
+  }: {
+    borrowers: string[];
+  }): Promise<ArrayOfLiquidationItem> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_targets: {
+        borrowers
+      }
     });
   };
 }
@@ -199,12 +491,12 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
   deposit: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   unbond: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   withdraw: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  depositCollateral: ({
+  withdrawCollateral: ({
     collections
   }: {
     collections: CollectionInfoForString[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  withdrawCollateral: ({
+  depositCollateral: ({
     collections
   }: {
     collections: CollectionInfoForString[];
@@ -216,9 +508,11 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   repay: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   placeBid: ({
-    collections
+    collections,
+    discount
   }: {
     collections: CollectionInfoForString[];
+    discount: Decimal;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   removeBid: ({
     collections,
@@ -230,41 +524,66 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
   updateBid: ({
     amount,
     collections,
-    creationDate
+    creationDate,
+    discount
   }: {
     amount: Uint128;
     collections: CollectionInfoForString[];
     creationDate: number;
+    discount: Decimal;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  claimCollateral: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateConfig: ({
-    bglCurrency,
+  liquidate: ({
+    targets
+  }: {
+    targets: LiquidationItem[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateAddressConfig: ({
+    marketplace,
+    minter,
+    oracle,
+    owner,
+    scheduler
+  }: {
+    marketplace?: string;
+    minter?: string;
+    oracle?: string;
+    owner?: string;
+    scheduler?: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateRateConfig: ({
     bidMinRate,
     borrowApr,
     borrowFeeRate,
-    cw20BaseCodeId,
     discountMaxRate,
     discountMinRate,
-    liquidationFeeRate,
-    mainCurrency,
-    oracle,
-    owner,
-    unbondingPeriod
+    liquidationFeeRate
   }: {
-    bglCurrency?: CurrencyForTokenUnverified;
     bidMinRate?: Decimal;
     borrowApr?: Decimal;
     borrowFeeRate?: Decimal;
-    cw20BaseCodeId?: number;
     discountMaxRate?: Decimal;
     discountMinRate?: Decimal;
     liquidationFeeRate?: Decimal;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateCommonConfig: ({
+    bglCurrency,
+    collateralMinValue,
+    isMarketplaceInterfaceEnabled,
+    mainCurrency,
+    minAvailableLiquidityMultiplier,
+    priceUpdatePeriod,
+    unbondingPeriod
+  }: {
+    bglCurrency?: CurrencyForTokenUnverified;
+    collateralMinValue?: Uint128;
+    isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    oracle?: string;
-    owner?: string;
+    minAvailableLiquidityMultiplier?: Decimal;
+    priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  createBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  depositReserveLiquidity: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  reinforceBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   distributeFunds: ({
@@ -307,16 +626,19 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     this.deposit = this.deposit.bind(this);
     this.unbond = this.unbond.bind(this);
     this.withdraw = this.withdraw.bind(this);
-    this.depositCollateral = this.depositCollateral.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
+    this.depositCollateral = this.depositCollateral.bind(this);
     this.borrow = this.borrow.bind(this);
     this.repay = this.repay.bind(this);
     this.placeBid = this.placeBid.bind(this);
     this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
-    this.claimCollateral = this.claimCollateral.bind(this);
-    this.updateConfig = this.updateConfig.bind(this);
-    this.createBglToken = this.createBglToken.bind(this);
+    this.liquidate = this.liquidate.bind(this);
+    this.updateAddressConfig = this.updateAddressConfig.bind(this);
+    this.updateRateConfig = this.updateRateConfig.bind(this);
+    this.updateCommonConfig = this.updateCommonConfig.bind(this);
+    this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
+    this.reinforceBglToken = this.reinforceBglToken.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
     this.distributeFunds = this.distributeFunds.bind(this);
@@ -358,17 +680,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
       withdraw: {}
     }, fee, memo, _funds);
   };
-  depositCollateral = async ({
-    collections
-  }: {
-    collections: CollectionInfoForString[];
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      deposit_collateral: {
-        collections
-      }
-    }, fee, memo, _funds);
-  };
   withdrawCollateral = async ({
     collections
   }: {
@@ -376,6 +687,17 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       withdraw_collateral: {
+        collections
+      }
+    }, fee, memo, _funds);
+  };
+  depositCollateral = async ({
+    collections
+  }: {
+    collections: CollectionInfoForString[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      deposit_collateral: {
         collections
       }
     }, fee, memo, _funds);
@@ -397,13 +719,16 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     }, fee, memo, _funds);
   };
   placeBid = async ({
-    collections
+    collections,
+    discount
   }: {
     collections: CollectionInfoForString[];
+    discount: Decimal;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       place_bid: {
-        collections
+        collections,
+        discount
       }
     }, fee, memo, _funds);
   };
@@ -424,72 +749,120 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
   updateBid = async ({
     amount,
     collections,
-    creationDate
+    creationDate,
+    discount
   }: {
     amount: Uint128;
     collections: CollectionInfoForString[];
     creationDate: number;
+    discount: Decimal;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_bid: {
         amount,
         collections,
-        creation_date: creationDate
+        creation_date: creationDate,
+        discount
       }
     }, fee, memo, _funds);
   };
-  claimCollateral = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  liquidate = async ({
+    targets
+  }: {
+    targets: LiquidationItem[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      claim_collateral: {}
+      liquidate: {
+        targets
+      }
     }, fee, memo, _funds);
   };
-  updateConfig = async ({
-    bglCurrency,
+  updateAddressConfig = async ({
+    marketplace,
+    minter,
+    oracle,
+    owner,
+    scheduler
+  }: {
+    marketplace?: string;
+    minter?: string;
+    oracle?: string;
+    owner?: string;
+    scheduler?: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_address_config: {
+        marketplace,
+        minter,
+        oracle,
+        owner,
+        scheduler
+      }
+    }, fee, memo, _funds);
+  };
+  updateRateConfig = async ({
     bidMinRate,
     borrowApr,
     borrowFeeRate,
-    cw20BaseCodeId,
     discountMaxRate,
     discountMinRate,
-    liquidationFeeRate,
-    mainCurrency,
-    oracle,
-    owner,
-    unbondingPeriod
+    liquidationFeeRate
   }: {
-    bglCurrency?: CurrencyForTokenUnverified;
     bidMinRate?: Decimal;
     borrowApr?: Decimal;
     borrowFeeRate?: Decimal;
-    cw20BaseCodeId?: number;
     discountMaxRate?: Decimal;
     discountMinRate?: Decimal;
     liquidationFeeRate?: Decimal;
-    mainCurrency?: CurrencyForTokenUnverified;
-    oracle?: string;
-    owner?: string;
-    unbondingPeriod?: number;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      update_config: {
-        bgl_currency: bglCurrency,
+      update_rate_config: {
         bid_min_rate: bidMinRate,
         borrow_apr: borrowApr,
         borrow_fee_rate: borrowFeeRate,
-        cw20_base_code_id: cw20BaseCodeId,
         discount_max_rate: discountMaxRate,
         discount_min_rate: discountMinRate,
-        liquidation_fee_rate: liquidationFeeRate,
+        liquidation_fee_rate: liquidationFeeRate
+      }
+    }, fee, memo, _funds);
+  };
+  updateCommonConfig = async ({
+    bglCurrency,
+    collateralMinValue,
+    isMarketplaceInterfaceEnabled,
+    mainCurrency,
+    minAvailableLiquidityMultiplier,
+    priceUpdatePeriod,
+    unbondingPeriod
+  }: {
+    bglCurrency?: CurrencyForTokenUnverified;
+    collateralMinValue?: Uint128;
+    isMarketplaceInterfaceEnabled?: boolean;
+    mainCurrency?: CurrencyForTokenUnverified;
+    minAvailableLiquidityMultiplier?: Decimal;
+    priceUpdatePeriod?: number;
+    unbondingPeriod?: number;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_common_config: {
+        bgl_currency: bglCurrency,
+        collateral_min_value: collateralMinValue,
+        is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
         main_currency: mainCurrency,
-        oracle,
-        owner,
+        min_available_liquidity_multiplier: minAvailableLiquidityMultiplier,
+        price_update_period: priceUpdatePeriod,
         unbonding_period: unbondingPeriod
       }
     }, fee, memo, _funds);
   };
-  createBglToken = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  depositReserveLiquidity = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      create_bgl_token: {}
+      deposit_reserve_liquidity: {}
+    }, fee, memo, _funds);
+  };
+  reinforceBglToken = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      reinforce_bgl_token: {}
     }, fee, memo, _funds);
   };
   lock = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {

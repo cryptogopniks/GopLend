@@ -108,7 +108,7 @@ fn deposit_zero() -> StdResult<()> {
 #[test]
 fn deposit_default() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -307,19 +307,8 @@ fn collateral_value_limitations() -> StdResult<()> {
     );
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -376,7 +365,7 @@ fn collateral_value_limitations() -> StdResult<()> {
 #[test]
 fn deposit_unbond_withdraw_default() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -531,19 +520,8 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -627,7 +605,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
 #[test]
 fn clear_unbonders_storage() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_config()?;
+    let config = project.lending_platform_query_common_config()?;
     let bgl_token = config
         .bgl_currency
         .ok_or(ContractError::AssetIsNotFound)?
@@ -951,19 +929,8 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1172,19 +1139,8 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1365,19 +1321,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1555,19 +1500,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1745,19 +1679,8 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -1930,19 +1853,8 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2123,19 +2035,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2313,19 +2214,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2509,19 +2399,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2714,19 +2593,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,
@@ -2955,19 +2823,8 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     )?;
 
     // set collateral min value
-    project.lending_platform_try_update_config(
+    project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
         &None,
         &None,
         &None,

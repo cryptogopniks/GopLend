@@ -117,24 +117,31 @@ pub struct Balances {
     pub reserve_bgl_currency_supply: Uint128,
 }
 
-// TODO: split
 #[cw_serde]
-pub struct Config {
+pub struct AddressConfig {
     pub admin: Addr,
     pub owner: Option<Addr>,
     pub oracle: Option<Addr>,
     pub minter: Option<Addr>,
     pub scheduler: Option<Addr>,
     pub marketplace: Option<Addr>,
-    pub main_currency: Currency<Token>,
-    pub bgl_currency: Option<Currency<Token>>,
-    pub unbonding_period: u64,
+}
+
+#[cw_serde]
+pub struct RateConfig {
     pub borrow_apr: Decimal,
     pub borrow_fee_rate: Decimal,
     pub liquidation_fee_rate: Decimal,
     pub discount_min_rate: Decimal,
     pub discount_max_rate: Decimal,
     pub bid_min_rate: Decimal,
+}
+
+#[cw_serde]
+pub struct CommonConfig {
+    pub main_currency: Currency<Token>,
+    pub bgl_currency: Option<Currency<Token>>,
+    pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
     pub min_available_liquidity_multiplier: Decimal,
     pub price_update_period: u64,

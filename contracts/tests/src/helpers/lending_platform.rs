@@ -13,8 +13,9 @@ use goplend_base::{
             QueryProposalsResponseItem, QueryUnbondersResponseItem,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
-            LiquidationItem, Liquidator, Proposal, Unbonder,
+            AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
+            CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal, RateConfig,
+            Unbonder,
         },
     },
 };
@@ -98,7 +99,7 @@ pub trait LendingPlatformExtension {
         targets: &Vec<LiquidationItem>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_try_update_config(
+    fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
@@ -106,15 +107,25 @@ pub trait LendingPlatformExtension {
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
         marketplace: &Option<Addr>,
-        main_currency: &Option<Currency<TokenUnverified>>,
-        bgl_currency: &Option<Currency<TokenUnverified>>,
-        unbonding_period: &Option<u64>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_update_rate_config(
+        &mut self,
+        sender: ProjectAccount,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
         liquidation_fee_rate: &Option<&str>,
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+    ) -> StdResult<AppResponse>;
+
+    fn lending_platform_try_update_common_config(
+        &mut self,
+        sender: ProjectAccount,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -164,7 +175,11 @@ pub trait LendingPlatformExtension {
         asset: impl Into<ProjectAsset>,
     ) -> StdResult<AppResponse>;
 
-    fn lending_platform_query_config(&self) -> StdResult<Config>;
+    fn lending_platform_query_address_config(&self) -> StdResult<AddressConfig>;
+
+    fn lending_platform_query_rate_config(&self) -> StdResult<RateConfig>;
+
+    fn lending_platform_query_common_config(&self) -> StdResult<CommonConfig>;
 
     fn lending_platform_query_platform_revenue(&self) -> StdResult<Vec<Funds<Token>>>;
 
@@ -459,7 +474,7 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_update_config(
+    fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
         owner: &Option<ProjectAccount>,
@@ -467,15 +482,58 @@ impl LendingPlatformExtension for Project {
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
         marketplace: &Option<Addr>,
-        main_currency: &Option<Currency<TokenUnverified>>,
-        bgl_currency: &Option<Currency<TokenUnverified>>,
-        unbonding_period: &Option<u64>,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::UpdateAddressConfig {
+                    owner: owner.as_ref().map(|x| x.to_string()),
+                    oracle: oracle.as_ref().map(|x| x.to_string()),
+                    minter: minter.as_ref().map(|x| x.to_string()),
+                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                    marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_update_rate_config(
+        &mut self,
+        sender: ProjectAccount,
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
         liquidation_fee_rate: &Option<&str>,
         discount_min_rate: &Option<&str>,
         discount_max_rate: &Option<&str>,
         bid_min_rate: &Option<&str>,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::UpdateRateConfig {
+                    borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
+                    borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                    liquidation_fee_rate: liquidation_fee_rate.as_ref().map(|x| str_to_dec(x)),
+                    discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
+                    discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
+                    bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_update_common_config(
+        &mut self,
+        sender: ProjectAccount,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        bgl_currency: &Option<Currency<TokenUnverified>>,
+        unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         min_available_liquidity_multiplier: &Option<&str>,
         price_update_period: &Option<u64>,
@@ -485,21 +543,10 @@ impl LendingPlatformExtension for Project {
             .execute_contract(
                 sender.into(),
                 self.get_lending_platform_address(),
-                &ExecuteMsg::UpdateConfig {
-                    owner: owner.as_ref().map(|x| x.to_string()),
-                    oracle: oracle.as_ref().map(|x| x.to_string()),
-                    minter: minter.as_ref().map(|x| x.to_string()),
-                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
-                    marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                &ExecuteMsg::UpdateCommonConfig {
                     main_currency: main_currency.as_ref().map(|x| x.to_owned()),
                     bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                     unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
-                    borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
-                    borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
-                    liquidation_fee_rate: liquidation_fee_rate.as_ref().map(|x| str_to_dec(x)),
-                    discount_min_rate: discount_min_rate.as_ref().map(|x| str_to_dec(x)),
-                    discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
-                    bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
                     collateral_min_value: collateral_min_value.map(|x| Uint128::new(x)),
                     min_available_liquidity_multiplier: min_available_liquidity_multiplier
                         .as_ref()
@@ -637,10 +684,26 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_config(&self) -> StdResult<Config> {
+    fn lending_platform_query_address_config(&self) -> StdResult<AddressConfig> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
-            &QueryMsg::QueryConfig {},
+            &QueryMsg::QueryAddressConfig {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_rate_config(&self) -> StdResult<RateConfig> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryRateConfig {},
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_common_config(&self) -> StdResult<CommonConfig> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCommonConfig {},
         )
     }
 

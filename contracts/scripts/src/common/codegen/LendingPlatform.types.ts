@@ -14,18 +14,25 @@ export type TokenUnverified = {
   };
 };
 export type Decimal = string;
+export type Uint128 = string;
 export interface InstantiateMsg {
   bgl_currency?: CurrencyForTokenUnverified | null;
   bid_min_rate?: Decimal | null;
   borrow_apr?: Decimal | null;
   borrow_fee_rate?: Decimal | null;
-  cw20_base_code_id?: number | null;
+  collateral_min_value?: Uint128 | null;
   discount_max_rate?: Decimal | null;
   discount_min_rate?: Decimal | null;
+  is_marketplace_interface_enabled?: boolean | null;
   liquidation_fee_rate?: Decimal | null;
   main_currency: CurrencyForTokenUnverified;
+  marketplace?: string | null;
+  min_available_liquidity_multiplier?: Decimal | null;
+  minter?: string | null;
   oracle?: string | null;
   owner?: string | null;
+  price_update_period?: number | null;
+  scheduler?: string | null;
   unbonding_period?: number | null;
 }
 export interface CurrencyForTokenUnverified {
@@ -41,11 +48,11 @@ export type ExecuteMsg = {
 } | {
   withdraw: {};
 } | {
-  deposit_collateral: {
+  withdraw_collateral: {
     collections: CollectionInfoForString[];
   };
 } | {
-  withdraw_collateral: {
+  deposit_collateral: {
     collections: CollectionInfoForString[];
   };
 } | {
@@ -57,6 +64,7 @@ export type ExecuteMsg = {
 } | {
   place_bid: {
     collections: CollectionInfoForString[];
+    discount: Decimal;
   };
 } | {
   remove_bid: {
@@ -68,26 +76,43 @@ export type ExecuteMsg = {
     amount: Uint128;
     collections: CollectionInfoForString[];
     creation_date: number;
+    discount: Decimal;
   };
 } | {
-  claim_collateral: {};
+  liquidate: {
+    targets: LiquidationItem[];
+  };
 } | {
-  update_config: {
-    bgl_currency?: CurrencyForTokenUnverified | null;
+  update_address_config: {
+    marketplace?: string | null;
+    minter?: string | null;
+    oracle?: string | null;
+    owner?: string | null;
+    scheduler?: string | null;
+  };
+} | {
+  update_rate_config: {
     bid_min_rate?: Decimal | null;
     borrow_apr?: Decimal | null;
     borrow_fee_rate?: Decimal | null;
-    cw20_base_code_id?: number | null;
     discount_max_rate?: Decimal | null;
     discount_min_rate?: Decimal | null;
     liquidation_fee_rate?: Decimal | null;
+  };
+} | {
+  update_common_config: {
+    bgl_currency?: CurrencyForTokenUnverified | null;
+    collateral_min_value?: Uint128 | null;
+    is_marketplace_interface_enabled?: boolean | null;
     main_currency?: CurrencyForTokenUnverified | null;
-    oracle?: string | null;
-    owner?: string | null;
+    min_available_liquidity_multiplier?: Decimal | null;
+    price_update_period?: number | null;
     unbonding_period?: number | null;
   };
 } | {
-  create_bgl_token: {};
+  deposit_reserve_liquidity: {};
+} | {
+  reinforce_bgl_token: {};
 } | {
   lock: {};
 } | {
@@ -113,8 +138,8 @@ export type ExecuteMsg = {
     id: number;
   };
 };
-export type Uint128 = string;
 export type Binary = string;
+export type Addr = string;
 export type ProposalStatus = "active" | "accepted" | "rejected";
 export type ProposalTypeForString = {
   add_collection: {
@@ -137,6 +162,21 @@ export interface CollectionInfoForString {
   collection_address: string;
   token_id_list: string[];
 }
+export interface LiquidationItem {
+  borrower: string;
+  liquidation_set: BiddedCollateralItem[];
+}
+export interface BiddedCollateralItem {
+  bid_creation_date: number;
+  bid_discount: Decimal;
+  collateral_price: Uint128;
+  collection: Addr;
+  is_offer: boolean;
+  liquidation_price: Uint128;
+  liquidator: Addr;
+  owner: Addr;
+  token_id: string;
+}
 export interface ProposalForStringAndTokenUnverified {
   listing_price: FundsForTokenUnverified;
   proposal_status?: ProposalStatus | null;
@@ -151,89 +191,176 @@ export interface CollectionForString {
   owner: string;
 }
 export type QueryMsg = {
-  query_config: {};
+  query_address_config: {};
+} | {
+  query_rate_config: {};
+} | {
+  query_common_config: {};
 } | {
   query_platform_revenue: {};
 } | {
   query_balances: {};
 } | {
-  query_depositors: {
-    addresses?: string[] | null;
+  query_unbonder_list: {
+    limit?: number | null;
+    start_after?: string | null;
   };
 } | {
-  query_borrowers: {
-    addresses?: string[] | null;
+  query_unbonder: {
+    address: string;
   };
 } | {
-  query_liquidators: {
-    addresses?: string[] | null;
+  query_borrower_list: {
+    limit?: number | null;
+    start_after?: string | null;
   };
 } | {
-  query_collaterals: {
-    collection_addresses?: string[] | null;
+  query_borrower: {
+    address: string;
   };
 } | {
-  query_liquidation_bids_by_collection_addresses: {
-    addresses?: string[] | null;
+  query_liquidator_list: {
+    limit?: number | null;
+    start_after?: string | null;
   };
 } | {
-  query_liquidation_bids_by_liquidator_addresses: {
-    addresses?: string[] | null;
+  query_liquidator: {
+    address: string;
+  };
+} | {
+  query_collateral_list: {
+    limit?: number | null;
+    start_after?: string | null;
+  };
+} | {
+  query_collateral: {
+    collection_address: string;
+  };
+} | {
+  query_liquidation_bids_by_collection_address_list: {
+    limit?: number | null;
+    start_after?: string | null;
+  };
+} | {
+  query_liquidation_bids_by_collection_address: {
+    address: string;
+  };
+} | {
+  query_liquidation_bids_by_liquidator_address_list: {
+    limit?: number | null;
+    start_after?: string | null;
+  };
+} | {
+  query_liquidation_bids_by_liquidator_address: {
+    address: string;
   };
 } | {
   query_proposals: {
-    last_amount?: number | null;
+    limit?: number | null;
+    start_after?: number | null;
   };
 } | {
-  query_collections: {
-    addresses?: string[] | null;
+  query_collection_list: {
+    limit?: number | null;
+    start_after?: string | null;
   };
 } | {
-  query_block_counter: {};
+  query_collection: {
+    address: string;
+  };
+} | {
+  query_bgl_currency_to_main_currency_price: {};
+} | {
+  query_conditional_deposit_apr: {
+    amount_to_deposit?: Uint128 | null;
+  };
+} | {
+  query_ltv_list: {
+    limit?: number | null;
+    start_after?: string | null;
+  };
+} | {
+  query_conditional_ltv: {
+    amount_to_borrow?: Uint128 | null;
+    amount_to_deposit?: Uint128 | null;
+    borrower: string;
+  };
+} | {
+  query_total_available_to_borrow_liquidity: {};
+} | {
+  query_available_to_borrow: {
+    borrower: string;
+    target_ltv?: Decimal | null;
+  };
+} | {
+  query_amounts: {};
+} | {
+  query_targets: {
+    borrowers: string[];
+  };
 };
 export interface MigrateMsg {
   version: string;
 }
+export interface AddressConfig {
+  admin: Addr;
+  marketplace?: Addr | null;
+  minter?: Addr | null;
+  oracle?: Addr | null;
+  owner?: Addr | null;
+  scheduler?: Addr | null;
+}
+export interface QueryAmountsResponse {
+  borrowers: number;
+  collaterals: number;
+  collections: number;
+  liquidation_bids: number;
+  liquidators: number;
+  proposals: number;
+  unbonders: number;
+}
 export interface Balances {
+  accumulated_expected_rewards: Uint128;
+  reserve_bgl_currency_supply: Uint128;
+  reserve_main_currency_pool: Uint128;
   total_bgl_currency_supply: Uint128;
-  total_borrowed: Uint128;
+  total_borrowed: Vault;
   total_deposited: Uint128;
   total_liquidation_bids: Uint128;
   total_main_currency_pool: Uint128;
   total_unbonded: Uint128;
 }
-export type Uint64 = number;
-export type Addr = string;
-export type ArrayOfQueryBorrowersResponseItem = QueryBorrowersResponseItem[];
-export interface QueryBorrowersResponseItem {
-  address: Addr;
-  borrower: Borrower;
+export interface Vault {
+  amount: Uint128;
+  creation_date: number;
 }
 export interface Borrower {
   accumulated_loan: Uint128;
   loan: Vault;
 }
-export interface Vault {
-  amount: Uint128;
-  creation_date: number;
+export type ArrayOfQueryBorrowersResponseItem = QueryBorrowersResponseItem[];
+export interface QueryBorrowersResponseItem {
+  address: Addr;
+  borrower: Borrower;
+}
+export type ArrayOfCollateral = Collateral[];
+export interface Collateral {
+  owner: Addr;
+  token_id_list: string[];
 }
 export type ArrayOfQueryCollateralsResponseItem = QueryCollateralsResponseItem[];
 export interface QueryCollateralsResponseItem {
   address: Addr;
-  collateral: Collateral;
+  collateral: Collateral[];
 }
-export interface Collateral {
+export interface CollectionForAddr {
+  name: string;
   owner: Addr;
-  token_id_list: string[];
 }
 export type ArrayOfQueryCollectionsResponseItem = QueryCollectionsResponseItem[];
 export interface QueryCollectionsResponseItem {
   address: Addr;
   collection: CollectionForAddr;
-}
-export interface CollectionForAddr {
-  name: string;
-  owner: Addr;
 }
 export type Token = {
   native: {
@@ -244,53 +371,42 @@ export type Token = {
     address: Addr;
   };
 };
-export interface Config {
-  admin: Addr;
+export interface CommonConfig {
   bgl_currency?: CurrencyForToken | null;
-  bid_min_rate: Decimal;
-  borrow_apr: Decimal;
-  borrow_fee_rate: Decimal;
-  cw20_base_code_id: number;
-  discount_max_rate: Decimal;
-  discount_min_rate: Decimal;
-  liquidation_fee_rate: Decimal;
+  collateral_min_value: Uint128;
+  is_marketplace_interface_enabled: boolean;
   main_currency: CurrencyForToken;
-  oracle?: Addr | null;
-  owner?: Addr | null;
+  min_available_liquidity_multiplier: Decimal;
+  price_update_period: number;
   unbonding_period: number;
 }
 export interface CurrencyForToken {
   decimals: number;
   token: Token;
 }
-export type ArrayOfQueryDepositorsResponseItem = QueryDepositorsResponseItem[];
-export interface QueryDepositorsResponseItem {
-  address: Addr;
-  depositor: Depositor;
-}
-export interface Depositor {
-  unbonded: Vault[];
+export type ArrayOfLiquidationBid = LiquidationBid[];
+export interface LiquidationBid {
+  amount: Uint128;
+  creation_date: number;
+  discount: Decimal;
+  is_offer: boolean;
+  liquidator: Addr;
+  token_id_list: string[];
 }
 export type ArrayOfQueryLiquidationBidsResponseItem = QueryLiquidationBidsResponseItem[];
 export interface QueryLiquidationBidsResponseItem {
   address: Addr;
   liquidation_bids: LiquidationBid[];
 }
-export interface LiquidationBid {
-  amount: Uint128;
-  creation_date: number;
-  discount: Decimal;
-  liquidator: Addr;
-  token_info_list: string[];
+export interface Liquidator {
+  collection_addresses: Addr[];
 }
 export type ArrayOfQueryLiquidatorsResponseItem = QueryLiquidatorsResponseItem[];
 export interface QueryLiquidatorsResponseItem {
   address: Addr;
   liquidator: Liquidator;
 }
-export interface Liquidator {
-  collection_addresses: Addr[];
-}
+export type ArrayOfTupleOfAddrAndDecimal = [Addr, Decimal][];
 export type ArrayOfFundsForToken = FundsForToken[];
 export interface FundsForToken {
   amount: Uint128;
@@ -317,4 +433,21 @@ export interface ProposalForAddrAndToken {
   listing_price: FundsForToken;
   proposal_status?: ProposalStatus | null;
   proposal_type: ProposalTypeForAddr;
+}
+export interface RateConfig {
+  bid_min_rate: Decimal;
+  borrow_apr: Decimal;
+  borrow_fee_rate: Decimal;
+  discount_max_rate: Decimal;
+  discount_min_rate: Decimal;
+  liquidation_fee_rate: Decimal;
+}
+export type ArrayOfLiquidationItem = LiquidationItem[];
+export interface Unbonder {
+  returned_and_unbonded: [Uint128, Vault][];
+}
+export type ArrayOfQueryUnbondersResponseItem = QueryUnbondersResponseItem[];
+export interface QueryUnbondersResponseItem {
+  address: Addr;
+  unbonder: Unbonder;
 }

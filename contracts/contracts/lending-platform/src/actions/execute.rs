@@ -11,13 +11,15 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, CONFIG, IS_LOCKED, LIQUIDATION_BIDS,
-            LIQUIDATION_BID_MAX_AMOUNT, LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS,
-            PLATFORM_REVENUE, PROPOSALS, PROPOSAL_COUNTER, UNBONDERS,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
+            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_AMOUNT,
+            LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
+            PROPOSAL_COUNTER, RATE_CONFIG, UNBONDERS,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, CollectionInfo, Config, LiquidationBid,
-            LiquidationItem, Liquidator, Proposal, ProposalStatus, ProposalType, Unbonder, Vault,
+            AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
+            CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal, ProposalStatus,
+            ProposalType, RateConfig, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -50,20 +52,16 @@ pub fn try_deposit(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        bgl_currency,
-        minter,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(minter, "minter")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(address_config.minter, "minter")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != main_currency.token {
+    if asset_info != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -76,7 +74,7 @@ pub fn try_deposit(
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
         balances.accumulated_expected_rewards,
-        main_currency.decimals,
+        common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
@@ -115,12 +113,8 @@ pub fn try_unbond(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        bgl_currency,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
@@ -139,7 +133,7 @@ pub fn try_unbond(
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
         balances.accumulated_expected_rewards,
-        main_currency.decimals,
+        common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
@@ -191,15 +185,10 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        bgl_currency,
-        unbonding_period,
-        minter,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(minter, "minter")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(address_config.minter, "minter")?;
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
@@ -209,7 +198,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         .returned_and_unbonded
         .into_iter()
         .filter(|(returned, unbonded)| {
-            if block_time >= unbonded.creation_date + unbonding_period {
+            if block_time >= unbonded.creation_date + common_config.unbonding_period {
                 amount_to_burn += returned;
                 amount_to_withdraw += unbonded.amount;
 
@@ -250,7 +239,11 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
             &[(amount_to_burn, bgl_currency.token)],
         )?
         .into(),
-        get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?,
+        get_transfer_msg(
+            &sender_address,
+            amount_to_withdraw,
+            &common_config.main_currency.token,
+        )?,
     ];
 
     Ok(Response::new()
@@ -298,14 +291,9 @@ pub fn try_deposit_collateral(
 
     // query collection prices
     let block_time = env.block.time.seconds();
-    let Config {
-        oracle,
-        main_currency,
-        collateral_min_value,
-        price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
     let collection_addresses = collections
         .iter()
@@ -366,7 +354,7 @@ pub fn try_deposit_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > price_update_period {
+        if block_time - price_update_date > common_config.price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -431,11 +419,11 @@ pub fn try_deposit_collateral(
     }
 
     // check collateral value
-    if collateral_value < collateral_min_value {
+    if collateral_value < common_config.collateral_min_value {
         Err(ContractError::LowCollateral {
             provided_amount: collateral_value.u128(),
-            min_amount: collateral_min_value.u128(),
-            denom: match main_currency.token {
+            min_amount: common_config.collateral_min_value.u128(),
+            denom: match common_config.main_currency.token {
                 Token::Native { denom } => denom,
                 Token::Cw20 { address } => address.to_string(),
             },
@@ -487,14 +475,9 @@ pub fn try_withdraw_collateral(
 
     // query collection prices
     let block_time = env.block.time.seconds();
-    let Config {
-        oracle,
-        main_currency,
-        collateral_min_value,
-        price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
     let collection_addresses = collections
         .iter()
@@ -556,7 +539,7 @@ pub fn try_withdraw_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > price_update_period {
+        if block_time - price_update_date > common_config.price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -595,11 +578,12 @@ pub fn try_withdraw_collateral(
     }
 
     // check collateral value
-    if collateral_value < collateral_min_value && !is_collateral_withdrawn_completely {
+    if collateral_value < common_config.collateral_min_value && !is_collateral_withdrawn_completely
+    {
         Err(ContractError::LowCollateral {
             provided_amount: collateral_value.u128(),
-            min_amount: collateral_min_value.u128(),
-            denom: match main_currency.token {
+            min_amount: common_config.collateral_min_value.u128(),
+            denom: match common_config.main_currency.token {
                 Token::Native { denom } => denom,
                 Token::Cw20 { address } => address.to_string(),
             },
@@ -609,14 +593,13 @@ pub fn try_withdraw_collateral(
     // check ltv
     let ltv =
         query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
-    let Config {
-        discount_max_rate,
-        discount_min_rate,
-        bid_min_rate,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
 
-    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
 
     if ltv > ltv_max {
         Err(ContractError::ExceededLtv)?;
@@ -638,21 +621,14 @@ pub fn try_borrow(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        borrow_apr,
-        discount_max_rate,
-        discount_min_rate,
-        bid_min_rate,
-        min_available_liquidity_multiplier,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
 
     BORROWERS.update(deps.storage, &sender_address, |x| -> StdResult<Borrower> {
         let mut borrower = x.unwrap_or_default();
 
         borrower.accumulated_loan = math::calc_accumulated_loan(
-            borrow_apr,
+            rate_config.borrow_apr,
             borrower.accumulated_loan,
             borrower.loan.amount,
             block_time,
@@ -667,7 +643,11 @@ pub fn try_borrow(
     // check ltv
     let ltv =
         query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
-    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
 
     if ltv > ltv_max {
         Err(ContractError::ExceededLtv)?;
@@ -681,7 +661,7 @@ pub fn try_borrow(
 
     // don't allow to borrow if available liquidity is too low
     let min_available_liquidity = math::calc_min_available_liquidity(
-        min_available_liquidity_multiplier,
+        common_config.min_available_liquidity_multiplier,
         balances.total_main_currency_pool,
         balances.reserve_main_currency_pool,
         balances.accumulated_expected_rewards,
@@ -700,7 +680,7 @@ pub fn try_borrow(
     BALANCES.save(deps.storage, &balances)?;
 
     // create send msg
-    let msg = get_transfer_msg(&sender_address, amount, &main_currency.token)?;
+    let msg = get_transfer_msg(&sender_address, amount, &common_config.main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
@@ -722,18 +702,14 @@ pub fn try_repay(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        borrow_apr,
-        borrow_fee_rate,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != main_currency.token {
+    if asset_info != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -741,7 +717,7 @@ pub fn try_repay(
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
 
     let accumulated_loan = math::calc_accumulated_loan(
-        borrow_apr,
+        rate_config.borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
         block_time,
@@ -756,15 +732,18 @@ pub fn try_repay(
         borrower.accumulated_loan = Uint128::zero();
 
         // collect platform fee
-        platform_revenue =
-            math::calc_platform_revenue_on_repay(accumulated_loan, borrow_apr, borrow_fee_rate);
+        platform_revenue = math::calc_platform_revenue_on_repay(
+            accumulated_loan,
+            rate_config.borrow_apr,
+            rate_config.borrow_fee_rate,
+        );
 
         if amount_difference > borrower.loan.amount {
             // send unused funds back
             response = response.add_message(get_transfer_msg(
                 &sender_address,
                 amount_difference - borrower.loan.amount,
-                &main_currency.token,
+                &common_config.main_currency.token,
             )?);
 
             total_borrowed_difference = borrower.loan.amount;
@@ -777,8 +756,11 @@ pub fn try_repay(
         borrower.accumulated_loan = accumulated_loan - asset_amount;
 
         // collect platform fee
-        platform_revenue =
-            math::calc_platform_revenue_on_repay(asset_amount, borrow_apr, borrow_fee_rate);
+        platform_revenue = math::calc_platform_revenue_on_repay(
+            asset_amount,
+            rate_config.borrow_apr,
+            rate_config.borrow_fee_rate,
+        );
     }
 
     borrower.loan.creation_date = block_time;
@@ -786,8 +768,8 @@ pub fn try_repay(
     increase_platform_revenue(
         deps.storage,
         platform_revenue,
-        &main_currency.token,
-        &main_currency,
+        &common_config.main_currency.token,
+        &common_config.main_currency,
     )?;
 
     // update states
@@ -822,18 +804,14 @@ pub fn try_place_bid(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        discount_min_rate,
-        discount_max_rate,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != main_currency.token {
+    if asset_info != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -874,7 +852,7 @@ pub fn try_place_bid(
     }
 
     // verify discount
-    if discount < discount_min_rate || discount > discount_max_rate {
+    if discount < rate_config.discount_min_rate || discount > rate_config.discount_max_rate {
         Err(ContractError::DiscountIsOutOfRange)?;
     }
 
@@ -1012,7 +990,7 @@ pub fn try_remove_bid(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
-    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+    let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
     if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
@@ -1156,14 +1134,10 @@ pub fn try_update_bid(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        discount_min_rate,
-        discount_max_rate,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
 
-    if asset_info != main_currency.token {
+    if asset_info != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -1204,7 +1178,7 @@ pub fn try_update_bid(
     }
 
     // verify discount
-    if discount < discount_min_rate || discount > discount_max_rate {
+    if discount < rate_config.discount_min_rate || discount > rate_config.discount_max_rate {
         Err(ContractError::DiscountIsOutOfRange)?;
     }
 
@@ -1334,14 +1308,10 @@ pub fn try_liquidate(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        borrow_apr,
-        liquidation_fee_rate,
-        scheduler,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let scheduler = unwrap_field(scheduler, "scheduler")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let scheduler = unwrap_field(address_config.scheduler, "scheduler")?;
 
     check_authorization(
         deps.as_ref(),
@@ -1380,27 +1350,29 @@ pub fn try_liquidate(
             current_liquidation_value,
             accumulated_loan,
             block_time,
-            borrow_apr,
+            rate_config.borrow_apr,
         )?;
     }
 
     // collect platform fee
-    let platform_revenue =
-        math::calc_platform_revenue_on_liquidation(total_liquidation_value, liquidation_fee_rate);
+    let platform_revenue = math::calc_platform_revenue_on_liquidation(
+        total_liquidation_value,
+        rate_config.liquidation_fee_rate,
+    );
     let main_currency_pool_addition = total_liquidation_value - platform_revenue;
 
     increase_platform_revenue(
         deps.storage,
         platform_revenue,
-        &main_currency.token,
-        &main_currency,
+        &common_config.main_currency.token,
+        &common_config.main_currency,
     )?;
 
     // update contract balances
     update_balances(
         deps.storage,
         block_time,
-        borrow_apr,
+        rate_config.borrow_apr,
         main_currency_pool_addition,
         total_liquidation_value,
         total_liquidation_bids,
@@ -1409,8 +1381,8 @@ pub fn try_liquidate(
     Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
 }
 
-#[allow(clippy::too_many_arguments)]
-pub fn try_update_config(
+// #[allow(clippy::too_many_arguments)]
+pub fn try_update_address_config(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -1419,29 +1391,15 @@ pub fn try_update_config(
     minter: Option<String>,
     scheduler: Option<String>,
     marketplace: Option<String>,
-    main_currency: Option<Currency<TokenUnverified>>,
-    bgl_currency: Option<Currency<TokenUnverified>>,
-    unbonding_period: Option<u64>,
-    borrow_apr: Option<Decimal>,
-    borrow_fee_rate: Option<Decimal>,
-    liquidation_fee_rate: Option<Decimal>,
-    discount_min_rate: Option<Decimal>,
-    discount_max_rate: Option<Decimal>,
-    bid_min_rate: Option<Decimal>,
-    collateral_min_value: Option<Uint128>,
-    min_available_liquidity_multiplier: Option<Decimal>,
-    price_update_period: Option<u64>,
-    is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
-    let balances = BALANCES.load(deps.storage)?;
-    let mut attrs = Attrs::init("try_update_config");
+    let mut attrs = Attrs::init("try_update_address_config");
 
-    CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
+    ADDRESS_CONFIG.update(deps.storage, |mut config| -> StdResult<AddressConfig> {
         if let Some(x) = owner {
             config.owner = Some(deps.api.addr_validate(&x)?);
             attrs.push(("owner".to_string(), x));
@@ -1467,29 +1425,32 @@ pub fn try_update_config(
             attrs.push(("marketplace".to_string(), x));
         }
 
-        if let Some(x) = main_currency {
-            if !balances.total_main_currency_pool.is_zero() {
-                Err(ContractError::ChangingCurrency)?;
-            }
+        Ok(config)
+    })?;
 
-            config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
-            attrs.push(("main_currency".to_string(), x.token.get_symbol()));
-        }
+    Ok(Response::new().add_attributes(attrs))
+}
 
-        if let Some(x) = bgl_currency {
-            if !balances.total_bgl_currency_supply.is_zero() {
-                Err(ContractError::ChangingCurrency)?;
-            }
+// #[allow(clippy::too_many_arguments)]
+pub fn try_update_rate_config(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    borrow_apr: Option<Decimal>,
+    borrow_fee_rate: Option<Decimal>,
+    liquidation_fee_rate: Option<Decimal>,
+    discount_min_rate: Option<Decimal>,
+    discount_max_rate: Option<Decimal>,
+    bid_min_rate: Option<Decimal>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
-            config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
-            attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
-        }
+    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
+    let mut attrs = Attrs::init("try_update_rate_config");
 
-        if let Some(x) = unbonding_period {
-            config.unbonding_period = x;
-            attrs.push(("unbonding_period".to_string(), x.to_string()));
-        }
-
+    RATE_CONFIG.update(deps.storage, |mut config| -> StdResult<RateConfig> {
         if let Some(x) = borrow_apr {
             config.borrow_apr = x;
             attrs.push(("borrow_apr".to_string(), x.to_string()));
@@ -1518,6 +1479,57 @@ pub fn try_update_config(
         if let Some(x) = bid_min_rate {
             config.bid_min_rate = x;
             attrs.push(("bid_min_rate".to_string(), x.to_string()));
+        }
+
+        Ok(config)
+    })?;
+
+    Ok(Response::new().add_attributes(attrs))
+}
+
+// #[allow(clippy::too_many_arguments)]
+pub fn try_update_common_config(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    main_currency: Option<Currency<TokenUnverified>>,
+    bgl_currency: Option<Currency<TokenUnverified>>,
+    unbonding_period: Option<u64>,
+    collateral_min_value: Option<Uint128>,
+    min_available_liquidity_multiplier: Option<Decimal>,
+    price_update_period: Option<u64>,
+    is_marketplace_interface_enabled: Option<bool>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+
+    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
+    let balances = BALANCES.load(deps.storage)?;
+    let mut attrs = Attrs::init("try_update_common_config");
+
+    COMMON_CONFIG.update(deps.storage, |mut config| -> StdResult<CommonConfig> {
+        if let Some(x) = main_currency {
+            if !balances.total_main_currency_pool.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
+            config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
+            attrs.push(("main_currency".to_string(), x.token.get_symbol()));
+        }
+
+        if let Some(x) = bgl_currency {
+            if !balances.total_bgl_currency_supply.is_zero() {
+                Err(ContractError::ChangingCurrency)?;
+            }
+
+            config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
+            attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
+        }
+
+        if let Some(x) = unbonding_period {
+            config.unbonding_period = x;
+            attrs.push(("unbonding_period".to_string(), x.to_string()));
         }
 
         if let Some(x) = collateral_min_value {
@@ -1565,21 +1577,17 @@ pub fn try_deposit_reserve_liquidity(
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
 
     let block_time = env.block.time.seconds();
-    let Config {
-        main_currency,
-        bgl_currency,
-        borrow_apr,
-        minter,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(minter, "minter")?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    let rate_config = RATE_CONFIG.load(deps.storage)?;
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+    let minter_address = unwrap_field(address_config.minter, "minter")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != main_currency.token {
+    if asset_info != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -1589,7 +1597,7 @@ pub fn try_deposit_reserve_liquidity(
     let expected_rewards = math::calc_expected_rewards(
         block_time,
         balances.total_borrowed.creation_date,
-        borrow_apr,
+        rate_config.borrow_apr,
         balances.total_borrowed.amount,
     );
     let rewards = balances.accumulated_expected_rewards + expected_rewards;
@@ -1599,7 +1607,7 @@ pub fn try_deposit_reserve_liquidity(
         balances.total_main_currency_pool,
         balances.total_bgl_currency_supply,
         rewards,
-        main_currency.decimals,
+        common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
@@ -1639,7 +1647,7 @@ pub fn try_reinforce_bgl_token(
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
 
-    let Config { main_currency, .. } = CONFIG.load(deps.storage)?;
+    let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
