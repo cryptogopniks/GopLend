@@ -1,6 +1,61 @@
 {
   "CHAINS": [
     {
+      "NAME": "kujira",
+      "PREFIX": "kujira",
+      "OPTIONS": [
+        {
+          "TYPE": "test",
+          "DENOM": "ukuji",
+          "CHAIN_ID": "harpoon-4",
+          "RPC_LIST": [
+            "https://kujira-testnet-rpc.polkachu.com:443"
+          ],
+          "GAS_PRICE_AMOUNT": 0.01,
+          "STORE_CODE_GAS_MULTIPLIER": 15,
+          "CONTRACTS": [
+            {
+              "WASM": "adapter_scheduler_kujira.wasm",
+              "LABEL": "adapter_scheduler",
+              "INIT_MSG": "{\"clock_source\":\"offchain\",\"min_clock_period\":1}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS!\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "minter.wasm",
+              "LABEL": "minter",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"scheduler\":\"kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=harpoon-4]|DENOM!\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter.wasm]|ADDRESS!\",\"scheduler\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=adapter_scheduler_kujira.wasm]|ADDRESS!\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        }
+      ]
+    },
+    {
       "NAME": "stargaze",
       "PREFIX": "stars",
       "OPTIONS": [
@@ -8,20 +63,18 @@
           "TYPE": "local",
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-0",
-          "RPC_LIST": [
-            "http://127.0.0.1:33565"
-          ],
+          "RPC_LIST": [],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
           "CONTRACTS": [
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-0]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"owner\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
-              "CODE": 5,
-              "ADDRESS": "stars1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqan7eqa"
+              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
             },
             {
               "WASM": "oracle.wasm",
@@ -48,9 +101,9 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=elgafar-1]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"stars1l4kzu0w9x69tv0p9lyz0xh5fktvm9f5clpzfneym9a6c59mn40tqfq0lc9\"}}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS!\"}}",
               "CODE": 3601,
               "ADDRESS": "stars1fulfd2p3g2mpl68vdp7v79y0ws4a3jst8jggft6n4ktng09d92rqjeda83"
             },
@@ -79,9 +132,9 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-1]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"\"}}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS!\"}}",
               "CODE": 0,
               "ADDRESS": ""
             },

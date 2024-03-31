@@ -344,7 +344,7 @@ interface OwnerOfResponse {
   approvals: Approval[];
 }
 
-type NetworkName = "STARGAZE" | "INJECTIVE";
+type NetworkName = "STARGAZE" | "INJECTIVE" | "KUJIRA";
 
 type NetworkConfig = {
   [network in NetworkName]: {
