@@ -1,6 +1,5 @@
 import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
-import { CurrencyForTokenUnverified, Decimal } from "../codegen/LendingPlatform.types";
 interface QueryContractResponse {
     address: string;
     contract_info: {
@@ -95,20 +94,6 @@ interface Cw20SendMsg {
         msg: string;
     };
 }
-interface Metadata {
-    base: string;
-    denom_units: {
-        aliases: string[];
-        denom: string;
-        exponent: string;
-    }[];
-    description: string;
-    display: string;
-    name: string;
-    symbol: string;
-    uri?: string;
-    uri_hash?: string;
-}
 interface SetMetadataMsg {
     set_metadata: {
         metadata: Metadata;
@@ -140,7 +125,7 @@ interface LocalInterchainLogs {
         };
     }[];
 }
-type Wasm = "lending_platform.wasm" | "oracle.wasm";
+type Wasm = "adapter_scheduler_kujira.wasm" | "adapter_scheduler_stargaze.wasm" | "lending_platform.wasm" | "minter.wasm" | "oracle.wasm";
 type ChainType = "main" | "test" | "local";
 interface ContractInfo {
     WASM: Wasm;
@@ -183,22 +168,6 @@ type TokenUnverified = {
         address: string;
     };
 };
-interface UpdateConfigStruct {
-    bglCurrency?: CurrencyForTokenUnverified;
-    bidMinRate?: Decimal;
-    borrowApr?: Decimal;
-    borrowFeeRate?: Decimal;
-    cw20BaseCodeId?: number;
-    discountMaxRate?: Decimal;
-    discountMinRate?: Decimal;
-    liquidationFeeRate?: Decimal;
-    mainCurrency?: CurrencyForTokenUnverified;
-    oracle?: string;
-    owner?: string;
-    schedulerForLendingPlatform?: string;
-    unbondingPeriod?: number;
-    schedulerForOracle?: string;
-}
 interface Pagination {
     next_key: string;
     total: string;
@@ -331,7 +300,7 @@ interface OwnerOfResponse {
     owner: string;
     approvals: Approval[];
 }
-type NetworkName = "STARGAZE" | "INJECTIVE";
+type NetworkName = "STARGAZE" | "INJECTIVE" | "KUJIRA";
 type NetworkConfig = {
     [network in NetworkName]: {
         BASE: BaseNetworkConfig;
@@ -358,4 +327,4 @@ type ContractData = {
     ADDRESS: string;
 };
 export type { TokenUnverified, ChainType, Wasm, NetworkConfig, NetworkName, ContractsConfig, };
-export { SetMetadataMsg, Metadata, UpdateConfigStruct, Cw20SendMsg, MintStruct, MintOverIbcStruct, ChainConfig, IbcConfig, ChainOption, LocalInterchainLogs, ContractInfo, ChainItem, Wallets, StoreArgs, QueryProposalsResponse, QueryCodeIdsResponse, QueryContractResponse, QueryApprovalsMsg, ApprovalsResponse, BaseNetworkConfig, ContractData, QueryAllOperatorsMsg, QueryAllOperatorsResponse, QueryAllOperatorsInjMsg, QueryAllOperatorsInjResponse, ApproveAllMsg, ApproveMsg, RevokeAllMsg, RevokeMsg, QueryTokens, TokensResponse, TokensResponseInj, QueryOwnerOf, OwnerOfResponse, QueryContractCodesResponse, };
+export { SetMetadataMsg, Metadata, Cw20SendMsg, MintStruct, MintOverIbcStruct, ChainConfig, IbcConfig, ChainOption, LocalInterchainLogs, ContractInfo, ChainItem, Wallets, StoreArgs, QueryProposalsResponse, QueryCodeIdsResponse, QueryContractResponse, QueryApprovalsMsg, ApprovalsResponse, BaseNetworkConfig, ContractData, QueryAllOperatorsMsg, QueryAllOperatorsResponse, QueryAllOperatorsInjMsg, QueryAllOperatorsInjResponse, ApproveAllMsg, ApproveMsg, RevokeAllMsg, RevokeMsg, QueryTokens, TokensResponse, TokensResponseInj, QueryOwnerOf, OwnerOfResponse, QueryContractCodesResponse, };

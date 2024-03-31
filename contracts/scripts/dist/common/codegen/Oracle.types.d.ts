@@ -15,6 +15,7 @@ export type ExecuteMsg = {
         data: RawPriceItem[];
     };
 };
+export type Uint128 = string;
 export type TokenUnverified = {
     native: {
         denom: string;
@@ -24,12 +25,13 @@ export type TokenUnverified = {
         address: string;
     };
 };
-export type Uint128 = string;
 export interface RawPriceItem {
     collection_address: string;
+    price: FundsForTokenUnverified;
+}
+export interface FundsForTokenUnverified {
+    amount: Uint128;
     currency: CurrencyForTokenUnverified;
-    raw_prices: Uint128[];
-    trading_volume_per_day: Uint128;
 }
 export interface CurrencyForTokenUnverified {
     decimals: number;
@@ -40,11 +42,16 @@ export type QueryMsg = {
 } | {
     query_prices: {
         collection_addresses?: string[] | null;
+        limit?: number | null;
+        start_after?: string | null;
     };
+} | {
+    query_block_time: {};
 };
 export interface MigrateMsg {
     version: string;
 }
+export type Uint64 = number;
 export type Addr = string;
 export interface Config {
     admin: Addr;
@@ -59,8 +66,8 @@ export type Token = {
         address: Addr;
     };
 };
-export type ArrayOfQueryPricesResponseItem = QueryPricesResponseItem[];
-export interface QueryPricesResponseItem {
+export type ArrayOfPriceItem = PriceItem[];
+export interface PriceItem {
     address: Addr;
     price: FundsForToken;
     price_update_date: number;

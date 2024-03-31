@@ -1,8 +1,12 @@
 import { getLast, l } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
+import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
 import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
+import { MinterMsgComposer } from "../codegen/Minter.message-composer";
 import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
+import { AdapterSchedulerKujiraQueryClient } from "../codegen/AdapterSchedulerKujira.client";
 import { LendingPlatformQueryClient } from "../codegen/LendingPlatform.client";
+import { MinterQueryClient } from "../codegen/Minter.client";
 import { OracleQueryClient } from "../codegen/Oracle.client";
 import CONFIG_JSON from "../config/config.json";
 import { getChainOptionById, getContractByWasm } from "../config/config-utils";
@@ -18,9 +22,11 @@ import {
   MsgExecuteContractEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
 import {
+  ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   CollectionInfoForString,
+  CurrencyForTokenUnverified,
+  LiquidationItem,
   ProposalForStringAndTokenUnverified,
-  QueryLiquidationBidsResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
 } from "../codegen/LendingPlatform.types";
 import {
@@ -29,8 +35,13 @@ import {
   OfflineDirectSigner,
   coin,
 } from "@cosmjs/proto-signing";
+import { ClockSource } from "../codegen/AdapterSchedulerKujira.types";
 import {
-  UpdateConfigStruct,
+  InstantiateMarketingInfo,
+  Logo,
+  Metadata,
+} from "../codegen/Minter.types";
+import {
   Cw20SendMsg,
   TokenUnverified,
   ChainConfig,
@@ -144,14 +155,32 @@ async function getCwExecHelpers(
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
+  // let ADAPTER_SCHEDULER_STARGAZE_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
+  let MINTER_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
+
+  try {
+    ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
+      CONTRACTS,
+      "adapter_scheduler_kujira.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
 
   try {
     LENDING_PLATFORM_CONTRACT = getContractByWasm(
       CONTRACTS,
       "lending_platform.wasm"
     );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
   } catch (error) {
     l(error);
   }
@@ -168,9 +197,22 @@ async function getCwExecHelpers(
   const signingClient = cwClient.client as SigningCosmWasmClient;
   const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
 
-  const landingPlatformMsgComposer = new LendingPlatformMsgComposer(
+  const adapterSchedulerKujiraMsgComposer =
+    new AdapterSchedulerKujiraMsgComposer(
+      owner,
+      ADAPTER_SCHEDULER_KUJIRA_CONTRACT
+        ? ADAPTER_SCHEDULER_KUJIRA_CONTRACT.ADDRESS
+        : ""
+    );
+
+  const lendingPlatformMsgComposer = new LendingPlatformMsgComposer(
     owner,
     LENDING_PLATFORM_CONTRACT ? LENDING_PLATFORM_CONTRACT.ADDRESS : ""
+  );
+
+  const minterMsgComposer = new MinterMsgComposer(
+    owner,
+    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
   );
 
   const oracleMsgComposer = new OracleMsgComposer(
@@ -203,6 +245,42 @@ async function getCwExecHelpers(
     );
   }
 
+  // adapter-scheduler-kujira
+
+  async function cwAdapterSchedulerKujiraUpdateConfig(
+    {
+      clockSource,
+      lendingPlatform,
+      minClockPeriod,
+      offchainClock,
+    }: {
+      clockSource?: ClockSource;
+      lendingPlatform?: string;
+      minClockPeriod?: number;
+      offchainClock?: string[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        adapterSchedulerKujiraMsgComposer.updateConfig({
+          lendingPlatform,
+          offchainClock,
+          clockSource,
+          minClockPeriod,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwPush(targets: LiquidationItem[], gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [adapterSchedulerKujiraMsgComposer.push({ targets })],
+      gasPrice
+    );
+  }
+
   // lending-platform
 
   async function cwDeposit(
@@ -213,7 +291,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.deposit(),
+          lendingPlatformMsgComposer.deposit(),
           amount,
           token
         ),
@@ -230,7 +308,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.unbond(),
+          lendingPlatformMsgComposer.unbond(),
           amount,
           token
         ),
@@ -247,12 +325,23 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.withdraw(),
+          lendingPlatformMsgComposer.withdraw(),
           amount,
           token
         ),
       ],
       gasPrice
+    );
+  }
+
+  async function cwWithdrawCollateral(
+    collections: CollectionInfoForString[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [lendingPlatformMsgComposer.withdrawCollateral({ collections })],
+      gasPrice,
+      1.05
     );
   }
 
@@ -286,25 +375,14 @@ async function getCwExecHelpers(
       }
     }
 
-    msgList.push(landingPlatformMsgComposer.deposit());
+    msgList.push(lendingPlatformMsgComposer.deposit());
 
     return await _msgWrapperWithGasPrice(msgList, gasPrice);
   }
 
-  async function cwWithdrawCollateral(
-    collections: CollectionInfoForString[],
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.withdrawCollateral({ collections })],
-      gasPrice,
-      1.05
-    );
-  }
-
   async function cwBorrow(amount: number, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.borrow({ amount: `${amount}` })],
+      [lendingPlatformMsgComposer.borrow({ amount: `${amount}` })],
       gasPrice
     );
   }
@@ -317,7 +395,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.repay(),
+          lendingPlatformMsgComposer.repay(),
           amount,
           token
         ),
@@ -328,6 +406,7 @@ async function getCwExecHelpers(
 
   async function cwPlaceBid(
     collections: CollectionInfoForString[],
+    discount: number,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -335,7 +414,10 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.placeBid({ collections }),
+          lendingPlatformMsgComposer.placeBid({
+            collections,
+            discount: discount.toString(),
+          }),
           amount,
           token
         ),
@@ -350,7 +432,7 @@ async function getCwExecHelpers(
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.removeBid({ collections, creationDate })],
+      [lendingPlatformMsgComposer.removeBid({ collections, creationDate })],
       gasPrice
     );
   }
@@ -359,15 +441,16 @@ async function getCwExecHelpers(
     collections: CollectionInfoForString[],
     creationDate: number,
     amount: number,
+    discount: number,
     token: TokenUnverified,
     gasPrice: string
   ) {
     // query existing bids
     const queryBidsMsg: LendingPlatformQueryMsg = {
-      query_liquidation_bids_by_liquidator_addresses: { addresses: [owner] },
+      query_liquidation_bids_by_liquidator_address: { address: owner },
     };
 
-    const bids: QueryLiquidationBidsResponseItem[] =
+    const bids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem =
       await signingClient.queryContractSmart(
         LENDING_PLATFORM_CONTRACT?.ADDRESS || "",
         queryBidsMsg
@@ -377,7 +460,7 @@ async function getCwExecHelpers(
       (x) => x.collection_address
     );
     const bidsForCurrentCollections = bids.filter((x) =>
-      currentCollectionsAddresses.includes(x.address)
+      currentCollectionsAddresses.includes(x.collection_address)
     );
 
     // calculate funds to send
@@ -395,10 +478,11 @@ async function getCwExecHelpers(
       }
     }
 
-    const msgObj = landingPlatformMsgComposer.updateBid({
+    const msgObj = lendingPlatformMsgComposer.updateBid({
       collections,
       creationDate,
-      amount: `${amount}`,
+      amount: amount.toString(),
+      discount: discount.toString(),
     });
 
     if (amountToSend > 0) {
@@ -411,47 +495,180 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice([msgObj], gasPrice);
   }
 
-  async function cwClaimCollateral(gasPrice: string) {
+  async function cwLiquidate(targets: LiquidationItem[], gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.claimCollateral()],
+      [lendingPlatformMsgComposer.liquidate({ targets })],
       gasPrice
     );
   }
 
-  async function cwCreateBglToken(gasPrice: string) {
+  async function cwLendingPlatformUpdateAddressConfig(
+    {
+      marketplace,
+      minter,
+      oracle,
+      owner,
+      scheduler,
+    }: {
+      marketplace?: string;
+      minter?: string;
+      oracle?: string;
+      owner?: string;
+      scheduler?: string;
+    },
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.createBglToken()],
+      [
+        lendingPlatformMsgComposer.updateAddressConfig({
+          marketplace,
+          minter,
+          oracle,
+          owner,
+          scheduler,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwLendingPlatformUpdateRateConfig(
+    {
+      bidMinRate,
+      borrowApr,
+      borrowFeeRate,
+      discountMaxRate,
+      discountMinRate,
+      liquidationFeeRate,
+    }: {
+      bidMinRate?: number;
+      borrowApr?: number;
+      borrowFeeRate?: number;
+      discountMaxRate?: number;
+      discountMinRate?: number;
+      liquidationFeeRate?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        lendingPlatformMsgComposer.updateRateConfig({
+          bidMinRate: bidMinRate?.toString(),
+          borrowApr: borrowApr?.toString(),
+          borrowFeeRate: borrowFeeRate?.toString(),
+          discountMaxRate: discountMaxRate?.toString(),
+          discountMinRate: discountMinRate?.toString(),
+          liquidationFeeRate: liquidationFeeRate?.toString(),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwLendingPlatformUpdateCommonConfig(
+    {
+      bglCurrency,
+      collateralMinValue,
+      isMarketplaceInterfaceEnabled,
+      mainCurrency,
+      minAvailableLiquidityMultiplier,
+      priceUpdatePeriod,
+      unbondingPeriod,
+    }: {
+      bglCurrency?: CurrencyForTokenUnverified;
+      collateralMinValue?: number;
+      isMarketplaceInterfaceEnabled?: boolean;
+      mainCurrency?: CurrencyForTokenUnverified;
+      minAvailableLiquidityMultiplier?: number;
+      priceUpdatePeriod?: number;
+      unbondingPeriod?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        lendingPlatformMsgComposer.updateCommonConfig({
+          bglCurrency,
+          collateralMinValue: collateralMinValue?.toString(),
+          isMarketplaceInterfaceEnabled,
+          mainCurrency,
+          minAvailableLiquidityMultiplier:
+            minAvailableLiquidityMultiplier?.toString(),
+          priceUpdatePeriod,
+          unbondingPeriod,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwDepositReserveLiquidity(
+    amount: number,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          lendingPlatformMsgComposer.depositReserveLiquidity(),
+          amount,
+          token
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwReinforceBglToken(
+    amount: number,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          lendingPlatformMsgComposer.reinforceBglToken(),
+          amount,
+          token
+        ),
+      ],
       gasPrice
     );
   }
 
   async function cwLock(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.lock()],
+      [lendingPlatformMsgComposer.lock()],
       gasPrice
     );
   }
 
   async function cwUnlock(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.unlock()],
+      [lendingPlatformMsgComposer.unlock()],
       gasPrice
     );
   }
 
   async function cwDistributeFunds(
-    addressAndWeightList: [string, string][],
+    addressAndWeightList: [string, number][],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.distributeFunds({ addressAndWeightList })],
+      [
+        lendingPlatformMsgComposer.distributeFunds({
+          addressAndWeightList: addressAndWeightList.map(
+            ([address, weight]) => [address, weight.toString()]
+          ),
+        }),
+      ],
       gasPrice
     );
   }
 
   async function cwRemoveCollection(address: string, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.removeCollection({ address })],
+      [lendingPlatformMsgComposer.removeCollection({ address })],
       gasPrice
     );
   }
@@ -461,14 +678,14 @@ async function getCwExecHelpers(
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.createProposal({ proposal })],
+      [lendingPlatformMsgComposer.createProposal({ proposal })],
       gasPrice
     );
   }
 
   async function cwRejectProposal(id: number, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [landingPlatformMsgComposer.rejectProposal({ id })],
+      [lendingPlatformMsgComposer.rejectProposal({ id })],
       gasPrice
     );
   }
@@ -482,7 +699,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          landingPlatformMsgComposer.acceptProposal({ id }),
+          lendingPlatformMsgComposer.acceptProposal({ id }),
           amount,
           token
         ),
@@ -491,7 +708,196 @@ async function getCwExecHelpers(
     );
   }
 
+  // minter
+
+  async function cwCreateNative(
+    tokenOwner: string,
+    subdenom: string,
+    decimals: number,
+    paymentAmount: number,
+    paymentDenom: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          minterMsgComposer.createNative({ tokenOwner, subdenom, decimals }),
+          paymentAmount,
+          {
+            native: { denom: paymentDenom },
+          }
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwCreateCw20(
+    tokenOwner: string,
+    name: string,
+    symbol: string,
+    marketing: InstantiateMarketingInfo,
+    decimals: number = 6,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.createCw20({
+          tokenOwner,
+          name,
+          symbol,
+          decimals,
+          marketing,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMint(
+    amount: number,
+    recipient: string,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.mint({
+          token,
+          amount: amount.toString(),
+          recipient,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwBurn(
+    amount: number,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [addSingleTokenToComposerObj(minterMsgComposer.burn(), amount, token)],
+      gasPrice
+    );
+  }
+
+  async function cwSetMetadataNative(
+    token: TokenUnverified,
+    metadata: Metadata,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.setMetadataNative({
+          token,
+          metadata,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateMarketingCw20(
+    token: TokenUnverified,
+    description: string,
+    marketing: string,
+    project: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateMarketingCw20({
+          token,
+          project,
+          description,
+          marketing,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwUploadLogoCw20(
+    token: TokenUnverified,
+    logo: Logo,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.uploadLogoCw20({ token, logo })],
+      gasPrice
+    );
+  }
+
+  async function cwChangeAdminNative(token: TokenUnverified, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.changeAdminNative({ token })],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateMinterCw20(
+    token: TokenUnverified,
+    newMinter: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateMinterCw20({
+          token,
+          newMinter,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwRegisterCurrency(
+    currency: CurrencyForTokenUnverified,
+    creator: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.registerCurrency({
+          currency,
+          creator,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMinterUpdateConfig(
+    {
+      cw20BaseCodeId,
+      owner,
+    }: {
+      cw20BaseCodeId?: number;
+      owner?: string;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateConfig({
+          owner,
+          cw20BaseCodeId,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   // oracle
+
+  async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.updateConfig({ scheduler })],
+      gasPrice
+    );
+  }
 
   async function cwUpdatePrices(data: RawPriceItem[], gasPrice: string) {
     return await _msgWrapperWithGasPrice(
@@ -500,98 +906,58 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwUpdateConfig(
-    updateConfigStruct: UpdateConfigStruct,
-    gasPrice: string
-  ) {
-    let msgList: MsgExecuteContractEncodeObject[] = [];
-
-    const {
-      bglCurrency,
-      bidMinRate,
-      borrowApr,
-      borrowFeeRate,
-      cw20BaseCodeId,
-      discountMaxRate,
-      discountMinRate,
-      liquidationFeeRate,
-      mainCurrency,
-      oracle,
-      owner,
-      unbondingPeriod,
-      schedulerForOracle,
-    } = updateConfigStruct;
-
-    if (schedulerForOracle) {
-      msgList.push(
-        oracleMsgComposer.updateConfig({ scheduler: schedulerForOracle })
-      );
-    }
-
-    if (
-      bglCurrency ||
-      bidMinRate ||
-      borrowApr ||
-      borrowFeeRate ||
-      cw20BaseCodeId ||
-      discountMaxRate ||
-      discountMinRate ||
-      liquidationFeeRate ||
-      mainCurrency ||
-      oracle ||
-      owner ||
-      unbondingPeriod
-    ) {
-      msgList.push(
-        landingPlatformMsgComposer.updateConfig({
-          bglCurrency,
-          bidMinRate,
-          borrowApr,
-          borrowFeeRate,
-          cw20BaseCodeId,
-          discountMaxRate,
-          discountMinRate,
-          liquidationFeeRate,
-          mainCurrency,
-          oracle,
-          owner,
-          unbondingPeriod,
-        })
-      );
-    }
-
-    if (!msgList.length) {
-      throw new Error("cwUpdateConfig arguments are not provided!");
-    }
-
-    return await _msgWrapperWithGasPrice(msgList, gasPrice);
-  }
-
   return {
-    cwDeposit,
-    cwUnbond,
-    cwWithdraw,
-    cwApproveAndDepositCollateral,
-    cwWithdrawCollateral,
-    cwBorrow,
-    cwRepay,
-    cwPlaceBid,
-    cwRemoveBid,
-    cwUpdateBid,
-    cwClaimCollateral,
-    cwCreateBglToken,
-    cwLock,
-    cwUnlock,
-    cwDistributeFunds,
-    cwRemoveCollection,
-    cwCreateProposal,
-    cwRejectProposal,
-    cwAcceptProposal,
-
-    cwUpdatePrices,
-    cwUpdateConfig,
-
-    cwRevoke,
+    utils: { cwRevoke },
+    adapter: {
+      scheduler: {
+        kujira: {
+          cwUpdateConfig: cwAdapterSchedulerKujiraUpdateConfig,
+          cwPush,
+        },
+      },
+    },
+    lending: {
+      cwDeposit,
+      cwUnbond,
+      cwWithdraw,
+      cwWithdrawCollateral,
+      cwApproveAndDepositCollateral,
+      cwBorrow,
+      cwRepay,
+      cwPlaceBid,
+      cwRemoveBid,
+      cwUpdateBid,
+      cwLiquidate,
+      cwUpdateAddressConfig: cwLendingPlatformUpdateAddressConfig,
+      cwUpdateRateConfig: cwLendingPlatformUpdateRateConfig,
+      cwUpdateCommonConfig: cwLendingPlatformUpdateCommonConfig,
+      cwDepositReserveLiquidity,
+      cwReinforceBglToken,
+      cwLock,
+      cwUnlock,
+      cwDistributeFunds,
+      cwRemoveCollection,
+      cwCreateProposal,
+      cwRejectProposal,
+      cwAcceptProposal,
+    },
+    minter: {
+      cwCreateNative,
+      cwCreateCw20,
+      cwMint,
+      cwBurn,
+      cwSetMetadataNative,
+      cwUpdateMarketingCw20,
+      cwUploadLogoCw20,
+      cwChangeAdminNative,
+      cwUpdateMinterCw20,
+      cwRegisterCurrency,
+      cwUpdateConfig: cwMinterUpdateConfig,
+    },
+    oracle: {
+      cwUpdateConfig: cwOracleUpdateConfig,
+      cwUpdatePrices,
+    },
   };
 }
 
@@ -601,14 +967,31 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
+  let MINTER_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
+
+  try {
+    ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
+      CONTRACTS,
+      "adapter_scheduler_kujira.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
 
   try {
     LENDING_PLATFORM_CONTRACT = getContractByWasm(
       CONTRACTS,
       "lending_platform.wasm"
     );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
   } catch (error) {
     l(error);
   }
@@ -624,9 +1007,22 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   const cosmwasmQueryClient: CosmWasmClient = cwClient.client;
 
+  const adapterSchedulerKujiraQueryClient =
+    new AdapterSchedulerKujiraQueryClient(
+      cosmwasmQueryClient,
+      ADAPTER_SCHEDULER_KUJIRA_CONTRACT
+        ? ADAPTER_SCHEDULER_KUJIRA_CONTRACT.ADDRESS
+        : ""
+    );
+
   const lendingPlatformQueryClient = new LendingPlatformQueryClient(
     cosmwasmQueryClient,
     LENDING_PLATFORM_CONTRACT ? LENDING_PLATFORM_CONTRACT.ADDRESS : ""
+  );
+
+  const minterQueryClient = new MinterQueryClient(
+    cosmwasmQueryClient,
+    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
   );
 
   const oracleQueryClient = new OracleQueryClient(
@@ -720,7 +1116,39 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
+  // adapter-scheduler-kujira
+
+  async function cwAdapterSchedulerKujiraQueryConfig() {
+    const res = await adapterSchedulerKujiraQueryClient.queryConfig();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLog(amount: number) {
+    const res = await adapterSchedulerKujiraQueryClient.queryLog({ amount });
+    l("\n", res, "\n");
+    return res;
+  }
+
   // lending-platform
+
+  async function cwLendingPlatformQueryAddressConfig() {
+    const res = await lendingPlatformQueryClient.queryAddressConfig();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwLendingPlatformQueryRateConfig() {
+    const res = await lendingPlatformQueryClient.queryRateConfig();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwLendingPlatformQueryCommonConfig() {
+    const res = await lendingPlatformQueryClient.queryCommonConfig();
+    l("\n", res, "\n");
+    return res;
+  }
 
   async function cwQueryPlatformRevenue() {
     const res = await lendingPlatformQueryClient.queryPlatformRevenue();
@@ -734,120 +1162,320 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
-  async function cwQueryDepositors(addresses?: string[]) {
-    const res = await lendingPlatformQueryClient.queryDepositors({ addresses });
-    l("\n", res, "\n");
-    return res;
-  }
-
-  async function cwQueryBorrowers(addresses?: string[]) {
-    const res = await lendingPlatformQueryClient.queryBorrowers({ addresses });
-    l("\n", res, "\n");
-    return res;
-  }
-
-  async function cwQueryLiquidators(addresses?: string[]) {
-    const res = await lendingPlatformQueryClient.queryLiquidators({
-      addresses,
+  async function cwQueryUnbonderList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res = await lendingPlatformQueryClient.queryUnbonderList({
+      startAfter,
+      limit,
     });
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryCollaterals(collectionAddresses?: string[]) {
-    const res = await lendingPlatformQueryClient.queryCollaterals({
-      collectionAddresses,
+  async function cwQueryUnbonder(address: string) {
+    const res = await lendingPlatformQueryClient.queryUnbonder({ address });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryBorrowerList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res = await lendingPlatformQueryClient.queryBorrowerList({
+      startAfter,
+      limit,
     });
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryLiquidationBidsByCollectionAddresses(
-    addresses?: string[]
+  async function cwQueryBorrower(address: string) {
+    const res = await lendingPlatformQueryClient.queryBorrower({ address });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLiquidatorList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res = await lendingPlatformQueryClient.queryLiquidatorList({
+      startAfter,
+      limit,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLiquidator(address: string) {
+    const res = await lendingPlatformQueryClient.queryLiquidator({ address });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryCollateralList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res = await lendingPlatformQueryClient.queryCollateralList({
+      startAfter,
+      limit,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryCollateral(collectionAddress: string) {
+    const res = await lendingPlatformQueryClient.queryCollateral({
+      collectionAddress,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLiquidationBidsByCollectionAddressList(
+    limit: number = 10_000,
+    startAfter?: string
   ) {
     const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddresses(
-        { addresses }
+      await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddressList(
+        { startAfter, limit }
       );
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryLiquidationBidsByLiquidatorAddresses(
-    addresses?: string[]
+  async function cwQueryLiquidationBidsByCollectionAddress(address: string) {
+    const res =
+      await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddress({
+        address,
+      });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLiquidationBidsByLiquidatorAddressList(
+    limit: number = 10_000,
+    startAfter?: string
   ) {
     const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddresses(
-        { addresses }
+      await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddressList(
+        { startAfter, limit }
       );
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryProposals(lastAmount?: number) {
+  async function cwQueryLiquidationBidsByLiquidatorAddress(address: string) {
+    const res =
+      await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddress({
+        address,
+      });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryProposals(limit: number = 10_000, startAfter?: number) {
     const res = await lendingPlatformQueryClient.queryProposals({
-      lastAmount,
+      startAfter,
+      limit,
     });
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryCollections(addresses?: string[]) {
-    const res = await lendingPlatformQueryClient.queryCollections({
-      addresses,
+  async function cwQueryCollectionList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res = await lendingPlatformQueryClient.queryCollectionList({
+      startAfter,
+      limit,
     });
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryLendingPlatformConfig() {
-    const res = await lendingPlatformQueryClient.queryConfig();
+  async function cwQueryCollection(address: string) {
+    const res = await lendingPlatformQueryClient.queryCollection({
+      address,
+    });
     l("\n", res, "\n");
     return res;
   }
 
-  async function cwQueryBlockCounter() {
-    const res = await lendingPlatformQueryClient.queryBlockCounter();
+  async function cwQueryBglCurrencyToMainCurrencyPrice() {
+    const res =
+      await lendingPlatformQueryClient.queryBglCurrencyToMainCurrencyPrice();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryConditionalDepositApr(amountToDeposit: number) {
+    const res = await lendingPlatformQueryClient.queryConditionalDepositApr({
+      amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryLtvList(limit: number = 10_000, startAfter?: string) {
+    const res = await lendingPlatformQueryClient.queryLtvList({
+      startAfter,
+      limit,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryConditionalLtv(
+    borrower: string,
+    amountToDeposit: number = 0,
+    amountToBorrow: number = 0
+  ) {
+    const res = await lendingPlatformQueryClient.queryConditionalLtv({
+      borrower,
+      amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
+      amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryTotalAvailableToBorrowLiquidity() {
+    const res =
+      await lendingPlatformQueryClient.queryTotalAvailableToBorrowLiquidity();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryAvailableToBorrow(
+    borrower: string,
+    targetLtv?: number
+  ) {
+    const res = await lendingPlatformQueryClient.queryAvailableToBorrow({
+      borrower,
+      targetLtv: targetLtv ? targetLtv.toString() : undefined,
+    });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryAmounts() {
+    const res = await lendingPlatformQueryClient.queryAmounts();
+    l("\n", res, "\n");
+    return res;
+  }
+
+  // async function cwQueryTargets(borrowers: string[]) {
+  //   const res = await lendingPlatformQueryClient.queryTargets({ borrowers });
+  //   l("\n", res, "\n");
+  //   return res;
+  // }
+
+  // minter
+
+  async function cwQueryCurrenciesByCreator(creator: string) {
+    const res = await minterQueryClient.queryCurrenciesByCreator({ creator });
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwMinterQueryConfig() {
+    const res = await minterQueryClient.queryConfig();
     l("\n", res, "\n");
     return res;
   }
 
   // oracle
 
-  async function cwQueryPrices(collectionAddresses?: string[]) {
-    const res = await oracleQueryClient.queryPrices({ collectionAddresses });
-    l("\n", res, "\n");
-    return res;
-  }
-
-  async function cwQueryOracleConfig() {
+  async function cwOracleQueryConfig() {
     const res = await oracleQueryClient.queryConfig();
     l("\n", res, "\n");
     return res;
   }
 
+  async function cwQueryPrices(
+    limit: number = 10_000,
+    startAfter?: string,
+    collectionAddresses: string[] = []
+  ) {
+    const msg_1 = {
+      startAfter,
+      limit,
+    };
+    const msg_2 = { collectionAddresses };
+
+    const res = await oracleQueryClient.queryPrices(
+      collectionAddresses.length ? msg_2 : msg_1
+    );
+    l("\n", res, "\n");
+    return res;
+  }
+
+  async function cwQueryBlockTime() {
+    const res = await oracleQueryClient.queryBlockTime();
+    l("\n", res, "\n");
+    return res;
+  }
+
   return {
-    cwQueryOperators,
-    cwQueryApprovals,
-    cwQueryBalanceInNft,
-    cwQueryNftOwner,
-
-    cwQueryPlatformRevenue,
-    cwQueryBalances,
-    cwQueryDepositors,
-    cwQueryBorrowers,
-    cwQueryLiquidators,
-    cwQueryCollaterals,
-    cwQueryLiquidationBidsByCollectionAddresses,
-    cwQueryLiquidationBidsByLiquidatorAddresses,
-    cwQueryProposals,
-    cwQueryCollections,
-    cwQueryLendingPlatformConfig,
-
-    cwQueryPrices,
-    cwQueryOracleConfig,
-
-    cwQueryBlockCounter,
+    utils: {
+      cwQueryOperators,
+      cwQueryApprovals,
+      cwQueryBalanceInNft,
+      cwQueryNftOwner,
+    },
+    adapter: {
+      scheduler: {
+        kujira: {
+          cwQueryConfig: cwAdapterSchedulerKujiraQueryConfig,
+          cwQueryLog,
+        },
+      },
+    },
+    lending: {
+      cwQueryAddressConfig: cwLendingPlatformQueryAddressConfig,
+      cwQueryRateConfig: cwLendingPlatformQueryRateConfig,
+      cwQueryCommonConfig: cwLendingPlatformQueryCommonConfig,
+      cwQueryPlatformRevenue,
+      cwQueryBalances,
+      cwQueryUnbonderList,
+      cwQueryUnbonder,
+      cwQueryBorrowerList,
+      cwQueryBorrower,
+      cwQueryLiquidatorList,
+      cwQueryLiquidator,
+      cwQueryCollateralList,
+      cwQueryCollateral,
+      cwQueryLiquidationBidsByCollectionAddressList,
+      cwQueryLiquidationBidsByCollectionAddress,
+      cwQueryLiquidationBidsByLiquidatorAddressList,
+      cwQueryLiquidationBidsByLiquidatorAddress,
+      cwQueryProposals,
+      cwQueryCollectionList,
+      cwQueryCollection,
+      cwQueryBglCurrencyToMainCurrencyPrice,
+      cwQueryConditionalDepositApr,
+      cwQueryLtvList,
+      cwQueryConditionalLtv,
+      cwQueryTotalAvailableToBorrowLiquidity,
+      cwQueryAvailableToBorrow,
+      cwQueryAmounts,
+      // cwQueryTargets,
+    },
+    minter: {
+      cwQueryCurrenciesByCreator,
+      cwQueryConfig: cwMinterQueryConfig,
+    },
+    oracle: {
+      cwQueryConfig: cwOracleQueryConfig,
+      cwQueryPrices,
+      cwQueryBlockTime,
+    },
   };
 }
 

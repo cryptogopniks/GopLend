@@ -10,6 +10,7 @@ export class OracleQueryClient {
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
     this.queryPrices = this.queryPrices.bind(this);
+    this.queryBlockTime = this.queryBlockTime.bind(this);
   }
   queryConfig = async () => {
     return this.client.queryContractSmart(this.contractAddress, {
@@ -17,12 +18,21 @@ export class OracleQueryClient {
     });
   };
   queryPrices = async ({
-    collectionAddresses
+    collectionAddresses,
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_prices: {
-        collection_addresses: collectionAddresses
+        collection_addresses: collectionAddresses,
+        limit,
+        start_after: startAfter
       }
+    });
+  };
+  queryBlockTime = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_block_time: {}
     });
   };
 }

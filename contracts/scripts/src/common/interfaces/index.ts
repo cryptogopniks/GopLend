@@ -108,17 +108,6 @@ interface Cw20SendMsg {
   };
 }
 
-interface Metadata {
-  base: string;
-  denom_units: { aliases: string[]; denom: string; exponent: string }[];
-  description: string;
-  display: string;
-  name: string;
-  symbol: string;
-  uri?: string;
-  uri_hash?: string;
-}
-
 interface SetMetadataMsg {
   set_metadata: {
     metadata: Metadata;
@@ -152,7 +141,12 @@ interface LocalInterchainLogs {
   }[];
 }
 
-type Wasm = "lending_platform.wasm" | "oracle.wasm";
+type Wasm =
+  | "adapter_scheduler_kujira.wasm"
+  | "adapter_scheduler_stargaze.wasm"
+  | "lending_platform.wasm"
+  | "minter.wasm"
+  | "oracle.wasm";
 
 type ChainType = "main" | "test" | "local";
 
@@ -204,25 +198,6 @@ type TokenUnverified =
         address: string;
       };
     };
-
-interface UpdateConfigStruct {
-  // lending platform
-  bglCurrency?: CurrencyForTokenUnverified;
-  bidMinRate?: Decimal;
-  borrowApr?: Decimal;
-  borrowFeeRate?: Decimal;
-  cw20BaseCodeId?: number;
-  discountMaxRate?: Decimal;
-  discountMinRate?: Decimal;
-  liquidationFeeRate?: Decimal;
-  mainCurrency?: CurrencyForTokenUnverified;
-  oracle?: string;
-  owner?: string;
-  unbondingPeriod?: number;
-
-  // oracle
-  schedulerForOracle?: string;
-}
 
 interface Pagination {
   next_key: string;
@@ -369,7 +344,7 @@ interface OwnerOfResponse {
   approvals: Approval[];
 }
 
-type NetworkName = "STARGAZE" | "INJECTIVE";
+type NetworkName = "STARGAZE" | "INJECTIVE" | "KUJIRA";
 
 type NetworkConfig = {
   [network in NetworkName]: {
@@ -412,7 +387,6 @@ export type {
 export {
   SetMetadataMsg,
   Metadata,
-  UpdateConfigStruct,
   Cw20SendMsg,
   MintStruct,
   MintOverIbcStruct,

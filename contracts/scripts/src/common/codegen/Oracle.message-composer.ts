@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, TokenUnverified, Uint128, RawPriceItem, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Addr, Config, Token, ArrayOfQueryPricesResponseItem, QueryPricesResponseItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
+import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
 export interface OracleMsg {
   contractAddress: string;
   sender: string;

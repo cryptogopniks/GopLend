@@ -39,7 +39,8 @@
     "chain-registry": "^1.28.0",
     "crypto-js": "^4.2.0",
     "decimal.js": "^10.4.3",
-    "dotenv": "^16.4.1"
+    "dotenv": "^16.4.1",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.9",

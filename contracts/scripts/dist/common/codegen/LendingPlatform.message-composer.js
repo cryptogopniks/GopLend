@@ -14,17 +14,19 @@ export class LendingPlatformMsgComposer {
     this.deposit = this.deposit.bind(this);
     this.unbond = this.unbond.bind(this);
     this.withdraw = this.withdraw.bind(this);
-    this.depositCollateral = this.depositCollateral.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
+    this.depositCollateral = this.depositCollateral.bind(this);
     this.borrow = this.borrow.bind(this);
     this.repay = this.repay.bind(this);
     this.placeBid = this.placeBid.bind(this);
     this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
-    this.claimCollateral = this.claimCollateral.bind(this);
-    this.process = this.process.bind(this);
-    this.updateConfig = this.updateConfig.bind(this);
-    this.createBglToken = this.createBglToken.bind(this);
+    this.liquidate = this.liquidate.bind(this);
+    this.updateAddressConfig = this.updateAddressConfig.bind(this);
+    this.updateRateConfig = this.updateRateConfig.bind(this);
+    this.updateCommonConfig = this.updateCommonConfig.bind(this);
+    this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
+    this.reinforceBglToken = this.reinforceBglToken.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
     this.distributeFunds = this.distributeFunds.bind(this);
@@ -93,23 +95,6 @@ export class LendingPlatformMsgComposer {
       })
     };
   };
-  depositCollateral = ({
-    collections
-  }, _funds) => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          deposit_collateral: {
-            collections
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
   withdrawCollateral = ({
     collections
   }, _funds) => {
@@ -120,6 +105,23 @@ export class LendingPlatformMsgComposer {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           withdraw_collateral: {
+            collections
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  depositCollateral = ({
+    collections
+  }, _funds) => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          deposit_collateral: {
             collections
           }
         })),
@@ -158,7 +160,8 @@ export class LendingPlatformMsgComposer {
     };
   };
   placeBid = ({
-    collections
+    collections,
+    discount
   }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -167,7 +170,8 @@ export class LendingPlatformMsgComposer {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           place_bid: {
-            collections
+            collections,
+            discount
           }
         })),
         funds: _funds
@@ -196,7 +200,8 @@ export class LendingPlatformMsgComposer {
   updateBid = ({
     amount,
     collections,
-    creationDate
+    creationDate,
+    discount
   }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -207,52 +212,90 @@ export class LendingPlatformMsgComposer {
           update_bid: {
             amount,
             collections,
-            creation_date: creationDate
+            creation_date: creationDate,
+            discount
           }
         })),
         funds: _funds
       })
     };
   };
-  claimCollateral = _funds => {
+  liquidate = ({
+    targets
+  }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          claim_collateral: {}
+          liquidate: {
+            targets
+          }
         })),
         funds: _funds
       })
     };
   };
-  process = _funds => {
+  updateAddressConfig = ({
+    marketplace,
+    minter,
+    oracle,
+    owner,
+    scheduler
+  }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          process: {}
+          update_address_config: {
+            marketplace,
+            minter,
+            oracle,
+            owner,
+            scheduler
+          }
         })),
         funds: _funds
       })
     };
   };
-  updateConfig = ({
-    bglCurrency,
+  updateRateConfig = ({
     bidMinRate,
     borrowApr,
     borrowFeeRate,
-    cw20BaseCodeId,
     discountMaxRate,
     discountMinRate,
-    liquidationFeeRate,
+    liquidationFeeRate
+  }, _funds) => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_rate_config: {
+            bid_min_rate: bidMinRate,
+            borrow_apr: borrowApr,
+            borrow_fee_rate: borrowFeeRate,
+            discount_max_rate: discountMaxRate,
+            discount_min_rate: discountMinRate,
+            liquidation_fee_rate: liquidationFeeRate
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateCommonConfig = ({
+    bglCurrency,
+    collateralMinValue,
+    isMarketplaceInterfaceEnabled,
     mainCurrency,
-    oracle,
-    owner,
-    scheduler,
+    minAvailableLiquidityMultiplier,
+    priceUpdatePeriod,
     unbondingPeriod
   }, _funds) => {
     return {
@@ -261,19 +304,13 @@ export class LendingPlatformMsgComposer {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          update_config: {
+          update_common_config: {
             bgl_currency: bglCurrency,
-            bid_min_rate: bidMinRate,
-            borrow_apr: borrowApr,
-            borrow_fee_rate: borrowFeeRate,
-            cw20_base_code_id: cw20BaseCodeId,
-            discount_max_rate: discountMaxRate,
-            discount_min_rate: discountMinRate,
-            liquidation_fee_rate: liquidationFeeRate,
+            collateral_min_value: collateralMinValue,
+            is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
             main_currency: mainCurrency,
-            oracle,
-            owner,
-            scheduler,
+            min_available_liquidity_multiplier: minAvailableLiquidityMultiplier,
+            price_update_period: priceUpdatePeriod,
             unbonding_period: unbondingPeriod
           }
         })),
@@ -281,14 +318,27 @@ export class LendingPlatformMsgComposer {
       })
     };
   };
-  createBglToken = _funds => {
+  depositReserveLiquidity = _funds => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          create_bgl_token: {}
+          deposit_reserve_liquidity: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  reinforceBglToken = _funds => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          reinforce_bgl_token: {}
         })),
         funds: _funds
       })

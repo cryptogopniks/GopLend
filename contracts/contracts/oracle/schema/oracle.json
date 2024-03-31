@@ -1,6 +1,6 @@
 {
   "contract_name": "oracle",
-  "contract_version": "1.1.1",
+  "contract_version": "1.0.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -85,29 +85,34 @@
         },
         "additionalProperties": false
       },
+      "Funds_for_TokenUnverified": {
+        "type": "object",
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "properties": {
+          "amount": {
+            "$ref": "#/definitions/Uint128"
+          },
+          "currency": {
+            "$ref": "#/definitions/Currency_for_TokenUnverified"
+          }
+        },
+        "additionalProperties": false
+      },
       "RawPriceItem": {
         "type": "object",
         "required": [
           "collection_address",
-          "currency",
-          "raw_prices",
-          "trading_volume_per_day"
+          "price"
         ],
         "properties": {
           "collection_address": {
             "type": "string"
           },
-          "currency": {
-            "$ref": "#/definitions/Currency_for_TokenUnverified"
-          },
-          "raw_prices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/Uint128"
-            }
-          },
-          "trading_volume_per_day": {
-            "$ref": "#/definitions/Uint128"
+          "price": {
+            "$ref": "#/definitions/Funds_for_TokenUnverified"
           }
         },
         "additionalProperties": false
@@ -198,8 +203,35 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "query_block_time"
+        ],
+        "properties": {
+          "query_block_time": {
+            "type": "object",
             "additionalProperties": false
           }
         },
@@ -223,6 +255,13 @@
   },
   "sudo": null,
   "responses": {
+    "query_block_time": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "uint64",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
     "query_config": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Config",
@@ -255,10 +294,10 @@
     },
     "query_prices": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Array_of_QueryPricesResponseItem",
+      "title": "Array_of_PriceItem",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/QueryPricesResponseItem"
+        "$ref": "#/definitions/PriceItem"
       },
       "definitions": {
         "Addr": {
@@ -299,7 +338,7 @@
           },
           "additionalProperties": false
         },
-        "QueryPricesResponseItem": {
+        "PriceItem": {
           "type": "object",
           "required": [
             "address",

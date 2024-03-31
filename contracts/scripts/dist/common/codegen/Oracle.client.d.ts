@@ -5,22 +5,28 @@
 */
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { RawPriceItem, Config, ArrayOfQueryPricesResponseItem } from "./Oracle.types";
+import { RawPriceItem, Uint64, Config, ArrayOfPriceItem } from "./Oracle.types";
 export interface OracleReadOnlyInterface {
     contractAddress: string;
     queryConfig: () => Promise<Config>;
-    queryPrices: ({ collectionAddresses }: {
+    queryPrices: ({ collectionAddresses, limit, startAfter }: {
         collectionAddresses?: string[];
-    }) => Promise<ArrayOfQueryPricesResponseItem>;
+        limit?: number;
+        startAfter?: string;
+    }) => Promise<ArrayOfPriceItem>;
+    queryBlockTime: () => Promise<Uint64>;
 }
 export declare class OracleQueryClient implements OracleReadOnlyInterface {
     client: CosmWasmClient;
     contractAddress: string;
     constructor(client: CosmWasmClient, contractAddress: string);
     queryConfig: () => Promise<Config>;
-    queryPrices: ({ collectionAddresses }: {
+    queryPrices: ({ collectionAddresses, limit, startAfter }: {
         collectionAddresses?: string[] | undefined;
-    }) => Promise<ArrayOfQueryPricesResponseItem>;
+        limit?: number | undefined;
+        startAfter?: string | undefined;
+    }) => Promise<ArrayOfPriceItem>;
+    queryBlockTime: () => Promise<Uint64>;
 }
 export interface OracleInterface extends OracleReadOnlyInterface {
     contractAddress: string;

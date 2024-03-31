@@ -202,7 +202,7 @@ pub enum QueryMsg {
     #[returns(Vec<crate::lending_platform::types::Collateral>)]
     QueryCollateral { collection_address: String },
 
-    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
+    #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryLiquidationBidsByCollectionAddressList {
         start_after: Option<String>,
         limit: Option<u32>,
@@ -211,13 +211,13 @@ pub enum QueryMsg {
     #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
     QueryLiquidationBidsByCollectionAddress { address: String },
 
-    #[returns(Vec<QueryLiquidationBidsResponseItem>)]
+    #[returns(Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
     QueryLiquidationBidsByLiquidatorAddressList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
 
-    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryLiquidationBidsByLiquidatorAddress { address: String },
 
     #[returns(Vec<QueryProposalsResponseItem>)]
@@ -265,9 +265,9 @@ pub enum QueryMsg {
 
     #[returns(QueryAmountsResponse)]
     QueryAmounts {},
-
-    #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
-    QueryTargets { borrowers: Vec<String> },
+    //
+    // #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
+    // QueryTargets { borrowers: Vec<String> },
 }
 
 #[cw_serde]
@@ -295,9 +295,16 @@ pub struct QueryCollateralsResponseItem {
 }
 
 #[cw_serde]
-pub struct QueryLiquidationBidsResponseItem {
-    pub address: Addr,
+pub struct QueryLiquidationBidsByCollectionAddressListResponseItem {
+    pub collection_address: Addr,
     pub liquidation_bids: Vec<LiquidationBid>,
+}
+
+#[cw_serde]
+pub struct QueryLiquidationBidsByLiquidatorAddressListResponseItem {
+    pub liquidator_address: Addr,
+    pub collection_and_liquidation_bids_list:
+        Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
 }
 
 #[cw_serde]

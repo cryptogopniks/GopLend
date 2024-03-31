@@ -54,48 +54,20 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const {
-      cwQueryLendingPlatformConfig,
-      cwQueryOracleConfig,
-      cwQueryPrices,
-      cwQueryBlockCounter,
-    } = await getCwQueryHelpers(chainId, RPC);
-    const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
+    const { adapter, lending, minter, oracle } = await getCwQueryHelpers(
       chainId,
-      RPC,
-      owner,
-      signer
+      RPC
     );
-
-    await cwQueryLendingPlatformConfig();
-    // await cwQueryOracleConfig();
-
-    // await cwUpdatePrices(
-    //   [
-    //     {
-    //       collection_address:
-    //         "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-    //       currency: { token: { native: { denom: "ustars" } }, decimals: 6 },
-    //       raw_prices: ["100", "200", "300", "400", "500"],
-    //       trading_volume_per_day: "1000",
-    //     },
-    //   ],
-    //   gasPrice
+    // const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
+    //   chainId,
+    //   RPC,
+    //   owner,
+    //   signer
     // );
 
-    // await cwQueryPrices();
-
-    let cnt = 20;
-    const checkBlockCounter = async () => {
-      if (cnt--) {
-        setTimeout(async () => {
-          await cwQueryBlockCounter();
-          await checkBlockCounter();
-        }, 300);
-      }
-    };
-
-    await checkBlockCounter();
+    await lending.cwQueryAddressConfig();
+    await lending.cwQueryRateConfig();
+    await lending.cwQueryCommonConfig();
   } catch (error) {
     l(error);
   }

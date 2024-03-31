@@ -117,7 +117,7 @@ impl WithCodes for Project {
                 lending_platform::contract::instantiate,
                 lending_platform::contract::query,
             )
-            .with_reply(lending_platform::contract::reply)
+            // .with_reply(lending_platform::contract::reply)
             .with_migrate(lending_platform::contract::migrate),
         ))
     }

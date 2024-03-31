@@ -8,21 +8,47 @@ export class LendingPlatformQueryClient {
   constructor(client, contractAddress) {
     this.client = client;
     this.contractAddress = contractAddress;
-    this.queryConfig = this.queryConfig.bind(this);
+    this.queryAddressConfig = this.queryAddressConfig.bind(this);
+    this.queryRateConfig = this.queryRateConfig.bind(this);
+    this.queryCommonConfig = this.queryCommonConfig.bind(this);
     this.queryPlatformRevenue = this.queryPlatformRevenue.bind(this);
     this.queryBalances = this.queryBalances.bind(this);
-    this.queryDepositors = this.queryDepositors.bind(this);
-    this.queryBorrowers = this.queryBorrowers.bind(this);
-    this.queryLiquidators = this.queryLiquidators.bind(this);
-    this.queryCollaterals = this.queryCollaterals.bind(this);
-    this.queryLiquidationBidsByCollectionAddresses = this.queryLiquidationBidsByCollectionAddresses.bind(this);
-    this.queryLiquidationBidsByLiquidatorAddresses = this.queryLiquidationBidsByLiquidatorAddresses.bind(this);
+    this.queryUnbonderList = this.queryUnbonderList.bind(this);
+    this.queryUnbonder = this.queryUnbonder.bind(this);
+    this.queryBorrowerList = this.queryBorrowerList.bind(this);
+    this.queryBorrower = this.queryBorrower.bind(this);
+    this.queryLiquidatorList = this.queryLiquidatorList.bind(this);
+    this.queryLiquidator = this.queryLiquidator.bind(this);
+    this.queryCollateralList = this.queryCollateralList.bind(this);
+    this.queryCollateral = this.queryCollateral.bind(this);
+    this.queryLiquidationBidsByCollectionAddressList = this.queryLiquidationBidsByCollectionAddressList.bind(this);
+    this.queryLiquidationBidsByCollectionAddress = this.queryLiquidationBidsByCollectionAddress.bind(this);
+    this.queryLiquidationBidsByLiquidatorAddressList = this.queryLiquidationBidsByLiquidatorAddressList.bind(this);
+    this.queryLiquidationBidsByLiquidatorAddress = this.queryLiquidationBidsByLiquidatorAddress.bind(this);
     this.queryProposals = this.queryProposals.bind(this);
-    this.queryCollections = this.queryCollections.bind(this);
+    this.queryCollectionList = this.queryCollectionList.bind(this);
+    this.queryCollection = this.queryCollection.bind(this);
+    this.queryBglCurrencyToMainCurrencyPrice = this.queryBglCurrencyToMainCurrencyPrice.bind(this);
+    this.queryConditionalDepositApr = this.queryConditionalDepositApr.bind(this);
+    this.queryLtvList = this.queryLtvList.bind(this);
+    this.queryConditionalLtv = this.queryConditionalLtv.bind(this);
+    this.queryTotalAvailableToBorrowLiquidity = this.queryTotalAvailableToBorrowLiquidity.bind(this);
+    this.queryAvailableToBorrow = this.queryAvailableToBorrow.bind(this);
+    this.queryAmounts = this.queryAmounts.bind(this);
   }
-  queryConfig = async () => {
+  queryAddressConfig = async () => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_config: {}
+      query_address_config: {}
+    });
+  };
+  queryRateConfig = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_rate_config: {}
+    });
+  };
+  queryCommonConfig = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_common_config: {}
     });
   };
   queryPlatformRevenue = async () => {
@@ -35,76 +61,214 @@ export class LendingPlatformQueryClient {
       query_balances: {}
     });
   };
-  queryDepositors = async ({
-    addresses
+  queryUnbonderList = async ({
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_depositors: {
-        addresses
+      query_unbonder_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryBorrowers = async ({
-    addresses
+  queryUnbonder = async ({
+    address
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_borrowers: {
-        addresses
+      query_unbonder: {
+        address
       }
     });
   };
-  queryLiquidators = async ({
-    addresses
+  queryBorrowerList = async ({
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidators: {
-        addresses
+      query_borrower_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryCollaterals = async ({
-    collectionAddresses
+  queryBorrower = async ({
+    address
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collaterals: {
-        collection_addresses: collectionAddresses
+      query_borrower: {
+        address
       }
     });
   };
-  queryLiquidationBidsByCollectionAddresses = async ({
-    addresses
+  queryLiquidatorList = async ({
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidation_bids_by_collection_addresses: {
-        addresses
+      query_liquidator_list: {
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryLiquidationBidsByLiquidatorAddresses = async ({
-    addresses
+  queryLiquidator = async ({
+    address
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_liquidation_bids_by_liquidator_addresses: {
-        addresses
+      query_liquidator: {
+        address
+      }
+    });
+  };
+  queryCollateralList = async ({
+    limit,
+    startAfter
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collateral_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryCollateral = async ({
+    collectionAddress
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collateral: {
+        collection_address: collectionAddress
+      }
+    });
+  };
+  queryLiquidationBidsByCollectionAddressList = async ({
+    limit,
+    startAfter
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_collection_address_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryLiquidationBidsByCollectionAddress = async ({
+    address
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_collection_address: {
+        address
+      }
+    });
+  };
+  queryLiquidationBidsByLiquidatorAddressList = async ({
+    limit,
+    startAfter
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_liquidator_address_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryLiquidationBidsByLiquidatorAddress = async ({
+    address
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_liquidation_bids_by_liquidator_address: {
+        address
       }
     });
   };
   queryProposals = async ({
-    lastAmount
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_proposals: {
-        last_amount: lastAmount
+        limit,
+        start_after: startAfter
       }
     });
   };
-  queryCollections = async ({
-    addresses
+  queryCollectionList = async ({
+    limit,
+    startAfter
   }) => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collections: {
-        addresses
+      query_collection_list: {
+        limit,
+        start_after: startAfter
       }
+    });
+  };
+  queryCollection = async ({
+    address
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collection: {
+        address
+      }
+    });
+  };
+  queryBglCurrencyToMainCurrencyPrice = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_bgl_currency_to_main_currency_price: {}
+    });
+  };
+  queryConditionalDepositApr = async ({
+    amountToDeposit
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_conditional_deposit_apr: {
+        amount_to_deposit: amountToDeposit
+      }
+    });
+  };
+  queryLtvList = async ({
+    limit,
+    startAfter
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_ltv_list: {
+        limit,
+        start_after: startAfter
+      }
+    });
+  };
+  queryConditionalLtv = async ({
+    amountToBorrow,
+    amountToDeposit,
+    borrower
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_conditional_ltv: {
+        amount_to_borrow: amountToBorrow,
+        amount_to_deposit: amountToDeposit,
+        borrower
+      }
+    });
+  };
+  queryTotalAvailableToBorrowLiquidity = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_total_available_to_borrow_liquidity: {}
+    });
+  };
+  queryAvailableToBorrow = async ({
+    borrower,
+    targetLtv
+  }) => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_available_to_borrow: {
+        borrower,
+        target_ltv: targetLtv
+      }
+    });
+  };
+  queryAmounts = async () => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_amounts: {}
     });
   };
 }
@@ -118,17 +282,19 @@ export class LendingPlatformClient extends LendingPlatformQueryClient {
     this.deposit = this.deposit.bind(this);
     this.unbond = this.unbond.bind(this);
     this.withdraw = this.withdraw.bind(this);
-    this.depositCollateral = this.depositCollateral.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
+    this.depositCollateral = this.depositCollateral.bind(this);
     this.borrow = this.borrow.bind(this);
     this.repay = this.repay.bind(this);
     this.placeBid = this.placeBid.bind(this);
     this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
-    this.claimCollateral = this.claimCollateral.bind(this);
-    this.process = this.process.bind(this);
-    this.updateConfig = this.updateConfig.bind(this);
-    this.createBglToken = this.createBglToken.bind(this);
+    this.liquidate = this.liquidate.bind(this);
+    this.updateAddressConfig = this.updateAddressConfig.bind(this);
+    this.updateRateConfig = this.updateRateConfig.bind(this);
+    this.updateCommonConfig = this.updateCommonConfig.bind(this);
+    this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
+    this.reinforceBglToken = this.reinforceBglToken.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
     this.distributeFunds = this.distributeFunds.bind(this);
@@ -165,20 +331,20 @@ export class LendingPlatformClient extends LendingPlatformQueryClient {
       withdraw: {}
     }, fee, memo, _funds);
   };
-  depositCollateral = async ({
-    collections
-  }, fee = "auto", memo, _funds) => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      deposit_collateral: {
-        collections
-      }
-    }, fee, memo, _funds);
-  };
   withdrawCollateral = async ({
     collections
   }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
       withdraw_collateral: {
+        collections
+      }
+    }, fee, memo, _funds);
+  };
+  depositCollateral = async ({
+    collections
+  }, fee = "auto", memo, _funds) => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      deposit_collateral: {
         collections
       }
     }, fee, memo, _funds);
@@ -198,11 +364,13 @@ export class LendingPlatformClient extends LendingPlatformQueryClient {
     }, fee, memo, _funds);
   };
   placeBid = async ({
-    collections
+    collections,
+    discount
   }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
       place_bid: {
-        collections
+        collections,
+        discount
       }
     }, fee, memo, _funds);
   };
@@ -220,62 +388,92 @@ export class LendingPlatformClient extends LendingPlatformQueryClient {
   updateBid = async ({
     amount,
     collections,
-    creationDate
+    creationDate,
+    discount
   }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_bid: {
         amount,
         collections,
-        creation_date: creationDate
+        creation_date: creationDate,
+        discount
       }
     }, fee, memo, _funds);
   };
-  claimCollateral = async (fee = "auto", memo, _funds) => {
+  liquidate = async ({
+    targets
+  }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      claim_collateral: {}
+      liquidate: {
+        targets
+      }
     }, fee, memo, _funds);
   };
-  process = async (fee = "auto", memo, _funds) => {
+  updateAddressConfig = async ({
+    marketplace,
+    minter,
+    oracle,
+    owner,
+    scheduler
+  }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      process: {}
+      update_address_config: {
+        marketplace,
+        minter,
+        oracle,
+        owner,
+        scheduler
+      }
     }, fee, memo, _funds);
   };
-  updateConfig = async ({
-    bglCurrency,
+  updateRateConfig = async ({
     bidMinRate,
     borrowApr,
     borrowFeeRate,
-    cw20BaseCodeId,
     discountMaxRate,
     discountMinRate,
-    liquidationFeeRate,
-    mainCurrency,
-    oracle,
-    owner,
-    scheduler,
-    unbondingPeriod
+    liquidationFeeRate
   }, fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      update_config: {
-        bgl_currency: bglCurrency,
+      update_rate_config: {
         bid_min_rate: bidMinRate,
         borrow_apr: borrowApr,
         borrow_fee_rate: borrowFeeRate,
-        cw20_base_code_id: cw20BaseCodeId,
         discount_max_rate: discountMaxRate,
         discount_min_rate: discountMinRate,
-        liquidation_fee_rate: liquidationFeeRate,
+        liquidation_fee_rate: liquidationFeeRate
+      }
+    }, fee, memo, _funds);
+  };
+  updateCommonConfig = async ({
+    bglCurrency,
+    collateralMinValue,
+    isMarketplaceInterfaceEnabled,
+    mainCurrency,
+    minAvailableLiquidityMultiplier,
+    priceUpdatePeriod,
+    unbondingPeriod
+  }, fee = "auto", memo, _funds) => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_common_config: {
+        bgl_currency: bglCurrency,
+        collateral_min_value: collateralMinValue,
+        is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
         main_currency: mainCurrency,
-        oracle,
-        owner,
-        scheduler,
+        min_available_liquidity_multiplier: minAvailableLiquidityMultiplier,
+        price_update_period: priceUpdatePeriod,
         unbonding_period: unbondingPeriod
       }
     }, fee, memo, _funds);
   };
-  createBglToken = async (fee = "auto", memo, _funds) => {
+  depositReserveLiquidity = async (fee = "auto", memo, _funds) => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      create_bgl_token: {}
+      deposit_reserve_liquidity: {}
+    }, fee, memo, _funds);
+  };
+  reinforceBglToken = async (fee = "auto", memo, _funds) => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      reinforce_bgl_token: {}
     }, fee, memo, _funds);
   };
   lock = async (fee = "auto", memo, _funds) => {

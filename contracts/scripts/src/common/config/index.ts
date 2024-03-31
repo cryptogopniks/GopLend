@@ -1,7 +1,16 @@
 import { ChainConfig } from "../../common/interfaces";
 import { $, toJson } from "./config-utils";
+import * as AdapterSchedulerKujiraTypes from "../codegen/AdapterSchedulerKujira.types";
 import * as LendingPlatformTypes from "../codegen/LendingPlatform.types";
+import * as MinterTypes from "../codegen/Minter.types";
 import * as OracleTypes from "../codegen/Oracle.types";
+
+const ADDRESS = {
+  ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
+  OWNER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
+  LIQUIDATION_WORKER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
+  ORACLE_WORKER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
+};
 
 /**
  * This config is used to generate `config.json` used by any script (ts, js, bash).
@@ -12,6 +21,113 @@ import * as OracleTypes from "../codegen/Oracle.types";
  */
 const CHAIN_CONFIG: ChainConfig = {
   CHAINS: [
+    {
+      NAME: "kujira",
+      PREFIX: "kujira",
+      OPTIONS: [
+        {
+          TYPE: "test",
+          DENOM: "ukuji",
+          CHAIN_ID: "harpoon-4",
+          RPC_LIST: ["https://kujira-testnet-rpc.polkachu.com:443"],
+          GAS_PRICE_AMOUNT: 0.01,
+          STORE_CODE_GAS_MULTIPLIER: 20,
+          CONTRACTS: [
+            {
+              WASM: "adapter_scheduler_kujira.wasm",
+              LABEL: "adapter_scheduler",
+              INIT_MSG: toJson<AdapterSchedulerKujiraTypes.InstantiateMsg>({
+                clock_source: "offchain",
+                min_clock_period: 1,
+              }),
+              MIGRATE_MSG: toJson<AdapterSchedulerKujiraTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterSchedulerKujiraTypes.ExecuteMsg>({
+                update_config: {
+                  offchain_clock: [
+                    ADDRESS.ADMIN,
+                    ADDRESS.OWNER,
+                    ADDRESS.LIQUIDATION_WORKER,
+                  ],
+                  lending_platform: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "minter.wasm",
+              LABEL: "minter",
+              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  owner: ADDRESS.OWNER,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  scheduler: ADDRESS.ORACLE_WORKER,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform",
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=harpoon-4]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  owner: ADDRESS.OWNER,
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter.wasm]|ADDRESS"
+                  ),
+                  scheduler: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=adapter_scheduler_kujira.wasm]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
     {
       NAME: "stargaze",
       PREFIX: "stars",
@@ -39,7 +155,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   owner: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
                 },
               }),
@@ -87,7 +203,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   oracle: $(
                     "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
@@ -139,7 +255,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_config: {
+                update_address_config: {
                   oracle: $(
                     "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),

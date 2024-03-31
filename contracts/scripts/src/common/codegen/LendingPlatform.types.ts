@@ -294,10 +294,6 @@ export type QueryMsg = {
   };
 } | {
   query_amounts: {};
-} | {
-  query_targets: {
-    borrowers: string[];
-  };
 };
 export interface MigrateMsg {
   version: string;
@@ -393,10 +389,15 @@ export interface LiquidationBid {
   liquidator: Addr;
   token_id_list: string[];
 }
-export type ArrayOfQueryLiquidationBidsResponseItem = QueryLiquidationBidsResponseItem[];
-export interface QueryLiquidationBidsResponseItem {
-  address: Addr;
+export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];
+export interface QueryLiquidationBidsByCollectionAddressListResponseItem {
+  collection_address: Addr;
   liquidation_bids: LiquidationBid[];
+}
+export type ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem = QueryLiquidationBidsByLiquidatorAddressListResponseItem[];
+export interface QueryLiquidationBidsByLiquidatorAddressListResponseItem {
+  collection_and_liquidation_bids_list: QueryLiquidationBidsByCollectionAddressListResponseItem[];
+  liquidator_address: Addr;
 }
 export interface Liquidator {
   collection_addresses: Addr[];
@@ -442,7 +443,6 @@ export interface RateConfig {
   discount_min_rate: Decimal;
   liquidation_fee_rate: Decimal;
 }
-export type ArrayOfLiquidationItem = LiquidationItem[];
 export interface Unbonder {
   returned_and_unbonded: [Uint128, Vault][];
 }

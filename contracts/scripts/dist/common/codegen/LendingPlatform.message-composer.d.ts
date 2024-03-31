@@ -5,7 +5,7 @@
 */
 import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
-import { Decimal, CurrencyForTokenUnverified, Uint128, Binary, CollectionInfoForString, ProposalForStringAndTokenUnverified } from "./LendingPlatform.types";
+import { Decimal, Uint128, CurrencyForTokenUnverified, Binary, CollectionInfoForString, LiquidationItem, ProposalForStringAndTokenUnverified } from "./LendingPlatform.types";
 export interface LendingPlatformMsg {
     contractAddress: string;
     sender: string;
@@ -17,46 +17,59 @@ export interface LendingPlatformMsg {
     deposit: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     unbond: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     withdraw: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    depositCollateral: ({ collections }: {
+    withdrawCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    withdrawCollateral: ({ collections }: {
+    depositCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     borrow: ({ amount }: {
         amount: Uint128;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     repay: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    placeBid: ({ collections }: {
+    placeBid: ({ collections, discount }: {
         collections: CollectionInfoForString[];
+        discount: Decimal;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     removeBid: ({ collections, creationDate }: {
         collections: CollectionInfoForString[];
         creationDate: number;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    updateBid: ({ amount, collections, creationDate }: {
+    updateBid: ({ amount, collections, creationDate, discount }: {
         amount: Uint128;
         collections: CollectionInfoForString[];
         creationDate: number;
+        discount: Decimal;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    claimCollateral: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    process: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    updateConfig: ({ bglCurrency, bidMinRate, borrowApr, borrowFeeRate, cw20BaseCodeId, discountMaxRate, discountMinRate, liquidationFeeRate, mainCurrency, oracle, owner, scheduler, unbondingPeriod }: {
-        bglCurrency?: CurrencyForTokenUnverified;
-        bidMinRate?: Decimal;
-        borrowApr?: Decimal;
-        borrowFeeRate?: Decimal;
-        cw20BaseCodeId?: number;
-        discountMaxRate?: Decimal;
-        discountMinRate?: Decimal;
-        liquidationFeeRate?: Decimal;
-        mainCurrency?: CurrencyForTokenUnverified;
+    liquidate: ({ targets }: {
+        targets: LiquidationItem[];
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateAddressConfig: ({ marketplace, minter, oracle, owner, scheduler }: {
+        marketplace?: string;
+        minter?: string;
         oracle?: string;
         owner?: string;
         scheduler?: string;
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateRateConfig: ({ bidMinRate, borrowApr, borrowFeeRate, discountMaxRate, discountMinRate, liquidationFeeRate }: {
+        bidMinRate?: Decimal;
+        borrowApr?: Decimal;
+        borrowFeeRate?: Decimal;
+        discountMaxRate?: Decimal;
+        discountMinRate?: Decimal;
+        liquidationFeeRate?: Decimal;
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateCommonConfig: ({ bglCurrency, collateralMinValue, isMarketplaceInterfaceEnabled, mainCurrency, minAvailableLiquidityMultiplier, priceUpdatePeriod, unbondingPeriod }: {
+        bglCurrency?: CurrencyForTokenUnverified;
+        collateralMinValue?: Uint128;
+        isMarketplaceInterfaceEnabled?: boolean;
+        mainCurrency?: CurrencyForTokenUnverified;
+        minAvailableLiquidityMultiplier?: Decimal;
+        priceUpdatePeriod?: number;
         unbondingPeriod?: number;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    createBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    depositReserveLiquidity: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    reinforceBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     lock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     unlock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     distributeFunds: ({ addressAndWeightList }: {
@@ -87,46 +100,59 @@ export declare class LendingPlatformMsgComposer implements LendingPlatformMsg {
     deposit: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     unbond: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     withdraw: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    depositCollateral: ({ collections }: {
+    withdrawCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    withdrawCollateral: ({ collections }: {
+    depositCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     borrow: ({ amount }: {
         amount: Uint128;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     repay: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    placeBid: ({ collections }: {
+    placeBid: ({ collections, discount }: {
         collections: CollectionInfoForString[];
+        discount: Decimal;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
     removeBid: ({ collections, creationDate }: {
         collections: CollectionInfoForString[];
         creationDate: number;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    updateBid: ({ amount, collections, creationDate }: {
+    updateBid: ({ amount, collections, creationDate, discount }: {
         amount: Uint128;
         collections: CollectionInfoForString[];
         creationDate: number;
+        discount: Decimal;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    claimCollateral: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    process: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    updateConfig: ({ bglCurrency, bidMinRate, borrowApr, borrowFeeRate, cw20BaseCodeId, discountMaxRate, discountMinRate, liquidationFeeRate, mainCurrency, oracle, owner, scheduler, unbondingPeriod }: {
-        bglCurrency?: CurrencyForTokenUnverified | undefined;
-        bidMinRate?: string | undefined;
-        borrowApr?: string | undefined;
-        borrowFeeRate?: string | undefined;
-        cw20BaseCodeId?: number | undefined;
-        discountMaxRate?: string | undefined;
-        discountMinRate?: string | undefined;
-        liquidationFeeRate?: string | undefined;
-        mainCurrency?: CurrencyForTokenUnverified | undefined;
+    liquidate: ({ targets }: {
+        targets: LiquidationItem[];
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateAddressConfig: ({ marketplace, minter, oracle, owner, scheduler }: {
+        marketplace?: string | undefined;
+        minter?: string | undefined;
         oracle?: string | undefined;
         owner?: string | undefined;
         scheduler?: string | undefined;
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateRateConfig: ({ bidMinRate, borrowApr, borrowFeeRate, discountMaxRate, discountMinRate, liquidationFeeRate }: {
+        bidMinRate?: string | undefined;
+        borrowApr?: string | undefined;
+        borrowFeeRate?: string | undefined;
+        discountMaxRate?: string | undefined;
+        discountMinRate?: string | undefined;
+        liquidationFeeRate?: string | undefined;
+    }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    updateCommonConfig: ({ bglCurrency, collateralMinValue, isMarketplaceInterfaceEnabled, mainCurrency, minAvailableLiquidityMultiplier, priceUpdatePeriod, unbondingPeriod }: {
+        bglCurrency?: CurrencyForTokenUnverified | undefined;
+        collateralMinValue?: string | undefined;
+        isMarketplaceInterfaceEnabled?: boolean | undefined;
+        mainCurrency?: CurrencyForTokenUnverified | undefined;
+        minAvailableLiquidityMultiplier?: string | undefined;
+        priceUpdatePeriod?: number | undefined;
         unbondingPeriod?: number | undefined;
     }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-    createBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    depositReserveLiquidity: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+    reinforceBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     lock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     unlock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
     distributeFunds: ({ addressAndWeightList }: {
