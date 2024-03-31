@@ -6,15 +6,20 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, TokenUnverified, Uint128, RawPriceItem, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Addr, Config, Token, ArrayOfQueryPricesResponseItem, QueryPricesResponseItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
+import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
 export interface OracleReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
   queryPrices: ({
-    collectionAddresses
+    collectionAddresses,
+    limit,
+    startAfter
   }: {
     collectionAddresses?: string[];
-  }) => Promise<ArrayOfQueryPricesResponseItem>;
+    limit?: number;
+    startAfter?: string;
+  }) => Promise<ArrayOfPriceItem>;
+  queryBlockTime: () => Promise<Uint64>;
 }
 export class OracleQueryClient implements OracleReadOnlyInterface {
   client: CosmWasmClient;
@@ -25,6 +30,7 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
     this.queryPrices = this.queryPrices.bind(this);
+    this.queryBlockTime = this.queryBlockTime.bind(this);
   }
 
   queryConfig = async (): Promise<Config> => {
@@ -33,14 +39,25 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
     });
   };
   queryPrices = async ({
-    collectionAddresses
+    collectionAddresses,
+    limit,
+    startAfter
   }: {
     collectionAddresses?: string[];
-  }): Promise<ArrayOfQueryPricesResponseItem> => {
+    limit?: number;
+    startAfter?: string;
+  }): Promise<ArrayOfPriceItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_prices: {
-        collection_addresses: collectionAddresses
+        collection_addresses: collectionAddresses,
+        limit,
+        start_after: startAfter
       }
+    });
+  };
+  queryBlockTime = async (): Promise<Uint64> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_block_time: {}
     });
   };
 }
