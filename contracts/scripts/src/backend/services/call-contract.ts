@@ -54,18 +54,20 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    // const {
-    //   cwQueryLendingPlatformConfig,
-    //   cwQueryOracleConfig,
-    //   cwQueryPrices,
-    //   cwQueryBlockCounter,
-    // } = await getCwQueryHelpers(chainId, RPC);
+    const { adapter, lending, minter, oracle } = await getCwQueryHelpers(
+      chainId,
+      RPC
+    );
     // const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
     //   chainId,
     //   RPC,
     //   owner,
     //   signer
     // );
+
+    await lending.cwQueryAddressConfig();
+    await lending.cwQueryRateConfig();
+    await lending.cwQueryCommonConfig();
   } catch (error) {
     l(error);
   }

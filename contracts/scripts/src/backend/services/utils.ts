@@ -1,5 +1,5 @@
 import { access, readFile } from "fs/promises";
-import { decrypt, l, getLast } from "../../common/utils";
+import { decrypt, l, li, getLast } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { Wasm, ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 

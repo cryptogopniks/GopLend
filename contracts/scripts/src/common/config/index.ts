@@ -31,7 +31,7 @@ const CHAIN_CONFIG: ChainConfig = {
           CHAIN_ID: "harpoon-4",
           RPC_LIST: ["https://kujira-testnet-rpc.polkachu.com:443"],
           GAS_PRICE_AMOUNT: 0.01,
-          STORE_CODE_GAS_MULTIPLIER: 15,
+          STORE_CODE_GAS_MULTIPLIER: 20,
           CONTRACTS: [
             {
               WASM: "adapter_scheduler_kujira.wasm",

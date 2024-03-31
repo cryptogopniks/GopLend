@@ -1370,11 +1370,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
-  async function cwQueryTargets(borrowers: string[]) {
-    const res = await lendingPlatformQueryClient.queryTargets({ borrowers });
-    l("\n", res, "\n");
-    return res;
-  }
+  // async function cwQueryTargets(borrowers: string[]) {
+  //   const res = await lendingPlatformQueryClient.queryTargets({ borrowers });
+  //   l("\n", res, "\n");
+  //   return res;
+  // }
 
   // minter
 
@@ -1465,7 +1465,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryTotalAvailableToBorrowLiquidity,
       cwQueryAvailableToBorrow,
       cwQueryAmounts,
-      cwQueryTargets,
+      // cwQueryTargets,
     },
     minter: {
       cwQueryCurrenciesByCreator,

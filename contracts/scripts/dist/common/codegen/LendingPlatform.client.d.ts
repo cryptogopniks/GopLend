@@ -5,68 +5,168 @@
 */
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { Decimal, CurrencyForTokenUnverified, Uint128, Binary, CollectionInfoForString, ProposalForStringAndTokenUnverified, Balances, ArrayOfQueryBorrowersResponseItem, ArrayOfQueryCollateralsResponseItem, ArrayOfQueryCollectionsResponseItem, Config, ArrayOfQueryDepositorsResponseItem, ArrayOfQueryLiquidationBidsResponseItem, ArrayOfQueryLiquidatorsResponseItem, ArrayOfFundsForToken, ArrayOfQueryProposalsResponseItem } from "./LendingPlatform.types";
+import { Decimal, Uint128, CurrencyForTokenUnverified, Binary, CollectionInfoForString, LiquidationItem, ProposalForStringAndTokenUnverified, AddressConfig, QueryAmountsResponse, Balances, Borrower, ArrayOfQueryBorrowersResponseItem, ArrayOfCollateral, ArrayOfQueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, CommonConfig, ArrayOfLiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, ArrayOfQueryProposalsResponseItem, RateConfig, Unbonder, ArrayOfQueryUnbondersResponseItem } from "./LendingPlatform.types";
 export interface LendingPlatformReadOnlyInterface {
     contractAddress: string;
-    queryConfig: () => Promise<Config>;
+    queryAddressConfig: () => Promise<AddressConfig>;
+    queryRateConfig: () => Promise<RateConfig>;
+    queryCommonConfig: () => Promise<CommonConfig>;
     queryPlatformRevenue: () => Promise<ArrayOfFundsForToken>;
     queryBalances: () => Promise<Balances>;
-    queryDepositors: ({ addresses }: {
-        addresses?: string[];
-    }) => Promise<ArrayOfQueryDepositorsResponseItem>;
-    queryBorrowers: ({ addresses }: {
-        addresses?: string[];
+    queryUnbonderList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
+    }) => Promise<ArrayOfQueryUnbondersResponseItem>;
+    queryUnbonder: ({ address }: {
+        address: string;
+    }) => Promise<Unbonder>;
+    queryBorrowerList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
     }) => Promise<ArrayOfQueryBorrowersResponseItem>;
-    queryLiquidators: ({ addresses }: {
-        addresses?: string[];
+    queryBorrower: ({ address }: {
+        address: string;
+    }) => Promise<Borrower>;
+    queryLiquidatorList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
     }) => Promise<ArrayOfQueryLiquidatorsResponseItem>;
-    queryCollaterals: ({ collectionAddresses }: {
-        collectionAddresses?: string[];
+    queryLiquidator: ({ address }: {
+        address: string;
+    }) => Promise<Liquidator>;
+    queryCollateralList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
     }) => Promise<ArrayOfQueryCollateralsResponseItem>;
-    queryLiquidationBidsByCollectionAddresses: ({ addresses }: {
-        addresses?: string[];
-    }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
-    queryLiquidationBidsByLiquidatorAddresses: ({ addresses }: {
-        addresses?: string[];
-    }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
-    queryProposals: ({ lastAmount }: {
-        lastAmount?: number;
+    queryCollateral: ({ collectionAddress }: {
+        collectionAddress: string;
+    }) => Promise<ArrayOfCollateral>;
+    queryLiquidationBidsByCollectionAddressList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
+    }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
+    queryLiquidationBidsByCollectionAddress: ({ address }: {
+        address: string;
+    }) => Promise<ArrayOfLiquidationBid>;
+    queryLiquidationBidsByLiquidatorAddressList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
+    }) => Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem>;
+    queryLiquidationBidsByLiquidatorAddress: ({ address }: {
+        address: string;
+    }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
+    queryProposals: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: number;
     }) => Promise<ArrayOfQueryProposalsResponseItem>;
-    queryCollections: ({ addresses }: {
-        addresses?: string[];
+    queryCollectionList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
     }) => Promise<ArrayOfQueryCollectionsResponseItem>;
+    queryCollection: ({ address }: {
+        address: string;
+    }) => Promise<CollectionForAddr>;
+    queryBglCurrencyToMainCurrencyPrice: () => Promise<Decimal>;
+    queryConditionalDepositApr: ({ amountToDeposit }: {
+        amountToDeposit?: Uint128;
+    }) => Promise<Decimal>;
+    queryLtvList: ({ limit, startAfter }: {
+        limit?: number;
+        startAfter?: string;
+    }) => Promise<ArrayOfTupleOfAddrAndDecimal>;
+    queryConditionalLtv: ({ amountToBorrow, amountToDeposit, borrower }: {
+        amountToBorrow?: Uint128;
+        amountToDeposit?: Uint128;
+        borrower: string;
+    }) => Promise<Decimal>;
+    queryTotalAvailableToBorrowLiquidity: () => Promise<Uint128>;
+    queryAvailableToBorrow: ({ borrower, targetLtv }: {
+        borrower: string;
+        targetLtv?: Decimal;
+    }) => Promise<Uint128>;
+    queryAmounts: () => Promise<QueryAmountsResponse>;
 }
 export declare class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterface {
     client: CosmWasmClient;
     contractAddress: string;
     constructor(client: CosmWasmClient, contractAddress: string);
-    queryConfig: () => Promise<Config>;
+    queryAddressConfig: () => Promise<AddressConfig>;
+    queryRateConfig: () => Promise<RateConfig>;
+    queryCommonConfig: () => Promise<CommonConfig>;
     queryPlatformRevenue: () => Promise<ArrayOfFundsForToken>;
     queryBalances: () => Promise<Balances>;
-    queryDepositors: ({ addresses }: {
-        addresses?: string[] | undefined;
-    }) => Promise<ArrayOfQueryDepositorsResponseItem>;
-    queryBorrowers: ({ addresses }: {
-        addresses?: string[] | undefined;
+    queryUnbonderList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
+    }) => Promise<ArrayOfQueryUnbondersResponseItem>;
+    queryUnbonder: ({ address }: {
+        address: string;
+    }) => Promise<Unbonder>;
+    queryBorrowerList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
     }) => Promise<ArrayOfQueryBorrowersResponseItem>;
-    queryLiquidators: ({ addresses }: {
-        addresses?: string[] | undefined;
+    queryBorrower: ({ address }: {
+        address: string;
+    }) => Promise<Borrower>;
+    queryLiquidatorList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
     }) => Promise<ArrayOfQueryLiquidatorsResponseItem>;
-    queryCollaterals: ({ collectionAddresses }: {
-        collectionAddresses?: string[] | undefined;
+    queryLiquidator: ({ address }: {
+        address: string;
+    }) => Promise<Liquidator>;
+    queryCollateralList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
     }) => Promise<ArrayOfQueryCollateralsResponseItem>;
-    queryLiquidationBidsByCollectionAddresses: ({ addresses }: {
-        addresses?: string[] | undefined;
-    }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
-    queryLiquidationBidsByLiquidatorAddresses: ({ addresses }: {
-        addresses?: string[] | undefined;
-    }) => Promise<ArrayOfQueryLiquidationBidsResponseItem>;
-    queryProposals: ({ lastAmount }: {
-        lastAmount?: number | undefined;
+    queryCollateral: ({ collectionAddress }: {
+        collectionAddress: string;
+    }) => Promise<ArrayOfCollateral>;
+    queryLiquidationBidsByCollectionAddressList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
+    }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
+    queryLiquidationBidsByCollectionAddress: ({ address }: {
+        address: string;
+    }) => Promise<ArrayOfLiquidationBid>;
+    queryLiquidationBidsByLiquidatorAddressList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
+    }) => Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem>;
+    queryLiquidationBidsByLiquidatorAddress: ({ address }: {
+        address: string;
+    }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
+    queryProposals: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: number | undefined;
     }) => Promise<ArrayOfQueryProposalsResponseItem>;
-    queryCollections: ({ addresses }: {
-        addresses?: string[] | undefined;
+    queryCollectionList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
     }) => Promise<ArrayOfQueryCollectionsResponseItem>;
+    queryCollection: ({ address }: {
+        address: string;
+    }) => Promise<CollectionForAddr>;
+    queryBglCurrencyToMainCurrencyPrice: () => Promise<Decimal>;
+    queryConditionalDepositApr: ({ amountToDeposit }: {
+        amountToDeposit?: string | undefined;
+    }) => Promise<Decimal>;
+    queryLtvList: ({ limit, startAfter }: {
+        limit?: number | undefined;
+        startAfter?: string | undefined;
+    }) => Promise<ArrayOfTupleOfAddrAndDecimal>;
+    queryConditionalLtv: ({ amountToBorrow, amountToDeposit, borrower }: {
+        amountToBorrow?: string | undefined;
+        amountToDeposit?: string | undefined;
+        borrower: string;
+    }) => Promise<Decimal>;
+    queryTotalAvailableToBorrowLiquidity: () => Promise<Uint128>;
+    queryAvailableToBorrow: ({ borrower, targetLtv }: {
+        borrower: string;
+        targetLtv?: string | undefined;
+    }) => Promise<Uint128>;
+    queryAmounts: () => Promise<QueryAmountsResponse>;
 }
 export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterface {
     contractAddress: string;
@@ -79,46 +179,59 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     deposit: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     unbond: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     withdraw: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    depositCollateral: ({ collections }: {
+    withdrawCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    withdrawCollateral: ({ collections }: {
+    depositCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     borrow: ({ amount }: {
         amount: Uint128;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     repay: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    placeBid: ({ collections }: {
+    placeBid: ({ collections, discount }: {
         collections: CollectionInfoForString[];
+        discount: Decimal;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     removeBid: ({ collections, creationDate }: {
         collections: CollectionInfoForString[];
         creationDate: number;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    updateBid: ({ amount, collections, creationDate }: {
+    updateBid: ({ amount, collections, creationDate, discount }: {
         amount: Uint128;
         collections: CollectionInfoForString[];
         creationDate: number;
+        discount: Decimal;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    claimCollateral: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    process: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    updateConfig: ({ bglCurrency, bidMinRate, borrowApr, borrowFeeRate, cw20BaseCodeId, discountMaxRate, discountMinRate, liquidationFeeRate, mainCurrency, oracle, owner, scheduler, unbondingPeriod }: {
-        bglCurrency?: CurrencyForTokenUnverified;
-        bidMinRate?: Decimal;
-        borrowApr?: Decimal;
-        borrowFeeRate?: Decimal;
-        cw20BaseCodeId?: number;
-        discountMaxRate?: Decimal;
-        discountMinRate?: Decimal;
-        liquidationFeeRate?: Decimal;
-        mainCurrency?: CurrencyForTokenUnverified;
+    liquidate: ({ targets }: {
+        targets: LiquidationItem[];
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateAddressConfig: ({ marketplace, minter, oracle, owner, scheduler }: {
+        marketplace?: string;
+        minter?: string;
         oracle?: string;
         owner?: string;
         scheduler?: string;
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateRateConfig: ({ bidMinRate, borrowApr, borrowFeeRate, discountMaxRate, discountMinRate, liquidationFeeRate }: {
+        bidMinRate?: Decimal;
+        borrowApr?: Decimal;
+        borrowFeeRate?: Decimal;
+        discountMaxRate?: Decimal;
+        discountMinRate?: Decimal;
+        liquidationFeeRate?: Decimal;
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateCommonConfig: ({ bglCurrency, collateralMinValue, isMarketplaceInterfaceEnabled, mainCurrency, minAvailableLiquidityMultiplier, priceUpdatePeriod, unbondingPeriod }: {
+        bglCurrency?: CurrencyForTokenUnverified;
+        collateralMinValue?: Uint128;
+        isMarketplaceInterfaceEnabled?: boolean;
+        mainCurrency?: CurrencyForTokenUnverified;
+        minAvailableLiquidityMultiplier?: Decimal;
+        priceUpdatePeriod?: number;
         unbondingPeriod?: number;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    createBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    depositReserveLiquidity: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    reinforceBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     distributeFunds: ({ addressAndWeightList }: {
@@ -150,46 +263,59 @@ export declare class LendingPlatformClient extends LendingPlatformQueryClient im
     deposit: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     unbond: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     withdraw: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    depositCollateral: ({ collections }: {
+    withdrawCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    withdrawCollateral: ({ collections }: {
+    depositCollateral: ({ collections }: {
         collections: CollectionInfoForString[];
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     borrow: ({ amount }: {
         amount: Uint128;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     repay: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    placeBid: ({ collections }: {
+    placeBid: ({ collections, discount }: {
         collections: CollectionInfoForString[];
+        discount: Decimal;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     removeBid: ({ collections, creationDate }: {
         collections: CollectionInfoForString[];
         creationDate: number;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    updateBid: ({ amount, collections, creationDate }: {
+    updateBid: ({ amount, collections, creationDate, discount }: {
         amount: Uint128;
         collections: CollectionInfoForString[];
         creationDate: number;
+        discount: Decimal;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    claimCollateral: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    process: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    updateConfig: ({ bglCurrency, bidMinRate, borrowApr, borrowFeeRate, cw20BaseCodeId, discountMaxRate, discountMinRate, liquidationFeeRate, mainCurrency, oracle, owner, scheduler, unbondingPeriod }: {
-        bglCurrency?: CurrencyForTokenUnverified | undefined;
-        bidMinRate?: string | undefined;
-        borrowApr?: string | undefined;
-        borrowFeeRate?: string | undefined;
-        cw20BaseCodeId?: number | undefined;
-        discountMaxRate?: string | undefined;
-        discountMinRate?: string | undefined;
-        liquidationFeeRate?: string | undefined;
-        mainCurrency?: CurrencyForTokenUnverified | undefined;
+    liquidate: ({ targets }: {
+        targets: LiquidationItem[];
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateAddressConfig: ({ marketplace, minter, oracle, owner, scheduler }: {
+        marketplace?: string | undefined;
+        minter?: string | undefined;
         oracle?: string | undefined;
         owner?: string | undefined;
         scheduler?: string | undefined;
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateRateConfig: ({ bidMinRate, borrowApr, borrowFeeRate, discountMaxRate, discountMinRate, liquidationFeeRate }: {
+        bidMinRate?: string | undefined;
+        borrowApr?: string | undefined;
+        borrowFeeRate?: string | undefined;
+        discountMaxRate?: string | undefined;
+        discountMinRate?: string | undefined;
+        liquidationFeeRate?: string | undefined;
+    }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    updateCommonConfig: ({ bglCurrency, collateralMinValue, isMarketplaceInterfaceEnabled, mainCurrency, minAvailableLiquidityMultiplier, priceUpdatePeriod, unbondingPeriod }: {
+        bglCurrency?: CurrencyForTokenUnverified | undefined;
+        collateralMinValue?: string | undefined;
+        isMarketplaceInterfaceEnabled?: boolean | undefined;
+        mainCurrency?: CurrencyForTokenUnverified | undefined;
+        minAvailableLiquidityMultiplier?: string | undefined;
+        priceUpdatePeriod?: number | undefined;
         unbondingPeriod?: number | undefined;
     }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-    createBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    depositReserveLiquidity: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+    reinforceBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
     distributeFunds: ({ addressAndWeightList }: {

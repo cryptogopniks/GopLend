@@ -1,4 +1,5 @@
 import { AES, enc } from "crypto-js";
+import util from "util";
 import axios, {
   AxiosRequestConfig,
   AxiosInstance,
@@ -6,6 +7,16 @@ import axios, {
 } from "axios";
 
 const l = console.log.bind(console);
+
+function li(object: any) {
+  console.log(
+    util.inspect(object, {
+      showHidden: false,
+      depth: null,
+      colors: true,
+    })
+  );
+}
 
 function getLast<T>(arr: T[]) {
   return arr[arr.length - 1];
@@ -47,4 +58,4 @@ function decrypt(encryptedData: string, key: string): string | undefined {
   }
 }
 
-export { Request, l, getLast, wait, encrypt, decrypt };
+export { Request, l, li, getLast, wait, encrypt, decrypt };

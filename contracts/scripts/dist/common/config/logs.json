@@ -1,12 +1,12 @@
 {
-  "start_time": 1703016218,
+  "start_time": 1707060527,
   "chains": [
     {
       "chain_id": "stargaze-0",
       "chain_name": "stargaze-0",
-      "rpc_address": "http://127.0.0.1:42677",
-      "rest_address": "http://127.0.0.1:34373",
-      "grpc_address": "127.0.0.1:46283",
+      "rpc_address": "http://127.0.0.1:33565",
+      "rest_address": "http://127.0.0.1:37369",
+      "grpc_address": "127.0.0.1:43387",
       "ibc_paths": []
     }
   ],

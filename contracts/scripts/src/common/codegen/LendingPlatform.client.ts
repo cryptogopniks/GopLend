@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, Vault, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, ArrayOfLiquidationItem, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
+import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, Vault, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
 export interface LendingPlatformReadOnlyInterface {
   contractAddress: string;
   queryAddressConfig: () => Promise<AddressConfig>;
@@ -136,11 +136,6 @@ export interface LendingPlatformReadOnlyInterface {
     targetLtv?: Decimal;
   }) => Promise<Uint128>;
   queryAmounts: () => Promise<QueryAmountsResponse>;
-  queryTargets: ({
-    borrowers
-  }: {
-    borrowers: string[];
-  }) => Promise<ArrayOfLiquidationItem>;
 }
 export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterface {
   client: CosmWasmClient;
@@ -176,7 +171,6 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
     this.queryTotalAvailableToBorrowLiquidity = this.queryTotalAvailableToBorrowLiquidity.bind(this);
     this.queryAvailableToBorrow = this.queryAvailableToBorrow.bind(this);
     this.queryAmounts = this.queryAmounts.bind(this);
-    this.queryTargets = this.queryTargets.bind(this);
   }
 
   queryAddressConfig = async (): Promise<AddressConfig> => {
@@ -462,17 +456,6 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
   queryAmounts = async (): Promise<QueryAmountsResponse> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_amounts: {}
-    });
-  };
-  queryTargets = async ({
-    borrowers
-  }: {
-    borrowers: string[];
-  }): Promise<ArrayOfLiquidationItem> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      query_targets: {
-        borrowers
-      }
     });
   };
 }

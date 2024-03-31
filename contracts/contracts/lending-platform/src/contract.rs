@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, from_json, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply,
-    Response, StdResult,
+    entry_point, from_json, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
+    StdResult,
 };
 
 use cw20::Cw20ReceiveMsg;
@@ -343,20 +343,20 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         QueryMsg::QueryAmounts {} => to_json_binary(&q::query_amounts(deps, env)?),
-
-        QueryMsg::QueryTargets { borrowers } => {
-            to_json_binary(&q::query_targets(deps, env, borrowers)?)
-        }
+        //
+        // QueryMsg::QueryTargets { borrowers } => {
+        //     to_json_binary(&q::query_targets(deps, env, borrowers)?)
+        // }
     }
 }
 
-/// Exposes all the replies available in the contract
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-    let Reply { id: _, result: _ } = reply;
+// /// Exposes all the replies available in the contract
+// #[cfg_attr(not(feature = "library"), entry_point)]
+// pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
+//     let Reply { id: _, result: _ } = reply;
 
-    Err(ContractError::UndefinedReplyId)
-}
+//     Err(ContractError::UndefinedReplyId)
+// }
 
 /// Exposes all migration functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]

@@ -294,10 +294,6 @@ export type QueryMsg = {
   };
 } | {
   query_amounts: {};
-} | {
-  query_targets: {
-    borrowers: string[];
-  };
 };
 export interface MigrateMsg {
   version: string;
@@ -447,7 +443,6 @@ export interface RateConfig {
   discount_min_rate: Decimal;
   liquidation_fee_rate: Decimal;
 }
-export type ArrayOfLiquidationItem = LiquidationItem[];
 export interface Unbonder {
   returned_and_unbonded: [Uint128, Vault][];
 }

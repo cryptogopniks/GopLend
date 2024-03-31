@@ -287,10 +287,10 @@ pub trait LendingPlatformExtension {
 
     fn lending_platform_query_amounts(&self) -> StdResult<QueryAmountsResponse>;
 
-    fn lending_platform_query_targets(
-        &self,
-        borrowers: &[impl ToString],
-    ) -> StdResult<Vec<LiquidationItem>>;
+    // fn lending_platform_query_targets(
+    //     &self,
+    //     borrowers: &[impl ToString],
+    // ) -> StdResult<Vec<LiquidationItem>>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -1015,16 +1015,16 @@ impl LendingPlatformExtension for Project {
         )
     }
 
-    #[track_caller]
-    fn lending_platform_query_targets(
-        &self,
-        borrowers: &[impl ToString],
-    ) -> StdResult<Vec<LiquidationItem>> {
-        self.app.wrap().query_wasm_smart(
-            self.get_lending_platform_address(),
-            &QueryMsg::QueryTargets {
-                borrowers: borrowers.iter().map(|x| x.to_string()).collect(),
-            },
-        )
-    }
+    // #[track_caller]
+    // fn lending_platform_query_targets(
+    //     &self,
+    //     borrowers: &[impl ToString],
+    // ) -> StdResult<Vec<LiquidationItem>> {
+    //     self.app.wrap().query_wasm_smart(
+    //         self.get_lending_platform_address(),
+    //         &QueryMsg::QueryTargets {
+    //             borrowers: borrowers.iter().map(|x| x.to_string()).collect(),
+    //         },
+    //     )
+    // }
 }
