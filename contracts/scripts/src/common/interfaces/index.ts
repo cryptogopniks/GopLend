@@ -108,17 +108,6 @@ interface Cw20SendMsg {
   };
 }
 
-interface Metadata {
-  base: string;
-  denom_units: { aliases: string[]; denom: string; exponent: string }[];
-  description: string;
-  display: string;
-  name: string;
-  symbol: string;
-  uri?: string;
-  uri_hash?: string;
-}
-
 interface SetMetadataMsg {
   set_metadata: {
     metadata: Metadata;
@@ -209,25 +198,6 @@ type TokenUnverified =
         address: string;
       };
     };
-
-interface UpdateConfigStruct {
-  // lending platform
-  bglCurrency?: CurrencyForTokenUnverified;
-  bidMinRate?: Decimal;
-  borrowApr?: Decimal;
-  borrowFeeRate?: Decimal;
-  cw20BaseCodeId?: number;
-  discountMaxRate?: Decimal;
-  discountMinRate?: Decimal;
-  liquidationFeeRate?: Decimal;
-  mainCurrency?: CurrencyForTokenUnverified;
-  oracle?: string;
-  owner?: string;
-  unbondingPeriod?: number;
-
-  // oracle
-  schedulerForOracle?: string;
-}
 
 interface Pagination {
   next_key: string;
@@ -417,7 +387,6 @@ export type {
 export {
   SetMetadataMsg,
   Metadata,
-  UpdateConfigStruct,
   Cw20SendMsg,
   MintStruct,
   MintOverIbcStruct,
