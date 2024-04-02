@@ -1,4 +1,4 @@
-import { getLast, l } from "../utils";
+import { getLast, l, li } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
 import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
@@ -1046,7 +1046,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         collectionAddress,
         queryAllOperatorsMsg
       );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1060,7 +1062,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryApprovalsMsg
     );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1100,7 +1104,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     }
 
     const res: TokensResponse = { tokens: tokenList };
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1112,7 +1118,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryOwnerOfMsg
     );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1120,13 +1128,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   async function cwAdapterSchedulerKujiraQueryConfig() {
     const res = await adapterSchedulerKujiraQueryClient.queryConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryLog(amount: number) {
     const res = await adapterSchedulerKujiraQueryClient.queryLog({ amount });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1134,31 +1146,41 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   async function cwLendingPlatformQueryAddressConfig() {
     const res = await lendingPlatformQueryClient.queryAddressConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwLendingPlatformQueryRateConfig() {
     const res = await lendingPlatformQueryClient.queryRateConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwLendingPlatformQueryCommonConfig() {
     const res = await lendingPlatformQueryClient.queryCommonConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryPlatformRevenue() {
     const res = await lendingPlatformQueryClient.queryPlatformRevenue();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryBalances() {
     const res = await lendingPlatformQueryClient.queryBalances();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1170,13 +1192,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryUnbonder(address: string) {
     const res = await lendingPlatformQueryClient.queryUnbonder({ address });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1188,13 +1214,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryBorrower(address: string) {
     const res = await lendingPlatformQueryClient.queryBorrower({ address });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1206,13 +1236,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryLiquidator(address: string) {
     const res = await lendingPlatformQueryClient.queryLiquidator({ address });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1224,7 +1258,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1232,7 +1268,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await lendingPlatformQueryClient.queryCollateral({
       collectionAddress,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1244,7 +1282,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddressList(
         { startAfter, limit }
       );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1253,7 +1293,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddress({
         address,
       });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1265,7 +1307,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddressList(
         { startAfter, limit }
       );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1274,7 +1318,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddress({
         address,
       });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1283,7 +1329,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1295,7 +1343,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1303,14 +1353,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await lendingPlatformQueryClient.queryCollection({
       address,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryBglCurrencyToMainCurrencyPrice() {
     const res =
       await lendingPlatformQueryClient.queryBglCurrencyToMainCurrencyPrice();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1318,7 +1372,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await lendingPlatformQueryClient.queryConditionalDepositApr({
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1327,7 +1383,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1341,14 +1399,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
       amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryTotalAvailableToBorrowLiquidity() {
     const res =
       await lendingPlatformQueryClient.queryTotalAvailableToBorrowLiquidity();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1360,19 +1422,25 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       borrower,
       targetLtv: targetLtv ? targetLtv.toString() : undefined,
     });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryAmounts() {
     const res = await lendingPlatformQueryClient.queryAmounts();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   // async function cwQueryTargets(borrowers: string[]) {
   //   const res = await lendingPlatformQueryClient.queryTargets({ borrowers });
-  //   l("\n", res, "\n");
+  // l();
+  // li(res);
+  // l();
   //   return res;
   // }
 
@@ -1380,13 +1448,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   async function cwQueryCurrenciesByCreator(creator: string) {
     const res = await minterQueryClient.queryCurrenciesByCreator({ creator });
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwMinterQueryConfig() {
     const res = await minterQueryClient.queryConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1394,7 +1466,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   async function cwOracleQueryConfig() {
     const res = await oracleQueryClient.queryConfig();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -1412,13 +1486,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await oracleQueryClient.queryPrices(
       collectionAddresses.length ? msg_2 : msg_1
     );
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function cwQueryBlockTime() {
     const res = await oracleQueryClient.queryBlockTime();
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
