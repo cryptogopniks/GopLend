@@ -65,9 +65,11 @@ async function main() {
     //   signer
     // );
 
-    await lending.cwQueryAddressConfig();
-    await lending.cwQueryRateConfig();
-    await lending.cwQueryCommonConfig();
+    // await lending.cwQueryAddressConfig();
+    // await lending.cwQueryRateConfig();
+    // await lending.cwQueryCommonConfig();
+
+    await oracle.cwQueryPrices();
   } catch (error) {
     l(error);
   }
