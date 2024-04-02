@@ -1,4 +1,4 @@
-import { l } from "../utils";
+import { l, li } from "../utils";
 import { getSgClient, signAndBroadcastWrapper } from "./clients";
 import { Tendermint37Client } from "@cosmjs/tendermint-rpc";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
@@ -41,6 +41,27 @@ async function getSgExecHelpers(
       },
     };
     const tx = await signAndBroadcast([msg], gasPrice);
+    l("\n", tx, "\n");
+    return tx;
+  }
+
+  async function sgMultiSend(
+    denom: string,
+    recipientAndAmountList: [string, number][],
+    gasPrice: string
+  ) {
+    const msgs: MsgSendEncodeObject[] = recipientAndAmountList.map(
+      ([address, amount]) => ({
+        typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+        value: {
+          fromAddress: owner,
+          toAddress: address,
+          amount: [coin(amount, denom)],
+        },
+      })
+    );
+
+    const tx = await signAndBroadcast(msgs, gasPrice);
     l("\n", tx, "\n");
     return tx;
   }
@@ -88,6 +109,7 @@ async function getSgExecHelpers(
     sgDelegate,
     sgVote,
     sgSend,
+    sgMultiSend,
   };
 }
 
@@ -99,13 +121,17 @@ async function getSgQueryHelpers(rpc: string) {
 
   async function getAllBalances(address: string) {
     const res = await bankExtension.bank.allBalances(address);
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
   async function getMetadata(denom: string) {
     const res = await bankExtension.bank.denomMetadata(denom);
-    l("\n", res, "\n");
+    l();
+    li(res);
+    l();
     return res;
   }
 
@@ -114,7 +140,9 @@ async function getSgQueryHelpers(rpc: string) {
       "BOND_STATUS_BONDED"
     );
 
-    l("\n", validators, "\n");
+    l();
+    li(validators);
+    l();
     return validators;
   }
 

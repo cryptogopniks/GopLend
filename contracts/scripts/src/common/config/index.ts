@@ -287,4 +287,4 @@ const CHAIN_CONFIG: ChainConfig = {
   ],
 };
 
-export { CHAIN_CONFIG };
+export { CHAIN_CONFIG, ADDRESS };
