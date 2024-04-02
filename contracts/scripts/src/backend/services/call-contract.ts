@@ -2,6 +2,7 @@ import { getSigner } from "../account/signer";
 import { l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
+import { ADDRESS } from "../../common/config";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -65,11 +66,25 @@ async function main() {
     //   signer
     // );
 
+    const { getAllBalances } = sgQueryHelpers;
+    const { sgMultiSend } = sgExecHelpers;
+
     // await lending.cwQueryAddressConfig();
     // await lending.cwQueryRateConfig();
     // await lending.cwQueryCommonConfig();
 
-    await oracle.cwQueryPrices();
+    // await oracle.cwQueryPrices();
+
+    await getAllBalances(ADDRESS.ORACLE_WORKER);
+    await getAllBalances(ADDRESS.LIQUIDATION_WORKER);
+    // await sgMultiSend(
+    //   "ukuji",
+    //   [
+    //     [ADDRESS.ORACLE_WORKER, 1],
+    //     [ADDRESS.LIQUIDATION_WORKER, 2],
+    //   ],
+    //   gasPrice
+    // );
   } catch (error) {
     l(error);
   }
