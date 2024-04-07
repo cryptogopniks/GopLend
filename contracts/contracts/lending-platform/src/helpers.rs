@@ -462,6 +462,7 @@ pub fn update_borrowers_storages(
     Ok(())
 }
 
+// TODO: should rewards must be paid first?
 pub fn update_balances(
     storage: &mut dyn Storage,
     block_time: u64,
@@ -488,25 +489,45 @@ pub fn update_balances(
 
         let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
-        let (amount, rewards) = if total_liquidation_value <= balances.regular.borrowed.amount {
-            (
-                balances.regular.borrowed.amount - total_liquidation_value,
-                rewards,
-            )
+        if balances.reserve.borrowed.amount.is_zero() {
+            if total_liquidation_value <= balances.regular.borrowed.amount {
+                balances.regular.borrowed.amount -= total_liquidation_value;
+            } else {
+                let amount_difference = total_liquidation_value - balances.regular.borrowed.amount;
+
+                balances.regular.borrowed.creation_date = block_time;
+                balances.regular.borrowed.amount = Uint128::zero();
+                balances.regular.accumulated_rewards =
+                    max(rewards, amount_difference) - amount_difference;
+            }
         } else {
-            let amount_difference = total_liquidation_value - balances.regular.borrowed.amount;
-            (
-                Uint128::zero(),
-                max(rewards, amount_difference) - amount_difference,
-            )
-        };
+            if total_liquidation_value <= balances.reserve.borrowed.amount {
+                balances.reserve.borrowed.amount -= total_liquidation_value;
+            } else if total_liquidation_value
+                <= balances.reserve.borrowed.amount + balances.regular.borrowed.amount
+            {
+                let amount_difference = total_liquidation_value - balances.reserve.borrowed.amount;
+
+                balances.reserve.borrowed.creation_date = block_time;
+                balances.reserve.borrowed.amount = Uint128::zero();
+
+                balances.regular.borrowed.amount -= amount_difference;
+            } else {
+                let amount_difference = total_liquidation_value
+                    - balances.reserve.borrowed.amount
+                    - balances.regular.borrowed.amount;
+
+                balances.reserve.borrowed.creation_date = block_time;
+                balances.reserve.borrowed.amount = Uint128::zero();
+
+                balances.regular.borrowed.creation_date = block_time;
+                balances.regular.borrowed.amount = Uint128::zero();
+                balances.regular.accumulated_rewards =
+                    max(rewards, amount_difference) - amount_difference;
+            }
+        }
 
         balances.regular.main_pool += main_currency_pool_addition;
-        balances.regular.borrowed = Vault {
-            amount,
-            creation_date: block_time,
-        };
-        balances.regular.accumulated_rewards = rewards;
         balances.regular.liquidation_bids -= total_liquidation_bids;
 
         Ok(balances)

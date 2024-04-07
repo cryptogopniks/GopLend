@@ -379,13 +379,21 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     let main_currency = common_config.main_currency;
     let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
 
-    let expected_rewards = math::calc_expected_rewards(
+    let regular_rewards = math::calc_expected_rewards(
         block_time,
         balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
         balances.regular.borrowed.amount,
     );
-    let rewards = balances.regular.accumulated_rewards + expected_rewards;
+
+    let reserve_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.reserve.borrowed.creation_date,
+        rate_config.borrow_apr,
+        balances.reserve.borrowed.amount,
+    );
+
+    let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
     Ok(math::calc_bgl_to_main_price(
         balances.regular.main_pool,
@@ -627,13 +635,21 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let balances = BALANCES.load(deps.storage)?;
 
-    let expected_rewards = math::calc_expected_rewards(
+    let regular_rewards = math::calc_expected_rewards(
         block_time,
         balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
         balances.regular.borrowed.amount,
     );
-    let rewards = balances.regular.accumulated_rewards + expected_rewards;
+
+    let reserve_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.reserve.borrowed.creation_date,
+        rate_config.borrow_apr,
+        balances.reserve.borrowed.amount,
+    );
+
+    let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
     let min_available_liquidity = math::calc_min_available_liquidity(
         balances.reserve.deposited,
@@ -758,25 +774,25 @@ pub fn query_available_to_borrow(
 pub fn query_amounts(deps: Deps, _env: Env) -> StdResult<QueryAmountsResponse> {
     Ok(QueryAmountsResponse {
         unbonders: UNBONDERS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         borrowers: BORROWERS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         collaterals: COLLATERALS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         liquidators: LIQUIDATORS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         liquidation_bids: LIQUIDATION_BIDS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         proposals: PROPOSALS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         collections: COLLECTIONS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
     })
 }

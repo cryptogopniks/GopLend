@@ -537,6 +537,10 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
         ProjectCoin::Stars,
     )?;
 
+    // check contract balances
+    let balances = project.lending_platform_query_balances()?;
+    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
 
@@ -557,7 +561,7 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&balances.regular.deposited.u128()).is_equal_to(0);
     assert_that(&balances.regular.unbonded.u128()).is_equal_to(0);
     assert_that(&balances.regular.main_pool.u128()).is_equal_to(0);
     assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(0);
@@ -652,109 +656,113 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     Ok(())
 }
 
-// #[test]
-// fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
-//     let mut project = Project::new();
+#[test]
+fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
+    let mut project = Project::new();
 
-//     const AMOUNT: u128 = 1_000_000;
+    const AMOUNT: u128 = 1_000_000;
 
-//     // push prices to oracle
-//     project.oracle_try_update_prices(
-//         ProjectAccount::Scheduler,
-//         &[RawPriceItem {
-//             collection_address: ProjectNft::Gopniks.to_string(),
-//             price: Funds::new(
-//                 Uint128::new(80_000_000_000),
-//                 &Currency::new(
-//                     &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-//                     ProjectCoin::Stars.get_decimals(),
-//                 ),
-//             ),
-//         }],
-//     )?;
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
 
-//     // set collateral min value
-//     project.lending_platform_try_update_common_config(
-//         ProjectAccount::Admin,
-//         &None,
-//         &None,
-//         &None,
-//         &Some(1),
-//         &None,
-//         &None,
-//         &None,
-//     )?;
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &None,
+    )?;
 
-//     // list collection
-//     let proposal: &Proposal<String, TokenUnverified> = &Proposal {
-//         proposal_status: None,
-//         listing_price: Funds::new(
-//             100u128,
-//             &Currency::new(
-//                 &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-//                 6,
-//             ),
-//         ),
-//         proposal_type: ProposalType::AddCollection {
-//             collection_address: ProjectNft::Gopniks.to_string(),
-//             collection: Collection {
-//                 name: ProjectNft::Gopniks.to_string(),
-//                 owner: ProjectAccount::Owner.to_string(),
-//             },
-//         },
-//     };
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
 
-//     project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
-//     project.lending_platform_try_accept_proposal(
-//         ProjectAccount::Owner,
-//         1,
-//         100,
-//         ProjectToken::Atom,
-//     )?;
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
 
-//     // add collateral and borrow
-//     project.increase_allowances_nft(
-//         ProjectAccount::Bob,
-//         project.get_lending_platform_address(),
-//         ProjectNft::Gopniks,
-//     );
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
 
-//     // collateral value = 800_000_000 * 3 = 2_400_000_000
-//     project.lending_platform_try_deposit_collateral(
-//         ProjectAccount::Bob,
-//         &[CollectionInfo {
-//             collection_address: ProjectNft::Gopniks.to_string(),
-//             token_id_list: vec!["4", "5", "6"]
-//                 .into_iter()
-//                 .map(|x| x.to_string())
-//                 .collect(),
-//         }],
-//     )?;
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5", "6"]
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }],
+    )?;
 
-//     // deposit
-//     project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT / 2, ProjectCoin::Stars)?;
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT / 2, ProjectCoin::Stars)?;
 
-//     // min_available_liquidity = 0.15 * (total_main_currency_pool + accumulated_expected_rewards - reserve_main_currency_pool)
-//     // total_main_currency_pool - total_borrowed_amount - min_available_liquidity
-//     // min_available_liquidity = 0.15 * 500_000
-//     // 100_000_000_000 + 500_000 - 0 - 0.15 * 500_000 = 100_000_425_000
-//     let total_available_to_borrow_liquidity =
-//         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-//     assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(100_000_425_000);
+    // min_available_liquidity = 0.15 * reserve_deposited
+    // 0.15 * 100_000_000_000 = 15_000_000_000
+    // regular_available = regular_deposited + acc_rewards - regular_unbonded - regular_borrowed
+    // 500_000 + 0 - 0 - 0 = 500_000
+    // reserve_available = reserve_deposited - min_available_liquidity - reserve_borrowed
+    // 100_000_000_000 - 15_000_000_000 - 0 = 85_000_000_000
+    // total_available_liquidity = regular_available + reserve_available
+    // 500_000 + 85_000_000_000 = 85_000_500_000
+    let total_available_to_borrow_liquidity =
+        project.lending_platform_query_total_available_to_borrow_liquidity()?;
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(85_000_500_000);
 
-//     let res = project
-//         .lending_platform_try_borrow(ProjectAccount::Bob, 100_000_450_000)
-//         .unwrap_err();
-//     assert_error(&res, ContractError::LowAvailableLiquidity);
+    let res = project
+        .lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_001)
+        .unwrap_err();
+    assert_error(&res, ContractError::LowAvailableLiquidity);
 
-//     project.lending_platform_try_borrow(ProjectAccount::Bob, 100_000_425_000 - 1)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_000)?;
 
-//     let total_available_to_borrow_liquidity =
-//         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-//     assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(1);
+    let total_available_to_borrow_liquidity =
+        project.lending_platform_query_total_available_to_borrow_liquidity()?;
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(0);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
 #[test]
 fn clear_unbonders_storage() -> StdResult<()> {
