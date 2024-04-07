@@ -30,33 +30,33 @@ pub fn calc_expected_rewards(
     .to_uint_floor()
 }
 
-// bgl = m1 * main * bgl_pool / (main_pool + accumulated_expected_rewards)
+// bgl = m1 * main * bgl_pool / (main_pool + accumulated_rewards)
 pub fn calc_minted_bgl_token_amount(
     main_currency_amount: Uint128,
-    total_main_currency_pool: Uint128,
-    total_bgl_currency_supply: Uint128,
-    accumulated_expected_rewards: Uint128,
+    main_pool: Uint128,
+    bgl_supply: Uint128,
+    accumulated_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Uint128 {
     let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency_decimals as u32))
         / u128_to_dec256(10u128.pow(main_currency_decimals as u32));
 
-    dec256_to_uint128(if total_bgl_currency_supply.is_zero() {
+    dec256_to_uint128(if bgl_supply.is_zero() {
         // initially 1 bgl_token == 1 main_token
         decimals_multiplier * u128_to_dec256(main_currency_amount)
     } else {
-        decimals_multiplier * u128_to_dec256(main_currency_amount * total_bgl_currency_supply)
-            / u128_to_dec256(total_main_currency_pool + accumulated_expected_rewards)
+        decimals_multiplier * u128_to_dec256(main_currency_amount * bgl_supply)
+            / u128_to_dec256(main_pool + accumulated_rewards)
     })
 }
 
-// main = m2 * bgl * (main_pool + accumulated_expected_rewards) / bgl_pool
+// main = m2 * bgl * (main_pool + accumulated_rewards) / bgl_pool
 pub fn calc_unbonded_main_token_amount(
     bgl_currency_amount: Uint128,
-    total_main_currency_pool: Uint128,
-    total_bgl_currency_supply: Uint128,
-    accumulated_expected_rewards: Uint128,
+    main_pool: Uint128,
+    bgl_supply: Uint128,
+    accumulated_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Uint128 {
@@ -65,26 +65,24 @@ pub fn calc_unbonded_main_token_amount(
 
     dec256_to_uint128(
         decimals_multiplier
-            * u128_to_dec256(
-                bgl_currency_amount * (total_main_currency_pool + accumulated_expected_rewards),
-            )
-            / u128_to_dec256(total_bgl_currency_supply),
+            * u128_to_dec256(bgl_currency_amount * (main_pool + accumulated_rewards))
+            / u128_to_dec256(bgl_supply),
     )
 }
 
 pub fn calc_bgl_to_main_price(
-    total_main_currency_pool: Uint128,
-    total_bgl_currency_supply: Uint128,
-    accumulated_expected_rewards: Uint128,
+    main_pool: Uint128,
+    bgl_supply: Uint128,
+    accumulated_rewards: Uint128,
     main_currency_decimals: u8,
     bgl_currency_decimals: u8,
 ) -> Decimal {
-    let price = if total_bgl_currency_supply.is_zero() {
+    let price = if bgl_supply.is_zero() {
         Decimal256::one()
     } else {
-        u128_to_dec256(total_main_currency_pool + accumulated_expected_rewards)
+        u128_to_dec256(main_pool + accumulated_rewards)
             * u128_to_dec256(10u128.pow(bgl_currency_decimals as u32))
-            / (u128_to_dec256(total_bgl_currency_supply)
+            / (u128_to_dec256(bgl_supply)
                 * u128_to_dec256(10u128.pow(main_currency_decimals as u32)))
     };
 
@@ -97,13 +95,14 @@ pub fn calc_conditional_deposit_apr(
     amount_to_deposit: Uint128,
     total_deposited: Uint128,
     total_unbonded: Uint128,
-    total_borrowed: Uint128,
+    regular_borrowed: Uint128,
+    reserve_borrowed: Uint128,
 ) -> Decimal {
     if total_deposited.is_zero() {
         return str_to_dec(MAX_DEPOSIT_APR);
     }
 
-    u128_to_dec((borrow_apr - borrow_fee_rate) * total_borrowed)
+    u128_to_dec((borrow_apr - borrow_fee_rate) * (regular_borrowed + reserve_borrowed))
         / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
 }
 
@@ -235,27 +234,54 @@ pub fn calc_platform_revenue_on_repay(
 }
 
 pub fn calc_min_available_liquidity(
+    reserve_deposited: Uint128,
     min_available_liquidity_multiplier: Decimal,
-    total_main_currency_pool: Uint128,
-    reserve_main_currency_pool: Uint128,
-    accumulated_expected_rewards: Uint128,
 ) -> Uint128 {
-    (min_available_liquidity_multiplier
-        * u128_to_dec(
-            total_main_currency_pool + accumulated_expected_rewards - reserve_main_currency_pool,
-        ))
-    .to_uint_ceil()
+    (min_available_liquidity_multiplier * u128_to_dec(reserve_deposited)).to_uint_ceil()
+}
+
+pub fn calc_available_to_borrow_regular_liquidity(
+    regular_deposited: Uint128,
+    accumulated_rewards: Uint128,
+    unbonded: Uint128,
+    regular_borrowed: Uint128,
+) -> Uint128 {
+    max(
+        regular_deposited + accumulated_rewards - unbonded,
+        regular_borrowed,
+    ) - regular_borrowed
+}
+
+pub fn calc_available_to_borrow_reserve_liquidity(
+    reserve_deposited: Uint128,
+    min_available_liquidity: Uint128,
+    reserve_borrowed: Uint128,
+) -> Uint128 {
+    max(
+        reserve_deposited - min_available_liquidity,
+        reserve_borrowed,
+    ) - reserve_borrowed
 }
 
 pub fn calc_total_available_to_borrow_liquidity(
-    total_main_currency_pool: Uint128,
-    total_borrowed_amount: Uint128,
+    regular_deposited: Uint128,
+    accumulated_rewards: Uint128,
+    unbonded: Uint128,
+    regular_borrowed: Uint128,
+    reserve_deposited: Uint128,
     min_available_liquidity: Uint128,
+    reserve_borrowed: Uint128,
 ) -> Uint128 {
-    max(
-        total_main_currency_pool - total_borrowed_amount,
+    calc_available_to_borrow_regular_liquidity(
+        regular_deposited,
+        accumulated_rewards,
+        unbonded,
+        regular_borrowed,
+    ) + calc_available_to_borrow_reserve_liquidity(
+        reserve_deposited,
         min_available_liquidity,
-    ) - min_available_liquidity
+        reserve_borrowed,
+    )
 }
 
 /// places bid on each collateral token, best bids have higher priority

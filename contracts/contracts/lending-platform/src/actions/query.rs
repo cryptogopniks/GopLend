@@ -379,17 +379,25 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     let main_currency = common_config.main_currency;
     let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
 
-    let expected_rewards = math::calc_expected_rewards(
+    let regular_rewards = math::calc_expected_rewards(
         block_time,
-        balances.total_borrowed.creation_date,
+        balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
-        balances.total_borrowed.amount,
+        balances.regular.borrowed.amount,
     );
-    let rewards = balances.accumulated_expected_rewards + expected_rewards;
+
+    let reserve_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.reserve.borrowed.creation_date,
+        rate_config.borrow_apr,
+        balances.reserve.borrowed.amount,
+    );
+
+    let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
     Ok(math::calc_bgl_to_main_price(
-        balances.total_main_currency_pool,
-        balances.total_bgl_currency_supply,
+        balances.regular.main_pool,
+        balances.regular.bgl_supply,
         rewards,
         main_currency.decimals,
         bgl_currency.decimals,
@@ -406,20 +414,16 @@ pub fn query_conditional_deposit_apr(
         borrow_fee_rate,
         ..
     } = RATE_CONFIG.load(deps.storage)?;
-    let Balances {
-        total_deposited,
-        total_unbonded,
-        total_borrowed,
-        ..
-    } = BALANCES.load(deps.storage)?;
+    let Balances { regular, reserve } = BALANCES.load(deps.storage)?;
 
     Ok(math::calc_conditional_deposit_apr(
         borrow_apr,
         borrow_fee_rate,
         amount_to_deposit.unwrap_or_default(),
-        total_deposited,
-        total_unbonded,
-        total_borrowed.amount,
+        regular.deposited,
+        regular.unbonded,
+        regular.borrowed.amount,
+        reserve.borrowed.amount,
     ))
 }
 
@@ -631,25 +635,35 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let balances = BALANCES.load(deps.storage)?;
 
-    let expected_rewards = math::calc_expected_rewards(
+    let regular_rewards = math::calc_expected_rewards(
         block_time,
-        balances.total_borrowed.creation_date,
+        balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
-        balances.total_borrowed.amount,
+        balances.regular.borrowed.amount,
     );
-    let rewards = balances.accumulated_expected_rewards + expected_rewards;
+
+    let reserve_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.reserve.borrowed.creation_date,
+        rate_config.borrow_apr,
+        balances.reserve.borrowed.amount,
+    );
+
+    let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
     let min_available_liquidity = math::calc_min_available_liquidity(
+        balances.reserve.deposited,
         common_config.min_available_liquidity_multiplier,
-        balances.total_main_currency_pool,
-        balances.reserve_main_currency_pool,
-        rewards,
     );
 
     let total_available_to_borrow_liquidity = math::calc_total_available_to_borrow_liquidity(
-        balances.total_main_currency_pool,
-        balances.total_borrowed.amount,
+        balances.regular.deposited,
+        rewards,
+        balances.regular.unbonded,
+        balances.regular.borrowed.amount,
+        balances.reserve.deposited,
         min_available_liquidity,
+        balances.reserve.borrowed.amount,
     );
 
     Ok(total_available_to_borrow_liquidity)
@@ -760,25 +774,25 @@ pub fn query_available_to_borrow(
 pub fn query_amounts(deps: Deps, _env: Env) -> StdResult<QueryAmountsResponse> {
     Ok(QueryAmountsResponse {
         unbonders: UNBONDERS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         borrowers: BORROWERS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         collaterals: COLLATERALS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         liquidators: LIQUIDATORS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         liquidation_bids: LIQUIDATION_BIDS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         proposals: PROPOSALS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
         collections: COLLECTIONS
-            .range(deps.storage, None, None, Order::Ascending)
+            .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
     })
 }

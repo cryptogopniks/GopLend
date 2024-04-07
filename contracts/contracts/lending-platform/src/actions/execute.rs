@@ -71,16 +71,16 @@ pub fn try_deposit(
 
     let bgl_token_amount = math::calc_minted_bgl_token_amount(
         asset_amount,
-        balances.total_main_currency_pool,
-        balances.total_bgl_currency_supply,
-        balances.accumulated_expected_rewards,
+        balances.regular.main_pool,
+        balances.regular.bgl_supply,
+        balances.regular.accumulated_rewards,
         common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
-    balances.total_deposited += asset_amount;
-    balances.total_main_currency_pool += asset_amount;
-    balances.total_bgl_currency_supply += bgl_token_amount;
+    balances.regular.deposited += asset_amount;
+    balances.regular.main_pool += asset_amount;
+    balances.regular.bgl_supply += bgl_token_amount;
 
     BALANCES.save(deps.storage, &balances)?;
 
@@ -130,14 +130,14 @@ pub fn try_unbond(
 
     let main_token_amount = math::calc_unbonded_main_token_amount(
         asset_amount,
-        balances.total_main_currency_pool,
-        balances.total_bgl_currency_supply,
-        balances.accumulated_expected_rewards,
+        balances.regular.main_pool,
+        balances.regular.bgl_supply,
+        balances.regular.accumulated_rewards,
         common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
-    balances.total_unbonded += main_token_amount;
+    balances.regular.unbonded += main_token_amount;
 
     BALANCES.save(deps.storage, &balances)?;
 
@@ -220,9 +220,10 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     // update balances, bgl to main ratio was fixed on Unbond
     let mut balances = BALANCES.load(deps.storage)?;
 
-    balances.total_unbonded -= amount_to_withdraw;
-    balances.total_main_currency_pool -= amount_to_withdraw;
-    balances.total_bgl_currency_supply -= amount_to_burn;
+    balances.regular.deposited -= amount_to_withdraw;
+    balances.regular.unbonded -= amount_to_withdraw;
+    balances.regular.main_pool -= amount_to_withdraw;
+    balances.regular.bgl_supply -= amount_to_burn;
 
     BALANCES.save(deps.storage, &balances)?;
 
@@ -653,24 +654,38 @@ pub fn try_borrow(
     accumulate_expected_rewards(deps.storage, block_time)?;
 
     let mut balances = BALANCES.load(deps.storage)?;
-    balances.total_borrowed.amount += amount;
 
     // don't allow to borrow if available liquidity is too low
     let min_available_liquidity = math::calc_min_available_liquidity(
+        balances.reserve.deposited,
         common_config.min_available_liquidity_multiplier,
-        balances.total_main_currency_pool,
-        balances.reserve_main_currency_pool,
-        balances.accumulated_expected_rewards,
     );
 
-    let total_available_to_borrow_liquidity = math::calc_total_available_to_borrow_liquidity(
-        balances.total_main_currency_pool,
-        balances.total_borrowed.amount,
+    let available_to_borrow_regular_liquidity = math::calc_available_to_borrow_regular_liquidity(
+        balances.regular.deposited,
+        balances.regular.accumulated_rewards,
+        balances.regular.unbonded,
+        balances.regular.borrowed.amount,
+    );
+
+    let available_to_borrow_reserve_liquidity = math::calc_available_to_borrow_reserve_liquidity(
+        balances.reserve.deposited,
         min_available_liquidity,
+        balances.reserve.borrowed.amount,
     );
 
-    if total_available_to_borrow_liquidity.is_zero() {
+    let total_available_to_borrow_liquidity =
+        available_to_borrow_regular_liquidity + available_to_borrow_reserve_liquidity;
+
+    if amount > total_available_to_borrow_liquidity {
         Err(ContractError::LowAvailableLiquidity)?;
+    }
+
+    if amount <= available_to_borrow_regular_liquidity {
+        balances.regular.borrowed.amount += amount;
+    } else {
+        balances.regular.borrowed.amount += available_to_borrow_regular_liquidity;
+        balances.reserve.borrowed.amount += amount - available_to_borrow_regular_liquidity;
     }
 
     BALANCES.save(deps.storage, &balances)?;
@@ -776,10 +791,21 @@ pub fn try_repay(
     }
 
     accumulate_expected_rewards(deps.storage, block_time)?;
-    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_borrowed.amount -= total_borrowed_difference;
 
-        Ok(x)
+    BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
+        if balances.reserve.borrowed.amount.is_zero() {
+            balances.regular.borrowed.amount -= total_borrowed_difference;
+        } else {
+            if total_borrowed_difference <= balances.reserve.borrowed.amount {
+                balances.reserve.borrowed.amount -= total_borrowed_difference;
+            } else {
+                balances.regular.borrowed.amount -=
+                    total_borrowed_difference - balances.reserve.borrowed.amount;
+                balances.reserve.borrowed.amount = Uint128::zero();
+            }
+        }
+
+        Ok(balances)
     })?;
 
     Ok(response)
@@ -967,7 +993,7 @@ pub fn try_place_bid(
     )?;
 
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_liquidation_bids += asset_amount;
+        x.regular.liquidation_bids += asset_amount;
 
         Ok(x)
     })?;
@@ -1083,7 +1109,7 @@ pub fn try_remove_bid(
     }
 
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_liquidation_bids -= amount_to_withdraw;
+        x.regular.liquidation_bids -= amount_to_withdraw;
 
         Ok(x)
     })?;
@@ -1257,7 +1283,7 @@ pub fn try_update_bid(
         let amount_to_return = current_bid_value + asset_amount - new_bid_value;
 
         BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-            x.total_liquidation_bids += new_bid_value - current_bid_value;
+            x.regular.liquidation_bids += new_bid_value - current_bid_value;
 
             Ok(x)
         })?;
@@ -1275,7 +1301,7 @@ pub fn try_update_bid(
         let amount_to_return = current_bid_value - new_bid_value + asset_amount;
 
         BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-            x.total_liquidation_bids -= current_bid_value - new_bid_value;
+            x.regular.liquidation_bids -= current_bid_value - new_bid_value;
 
             Ok(x)
         })?;
@@ -1504,7 +1530,7 @@ pub fn try_update_common_config(
 
     COMMON_CONFIG.update(deps.storage, |mut config| -> StdResult<CommonConfig> {
         if let Some(x) = main_currency {
-            if !balances.total_main_currency_pool.is_zero() {
+            if !balances.regular.main_pool.is_zero() {
                 Err(ContractError::ChangingCurrency)?;
             }
 
@@ -1513,7 +1539,7 @@ pub fn try_update_common_config(
         }
 
         if let Some(x) = bgl_currency {
-            if !balances.total_bgl_currency_supply.is_zero() {
+            if !balances.regular.bgl_supply.is_zero() {
                 Err(ContractError::ChangingCurrency)?;
             }
 
@@ -1590,26 +1616,24 @@ pub fn try_deposit_reserve_liquidity(
 
     let expected_rewards = math::calc_expected_rewards(
         block_time,
-        balances.total_borrowed.creation_date,
+        balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
-        balances.total_borrowed.amount,
+        balances.regular.borrowed.amount,
     );
-    let rewards = balances.accumulated_expected_rewards + expected_rewards;
+    let rewards = balances.regular.accumulated_rewards + expected_rewards;
 
     let bgl_token_amount = math::calc_minted_bgl_token_amount(
         asset_amount,
-        balances.total_main_currency_pool,
-        balances.total_bgl_currency_supply,
+        balances.regular.main_pool,
+        balances.regular.bgl_supply,
         rewards,
         common_config.main_currency.decimals,
         bgl_currency.decimals,
     );
 
     // it doesn't affect on deposit APR
-    balances.total_main_currency_pool += asset_amount;
-    balances.reserve_main_currency_pool += asset_amount;
-    balances.total_bgl_currency_supply += bgl_token_amount;
-    balances.reserve_bgl_currency_supply += bgl_token_amount;
+    balances.reserve.deposited += asset_amount;
+    balances.reserve.bgl_supply += bgl_token_amount;
 
     BALANCES.save(deps.storage, &balances)?;
 
@@ -1653,7 +1677,7 @@ pub fn try_reinforce_bgl_token(
 
     // update contract balances, it doesn't affect on deposit APR and bgl token supply
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.total_main_currency_pool += asset_amount;
+        x.regular.main_pool += asset_amount;
 
         Ok(x)
     })?;

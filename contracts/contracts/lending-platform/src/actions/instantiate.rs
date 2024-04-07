@@ -95,7 +95,8 @@ pub fn try_instantiate(
     )?;
 
     let mut balances = Balances::default();
-    balances.total_borrowed.creation_date = block_time;
+    balances.regular.borrowed.creation_date = block_time;
+    balances.reserve.borrowed.creation_date = block_time;
     BALANCES.save(deps.storage, &balances)?;
 
     PROPOSAL_COUNTER.save(deps.storage, &1)?;

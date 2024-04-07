@@ -73,10 +73,10 @@ async function main() {
     // await lending.cwQueryRateConfig();
     // await lending.cwQueryCommonConfig();
 
-    // await oracle.cwQueryPrices();
+    await oracle.cwQueryPrices();
 
-    await getAllBalances(ADDRESS.ORACLE_WORKER);
-    await getAllBalances(ADDRESS.LIQUIDATION_WORKER);
+    // await getAllBalances(ADDRESS.ORACLE_WORKER);
+    // await getAllBalances(ADDRESS.LIQUIDATION_WORKER);
     // await sgMultiSend(
     //   "ukuji",
     //   [

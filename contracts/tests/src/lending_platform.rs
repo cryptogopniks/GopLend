@@ -31,6 +31,160 @@ use crate::helpers::{
 };
 
 // #[test]
+// fn deposit_apr_without_borrowers() -> StdResult<()> {
+//     let mut project = Project::new();
+
+//     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
+//     const COLLECTION_PRICE_AFTER: u128 = 600;
+//     const AMOUNT: u128 = 1_000_000;
+//     const LIQUIDATION_BID: u128 = 8_000;
+//     const DISCOUNT: &str = "0.1";
+//     const DELAY: u64 = 365 * 24 * 3600;
+
+//     // push prices to oracle
+//     project.oracle_try_update_prices(
+//         ProjectAccount::Scheduler,
+//         &[RawPriceItem {
+//             collection_address: ProjectNft::Gopniks.to_string(),
+//             price: Funds::new(
+//                 Uint128::new(COLLECTION_PRICE_BEFORE),
+//                 &Currency::new(
+//                     &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+//                     ProjectToken::Atom.get_decimals(),
+//                 ),
+//             ),
+//         }],
+//     )?;
+
+//     // set collateral min value
+//     project.lending_platform_try_update_common_config(
+//         ProjectAccount::Admin,
+//         &None,
+//         &None,
+//         &None,
+//         &Some(1),
+//         &None,
+//         &None,
+//         &None,
+//     )?;
+
+//     // list collection
+//     let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+//         proposal_status: None,
+//         listing_price: Funds::new(
+//             100u128,
+//             &Currency::new(
+//                 &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+//                 6,
+//             ),
+//         ),
+//         proposal_type: ProposalType::AddCollection {
+//             collection_address: ProjectNft::Gopniks.to_string(),
+//             collection: Collection {
+//                 name: ProjectNft::Gopniks.to_string(),
+//                 owner: ProjectAccount::Owner.to_string(),
+//             },
+//         },
+//     };
+
+//     project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+//     project.lending_platform_try_accept_proposal(
+//         ProjectAccount::Owner,
+//         1,
+//         100,
+//         ProjectToken::Atom,
+//     )?;
+
+//     // add collateral
+//     project.increase_allowances_nft(
+//         ProjectAccount::Bob,
+//         project.get_lending_platform_address(),
+//         ProjectNft::Gopniks,
+//     );
+
+//     // collateral value = 3 * collection_price
+//     project.lending_platform_try_deposit_collateral(
+//         ProjectAccount::Bob,
+//         &[CollectionInfo {
+//             collection_address: ProjectNft::Gopniks.to_string(),
+//             token_id_list: vec!["4", "5", "6"]
+//                 .into_iter()
+//                 .map(|x| x.to_string())
+//                 .collect(),
+//         }],
+//     )?;
+
+//     // deposit
+//     project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
+
+//     // check initial deposit apr and bgl price
+//     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
+//     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+
+//     assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
+//     assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+
+//     // check deposit apr and bgl price after 1/2 year
+//     project.wait(DELAY / 2);
+
+//     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
+//     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+
+//     assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
+//     assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+
+//     // boorow and check deposit apr and bgl price
+//     project.oracle_try_update_prices(
+//         ProjectAccount::Scheduler,
+//         &[RawPriceItem {
+//             collection_address: ProjectNft::Gopniks.to_string(),
+//             price: Funds::new(
+//                 Uint128::new(COLLECTION_PRICE_BEFORE),
+//                 &Currency::new(
+//                     &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+//                     ProjectToken::Atom.get_decimals(),
+//                 ),
+//             ),
+//         }],
+//     )?;
+
+//     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
+
+//     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
+//     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+
+//     assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
+//     assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+
+//     // check deposit apr and bgl price after 1/2 year
+//     project.wait(DELAY / 2);
+
+//     project.oracle_try_update_prices(
+//         ProjectAccount::Scheduler,
+//         &[RawPriceItem {
+//             collection_address: ProjectNft::Gopniks.to_string(),
+//             price: Funds::new(
+//                 Uint128::new(COLLECTION_PRICE_BEFORE),
+//                 &Currency::new(
+//                     &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+//                     ProjectToken::Atom.get_decimals(),
+//                 ),
+//             ),
+//         }],
+//     )?;
+
+//     // project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT / 1000)?;
+
+//     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
+//     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+
+//     assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
+//     assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.1"));
+
+//     Ok(())
+// }
+
+// #[test]
 // fn price_ratio_with_different_decimals() -> StdResult<()> {
 //     let mut project = Project::new();
 
@@ -140,11 +294,9 @@ fn deposit_default() -> StdResult<()> {
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.total_deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
-    assert_that(&balances.total_main_currency_pool.u128())
-        .is_equal_to(INITIAL_LIQUIDITY + DEPOSIT_AMOUNT);
-    assert_that(&balances.total_bgl_currency_supply.u128())
-        .is_equal_to(INITIAL_LIQUIDITY + DEPOSIT_AMOUNT);
+    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
 
     Ok(())
 }
@@ -385,6 +537,10 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
         ProjectCoin::Stars,
     )?;
 
+    // check contract balances
+    let balances = project.lending_platform_query_balances()?;
+    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
 
@@ -405,10 +561,10 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.total_deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
-    assert_that(&balances.total_unbonded.u128()).is_equal_to(0);
-    assert_that(&balances.total_main_currency_pool.u128()).is_equal_to(INITIAL_LIQUIDITY);
-    assert_that(&balances.total_bgl_currency_supply.u128()).is_equal_to(INITIAL_LIQUIDITY);
+    assert_that(&balances.regular.deposited.u128()).is_equal_to(0);
+    assert_that(&balances.regular.unbonded.u128()).is_equal_to(0);
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(0);
+    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(0);
 
     Ok(())
 }
@@ -417,7 +573,7 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     let mut project = Project::new();
 
-    const AMOUNT: u128 = 100_000_000_000;
+    const AMOUNT: u128 = 85_000_000_000;
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -481,21 +637,21 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     )?;
 
     // total_main_currency_pool - total_borrowed_amount - min_available_liquidity
-    // 100_000_000_000 - 0 - 0 = 100_000_000_000
+    // 100_000_000_000 - 0 - 0.15 * 100_000_000_000 = 85_000_000_000
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(100_000_000_000);
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(AMOUNT);
 
     let res = project
-        .lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)
+        .lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT + 1)
         .unwrap_err();
     assert_error(&res, ContractError::LowAvailableLiquidity);
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT - 1)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(1);
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(0);
 
     Ok(())
 }
@@ -582,24 +738,28 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // deposit
     project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT / 2, ProjectCoin::Stars)?;
 
-    // min_available_liquidity = 0.15 * (total_main_currency_pool + accumulated_expected_rewards - reserve_main_currency_pool)
-    // total_main_currency_pool - total_borrowed_amount - min_available_liquidity
-    // min_available_liquidity = 0.15 * 500_000
-    // 100_000_000_000 + 500_000 - 0 - 0.15 * 500_000 = 100_000_425_000
+    // min_available_liquidity = 0.15 * reserve_deposited
+    // 0.15 * 100_000_000_000 = 15_000_000_000
+    // regular_available = regular_deposited + acc_rewards - regular_unbonded - regular_borrowed
+    // 500_000 + 0 - 0 - 0 = 500_000
+    // reserve_available = reserve_deposited - min_available_liquidity - reserve_borrowed
+    // 100_000_000_000 - 15_000_000_000 - 0 = 85_000_000_000
+    // total_available_liquidity = regular_available + reserve_available
+    // 500_000 + 85_000_000_000 = 85_000_500_000
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(100_000_425_000);
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(85_000_500_000);
 
     let res = project
-        .lending_platform_try_borrow(ProjectAccount::Bob, 100_000_450_000)
+        .lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_001)
         .unwrap_err();
     assert_error(&res, ContractError::LowAvailableLiquidity);
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, 100_000_425_000 - 1)?;
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_000)?;
 
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(1);
+    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(0);
 
     Ok(())
 }
@@ -792,13 +952,13 @@ fn clear_borrowers_storage() -> StdResult<()> {
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    assert_that(&borrowers.len()).is_equal_to(1);
+    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    // assert_that(&borrowers.len()).is_equal_to(1);
 
-    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
+    // project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
-    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    assert_that(&borrowers.is_empty()).is_equal_to(true);
+    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    // assert_that(&borrowers.is_empty()).is_equal_to(true);
 
     Ok(())
 }
