@@ -19,7 +19,7 @@ use goplend_base::{
     utils::{unwrap_field, AuthType},
 };
 
-use crate::math::{self, calc_expected_rewards};
+use crate::math;
 
 pub fn check_lockout(deps: Deps) -> StdResult<()> {
     if IS_LOCKED.load(deps.storage)? {
@@ -161,15 +161,23 @@ pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -
     let rate_config = RATE_CONFIG.load(storage)?;
 
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
-        let rewards = calc_expected_rewards(
+        let regular_rewards = math::calc_expected_rewards(
             block_time,
-            balances.total_borrowed.creation_date,
+            balances.regular.borrowed.creation_date,
             rate_config.borrow_apr,
-            balances.total_borrowed.amount,
+            balances.regular.borrowed.amount,
         );
 
-        balances.accumulated_expected_rewards += rewards;
-        balances.total_borrowed.creation_date = block_time;
+        let reserve_rewards = math::calc_expected_rewards(
+            block_time,
+            balances.reserve.borrowed.creation_date,
+            rate_config.borrow_apr,
+            balances.reserve.borrowed.amount,
+        );
+
+        balances.regular.accumulated_rewards += regular_rewards + reserve_rewards;
+        balances.regular.borrowed.creation_date = block_time;
+        balances.reserve.borrowed.creation_date = block_time;
 
         Ok(balances)
     })?;
@@ -464,34 +472,42 @@ pub fn update_balances(
 ) -> StdResult<()> {
     // update contract balances
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
-        let expected_rewards = math::calc_expected_rewards(
+        let regular_rewards = math::calc_expected_rewards(
             block_time,
-            balances.total_borrowed.creation_date,
+            balances.regular.borrowed.creation_date,
             borrow_apr,
-            balances.total_borrowed.amount,
+            balances.regular.borrowed.amount,
         );
-        let rewards = balances.accumulated_expected_rewards + expected_rewards;
 
-        let (amount, rewards) = if total_liquidation_value <= balances.total_borrowed.amount {
+        let reserve_rewards = math::calc_expected_rewards(
+            block_time,
+            balances.reserve.borrowed.creation_date,
+            borrow_apr,
+            balances.reserve.borrowed.amount,
+        );
+
+        let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
+
+        let (amount, rewards) = if total_liquidation_value <= balances.regular.borrowed.amount {
             (
-                balances.total_borrowed.amount - total_liquidation_value,
+                balances.regular.borrowed.amount - total_liquidation_value,
                 rewards,
             )
         } else {
-            let amount_difference = total_liquidation_value - balances.total_borrowed.amount;
+            let amount_difference = total_liquidation_value - balances.regular.borrowed.amount;
             (
                 Uint128::zero(),
                 max(rewards, amount_difference) - amount_difference,
             )
         };
 
-        balances.total_main_currency_pool += main_currency_pool_addition;
-        balances.total_borrowed = Vault {
+        balances.regular.main_pool += main_currency_pool_addition;
+        balances.regular.borrowed = Vault {
             amount,
             creation_date: block_time,
         };
-        balances.accumulated_expected_rewards = rewards;
-        balances.total_liquidation_bids -= total_liquidation_bids;
+        balances.regular.accumulated_rewards = rewards;
+        balances.regular.liquidation_bids -= total_liquidation_bids;
 
         Ok(balances)
     })?;

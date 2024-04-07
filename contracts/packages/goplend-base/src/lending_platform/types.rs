@@ -103,18 +103,53 @@ pub struct Liquidator {
     pub collection_addresses: Vec<Addr>,
 }
 
+// TODO: reserve_main_currency_pool must be replenished first on repay and liquidation
 #[derive(Default)]
 #[cw_serde]
 pub struct Balances {
-    pub total_deposited: Uint128,
-    pub total_unbonded: Uint128,
-    pub total_borrowed: Vault,
-    pub accumulated_expected_rewards: Uint128, // used to match all loans by creation date
-    pub total_liquidation_bids: Uint128,
-    pub total_main_currency_pool: Uint128,
-    pub total_bgl_currency_supply: Uint128,
-    pub reserve_main_currency_pool: Uint128, // reserve liquidity, doesn't affect on other stats
-    pub reserve_bgl_currency_supply: Uint128,
+    pub regular: RegularBalances,
+    pub reserve: ReserveBalances,
+}
+
+#[derive(Default)]
+#[cw_serde]
+pub struct RegularBalances {
+    /// increased on try_deposit                                                                    \
+    /// decreased on try_withdraw   
+    pub deposited: Uint128,
+    /// increased on try_unbond                                                                     \
+    /// decreased on try_withdraw   
+    pub unbonded: Uint128,
+    /// increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed > 0      \
+    /// decreased on try_repay, try_liquidate if reserve.borrowed == 0
+    pub borrowed: Vault,
+
+    /// used to match all loans by creation date
+    pub accumulated_rewards: Uint128,
+    pub liquidation_bids: Uint128,
+
+    /// used to determine bgl price and deposit apr                                                 \
+    /// increased on try_deposit, try_repay, try_liquidate                                          \
+    /// decreased on try_withdraw
+    pub main_pool: Uint128,
+    /// increased on try_deposit                                                                    \
+    /// decreased on try_withdraw
+    pub bgl_supply: Uint128,
+}
+
+#[derive(Default)]
+#[cw_serde]
+pub struct ReserveBalances {
+    /// increased on try_deposit_reserve_liquidity
+    pub deposited: Uint128,
+    /// binded to reserve.deposited, doesn't affect on bgl price                                    \
+    /// increased on try_deposit_reserve_liquidity
+    pub bgl_supply: Uint128,
+    /// used to dampen liquidity fluctuations without affecting on bgl price and deposit apr        \
+    /// accumulated rewards goes to regular part as reserve liquidity provider can't earn           \
+    /// increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed == 0     \
+    /// decreased on try_repay, try_liquidate if reserve.borrowed > 0
+    pub borrowed: Vault,
 }
 
 #[cw_serde]
