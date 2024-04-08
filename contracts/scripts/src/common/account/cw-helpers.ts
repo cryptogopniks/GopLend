@@ -375,7 +375,7 @@ async function getCwExecHelpers(
       }
     }
 
-    msgList.push(lendingPlatformMsgComposer.deposit());
+    msgList.push(lendingPlatformMsgComposer.depositCollateral({ collections }));
 
     return await _msgWrapperWithGasPrice(msgList, gasPrice);
   }
@@ -1033,8 +1033,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   // utils
 
   async function cwQueryOperators(
-    collectionAddress: string,
-    ownerAddress: string
+    ownerAddress: string,
+    collectionAddress: string
   ) {
     const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
       all_operators: {
