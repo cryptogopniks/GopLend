@@ -3,6 +3,7 @@ import { $, toJson } from "./config-utils";
 import * as AdapterSchedulerKujiraTypes from "../codegen/AdapterSchedulerKujira.types";
 import * as LendingPlatformTypes from "../codegen/LendingPlatform.types";
 import * as MinterTypes from "../codegen/Minter.types";
+import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 
 const ADDRESS = {
@@ -55,8 +56,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3269,
+              ADDRESS:
+                "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h",
             },
 
             {
@@ -67,6 +69,23 @@ const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  owner: ADDRESS.OWNER,
+                },
+              }),
+              CODE: 3270,
+              ADDRESS:
+                "kujira1e5r6th2p697xkg9t782rk7cv5k2n7wdrhxvytnrn0mdkcpl4d30surk9kc",
+            },
+
+            {
+              WASM: "minter_kujira.wasm",
+              LABEL: "minter-kujira",
+              INIT_MSG: toJson<MinterKujiraTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterKujiraTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterKujiraTypes.ExecuteMsg>({
                 update_config: {
                   owner: ADDRESS.OWNER,
                 },
@@ -87,8 +106,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   scheduler: ADDRESS.ORACLE_WORKER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3271,
+              ADDRESS:
+                "kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla",
             },
 
             {
@@ -119,8 +139,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3272,
+              ADDRESS:
+                "kujira1vq800vhadd8zjze07x05pgnpwntmnsjrt5tu9uy0dyrwqt07x6zqe78hsa",
             },
           ],
           IBC: [],
