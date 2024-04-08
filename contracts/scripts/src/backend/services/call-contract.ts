@@ -62,11 +62,11 @@ async function main() {
     const { sgMultiSend } = sgExecHelpers;
 
     const updateConfigs = async () => {
-      await h.minter.cwCreateNative(
+      await h.minterKujira.cwCreateNative(
         LENDING_PLATFORM_CONTRACT.ADDRESS,
         "bglKUJI",
         6,
-        1,
+        100_000_000,
         "ukuji",
         gasPrice
       );
@@ -84,7 +84,7 @@ async function main() {
     const collectionAddress =
       "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0";
 
-    await updateConfigs();
+    // await updateConfigs();
 
     // await utils.cwQueryBalanceInNft(owner, collectionAddress);
     // await utils.cwQueryOperators(owner, collectionAddress);

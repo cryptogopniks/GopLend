@@ -19,7 +19,7 @@
               "LABEL": "adapter_scheduler",
               "INIT_MSG": "{\"clock_source\":\"offchain\",\"min_clock_period\":1}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira1vq800vhadd8zjze07x05pgnpwntmnsjrt5tu9uy0dyrwqt07x6zqe78hsa\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira1uwr6ue80lgykvkalww8el3xgd2d0wcvq0wq5v3z5qm63rhsh87qqs05at3\"}}",
               "CODE": 3269,
               "ADDRESS": "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h"
             },
@@ -31,6 +31,15 @@
               "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
               "CODE": 3270,
               "ADDRESS": "kujira1e5r6th2p697xkg9t782rk7cv5k2n7wdrhxvytnrn0mdkcpl4d30surk9kc"
+            },
+            {
+              "WASM": "minter_kujira.wasm",
+              "LABEL": "minter-kujira",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
+              "CODE": 3289,
+              "ADDRESS": "kujira1wnuscyazcc6lvwt3g0hgysf7qcc55q3j2a4t80h8w2prwaw7ttkqwdaup2"
             },
             {
               "WASM": "oracle.wasm",
@@ -46,9 +55,9 @@
               "LABEL": "lending_platform",
               "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ukuji\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla\",\"minter\":\"kujira1e5r6th2p697xkg9t782rk7cv5k2n7wdrhxvytnrn0mdkcpl4d30surk9kc\",\"scheduler\":\"kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h\"}}",
-              "CODE": 3272,
-              "ADDRESS": "kujira1vq800vhadd8zjze07x05pgnpwntmnsjrt5tu9uy0dyrwqt07x6zqe78hsa"
+              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla\",\"minter\":\"kujira1wnuscyazcc6lvwt3g0hgysf7qcc55q3j2a4t80h8w2prwaw7ttkqwdaup2\",\"scheduler\":\"kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h\"}}",
+              "CODE": 3290,
+              "ADDRESS": "kujira1uwr6ue80lgykvkalww8el3xgd2d0wcvq0wq5v3z5qm63rhsh87qqs05at3"
             }
           ],
           "IBC": []

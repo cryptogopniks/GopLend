@@ -90,8 +90,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   owner: ADDRESS.OWNER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3289,
+              ADDRESS:
+                "kujira1wnuscyazcc6lvwt3g0hgysf7qcc55q3j2a4t80h8w2prwaw7ttkqwdaup2",
             },
 
             {
@@ -132,16 +133,16 @@ const CHAIN_CONFIG: ChainConfig = {
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
                   minter: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter_kujira.wasm]|ADDRESS"
                   ),
                   scheduler: $(
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=adapter_scheduler_kujira.wasm]|ADDRESS"
                   ),
                 },
               }),
-              CODE: 3272,
+              CODE: 3290,
               ADDRESS:
-                "kujira1vq800vhadd8zjze07x05pgnpwntmnsjrt5tu9uy0dyrwqt07x6zqe78hsa",
+                "kujira1uwr6ue80lgykvkalww8el3xgd2d0wcvq0wq5v3z5qm63rhsh87qqs05at3",
             },
           ],
           IBC: [],
