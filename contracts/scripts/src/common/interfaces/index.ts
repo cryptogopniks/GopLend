@@ -146,6 +146,7 @@ type Wasm =
   | "adapter_scheduler_stargaze.wasm"
   | "lending_platform.wasm"
   | "minter.wasm"
+  | "minter_kujira.wasm"
   | "oracle.wasm";
 
 type ChainType = "main" | "test" | "local";

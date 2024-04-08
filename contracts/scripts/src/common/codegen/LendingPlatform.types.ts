@@ -316,19 +316,26 @@ export interface QueryAmountsResponse {
   unbonders: number;
 }
 export interface Balances {
-  accumulated_expected_rewards: Uint128;
-  reserve_bgl_currency_supply: Uint128;
-  reserve_main_currency_pool: Uint128;
-  total_bgl_currency_supply: Uint128;
-  total_borrowed: Vault;
-  total_deposited: Uint128;
-  total_liquidation_bids: Uint128;
-  total_main_currency_pool: Uint128;
-  total_unbonded: Uint128;
+  regular: RegularBalances;
+  reserve: ReserveBalances;
+}
+export interface RegularBalances {
+  accumulated_rewards: Uint128;
+  bgl_supply: Uint128;
+  borrowed: Vault;
+  deposited: Uint128;
+  liquidation_bids: Uint128;
+  main_pool: Uint128;
+  unbonded: Uint128;
 }
 export interface Vault {
   amount: Uint128;
   creation_date: number;
+}
+export interface ReserveBalances {
+  bgl_supply: Uint128;
+  borrowed: Vault;
+  deposited: Uint128;
 }
 export interface Borrower {
   accumulated_loan: Uint128;

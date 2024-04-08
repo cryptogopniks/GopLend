@@ -3,10 +3,12 @@ import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
 import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
 import { MinterMsgComposer } from "../codegen/Minter.message-composer";
+import { MinterKujiraMsgComposer } from "../codegen/MinterKujira.message-composer";
 import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
 import { AdapterSchedulerKujiraQueryClient } from "../codegen/AdapterSchedulerKujira.client";
 import { LendingPlatformQueryClient } from "../codegen/LendingPlatform.client";
 import { MinterQueryClient } from "../codegen/Minter.client";
+import { MinterKujiraQueryClient } from "../codegen/MinterKujira.client";
 import { OracleQueryClient } from "../codegen/Oracle.client";
 import CONFIG_JSON from "../config/config.json";
 import { getChainOptionById, getContractByWasm } from "../config/config-utils";
@@ -159,6 +161,7 @@ async function getCwExecHelpers(
   // let ADAPTER_SCHEDULER_STARGAZE_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
+  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
 
   try {
@@ -181,6 +184,12 @@ async function getCwExecHelpers(
 
   try {
     MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_KUJIRA_CONTRACT = getContractByWasm(CONTRACTS, "minter_kujira.wasm");
   } catch (error) {
     l(error);
   }
@@ -213,6 +222,11 @@ async function getCwExecHelpers(
   const minterMsgComposer = new MinterMsgComposer(
     owner,
     MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+  );
+
+  const minterKujiraMsgComposer = new MinterKujiraMsgComposer(
+    owner,
+    MINTER_KUJIRA_CONTRACT ? MINTER_KUJIRA_CONTRACT.ADDRESS : ""
   );
 
   const oracleMsgComposer = new OracleMsgComposer(
@@ -890,6 +904,103 @@ async function getCwExecHelpers(
     );
   }
 
+  // minter-kujira
+
+  async function cwMinterKujiraCreateNative(
+    tokenOwner: string,
+    subdenom: string,
+    decimals: number,
+    paymentAmount: number,
+    paymentDenom: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          minterKujiraMsgComposer.createNative({
+            tokenOwner,
+            subdenom,
+            decimals,
+          }),
+          paymentAmount,
+          {
+            native: { denom: paymentDenom },
+          }
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMinterKujiraMint(
+    amount: number,
+    recipient: string,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterKujiraMsgComposer.mint({
+          token,
+          amount: amount.toString(),
+          recipient,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMinterKujiraBurn(
+    amount: number,
+    token: TokenUnverified,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          minterKujiraMsgComposer.burn(),
+          amount,
+          token
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMinterKujiraRegisterCurrency(
+    currency: CurrencyForTokenUnverified,
+    creator: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterKujiraMsgComposer.registerCurrency({
+          currency,
+          creator,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMinterKujiraUpdateConfig(
+    {
+      owner,
+    }: {
+      owner?: string;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterKujiraMsgComposer.updateConfig({
+          owner,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   // oracle
 
   async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
@@ -954,6 +1065,13 @@ async function getCwExecHelpers(
       cwRegisterCurrency,
       cwUpdateConfig: cwMinterUpdateConfig,
     },
+    minterKujira: {
+      cwCreateNative: cwMinterKujiraCreateNative,
+      cwMint: cwMinterKujiraMint,
+      cwBurn: cwMinterKujiraBurn,
+      cwRegisterCurrency: cwMinterKujiraRegisterCurrency,
+      cwUpdateConfig: cwMinterKujiraUpdateConfig,
+    },
     oracle: {
       cwUpdateConfig: cwOracleUpdateConfig,
       cwUpdatePrices,
@@ -970,6 +1088,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
+  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
 
   try {
@@ -992,6 +1111,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   try {
     MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_KUJIRA_CONTRACT = getContractByWasm(CONTRACTS, "minter_kujira.wasm");
   } catch (error) {
     l(error);
   }
@@ -1023,6 +1148,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   const minterQueryClient = new MinterQueryClient(
     cosmwasmQueryClient,
     MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+  );
+
+  const minterKujiraQueryClient = new MinterKujiraQueryClient(
+    cosmwasmQueryClient,
+    MINTER_KUJIRA_CONTRACT ? MINTER_KUJIRA_CONTRACT.ADDRESS : ""
   );
 
   const oracleQueryClient = new OracleQueryClient(
@@ -1462,6 +1592,26 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
+  // minter-kujira
+
+  async function cwMinterKujiraQueryCurrenciesByCreator(creator: string) {
+    const res = await minterKujiraQueryClient.queryCurrenciesByCreator({
+      creator,
+    });
+    l();
+    li(res);
+    l();
+    return res;
+  }
+
+  async function cwMinterKujiraQueryConfig() {
+    const res = await minterKujiraQueryClient.queryConfig();
+    l();
+    li(res);
+    l();
+    return res;
+  }
+
   // oracle
 
   async function cwOracleQueryConfig() {
@@ -1548,6 +1698,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     minter: {
       cwQueryCurrenciesByCreator,
       cwQueryConfig: cwMinterQueryConfig,
+    },
+    minterKujira: {
+      cwQueryCurrenciesByCreator: cwMinterKujiraQueryCurrenciesByCreator,
+      cwQueryConfig: cwMinterKujiraQueryConfig,
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,

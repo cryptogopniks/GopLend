@@ -26,6 +26,7 @@ cw20 = "1.0.1"
 cw20-base = { version = "1.0.1", features = ["library"] }
 cw721 = "0.18.0"
 cw721-base = { version = "0.18.0", features = ["library"] }
+kujira = "1.0.1"
 osmosis-std = "0.20.1"
 serde = "1.0.163"
 strum = "0.24.1"
@@ -42,5 +43,6 @@ goplend-base = { path = "./packages/goplend-base" }
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }
 minter = { path = "./contracts/minter" }
+minter-kujira = { path = "./contracts/minter-kujira" }
 adapter-scheduler-kujira = { path = "./contracts/adapter-scheduler-kujira" }
 adapter-scheduler-stargaze = { path = "./contracts/adapter-scheduler-stargaze" }

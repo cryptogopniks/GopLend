@@ -705,6 +705,96 @@ dependencies = [
 ]
 
 [[package]]
+name = "kujira"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26f31b300e56d9f4c9647b5debd8ce328931fc6f3305b5c22484fadf153de729"
+dependencies = [
+ "kujira-bow",
+ "kujira-fin",
+ "kujira-ghost",
+ "kujira-orca",
+ "kujira-stable",
+ "kujira-std",
+]
+
+[[package]]
+name = "kujira-bow"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "562aea59632a691029ce9d0733ff7cbe061cf6d7f5252b827396886dc3696740"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "kujira-fin",
+ "kujira-std",
+ "thiserror",
+]
+
+[[package]]
+name = "kujira-fin"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d79c452d84f1b446f7efa4f8b4373ed69a2021e25aeea3b13fdcce9b764b7326"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw20",
+ "kujira-std",
+]
+
+[[package]]
+name = "kujira-ghost"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dc96f118cc6bff86c2bd55e1e68b4f38068a1a59b3358d0dc435b2cb9bea597"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-utils 1.0.3",
+ "kujira-fin",
+ "kujira-std",
+]
+
+[[package]]
+name = "kujira-orca"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3293a84e0e2ed258ac9e58c566374c1194ea20dcc6f00b6b2d30d566fa94531a"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "kujira-std",
+]
+
+[[package]]
+name = "kujira-stable"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "473cabb37571254209bf77bf6baaf22088c9dfd7db63f3ed8e8e6ea909ccf30c"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "kujira-fin",
+ "kujira-std",
+]
+
+[[package]]
+name = "kujira-std"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31929689217f912ca19d29965b9cd4861a5429da084680967bd2f01019ab5b04"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw20",
+ "hex",
+ "sha2 0.10.8",
+ "thiserror",
+]
+
+[[package]]
 name = "lending-platform"
 version = "1.0.0"
 dependencies = [
@@ -737,6 +827,20 @@ dependencies = [
  "cw20-base",
  "goplend-base",
  "osmosis-std",
+ "semver",
+ "serde",
+]
+
+[[package]]
+name = "minter-kujira"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "kujira",
  "semver",
  "serde",
 ]
@@ -1220,6 +1324,7 @@ dependencies = [
  "goplend-base",
  "lending-platform",
  "minter",
+ "minter-kujira",
  "oracle",
  "serde",
  "speculoos",

@@ -3,6 +3,7 @@ import { $, toJson } from "./config-utils";
 import * as AdapterSchedulerKujiraTypes from "../codegen/AdapterSchedulerKujira.types";
 import * as LendingPlatformTypes from "../codegen/LendingPlatform.types";
 import * as MinterTypes from "../codegen/Minter.types";
+import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 
 const ADDRESS = {
@@ -55,8 +56,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3269,
+              ADDRESS:
+                "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h",
             },
 
             {
@@ -71,8 +73,26 @@ const CHAIN_CONFIG: ChainConfig = {
                   owner: ADDRESS.OWNER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3270,
+              ADDRESS:
+                "kujira1e5r6th2p697xkg9t782rk7cv5k2n7wdrhxvytnrn0mdkcpl4d30surk9kc",
+            },
+
+            {
+              WASM: "minter_kujira.wasm",
+              LABEL: "minter-kujira",
+              INIT_MSG: toJson<MinterKujiraTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterKujiraTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterKujiraTypes.ExecuteMsg>({
+                update_config: {
+                  owner: ADDRESS.OWNER,
+                },
+              }),
+              CODE: 3289,
+              ADDRESS:
+                "kujira1wnuscyazcc6lvwt3g0hgysf7qcc55q3j2a4t80h8w2prwaw7ttkqwdaup2",
             },
 
             {
@@ -87,8 +107,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   scheduler: ADDRESS.ORACLE_WORKER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3271,
+              ADDRESS:
+                "kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla",
             },
 
             {
@@ -112,15 +133,16 @@ const CHAIN_CONFIG: ChainConfig = {
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
                   minter: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter_kujira.wasm]|ADDRESS"
                   ),
                   scheduler: $(
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=adapter_scheduler_kujira.wasm]|ADDRESS"
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 3290,
+              ADDRESS:
+                "kujira1uwr6ue80lgykvkalww8el3xgd2d0wcvq0wq5v3z5qm63rhsh87qqs05at3",
             },
           ],
           IBC: [],

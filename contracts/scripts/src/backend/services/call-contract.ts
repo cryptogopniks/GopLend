@@ -61,13 +61,35 @@ async function main() {
     const { getAllBalances } = sgQueryHelpers;
     const { sgMultiSend } = sgExecHelpers;
 
+    const updateConfigs = async () => {
+      await h.minterKujira.cwCreateNative(
+        LENDING_PLATFORM_CONTRACT.ADDRESS,
+        "bglKUJI",
+        6,
+        100_000_000,
+        "ukuji",
+        gasPrice
+      );
+
+      await h.lending.cwUpdateCommonConfig(
+        {
+          collateralMinValue: 1_000,
+          unbondingPeriod: 60,
+          priceUpdatePeriod: 15 * 60,
+        },
+        gasPrice
+      );
+    };
+
     const collectionAddress =
       "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0";
+
+    // await updateConfigs();
 
     // await utils.cwQueryBalanceInNft(owner, collectionAddress);
     // await utils.cwQueryOperators(owner, collectionAddress);
 
-    await lending.cwQueryCollectionList();
+    // await lending.cwQueryCollectionList();
 
     // await h.lending.cwApproveAndDepositCollateral(
     //   owner,
@@ -81,9 +103,9 @@ async function main() {
     //   gasPrice
     // );
 
-    // await lending.cwQueryAddressConfig();
-    // await lending.cwQueryRateConfig();
-    // await lending.cwQueryCommonConfig();
+    await lending.cwQueryAddressConfig();
+    await lending.cwQueryRateConfig();
+    await lending.cwQueryCommonConfig();
 
     // await oracle.cwQueryPrices();
 
