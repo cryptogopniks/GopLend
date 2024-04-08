@@ -47,33 +47,45 @@ async function main() {
     const ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const testWallets = await getWallets(TYPE);
-    const { signer: signer, owner: owner } = await getSigner(
-      PREFIX,
-      testWallets.SEED_ADMIN
-    );
+    const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
 
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { adapter, lending, minter, oracle } = await getCwQueryHelpers(
+    const { adapter, lending, minter, oracle, utils } = await getCwQueryHelpers(
       chainId,
       RPC
     );
-    // const { cwUpdateConfig, cwUpdatePrices } = await getCwExecHelpers(
-    //   chainId,
-    //   RPC,
-    //   owner,
-    //   signer
-    // );
+    const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getAllBalances } = sgQueryHelpers;
     const { sgMultiSend } = sgExecHelpers;
+
+    const collectionAddress =
+      "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0";
+
+    // await utils.cwQueryBalanceInNft(owner, collectionAddress);
+    // await utils.cwQueryOperators(owner, collectionAddress);
+
+    await lending.cwQueryCollectionList();
+
+    // await h.lending.cwApproveAndDepositCollateral(
+    //   owner,
+    //   LENDING_PLATFORM_CONTRACT.ADDRESS,
+    //   [
+    //     {
+    //       collection_address: collectionAddress,
+    //       token_id_list: ["5"],
+    //     },
+    //   ],
+    //   gasPrice
+    // );
 
     // await lending.cwQueryAddressConfig();
     // await lending.cwQueryRateConfig();
     // await lending.cwQueryCommonConfig();
 
-    await oracle.cwQueryPrices();
+    // await oracle.cwQueryPrices();
 
     // await getAllBalances(ADDRESS.ORACLE_WORKER);
     // await getAllBalances(ADDRESS.LIQUIDATION_WORKER);
