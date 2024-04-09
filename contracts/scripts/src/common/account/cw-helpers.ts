@@ -331,19 +331,9 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwWithdraw(
-    amount: number,
-    token: TokenUnverified,
-    gasPrice: string
-  ) {
+  async function cwWithdraw(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [
-        addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.withdraw(),
-          amount,
-          token
-        ),
-      ],
+      [lendingPlatformMsgComposer.withdraw()],
       gasPrice
     );
   }
