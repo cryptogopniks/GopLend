@@ -90,9 +90,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   owner: ADDRESS.OWNER,
                 },
               }),
-              CODE: 3289,
+              CODE: 3294,
               ADDRESS:
-                "kujira1wnuscyazcc6lvwt3g0hgysf7qcc55q3j2a4t80h8w2prwaw7ttkqwdaup2",
+                "kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg",
             },
 
             {
@@ -140,9 +140,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 3290,
+              CODE: 3295,
               ADDRESS:
-                "kujira1uwr6ue80lgykvkalww8el3xgd2d0wcvq0wq5v3z5qm63rhsh87qqs05at3",
+                "kujira1svnxenvumlt8vpje7a2vue30xjnhyad6k59924q8zdaum4wspz8ssg459r",
             },
           ],
           IBC: [],

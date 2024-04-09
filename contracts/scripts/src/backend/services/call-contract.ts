@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l } from "../../common/utils";
+import { l, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
@@ -21,6 +21,19 @@ import {
   getCwExecHelpers,
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
+
+const COLLECTION = {
+  BANDIT_1: "kujira18wpqlgsl9q8e707yp4gg4ugpy0ccnjq06hr7ggav0m4asdtceuzq7y2mps",
+  BANDIT_2: "kujira1yp4vwjypr0zdcanltz0kgvt05kx3gvlzllge6rhffdn2j49rcauqw8u50c",
+  BANDIT_3: "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0",
+};
+
+const TOKEN = {
+  KUJI: "ukuji",
+  BGL_KUJI:
+    "factory/kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg/bglKUJI",
+  TEST: "factory/kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg/test",
+};
 
 async function main() {
   try {
@@ -52,37 +65,130 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { adapter, lending, minter, oracle, utils } = await getCwQueryHelpers(
-      chainId,
-      RPC
-    );
+    const { adapter, lending, minter, oracle, utils, minterKujira } =
+      await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getAllBalances } = sgQueryHelpers;
     const { sgMultiSend } = sgExecHelpers;
 
     const updateConfigs = async () => {
+      // setup minter-kujira
       await h.minterKujira.cwCreateNative(
         LENDING_PLATFORM_CONTRACT.ADDRESS,
         "bglKUJI",
         6,
         100_000_000,
-        "ukuji",
+        TOKEN.KUJI,
         gasPrice
       );
 
+      const [bglCurrency] = (
+        await minterKujira.cwQueryCurrenciesByCreator(owner)
+      ).currencies;
+      const bglKUJI = (bglCurrency as any)?.token?.native?.denom || "";
+
+      // setup lending
       await h.lending.cwUpdateCommonConfig(
         {
-          collateralMinValue: 1_000,
+          bglCurrency: {
+            token: { native: { denom: bglKUJI } },
+            decimals: 6,
+          },
+          collateralMinValue: 100,
           unbondingPeriod: 60,
-          priceUpdatePeriod: 15 * 60,
+          priceUpdatePeriod: 7 * 24 * 3600,
         },
         gasPrice
       );
+
+      // add collections
+      const collections = [
+        [COLLECTION.BANDIT_1, "BANDIT_1"],
+        [COLLECTION.BANDIT_2, "BANDIT_2"],
+        [COLLECTION.BANDIT_3, "BANDIT_3"],
+      ];
+
+      let i = 0;
+
+      for (const [collection_address, name] of collections) {
+        await h.lending.cwCreateProposal(
+          {
+            proposal_type: {
+              add_collection: {
+                collection: { name, owner },
+                collection_address,
+              },
+            },
+            listing_price: {
+              amount: "1",
+              currency: {
+                token: { native: { denom: TOKEN.KUJI } },
+                decimals: 6,
+              },
+            },
+          },
+          gasPrice
+        );
+
+        await h.lending.cwAcceptProposal(
+          ++i,
+          1,
+          { native: { denom: TOKEN.KUJI } },
+          gasPrice
+        );
+      }
+
+      l({ bglKUJI });
     };
 
-    const collectionAddress =
-      "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0";
+    // await updateConfigs();
+
+    // await lending.cwQueryCollectionList();
+
+    // await lending.cwQueryAddressConfig();
+    // await lending.cwQueryRateConfig();
+    // await lending.cwQueryCommonConfig();
+
+    // await h.minterKujira.cwCreateNative(
+    //   owner,
+    //   "test",
+    //   6,
+    //   100_000_000,
+    //   "ukuji",
+    //   gasPrice
+    // );
+    // await minterKujira.cwQueryCurrenciesByCreator(owner);
+
+    // await h.minterKujira.cwMint(
+    //   420,
+    //   owner,
+    //   { native: { denom: TOKEN.TEST } },
+    //   gasPrice
+    // );
+    // await getAllBalances(owner);
+
+    await h.lending.cwDeposit(
+      10_000,
+      { native: { denom: TOKEN.KUJI } },
+      gasPrice
+    );
+    await getAllBalances(owner);
+
+    await h.lending.cwUnbond(
+      10_000,
+      { native: { denom: TOKEN.BGL_KUJI } },
+      gasPrice
+    );
+    await lending.cwQueryUnbonder(owner);
+
+    await wait(60_000);
+    await h.lending.cwWithdraw(gasPrice);
+    await getAllBalances(owner);
+
+    // await minterKujira.cwQueryCurrenciesByCreator(
+    //   LENDING_PLATFORM_CONTRACT.ADDRESS
+    // );
 
     // await updateConfigs();
 
@@ -102,10 +208,6 @@ async function main() {
     //   ],
     //   gasPrice
     // );
-
-    await lending.cwQueryAddressConfig();
-    await lending.cwQueryRateConfig();
-    await lending.cwQueryCommonConfig();
 
     // await oracle.cwQueryPrices();
 

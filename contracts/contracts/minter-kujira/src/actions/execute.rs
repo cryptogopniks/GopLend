@@ -63,7 +63,7 @@ pub fn try_create_native(
 
 pub fn try_mint(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     token: TokenUnverified,
     amount: Uint128,
@@ -72,8 +72,6 @@ pub fn try_mint(
     let mut response = Response::new().add_attribute("action", "try_mint");
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
-    deps.api.addr_validate(&recipient)?;
-    let creator = &env.contract.address;
     let token = token.verify(deps.api)?;
     let token_denom = match token.clone() {
         Token::Native { denom } => denom,
@@ -95,7 +93,7 @@ pub fn try_mint(
         let msg: CosmosMsg<KujiraMsg> = CosmosMsg::Custom(KujiraMsg::Denom(DenomMsg::Mint {
             denom: token_denom.into(),
             amount,
-            recipient: creator.to_owned(),
+            recipient: deps.api.addr_validate(&recipient)?,
         }));
 
         response = response.add_message(msg);
