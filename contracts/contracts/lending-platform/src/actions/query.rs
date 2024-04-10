@@ -84,10 +84,12 @@ pub fn query_unbonder(deps: Deps, _env: Env, address: String) -> StdResult<Unbon
 
 pub fn query_borrower_list(
     deps: Deps,
-    _env: Env,
+    env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
+    let block_time = env.block.time.seconds();
+
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
@@ -111,10 +113,21 @@ pub fn query_borrower_list(
         .collect())
 }
 
-pub fn query_borrower(deps: Deps, _env: Env, address: String) -> StdResult<Borrower> {
-    Ok(BORROWERS
+// TODO: use block time ceiled to 5 min
+pub fn query_borrower(deps: Deps, env: Env, address: String) -> StdResult<Borrower> {
+    let mut borrower = BORROWERS
         .load(deps.storage, &deps.api.addr_validate(&address)?)
-        .unwrap_or_default())
+        .unwrap_or_default();
+
+    borrower.accumulated_loan = math::calc_accumulated_loan(
+        RATE_CONFIG.load(deps.storage)?.borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        env.block.time.seconds(),
+        borrower.loan.creation_date,
+    );
+
+    Ok(borrower)
 }
 
 pub fn query_liquidator_list(
@@ -383,6 +396,7 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
         block_time,
         balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         balances.regular.borrowed.amount,
     );
 
@@ -390,6 +404,7 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
         block_time,
         balances.reserve.borrowed.creation_date,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         balances.reserve.borrowed.amount,
     );
 
@@ -639,6 +654,7 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
         block_time,
         balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         balances.regular.borrowed.amount,
     );
 
@@ -646,6 +662,7 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
         block_time,
         balances.reserve.borrowed.creation_date,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         balances.reserve.borrowed.amount,
     );
 

@@ -12,17 +12,19 @@ use goplend_base::{
     oracle::types::PriceItem,
 };
 
+// TODO: check is formula correct
 // expected_rewards = borrow_apr * total_borrowed_amount *
 // * (block_time - borrowing_vault_creation_date) / year_in_seconds
 pub fn calc_expected_rewards(
     block_time: u64,
     borrowing_vault_creation_date: u64,
     borrow_apr: Decimal,
+    borrow_fee_rate: Decimal,
     total_borrowed_amount: Uint128,
 ) -> Uint128 {
     let borrowing_period = block_time - borrowing_vault_creation_date;
 
-    (borrow_apr
+    ((borrow_apr - borrow_fee_rate)
         * u128_to_dec(
             total_borrowed_amount * Uint128::from(borrowing_period)
                 / Uint128::from(YEAR_IN_SECONDS),
@@ -102,7 +104,7 @@ pub fn calc_conditional_deposit_apr(
         return str_to_dec(MAX_DEPOSIT_APR);
     }
 
-    u128_to_dec((borrow_apr - borrow_fee_rate) * (regular_borrowed + reserve_borrowed))
+    (borrow_apr - borrow_fee_rate) * u128_to_dec(regular_borrowed + reserve_borrowed)
         / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
 }
 

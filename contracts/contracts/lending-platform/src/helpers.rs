@@ -165,6 +165,7 @@ pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -
             block_time,
             balances.regular.borrowed.creation_date,
             rate_config.borrow_apr,
+            rate_config.borrow_fee_rate,
             balances.regular.borrowed.amount,
         );
 
@@ -172,6 +173,7 @@ pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -
             block_time,
             balances.reserve.borrowed.creation_date,
             rate_config.borrow_apr,
+            rate_config.borrow_fee_rate,
             balances.reserve.borrowed.amount,
         );
 
@@ -462,11 +464,12 @@ pub fn update_borrowers_storages(
     Ok(())
 }
 
-// TODO: should rewards must be paid first?
+// TODO: should rewards be paid first?
 pub fn update_balances(
     storage: &mut dyn Storage,
     block_time: u64,
     borrow_apr: Decimal,
+    borrow_fee_rate: Decimal,
     main_currency_pool_addition: Uint128,
     total_liquidation_value: Uint128,
     total_liquidation_bids: Uint128,
@@ -477,6 +480,7 @@ pub fn update_balances(
             block_time,
             balances.regular.borrowed.creation_date,
             borrow_apr,
+            borrow_fee_rate,
             balances.regular.borrowed.amount,
         );
 
@@ -484,6 +488,7 @@ pub fn update_balances(
             block_time,
             balances.reserve.borrowed.creation_date,
             borrow_apr,
+            borrow_fee_rate,
             balances.reserve.borrowed.amount,
         );
 
