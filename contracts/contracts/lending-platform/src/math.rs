@@ -12,6 +12,10 @@ use goplend_base::{
     oracle::types::PriceItem,
 };
 
+pub fn calc_block_time_ceiled(block_time: u64, price_update_period: u64) -> u64 {
+    price_update_period * (block_time / price_update_period + 1)
+}
+
 // TODO: check is formula correct
 // expected_rewards = borrow_apr * total_borrowed_amount *
 // * (block_time - borrowing_vault_creation_date) / year_in_seconds
@@ -192,10 +196,13 @@ pub fn calc_accumulated_loan(
     block_time: u64,
     loan_creation_date: u64,
 ) -> Uint128 {
-    (u128_to_dec(accumulated_loan)
-        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date))
-            / u128_to_dec(YEAR_IN_SECONDS))
-    .to_uint_floor()
+    accumulated_loan
+        + (borrow_apr
+            * u128_to_dec(
+                loan * Uint128::from(block_time - loan_creation_date)
+                    / Uint128::from(YEAR_IN_SECONDS),
+            ))
+        .to_uint_floor()
 }
 
 pub fn calc_bid_min_multiplier(bid_min_rate: Decimal) -> Decimal {

@@ -14,7 +14,7 @@ use goplend_base::{
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
             LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
-            PLATFORM_REVENUE, PROPOSALS, RATE_CONFIG, UNBONDERS,
+            PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSALS, RATE_CONFIG, UNBONDERS,
         },
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig,
@@ -88,7 +88,9 @@ pub fn query_borrower_list(
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-    let block_time = env.block.time.seconds();
+    let block_time_ceiled =
+        math::calc_block_time_ceiled(env.block.time.seconds(), PRICE_UPDATE_PERIOD);
+    let RateConfig { borrow_apr, .. } = RATE_CONFIG.load(deps.storage)?;
 
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
@@ -107,13 +109,21 @@ pub fn query_borrower_list(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
-            let (address, borrower) = x.unwrap();
+            let (address, mut borrower) = x.unwrap();
+
+            borrower.accumulated_loan = math::calc_accumulated_loan(
+                borrow_apr,
+                borrower.accumulated_loan,
+                borrower.loan.amount,
+                block_time_ceiled,
+                borrower.loan.creation_date,
+            );
+
             QueryBorrowersResponseItem { address, borrower }
         })
         .collect())
 }
 
-// TODO: use block time ceiled to 5 min
 pub fn query_borrower(deps: Deps, env: Env, address: String) -> StdResult<Borrower> {
     let mut borrower = BORROWERS
         .load(deps.storage, &deps.api.addr_validate(&address)?)
@@ -123,7 +133,7 @@ pub fn query_borrower(deps: Deps, env: Env, address: String) -> StdResult<Borrow
         RATE_CONFIG.load(deps.storage)?.borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
-        env.block.time.seconds(),
+        math::calc_block_time_ceiled(env.block.time.seconds(), PRICE_UPDATE_PERIOD),
         borrower.loan.creation_date,
     );
 

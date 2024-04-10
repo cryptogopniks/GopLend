@@ -1,6 +1,6 @@
 use goplend_base::{
     adapters::scheduler::kujira::types::ClockSource,
-    assets::{Currency, Funds, TokenUnverified},
+    assets::{Currency, Funds, Token, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
@@ -369,6 +369,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     // boorow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
+    // check accumulated loan
     project.wait(DELAY);
 
     project.oracle_try_update_prices(
@@ -386,14 +387,35 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     )?;
 
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    assert_that(&borrower.accumulated_loan.u128()).is_equal_to(250_000);
 
-    println!("{:#?}", borrower);
+    // repay all
+    project.lending_platform_try_repay(ProjectAccount::Bob, 1_250_000, ProjectCoin::Stars)?;
 
-    // let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
-    // let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    // check loans
+    let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    assert_that(&borrower.loan.amount.u128()).is_equal_to(0);
+    assert_that(&borrower.accumulated_loan.u128()).is_equal_to(0);
 
-    // assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
-    // assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.1"));
+    // check apr, bgl price
+    let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
+    let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
+    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.2"));
+
+    // check platform revenue
+    let revenue = project.lending_platform_query_platform_revenue()?;
+
+    assert_that(
+        &revenue
+            .iter()
+            .find(|x| x.currency.token == ProjectCoin::Stars.into())
+            .unwrap()
+            .amount
+            .u128(),
+    )
+    .is_equal_to(50_000);
 
     Ok(())
 }
