@@ -1393,6 +1393,7 @@ pub fn try_liquidate(
         deps.storage,
         block_time,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         main_currency_pool_addition,
         total_liquidation_value,
         total_liquidation_bids,
@@ -1618,6 +1619,7 @@ pub fn try_deposit_reserve_liquidity(
         block_time,
         balances.regular.borrowed.creation_date,
         rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
         balances.regular.borrowed.amount,
     );
     let rewards = balances.regular.accumulated_rewards + expected_rewards;

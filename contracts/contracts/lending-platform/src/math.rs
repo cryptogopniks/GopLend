@@ -12,17 +12,23 @@ use goplend_base::{
     oracle::types::PriceItem,
 };
 
+pub fn calc_block_time_ceiled(block_time: u64, price_update_period: u64) -> u64 {
+    price_update_period * (block_time / price_update_period + 1)
+}
+
+// TODO: check is formula correct
 // expected_rewards = borrow_apr * total_borrowed_amount *
 // * (block_time - borrowing_vault_creation_date) / year_in_seconds
 pub fn calc_expected_rewards(
     block_time: u64,
     borrowing_vault_creation_date: u64,
     borrow_apr: Decimal,
+    borrow_fee_rate: Decimal,
     total_borrowed_amount: Uint128,
 ) -> Uint128 {
     let borrowing_period = block_time - borrowing_vault_creation_date;
 
-    (borrow_apr
+    ((borrow_apr - borrow_fee_rate)
         * u128_to_dec(
             total_borrowed_amount * Uint128::from(borrowing_period)
                 / Uint128::from(YEAR_IN_SECONDS),
@@ -102,7 +108,7 @@ pub fn calc_conditional_deposit_apr(
         return str_to_dec(MAX_DEPOSIT_APR);
     }
 
-    u128_to_dec((borrow_apr - borrow_fee_rate) * (regular_borrowed + reserve_borrowed))
+    (borrow_apr - borrow_fee_rate) * u128_to_dec(regular_borrowed + reserve_borrowed)
         / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
 }
 
@@ -190,10 +196,13 @@ pub fn calc_accumulated_loan(
     block_time: u64,
     loan_creation_date: u64,
 ) -> Uint128 {
-    (u128_to_dec(accumulated_loan)
-        + borrow_apr * u128_to_dec(loan * Uint128::from(block_time - loan_creation_date))
-            / u128_to_dec(YEAR_IN_SECONDS))
-    .to_uint_floor()
+    accumulated_loan
+        + (borrow_apr
+            * u128_to_dec(
+                loan * Uint128::from(block_time - loan_creation_date)
+                    / Uint128::from(YEAR_IN_SECONDS),
+            ))
+        .to_uint_floor()
 }
 
 pub fn calc_bid_min_multiplier(bid_min_rate: Decimal) -> Decimal {
