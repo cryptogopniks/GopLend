@@ -114,9 +114,14 @@ impl Project {
         // mint NFTs
         let token_id_list: Vec<u128> = vec![1, 2, 3];
         for collection in ProjectNft::iter() {
-            for (i, recipient) in [ProjectAccount::Alice, ProjectAccount::Bob]
-                .iter()
-                .enumerate()
+            for (i, recipient) in [
+                ProjectAccount::Alice,
+                ProjectAccount::Bob,
+                ProjectAccount::John,
+                ProjectAccount::Kate,
+            ]
+            .iter()
+            .enumerate()
             {
                 let nft_list: &Vec<u128> = &token_id_list
                     .iter()
