@@ -20,6 +20,10 @@ pub enum ProjectAccount {
     Alice,
     #[strum(serialize = "bob")]
     Bob,
+    #[strum(serialize = "john")]
+    John,
+    #[strum(serialize = "kate")]
+    Kate,
     #[strum(serialize = "owner")]
     Owner,
     #[strum(serialize = "sheduler")]
@@ -32,6 +36,8 @@ impl ProjectAccount {
             ProjectAccount::Admin => INCREASED_FUNDS_AMOUNT,
             ProjectAccount::Alice => DEFAULT_FUNDS_AMOUNT,
             ProjectAccount::Bob => DEFAULT_FUNDS_AMOUNT,
+            ProjectAccount::John => DEFAULT_FUNDS_AMOUNT,
+            ProjectAccount::Kate => DEFAULT_FUNDS_AMOUNT,
             ProjectAccount::Owner => DEFAULT_FUNDS_AMOUNT,
             ProjectAccount::Scheduler => DEFAULT_FUNDS_AMOUNT,
         }
