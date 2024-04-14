@@ -8,11 +8,10 @@ use goplend_base::{
     lending_platform::{
         msg::InstantiateMsg,
         state::{
-            ADDRESS_CONFIG, BALANCES, BID_MIN_RATE, BORROW_APR, BORROW_FEE_RATE,
-            COLLATERAL_MIN_VALUE, COMMON_CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
+            ADDRESS_CONFIG, BALANCES, BID_MIN_RATE, BORROWERS_RESERVE_FRACTION_RATIO, BORROW_APR,
+            BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, COMMON_CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
             DISCOUNT_MIN_RATE, IS_LOCKED, IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
-            MIN_AVAILABLE_LIQUIDITY_MULTIPLIER, PLATFORM_REVENUE, PRICE_UPDATE_PERIOD,
-            PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
+            PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
         },
         types::{AddressConfig, Balances, CommonConfig, RateConfig},
     },
@@ -84,9 +83,9 @@ pub fn try_instantiate(
             collateral_min_value: msg
                 .collateral_min_value
                 .unwrap_or(Uint128::new(COLLATERAL_MIN_VALUE)),
-            min_available_liquidity_multiplier: msg
-                .min_available_liquidity_multiplier
-                .unwrap_or(str_to_dec(MIN_AVAILABLE_LIQUIDITY_MULTIPLIER)),
+            borrowers_reserve_fraction_ratio: msg
+                .borrowers_reserve_fraction_ratio
+                .unwrap_or(str_to_dec(BORROWERS_RESERVE_FRACTION_RATIO)),
             price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
             is_marketplace_interface_enabled: msg
                 .is_marketplace_interface_enabled

@@ -55,7 +55,7 @@ pub trait WithCodes {
         bgl_currency: &Option<Currency<TokenUnverified>>,
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
-        min_available_liquidity_multiplier: &Option<&str>,
+        borrowers_reserve_fraction_ratio: &Option<&str>,
         price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr;
@@ -250,7 +250,7 @@ impl WithCodes for Project {
         bgl_currency: &Option<Currency<TokenUnverified>>,
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
-        min_available_liquidity_multiplier: &Option<&str>,
+        borrowers_reserve_fraction_ratio: &Option<&str>,
         price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr {
@@ -275,7 +275,7 @@ impl WithCodes for Project {
                 bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                 unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
                 collateral_min_value: collateral_min_value.map(Uint128::new),
-                min_available_liquidity_multiplier: min_available_liquidity_multiplier
+                borrowers_reserve_fraction_ratio: borrowers_reserve_fraction_ratio
                     .as_ref()
                     .map(|x| str_to_dec(x)),
                 price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),

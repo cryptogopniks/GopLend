@@ -26,13 +26,10 @@ pub fn calc_expected_rewards(
     borrow_fee_rate: Decimal,
     total_borrowed_amount: Uint128,
 ) -> Uint128 {
-    let borrowing_period = block_time - borrowing_vault_creation_date;
+    let borrowing_period = Uint128::from(block_time - borrowing_vault_creation_date);
 
     ((borrow_apr - borrow_fee_rate)
-        * u128_to_dec(
-            total_borrowed_amount * Uint128::from(borrowing_period)
-                / Uint128::from(YEAR_IN_SECONDS),
-        ))
+        * u128_to_dec(total_borrowed_amount * borrowing_period / Uint128::from(YEAR_IN_SECONDS)))
     .to_uint_floor()
 }
 
@@ -104,7 +101,7 @@ pub fn calc_conditional_deposit_apr(
     regular_borrowed: Uint128,
     reserve_borrowed: Uint128,
 ) -> Decimal {
-    if total_deposited.is_zero() {
+    if amount_to_deposit + total_deposited <= total_unbonded {
         return str_to_dec(MAX_DEPOSIT_APR);
     }
 
@@ -235,18 +232,33 @@ pub fn calc_platform_revenue_on_liquidation(
 }
 
 pub fn calc_platform_revenue_on_repay(
-    repay_amount: Uint128,
+    accumulated_loan_to_repay: Uint128,
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
 ) -> Uint128 {
-    (u128_to_dec(repay_amount) * borrow_fee_rate / borrow_apr).to_uint_ceil()
+    (u128_to_dec(accumulated_loan_to_repay) * borrow_fee_rate / borrow_apr).to_uint_ceil()
 }
 
-pub fn calc_min_available_liquidity(
+pub fn calc_withdrawers_reserve_fraction(
     reserve_deposited: Uint128,
-    min_available_liquidity_multiplier: Decimal,
+    borrowers_reserve_fraction_ratio: Decimal,
 ) -> Uint128 {
-    (min_available_liquidity_multiplier * u128_to_dec(reserve_deposited)).to_uint_ceil()
+    reserve_deposited
+        - (borrowers_reserve_fraction_ratio * u128_to_dec(reserve_deposited)).to_uint_ceil()
+}
+
+pub fn calc_available_to_withdraw_reserve_liquidity(
+    withdrawers_reserve_fraction: Uint128,
+    reserve_withdrawn: Uint128,
+) -> Uint128 {
+    max(withdrawers_reserve_fraction, reserve_withdrawn) - reserve_withdrawn
+}
+
+pub fn calc_borrowers_reserve_fraction(
+    reserve_deposited: Uint128,
+    borrowers_reserve_fraction_ratio: Decimal,
+) -> Uint128 {
+    (borrowers_reserve_fraction_ratio * u128_to_dec(reserve_deposited)).to_uint_ceil()
 }
 
 pub fn calc_available_to_borrow_regular_liquidity(
@@ -262,14 +274,10 @@ pub fn calc_available_to_borrow_regular_liquidity(
 }
 
 pub fn calc_available_to_borrow_reserve_liquidity(
-    reserve_deposited: Uint128,
-    min_available_liquidity: Uint128,
+    borrowers_reserve_fraction: Uint128,
     reserve_borrowed: Uint128,
 ) -> Uint128 {
-    max(
-        reserve_deposited - min_available_liquidity,
-        reserve_borrowed,
-    ) - reserve_borrowed
+    max(borrowers_reserve_fraction, reserve_borrowed) - reserve_borrowed
 }
 
 pub fn calc_total_available_to_borrow_liquidity(
@@ -277,8 +285,7 @@ pub fn calc_total_available_to_borrow_liquidity(
     accumulated_rewards: Uint128,
     unbonded: Uint128,
     regular_borrowed: Uint128,
-    reserve_deposited: Uint128,
-    min_available_liquidity: Uint128,
+    borrowers_reserve_fraction: Uint128,
     reserve_borrowed: Uint128,
 ) -> Uint128 {
     calc_available_to_borrow_regular_liquidity(
@@ -286,11 +293,7 @@ pub fn calc_total_available_to_borrow_liquidity(
         accumulated_rewards,
         unbonded,
         regular_borrowed,
-    ) + calc_available_to_borrow_reserve_liquidity(
-        reserve_deposited,
-        min_available_liquidity,
-        reserve_borrowed,
-    )
+    ) + calc_available_to_borrow_reserve_liquidity(borrowers_reserve_fraction, reserve_borrowed)
 }
 
 /// places bid on each collateral token, best bids have higher priority

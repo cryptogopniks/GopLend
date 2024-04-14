@@ -30,7 +30,7 @@ pub const LIQUIDATION_BID_MAX_AMOUNT: usize = 5;
 
 pub const COLLATERAL_MIN_VALUE: u128 = 500_000_000;
 
-pub const MIN_AVAILABLE_LIQUIDITY_MULTIPLIER: &str = "0.15";
+pub const BORROWERS_RESERVE_FRACTION_RATIO: &str = "0.85"; // TODO: set 0.6
 
 pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
 pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
