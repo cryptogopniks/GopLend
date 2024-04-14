@@ -25,7 +25,7 @@ use goplend_base::{
     utils::unwrap_field,
 };
 
-use crate::math;
+use crate::{helpers, math};
 
 pub fn query_address_config(deps: Deps, _env: Env) -> StdResult<AddressConfig> {
     ADDRESS_CONFIG.load(deps.storage)
@@ -43,8 +43,8 @@ pub fn query_platform_revenue(deps: Deps, _env: Env) -> StdResult<Vec<Funds<Toke
     PLATFORM_REVENUE.load(deps.storage)
 }
 
-pub fn query_balances(deps: Deps, _env: Env) -> StdResult<Balances> {
-    BALANCES.load(deps.storage)
+pub fn query_balances(deps: Deps, env: Env) -> StdResult<Balances> {
+    helpers::get_balances_with_updated_rewards(deps.storage, env.block.time.seconds())
 }
 
 pub fn query_unbonder_list(
@@ -678,9 +678,9 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
 
     let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
-    let min_available_liquidity = math::calc_min_available_liquidity(
+    let borrowers_reserve_fraction = math::calc_borrowers_reserve_fraction(
         balances.reserve.deposited,
-        common_config.min_available_liquidity_multiplier,
+        common_config.borrowers_reserve_fraction_ratio,
     );
 
     let total_available_to_borrow_liquidity = math::calc_total_available_to_borrow_liquidity(
@@ -688,8 +688,7 @@ pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdRes
         rewards,
         balances.regular.unbonded,
         balances.regular.borrowed.amount,
-        balances.reserve.deposited,
-        min_available_liquidity,
+        borrowers_reserve_fraction,
         balances.reserve.borrowed.amount,
     );
 

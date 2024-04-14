@@ -220,9 +220,32 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
     // update balances, bgl to main ratio was fixed on Unbond
     let mut balances = BALANCES.load(deps.storage)?;
 
-    balances.regular.deposited -= amount_to_withdraw;
+    // don't allow to withdraw if available liquidity is too low
+    let withdrawers_reserve_fraction = math::calc_withdrawers_reserve_fraction(
+        balances.reserve.deposited,
+        common_config.borrowers_reserve_fraction_ratio,
+    );
+
+    let available_to_withdraw_reserve_liquidity =
+        math::calc_available_to_withdraw_reserve_liquidity(
+            withdrawers_reserve_fraction,
+            balances.reserve.withdrawn,
+        );
+
+    if amount_to_withdraw > balances.regular.main_pool + available_to_withdraw_reserve_liquidity {
+        Err(ContractError::LowAvailableLiquidity)?;
+    }
+
+    if amount_to_withdraw <= balances.regular.main_pool {
+        balances.regular.main_pool -= amount_to_withdraw;
+        balances.regular.deposited -= std::cmp::min(amount_to_withdraw, balances.regular.deposited);
+    } else {
+        balances.reserve.withdrawn += amount_to_withdraw - balances.regular.main_pool;
+        balances.regular.main_pool = Uint128::zero();
+        balances.regular.deposited = Uint128::zero();
+    }
+
     balances.regular.unbonded -= amount_to_withdraw;
-    balances.regular.main_pool -= amount_to_withdraw;
     balances.regular.bgl_supply -= amount_to_burn;
 
     BALANCES.save(deps.storage, &balances)?;
@@ -656,9 +679,9 @@ pub fn try_borrow(
     let mut balances = BALANCES.load(deps.storage)?;
 
     // don't allow to borrow if available liquidity is too low
-    let min_available_liquidity = math::calc_min_available_liquidity(
+    let borrowers_reserve_fraction = math::calc_borrowers_reserve_fraction(
         balances.reserve.deposited,
-        common_config.min_available_liquidity_multiplier,
+        common_config.borrowers_reserve_fraction_ratio,
     );
 
     let available_to_borrow_regular_liquidity = math::calc_available_to_borrow_regular_liquidity(
@@ -669,8 +692,7 @@ pub fn try_borrow(
     );
 
     let available_to_borrow_reserve_liquidity = math::calc_available_to_borrow_reserve_liquidity(
-        balances.reserve.deposited,
-        min_available_liquidity,
+        borrowers_reserve_fraction,
         balances.reserve.borrowed.amount,
     );
 
@@ -726,62 +748,49 @@ pub fn try_repay(
 
     // accumulate loan
     let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
-
-    let accumulated_loan = math::calc_accumulated_loan(
+    borrower.accumulated_loan = math::calc_accumulated_loan(
         rate_config.borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
         block_time,
         borrower.loan.creation_date,
     );
-
-    let mut total_borrowed_difference = Uint128::zero();
-    let platform_revenue: Uint128;
-
-    if asset_amount > accumulated_loan {
-        let amount_difference = asset_amount - accumulated_loan;
-        borrower.accumulated_loan = Uint128::zero();
-
-        // collect platform fee
-        platform_revenue = math::calc_platform_revenue_on_repay(
-            accumulated_loan,
-            rate_config.borrow_apr,
-            rate_config.borrow_fee_rate,
-        );
-
-        if amount_difference > borrower.loan.amount {
-            // send unused funds back
-            response = response.add_message(get_transfer_msg(
-                &sender_address,
-                amount_difference - borrower.loan.amount,
-                &common_config.main_currency.token,
-            )?);
-
-            total_borrowed_difference = borrower.loan.amount;
-            borrower.loan.amount = Uint128::zero();
-        } else {
-            total_borrowed_difference = amount_difference;
-            borrower.loan.amount -= amount_difference;
-        }
-    } else {
-        borrower.accumulated_loan = accumulated_loan - asset_amount;
-
-        // collect platform fee
-        platform_revenue = math::calc_platform_revenue_on_repay(
-            asset_amount,
-            rate_config.borrow_apr,
-            rate_config.borrow_fee_rate,
-        );
-    }
-
     borrower.loan.creation_date = block_time;
 
+    // try send residue
+    let total_loan = borrower.accumulated_loan + borrower.loan.amount;
+    let residue = std::cmp::max(asset_amount, total_loan) - total_loan;
+    let mut amount_to_repay = asset_amount - residue;
+
+    if !residue.is_zero() {
+        response = response.add_message(get_transfer_msg(
+            &sender_address,
+            residue,
+            &common_config.main_currency.token,
+        )?);
+    }
+
+    // collect platform fee
+    let accumulated_loan_to_repay = std::cmp::min(amount_to_repay, borrower.accumulated_loan);
+    let platform_revenue = math::calc_platform_revenue_on_repay(
+        accumulated_loan_to_repay,
+        rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
+    );
     increase_platform_revenue(
         deps.storage,
         platform_revenue,
         &common_config.main_currency.token,
         &common_config.main_currency,
     )?;
+
+    // update borrower loan values
+    if amount_to_repay <= borrower.accumulated_loan {
+        borrower.accumulated_loan -= amount_to_repay;
+    } else {
+        borrower.loan.amount -= amount_to_repay - borrower.accumulated_loan;
+        borrower.accumulated_loan = Uint128::zero();
+    }
 
     // update states
     if borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero() {
@@ -793,17 +802,32 @@ pub fn try_repay(
     accumulate_expected_rewards(deps.storage, block_time)?;
 
     BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
-        if balances.reserve.borrowed.amount.is_zero() {
-            balances.regular.borrowed.amount -= total_borrowed_difference;
-        } else {
-            if total_borrowed_difference <= balances.reserve.borrowed.amount {
-                balances.reserve.borrowed.amount -= total_borrowed_difference;
-            } else {
-                balances.regular.borrowed.amount -=
-                    total_borrowed_difference - balances.reserve.borrowed.amount;
-                balances.reserve.borrowed.amount = Uint128::zero();
-            }
+        amount_to_repay -= platform_revenue;
+
+        let accumulated_rewards_diff =
+            std::cmp::min(amount_to_repay, balances.regular.accumulated_rewards);
+        balances.regular.accumulated_rewards -= accumulated_rewards_diff;
+        balances.regular.main_pool += accumulated_rewards_diff;
+        amount_to_repay -= accumulated_rewards_diff;
+
+        if amount_to_repay <= balances.reserve.withdrawn {
+            balances.reserve.withdrawn -= amount_to_repay;
+
+            return Ok(balances);
         }
+
+        // amount_to_repay -= balances.reserve.withdrawn;
+        balances.reserve.withdrawn = Uint128::zero();
+
+        if amount_to_repay <= balances.reserve.borrowed.amount {
+            balances.reserve.borrowed.amount -= amount_to_repay;
+
+            return Ok(balances);
+        }
+
+        amount_to_repay -= balances.reserve.borrowed.amount;
+        balances.reserve.borrowed.amount = Uint128::zero();
+        balances.regular.borrowed.amount -= amount_to_repay;
 
         Ok(balances)
     })?;
@@ -1517,7 +1541,7 @@ pub fn try_update_common_config(
     bgl_currency: Option<Currency<TokenUnverified>>,
     unbonding_period: Option<u64>,
     collateral_min_value: Option<Uint128>,
-    min_available_liquidity_multiplier: Option<Decimal>,
+    borrowers_reserve_fraction_ratio: Option<Decimal>,
     price_update_period: Option<u64>,
     is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
@@ -1558,10 +1582,10 @@ pub fn try_update_common_config(
             attrs.push(("collateral_min_value".to_string(), x.to_string()));
         }
 
-        if let Some(x) = min_available_liquidity_multiplier {
-            config.min_available_liquidity_multiplier = x;
+        if let Some(x) = borrowers_reserve_fraction_ratio {
+            config.borrowers_reserve_fraction_ratio = x;
             attrs.push((
-                "min_available_liquidity_multiplier".to_string(),
+                "borrowers_reserve_fraction_ratio".to_string(),
                 x.to_string(),
             ));
         }

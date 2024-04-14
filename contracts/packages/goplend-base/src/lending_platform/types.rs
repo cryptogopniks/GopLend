@@ -103,7 +103,6 @@ pub struct Liquidator {
     pub collection_addresses: Vec<Addr>,
 }
 
-// TODO: reserve_main_currency_pool must be replenished first on repay and liquidation
 #[derive(Default)]
 #[cw_serde]
 pub struct Balances {
@@ -129,7 +128,7 @@ pub struct RegularBalances {
     pub liquidation_bids: Uint128,
 
     /// used to determine bgl price and deposit apr                                                 \
-    /// increased on try_deposit, try_repay, try_liquidate                                          \
+    /// increased on try_deposit - full; try_repay, try_liquidate - rewards                         \
     /// decreased on try_withdraw
     pub main_pool: Uint128,
     /// increased on try_deposit                                                                    \
@@ -145,7 +144,13 @@ pub struct ReserveBalances {
     /// binded to reserve.deposited, doesn't affect on bgl price                                    \
     /// increased on try_deposit_reserve_liquidity
     pub bgl_supply: Uint128,
-    /// used to dampen liquidity fluctuations without affecting on bgl price and deposit apr        \
+
+    /// used to provide temporary liquidity to withdrawers w/o affecting on bgl price and deposit apr        \
+    /// has higher priority than reserve.borrowed                                                    \
+    /// increased on try_withdraw if withdrawal_amount > regular.main_pool                           \
+    /// decreased on try_repay, try_liquidate if reserve.withdrawn > 0
+    pub withdrawn: Uint128,
+    /// used to provide temporary liquidity to borrowers w/o affecting on bgl price and deposit apr        \
     /// accumulated rewards goes to regular part as reserve liquidity provider can't earn           \
     /// increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed == 0     \
     /// decreased on try_repay, try_liquidate if reserve.borrowed > 0
@@ -178,7 +183,7 @@ pub struct CommonConfig {
     pub bgl_currency: Option<Currency<Token>>,
     pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
-    pub min_available_liquidity_multiplier: Decimal,
+    pub borrowers_reserve_fraction_ratio: Decimal,
     pub price_update_period: u64,
     pub is_marketplace_interface_enabled: bool,
 }

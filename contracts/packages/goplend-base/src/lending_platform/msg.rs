@@ -29,7 +29,7 @@ pub struct InstantiateMsg {
     pub bgl_currency: Option<Currency<TokenUnverified>>,
     pub unbonding_period: Option<u64>,
     pub collateral_min_value: Option<Uint128>,
-    pub min_available_liquidity_multiplier: Option<Decimal>,
+    pub borrowers_reserve_fraction_ratio: Option<Decimal>,
     pub price_update_period: Option<u64>,
     pub is_marketplace_interface_enabled: Option<bool>,
 }
@@ -112,7 +112,7 @@ pub enum ExecuteMsg {
         bgl_currency: Option<Currency<TokenUnverified>>,
         unbonding_period: Option<u64>,
         collateral_min_value: Option<Uint128>,
-        min_available_liquidity_multiplier: Option<Decimal>,
+        borrowers_reserve_fraction_ratio: Option<Decimal>,
         price_update_period: Option<u64>,
         is_marketplace_interface_enabled: Option<bool>,
     },

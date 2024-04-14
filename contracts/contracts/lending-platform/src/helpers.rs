@@ -157,32 +157,39 @@ pub fn check_collections_holder(
     Ok(())
 }
 
-pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -> StdResult<()> {
+pub fn get_balances_with_updated_rewards(
+    storage: &dyn Storage,
+    block_time: u64,
+) -> StdResult<Balances> {
     let rate_config = RATE_CONFIG.load(storage)?;
+    let mut balances = BALANCES.load(storage)?;
 
-    BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
-        let regular_rewards = math::calc_expected_rewards(
-            block_time,
-            balances.regular.borrowed.creation_date,
-            rate_config.borrow_apr,
-            rate_config.borrow_fee_rate,
-            balances.regular.borrowed.amount,
-        );
+    let regular_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.regular.borrowed.creation_date,
+        rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
+        balances.regular.borrowed.amount,
+    );
 
-        let reserve_rewards = math::calc_expected_rewards(
-            block_time,
-            balances.reserve.borrowed.creation_date,
-            rate_config.borrow_apr,
-            rate_config.borrow_fee_rate,
-            balances.reserve.borrowed.amount,
-        );
+    let reserve_rewards = math::calc_expected_rewards(
+        block_time,
+        balances.reserve.borrowed.creation_date,
+        rate_config.borrow_apr,
+        rate_config.borrow_fee_rate,
+        balances.reserve.borrowed.amount,
+    );
 
-        balances.regular.accumulated_rewards += regular_rewards + reserve_rewards;
-        balances.regular.borrowed.creation_date = block_time;
-        balances.reserve.borrowed.creation_date = block_time;
+    balances.regular.accumulated_rewards += regular_rewards + reserve_rewards;
+    balances.regular.borrowed.creation_date = block_time;
+    balances.reserve.borrowed.creation_date = block_time;
 
-        Ok(balances)
-    })?;
+    Ok(balances)
+}
+
+pub fn accumulate_expected_rewards(storage: &mut dyn Storage, block_time: u64) -> StdResult<()> {
+    let balances = get_balances_with_updated_rewards(storage, block_time)?;
+    BALANCES.save(storage, &balances)?;
 
     Ok(())
 }
