@@ -1176,6 +1176,134 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
 }
 
 #[test]
+fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const COLLECTION_PRICE_BEFORE: u128 = 2_000_000_000_000;
+    const COLLECTION_PRICE_AFTER: u128 = 600;
+    const AMOUNT: u128 = 1_000_000_000;
+    const LIQUIDATION_BID: u128 = 8_000;
+    const DISCOUNT: &str = "0.1";
+    const DELAY: u64 = 365 * 24 * 3600;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &Some(DELAY),
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    // collateral value = 3 * collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5", "6"]
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }],
+    )?;
+
+    // try exceed borrow limit
+    let res = project
+        .lending_platform_try_borrow(ProjectAccount::Bob, 86 * AMOUNT + 1)
+        .unwrap_err();
+    assert_error(&res, ContractError::LowAvailableLiquidity);
+
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 45 * AMOUNT)?;
+    project.wait(1);
+    project.lending_platform_try_borrow(ProjectAccount::Bob, 40 * AMOUNT)?;
+
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
+
+    project.wait(DELAY);
+
+    let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    let bgl_amount = (u128_to_dec(16 * AMOUNT) / bgl_price)
+        .to_uint_floor()
+        .u128();
+
+    // unbond
+    project.lending_platform_try_unbond(ProjectAccount::Alice, bgl_amount, &bgl_token)?;
+
+    // wait and withdraw
+    project.wait(config.unbonding_period);
+    project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
+
+    // try exceed limit
+    project.lending_platform_try_unbond(ProjectAccount::Alice, 1, &bgl_token)?;
+
+    // wait and withdraw
+    project.wait(config.unbonding_period);
+    project
+        .lending_platform_try_withdraw(ProjectAccount::Alice)
+        .unwrap_err();
+
+    Ok(())
+}
+
+#[test]
 fn borrow_and_repay_immediately() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_common_config()?;
@@ -1278,9 +1406,7 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
     Ok(())
 }
 
-// TODO: borrow-x3, deposit, withdraw
 // TODO: long repay-withdraw test
-// TODO: check overborrow
 
 // #[test]
 // fn price_ratio_with_different_decimals() -> StdResult<()> {

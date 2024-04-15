@@ -1342,6 +1342,7 @@ pub fn try_update_bid(
     Err(ContractError::WrongFundsCombination)
 }
 
+// TODO: add proper handling balances
 pub fn try_liquidate(
     deps: DepsMut,
     env: Env,
