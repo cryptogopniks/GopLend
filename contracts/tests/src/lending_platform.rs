@@ -1528,8 +1528,6 @@ fn repay_withdraw_loop() -> StdResult<()> {
     Ok(())
 }
 
-// TODO: create several unbonding positions
-
 // #[test]
 // fn price_ratio_with_different_decimals() -> StdResult<()> {
 //     let mut project = Project::new();
@@ -1911,6 +1909,48 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     assert_that(&balances.regular.unbonded.u128()).is_equal_to(0);
     assert_that(&balances.regular.main_pool.u128()).is_equal_to(0);
     assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(0);
+
+    Ok(())
+}
+
+#[test]
+fn multiple_unbonding_positions() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+
+    // unbond
+    project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 8, &bgl_token)?;
+    project.wait(config.unbonding_period / 4);
+    project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 4, &bgl_token)?;
+    project.wait(config.unbonding_period / 4);
+    project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 2, &bgl_token)?;
+    let unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
+    assert_that(&unbonder.returned_and_unbonded.len()).is_equal_to(3);
+
+    project.wait(config.unbonding_period / 2);
+    project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT / 8);
+
+    project.wait(config.unbonding_period / 2);
+    project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT * 7 / 8);
 
     Ok(())
 }
