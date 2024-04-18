@@ -501,6 +501,63 @@ pub fn update_balances(
 
         let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
+        // let accumulated_rewards_diff =
+        //     std::cmp::min(amount_to_repay, balances.regular.accumulated_rewards);
+        // balances.regular.accumulated_rewards -= accumulated_rewards_diff;
+        // balances.regular.main_pool += accumulated_rewards_diff;
+        // amount_to_repay -= accumulated_rewards_diff;
+
+        // if amount_to_repay <= balances.reserve.withdrawn {
+        //     balances.reserve.withdrawn -= amount_to_repay;
+
+        //     return Ok(balances);
+        // }
+
+        // // amount_to_repay -= balances.reserve.withdrawn;
+        // balances.reserve.withdrawn = Uint128::zero();
+
+        // if amount_to_repay <= balances.reserve.borrowed.amount {
+        //     balances.reserve.borrowed.amount -= amount_to_repay;
+
+        //     return Ok(balances);
+        // }
+
+        // amount_to_repay -= balances.reserve.borrowed.amount;
+        // balances.reserve.borrowed.amount = Uint128::zero();
+        // balances.regular.borrowed.amount -= amount_to_repay;
+
+        // --------------------------------------
+
+        // balances.regular.accumulated_rewards = rewards;
+        // let accumulated_rewards_diff = std::cmp::min(
+        //     main_currency_pool_addition,
+        //     balances.regular.accumulated_rewards,
+        // );
+        // balances.regular.accumulated_rewards -= accumulated_rewards_diff;
+        // balances.regular.main_pool += accumulated_rewards_diff;
+        // main_currency_pool_addition -= accumulated_rewards_diff;
+
+        // if main_currency_pool_addition <= balances.reserve.withdrawn {
+        //     balances.reserve.withdrawn -= main_currency_pool_addition;
+
+        //     return Ok(balances);
+        // }
+
+        // // main_currency_pool_addition -= balances.reserve.withdrawn;
+        // balances.reserve.withdrawn = Uint128::zero();
+
+        // if main_currency_pool_addition <= balances.reserve.borrowed.amount {
+        //     balances.reserve.borrowed.amount -= main_currency_pool_addition;
+
+        //     return Ok(balances);
+        // }
+
+        // main_currency_pool_addition -= balances.reserve.borrowed.amount;
+        // balances.reserve.borrowed.amount = Uint128::zero();
+        // balances.regular.borrowed.amount -= main_currency_pool_addition;
+
+        // ---------------------------------------
+
         if balances.reserve.borrowed.amount.is_zero() {
             if total_liquidation_value <= balances.regular.borrowed.amount {
                 balances.regular.borrowed.amount -= total_liquidation_value;
@@ -529,6 +586,7 @@ pub fn update_balances(
                     - balances.reserve.borrowed.amount
                     - balances.regular.borrowed.amount;
 
+                // TODO: do we need update creation dates?
                 balances.reserve.borrowed.creation_date = block_time;
                 balances.reserve.borrowed.amount = Uint128::zero();
 

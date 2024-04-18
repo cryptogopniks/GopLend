@@ -16,7 +16,6 @@ pub fn calc_block_time_ceiled(block_time: u64, price_update_period: u64) -> u64 
     price_update_period * (block_time / price_update_period + 1)
 }
 
-// TODO: check is formula correct
 // expected_rewards = borrow_apr * total_borrowed_amount *
 // * (block_time - borrowing_vault_creation_date) / year_in_seconds
 pub fn calc_expected_rewards(
