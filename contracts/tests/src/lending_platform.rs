@@ -1087,7 +1087,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
-        &None,
+        &Some("0.85"),
         &Some(DELAY),
         &None,
     )?;
@@ -1213,7 +1213,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
-        &None,
+        &Some("0.85"),
         &Some(DELAY),
         &None,
     )?;
@@ -1976,6 +1976,18 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
         }],
     )?;
 
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &Some("0.85"),
+        &None,
+        &None,
+    )?;
+
     // list collection
     let proposal: &Proposal<String, TokenUnverified> = &Proposal {
         proposal_status: None,
@@ -2070,7 +2082,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
-        &None,
+        &Some("0.85"),
         &None,
         &None,
     )?;
@@ -4630,7 +4642,4 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
 //     Ok(())
 // }
 
-// TODO: check priority
-// TODO: check targeted liquidations
-// TODO: check balances changes
 // TODO: check marketplace interface
