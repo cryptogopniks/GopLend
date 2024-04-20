@@ -465,73 +465,78 @@ pub fn update_balances(
 }
 
 pub mod offchain {
-    use cosmwasm_std::{Addr, Api, Deps, StdResult, Storage, Uint128};
+    use cosmwasm_std::{Addr, QuerierWrapper, StdResult, Uint128};
 
     use goplend_base::{
         error::ContractError,
         lending_platform::{
-            msg::QueryLiquidationBidsByCollectionAddressListResponseItem,
-            state::{BORROWERS, LIQUIDATION_BIDS},
-            types::{Borrower, Collateral, LiquidationBid},
+            msg::{
+                QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+                QueryLiquidationBidsByCollectionAddressListResponseItem, QueryMsg,
+            },
+            types::{Collateral, LiquidationBid},
         },
         oracle::{self, types::PriceItem},
     };
 
-    // pub fn get_borrowers(
-    //     storage: &dyn Storage,
-    //     api: &dyn Api,
-    //     borrowers: &[String],
-    // ) -> StdResult<Vec<(Addr, Borrower)>> {
-    //     let borrowers: Vec<(Addr, Borrower)> = borrowers
-    //         .iter()
-    //         .map(|y| {
-    //             let address = api.addr_validate(y)?;
-    //             let borrower = BORROWERS.load(storage, &address)?;
+    pub fn get_borrowers(
+        querier_wrapper: &QuerierWrapper,
+        lending_platform_address: &Addr,
+        borrowers: &[String],
+    ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
+        let mut borrower_list = querier_wrapper
+            .query_wasm_smart::<Vec<QueryBorrowersResponseItem>>(
+                lending_platform_address,
+                &QueryMsg::QueryBorrowerList {
+                    start_after: None,
+                    limit: None,
+                },
+            )?;
+        borrower_list.retain(|x| borrowers.contains(&x.address.to_string()));
 
-    //             Ok((address, borrower))
-    //         })
-    //         .collect::<StdResult<Vec<(Addr, Borrower)>>>()?;
+        Ok(borrower_list)
+    }
 
-    //     Ok(borrowers)
-    // }
+    pub fn get_collection_prices(
+        querier_wrapper: &QuerierWrapper,
+        oracle_address: &Addr,
+        borrower_list: &Vec<QueryBorrowersResponseItem>,
+        collection_and_collateral_list: &Vec<QueryCollateralsResponseItem>,
+    ) -> StdResult<Vec<PriceItem>> {
+        // collect collection addresses over current page borrowers
+        let borrower_addresses: Vec<Addr> =
+            borrower_list.iter().map(|x| x.address.to_owned()).collect();
 
-    // pub fn get_collection_prices(
-    //     deps: Deps,
-    //     borrowers: &[(Addr, Borrower)],
-    //     collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
-    //     oracle: &Addr,
-    // ) -> StdResult<Vec<oracle::types::PriceItem>> {
-    //     // collect collection addresses over current page borrowers
-    //     let borrower_addresses: Vec<Addr> = borrowers
-    //         .iter()
-    //         .map(|(address, _)| address.to_owned())
-    //         .collect();
+        let mut collection_addresses_by_borrowers: Vec<Addr> = collection_and_collateral_list
+            .iter()
+            .filter(|x| {
+                x.collateral
+                    .iter()
+                    .any(|y| borrower_addresses.contains(&y.owner))
+            })
+            .map(|x| x.address.to_owned())
+            .collect();
 
-    //     let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
-    //         .iter()
-    //         .filter(|(_collection_address, collaterals)| {
-    //             collaterals
-    //                 .iter()
-    //                 .any(|collateral| borrower_addresses.contains(&collateral.owner))
-    //         })
-    //         .map(|(collection_address, _)| collection_address.to_string())
-    //         .collect();
+        // dedup
+        collection_addresses_by_borrowers.sort_unstable();
+        collection_addresses_by_borrowers.dedup();
 
-    //     collection_addresses_by_borrowers.sort_unstable();
-    //     collection_addresses_by_borrowers.dedup();
+        let collection_addresses = Some(
+            collection_addresses_by_borrowers
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>(),
+        );
 
-    //     // query collection prices
-    //     let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
-    //         oracle,
-    //         &oracle::msg::QueryMsg::QueryPrices {
-    //             collection_addresses: Some(collection_addresses_by_borrowers),
-    //             start_after: None,
-    //             limit: None,
-    //         },
-    //     )?;
-
-    //     Ok(prices)
-    // }
+        querier_wrapper.query_wasm_smart::<Vec<PriceItem>>(
+            oracle_address,
+            &oracle::msg::QueryMsg::QueryPrices {
+                collection_addresses,
+                start_after: None,
+                limit: None,
+            },
+        )
+    }
 
     pub fn get_collaterals_by_borrower(
         collection_and_collateral_list: &[(Addr, Vec<Collateral>)],

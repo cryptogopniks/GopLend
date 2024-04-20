@@ -1,6 +1,6 @@
 use goplend_base::{
     adapters::scheduler::kujira::types::ClockSource,
-    assets::{Currency, Funds, Token, TokenUnverified},
+    assets::{Currency, Funds, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
@@ -17,12 +17,9 @@ use goplend_base::{
             Proposal, ProposalType,
         },
     },
-    oracle::types::{PriceItem, RawPriceItem},
+    oracle::types::RawPriceItem,
 };
-use lending_platform::{
-    helpers,
-    math::{self, calc_conditional_ltv, calc_ltv_max},
-};
+use lending_platform::{helpers, math};
 use speculoos::assert_that;
 
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
@@ -32,73 +29,32 @@ use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
     suite::{
-        core::{assert_error, Project, INITIAL_LIQUIDITY},
+        core::{assert_error, Project},
         types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
 
-fn get_borrowers(
-    project: &Project,
-    borrowers: &Vec<String>,
-) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-    let mut borrower_list = project.lending_platform_query_borrower_list(&None, &None)?;
-    borrower_list.retain(|x| borrowers.contains(&x.address.to_string()));
-
-    Ok(borrower_list)
-}
-
-fn get_collection_prices(
-    project: &Project,
-    borrower_list: &Vec<QueryBorrowersResponseItem>,
-    collection_and_collateral_list: &Vec<QueryCollateralsResponseItem>,
-) -> StdResult<Vec<PriceItem>> {
-    // collect collection addresses over current page borrowers
-    let borrower_addresses: Vec<Addr> =
-        borrower_list.iter().map(|x| x.address.to_owned()).collect();
-
-    let mut collection_addresses_by_borrowers: Vec<Addr> = collection_and_collateral_list
-        .iter()
-        .filter(|x| {
-            x.collateral
-                .iter()
-                .any(|y| borrower_addresses.contains(&y.owner))
-        })
-        .map(|x| x.address.to_owned())
-        .collect();
-
-    // dedup
-    collection_addresses_by_borrowers.sort_unstable();
-    collection_addresses_by_borrowers.dedup();
-
-    let collection_addresses = Some(
-        collection_addresses_by_borrowers
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>(),
-    );
-
-    project.app.wrap().query_wasm_smart::<Vec<PriceItem>>(
-        project.get_oracle_address(),
-        &goplend_base::oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses,
-            start_after: None,
-            limit: None,
-        },
-    )
-}
-
 fn get_targets(project: &Project, borrowers: &Vec<String>) -> StdResult<Vec<LiquidationItem>> {
     let rate_config = project.lending_platform_query_rate_config()?;
     let common_config = project.lending_platform_query_common_config()?;
-    let borrower_list = get_borrowers(&project, borrowers)?;
+    let borrower_list = helpers::offchain::get_borrowers(
+        &project.app.wrap(),
+        &project.get_lending_platform_address(),
+        &borrowers,
+    )?;
 
     // get all collaterals
     let collection_and_collateral_list =
         project.lending_platform_query_collateral_list(&None, &None)?;
 
     // get collection prices
-    let prices = get_collection_prices(&project, &borrower_list, &collection_and_collateral_list)?;
     let block_time = project.oracle_query_block_time()?;
+    let prices = helpers::offchain::get_collection_prices(
+        &project.app.wrap(),
+        &project.get_oracle_address(),
+        &borrower_list,
+        &collection_and_collateral_list,
+    )?;
 
     // accumulators
     let mut targets: Vec<LiquidationItem> = vec![];
@@ -137,13 +93,13 @@ fn get_targets(project: &Project, borrowers: &Vec<String>) -> StdResult<Vec<Liqu
         let collateral_value = collateral_value_option.unwrap();
 
         // check ltv
-        let ltv_max = calc_ltv_max(
+        let ltv_max = math::calc_ltv_max(
             rate_config.bid_min_rate,
             rate_config.discount_max_rate,
             rate_config.discount_min_rate,
         );
 
-        let ltv = calc_conditional_ltv(
+        let ltv = math::calc_conditional_ltv(
             rate_config.borrow_apr,
             Uint128::zero(),
             accumulated_loan,
@@ -209,10 +165,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -361,11 +314,7 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
-    const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -458,10 +407,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -599,10 +545,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -846,10 +789,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -973,10 +913,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -1103,10 +1040,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -1233,10 +1167,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -1359,10 +1290,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -1480,17 +1408,9 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
 #[test]
 fn borrow_and_repay_immediately() -> StdResult<()> {
     let mut project = Project::new();
-    let config = project.lending_platform_query_common_config()?;
-    let bgl_token = config
-        .bgl_currency
-        .ok_or(ContractError::AssetIsNotFound)?
-        .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -1590,10 +1510,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
         .token;
 
     const COLLECTION_PRICE_BEFORE: u128 = 40_000_000_000;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
     const AMOUNT: u128 = 1_000_000_000;
-    const LIQUIDATION_BID: u128 = 8_000;
-    const DISCOUNT: &str = "0.1";
     const DELAY: u64 = 365 * 24 * 3600;
 
     // push prices to oracle
@@ -2810,7 +2727,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -2993,7 +2910,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -3173,7 +3090,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -3353,7 +3270,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -3711,7 +3628,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -3891,7 +3808,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
@@ -4071,7 +3988,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
-    let ltv_max = calc_ltv_max(
+    let ltv_max = math::calc_ltv_max(
         str_to_dec(BID_MIN_RATE),
         str_to_dec(DISCOUNT_MAX_RATE),
         str_to_dec(DISCOUNT_MIN_RATE),
