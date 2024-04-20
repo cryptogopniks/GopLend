@@ -100,18 +100,18 @@ export interface LendingPlatformMsg {
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateCommonConfig: ({
     bglCurrency,
+    borrowersReserveFractionRatio,
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    minAvailableLiquidityMultiplier,
     priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
+    borrowersReserveFractionRatio?: Decimal;
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    minAvailableLiquidityMultiplier?: Decimal;
     priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
@@ -470,18 +470,18 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
   };
   updateCommonConfig = ({
     bglCurrency,
+    borrowersReserveFractionRatio,
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    minAvailableLiquidityMultiplier,
     priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
+    borrowersReserveFractionRatio?: Decimal;
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    minAvailableLiquidityMultiplier?: Decimal;
     priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -493,10 +493,10 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         msg: toUtf8(JSON.stringify({
           update_common_config: {
             bgl_currency: bglCurrency,
+            borrowers_reserve_fraction_ratio: borrowersReserveFractionRatio,
             collateral_min_value: collateralMinValue,
             is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
             main_currency: mainCurrency,
-            min_available_liquidity_multiplier: minAvailableLiquidityMultiplier,
             price_update_period: priceUpdatePeriod,
             unbonding_period: unbondingPeriod
           }

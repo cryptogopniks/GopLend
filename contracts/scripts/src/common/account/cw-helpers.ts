@@ -575,7 +575,7 @@ async function getCwExecHelpers(
       collateralMinValue,
       isMarketplaceInterfaceEnabled,
       mainCurrency,
-      minAvailableLiquidityMultiplier,
+      borrowersReserveFractionRatio,
       priceUpdatePeriod,
       unbondingPeriod,
     }: {
@@ -583,7 +583,7 @@ async function getCwExecHelpers(
       collateralMinValue?: number;
       isMarketplaceInterfaceEnabled?: boolean;
       mainCurrency?: CurrencyForTokenUnverified;
-      minAvailableLiquidityMultiplier?: number;
+      borrowersReserveFractionRatio?: number;
       priceUpdatePeriod?: number;
       unbondingPeriod?: number;
     },
@@ -596,8 +596,8 @@ async function getCwExecHelpers(
           collateralMinValue: collateralMinValue?.toString(),
           isMarketplaceInterfaceEnabled,
           mainCurrency,
-          minAvailableLiquidityMultiplier:
-            minAvailableLiquidityMultiplier?.toString(),
+          borrowersReserveFractionRatio:
+            borrowersReserveFractionRatio?.toString(),
           priceUpdatePeriod,
           unbondingPeriod,
         }),

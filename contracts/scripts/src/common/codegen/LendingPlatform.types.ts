@@ -20,6 +20,7 @@ export interface InstantiateMsg {
   bid_min_rate?: Decimal | null;
   borrow_apr?: Decimal | null;
   borrow_fee_rate?: Decimal | null;
+  borrowers_reserve_fraction_ratio?: Decimal | null;
   collateral_min_value?: Uint128 | null;
   discount_max_rate?: Decimal | null;
   discount_min_rate?: Decimal | null;
@@ -27,7 +28,6 @@ export interface InstantiateMsg {
   liquidation_fee_rate?: Decimal | null;
   main_currency: CurrencyForTokenUnverified;
   marketplace?: string | null;
-  min_available_liquidity_multiplier?: Decimal | null;
   minter?: string | null;
   oracle?: string | null;
   owner?: string | null;
@@ -102,10 +102,10 @@ export type ExecuteMsg = {
 } | {
   update_common_config: {
     bgl_currency?: CurrencyForTokenUnverified | null;
+    borrowers_reserve_fraction_ratio?: Decimal | null;
     collateral_min_value?: Uint128 | null;
     is_marketplace_interface_enabled?: boolean | null;
     main_currency?: CurrencyForTokenUnverified | null;
-    min_available_liquidity_multiplier?: Decimal | null;
     price_update_period?: number | null;
     unbonding_period?: number | null;
   };
@@ -336,6 +336,7 @@ export interface ReserveBalances {
   bgl_supply: Uint128;
   borrowed: Vault;
   deposited: Uint128;
+  withdrawn: Uint128;
 }
 export interface Borrower {
   accumulated_loan: Uint128;
@@ -376,10 +377,10 @@ export type Token = {
 };
 export interface CommonConfig {
   bgl_currency?: CurrencyForToken | null;
+  borrowers_reserve_fraction_ratio: Decimal;
   collateral_min_value: Uint128;
   is_marketplace_interface_enabled: boolean;
   main_currency: CurrencyForToken;
-  min_available_liquidity_multiplier: Decimal;
   price_update_period: number;
   unbonding_period: number;
 }

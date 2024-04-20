@@ -550,18 +550,18 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateCommonConfig: ({
     bglCurrency,
+    borrowersReserveFractionRatio,
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    minAvailableLiquidityMultiplier,
     priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
+    borrowersReserveFractionRatio?: Decimal;
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    minAvailableLiquidityMultiplier?: Decimal;
     priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
@@ -811,28 +811,28 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
   };
   updateCommonConfig = async ({
     bglCurrency,
+    borrowersReserveFractionRatio,
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    minAvailableLiquidityMultiplier,
     priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
+    borrowersReserveFractionRatio?: Decimal;
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    minAvailableLiquidityMultiplier?: Decimal;
     priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_common_config: {
         bgl_currency: bglCurrency,
+        borrowers_reserve_fraction_ratio: borrowersReserveFractionRatio,
         collateral_min_value: collateralMinValue,
         is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
         main_currency: mainCurrency,
-        min_available_liquidity_multiplier: minAvailableLiquidityMultiplier,
         price_update_period: priceUpdatePeriod,
         unbonding_period: unbondingPeriod
       }

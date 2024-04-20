@@ -50,6 +50,16 @@
           }
         ]
       },
+      "borrowers_reserve_fraction_ratio": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Decimal"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "collateral_min_value": {
         "anyOf": [
           {
@@ -103,16 +113,6 @@
         "type": [
           "string",
           "null"
-        ]
-      },
-      "min_available_liquidity_multiplier": {
-        "anyOf": [
-          {
-            "$ref": "#/definitions/Decimal"
-          },
-          {
-            "type": "null"
-          }
         ]
       },
       "minter": {
@@ -628,6 +628,16 @@
                   }
                 ]
               },
+              "borrowers_reserve_fraction_ratio": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Decimal"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "collateral_min_value": {
                 "anyOf": [
                   {
@@ -648,16 +658,6 @@
                 "anyOf": [
                   {
                     "$ref": "#/definitions/Currency_for_TokenUnverified"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "min_available_liquidity_multiplier": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/Decimal"
                   },
                   {
                     "type": "null"
@@ -2012,7 +2012,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "main_pool": {
-              "description": "used to determine bgl price and deposit apr                                                 \\ increased on try_deposit, try_repay, try_liquidate                                          \\ decreased on try_withdraw",
+              "description": "used to determine bgl price and deposit apr                                                 \\ increased on try_deposit - full; try_repay, try_liquidate - rewards                         \\ decreased on try_withdraw",
               "allOf": [
                 {
                   "$ref": "#/definitions/Uint128"
@@ -2035,7 +2035,8 @@
           "required": [
             "bgl_supply",
             "borrowed",
-            "deposited"
+            "deposited",
+            "withdrawn"
           ],
           "properties": {
             "bgl_supply": {
@@ -2047,7 +2048,7 @@
               ]
             },
             "borrowed": {
-              "description": "used to dampen liquidity fluctuations without affecting on bgl price and deposit apr        \\ accumulated rewards goes to regular part as reserve liquidity provider can't earn           \\ increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed == 0     \\ decreased on try_repay, try_liquidate if reserve.borrowed > 0",
+              "description": "used to provide temporary liquidity to borrowers w/o affecting on bgl price and deposit apr        \\ accumulated rewards goes to regular part as reserve liquidity provider can't earn           \\ increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed == 0     \\ decreased on try_repay, try_liquidate if reserve.borrowed > 0",
               "allOf": [
                 {
                   "$ref": "#/definitions/Vault"
@@ -2056,6 +2057,14 @@
             },
             "deposited": {
               "description": "increased on try_deposit_reserve_liquidity",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Uint128"
+                }
+              ]
+            },
+            "withdrawn": {
+              "description": "used to provide temporary liquidity to withdrawers w/o affecting on bgl price and deposit apr        \\ has higher priority than reserve.borrowed                                                    \\ increased on try_withdraw if withdrawal_amount > regular.main_pool                           \\ decreased on try_repay, try_liquidate if reserve.withdrawn > 0",
               "allOf": [
                 {
                   "$ref": "#/definitions/Uint128"
@@ -2365,10 +2374,10 @@
       "title": "CommonConfig",
       "type": "object",
       "required": [
+        "borrowers_reserve_fraction_ratio",
         "collateral_min_value",
         "is_marketplace_interface_enabled",
         "main_currency",
-        "min_available_liquidity_multiplier",
         "price_update_period",
         "unbonding_period"
       ],
@@ -2383,6 +2392,9 @@
             }
           ]
         },
+        "borrowers_reserve_fraction_ratio": {
+          "$ref": "#/definitions/Decimal"
+        },
         "collateral_min_value": {
           "$ref": "#/definitions/Uint128"
         },
@@ -2391,9 +2403,6 @@
         },
         "main_currency": {
           "$ref": "#/definitions/Currency_for_Token"
-        },
-        "min_available_liquidity_multiplier": {
-          "$ref": "#/definitions/Decimal"
         },
         "price_update_period": {
           "type": "integer",
