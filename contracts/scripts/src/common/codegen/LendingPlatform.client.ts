@@ -62,6 +62,11 @@ export interface LendingPlatformReadOnlyInterface {
   }: {
     collectionAddress: string;
   }) => Promise<ArrayOfCollateral>;
+  queryCollateralByOwner: ({
+    owner
+  }: {
+    owner: string;
+  }) => Promise<ArrayOfQueryCollateralsResponseItem>;
   queryLiquidationBidsByCollectionAddressList: ({
     limit,
     startAfter
@@ -157,6 +162,7 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
     this.queryLiquidator = this.queryLiquidator.bind(this);
     this.queryCollateralList = this.queryCollateralList.bind(this);
     this.queryCollateral = this.queryCollateral.bind(this);
+    this.queryCollateralByOwner = this.queryCollateralByOwner.bind(this);
     this.queryLiquidationBidsByCollectionAddressList = this.queryLiquidationBidsByCollectionAddressList.bind(this);
     this.queryLiquidationBidsByCollectionAddress = this.queryLiquidationBidsByCollectionAddress.bind(this);
     this.queryLiquidationBidsByLiquidatorAddressList = this.queryLiquidationBidsByLiquidatorAddressList.bind(this);
@@ -295,6 +301,17 @@ export class LendingPlatformQueryClient implements LendingPlatformReadOnlyInterf
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral: {
         collection_address: collectionAddress
+      }
+    });
+  };
+  queryCollateralByOwner = async ({
+    owner
+  }: {
+    owner: string;
+  }): Promise<ArrayOfQueryCollateralsResponseItem> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collateral_by_owner: {
+        owner
       }
     });
   };

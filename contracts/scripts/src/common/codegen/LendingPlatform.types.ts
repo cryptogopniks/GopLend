@@ -237,6 +237,10 @@ export type QueryMsg = {
     collection_address: string;
   };
 } | {
+  query_collateral_by_owner: {
+    owner: string;
+  };
+} | {
   query_liquidation_bids_by_collection_address_list: {
     limit?: number | null;
     start_after?: string | null;

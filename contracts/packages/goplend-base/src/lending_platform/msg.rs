@@ -202,6 +202,9 @@ pub enum QueryMsg {
     #[returns(Vec<crate::lending_platform::types::Collateral>)]
     QueryCollateral { collection_address: String },
 
+    #[returns(Vec<QueryCollateralsResponseItem>)]
+    QueryCollateralByOwner { owner: String },
+
     #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryLiquidationBidsByCollectionAddressList {
         start_after: Option<String>,

@@ -216,6 +216,22 @@ pub fn query_collateral(deps: Deps, _env: Env, address: String) -> StdResult<Vec
         .unwrap_or_default())
 }
 
+pub fn query_collateral_by_owner(
+    deps: Deps,
+    _env: Env,
+    owner: String,
+) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+    Ok(COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_, collateral)| collateral.iter().any(|x| x.owner == owner))
+        .map(|(address, collateral)| QueryCollateralsResponseItem {
+            address,
+            collateral,
+        })
+        .collect())
+}
+
 pub fn query_liquidation_bids_by_collection_address_list(
     deps: Deps,
     _env: Env,

@@ -1,4 +1,4 @@
-import { getLast, l, li } from "../utils";
+import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
 import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
@@ -1178,10 +1178,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         collectionAddress,
         queryAllOperatorsMsg
       );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryApprovals(collectionAddress: string, tokenId: string) {
@@ -1194,10 +1191,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryApprovalsMsg
     );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBalanceInNft(owner: string, collectionAddress: string) {
@@ -1236,10 +1230,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     }
 
     const res: TokensResponse = { tokens: tokenList };
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryNftOwner(collectionAddress: string, tokenId: string) {
@@ -1250,70 +1241,46 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryOwnerOfMsg
     );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   // adapter-scheduler-kujira
 
   async function cwAdapterSchedulerKujiraQueryConfig() {
     const res = await adapterSchedulerKujiraQueryClient.queryConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLog(amount: number) {
     const res = await adapterSchedulerKujiraQueryClient.queryLog({ amount });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   // lending-platform
 
   async function cwLendingPlatformQueryAddressConfig() {
     const res = await lendingPlatformQueryClient.queryAddressConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwLendingPlatformQueryRateConfig() {
     const res = await lendingPlatformQueryClient.queryRateConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwLendingPlatformQueryCommonConfig() {
     const res = await lendingPlatformQueryClient.queryCommonConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryPlatformRevenue() {
     const res = await lendingPlatformQueryClient.queryPlatformRevenue();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBalances() {
     const res = await lendingPlatformQueryClient.queryBalances();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryUnbonderList(
@@ -1324,18 +1291,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryUnbonder(address: string) {
     const res = await lendingPlatformQueryClient.queryUnbonder({ address });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBorrowerList(
@@ -1346,18 +1307,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBorrower(address: string) {
     const res = await lendingPlatformQueryClient.queryBorrower({ address });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidatorList(
@@ -1368,18 +1323,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidator(address: string) {
     const res = await lendingPlatformQueryClient.queryLiquidator({ address });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryCollateralList(
@@ -1390,20 +1339,21 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryCollateral(collectionAddress: string) {
     const res = await lendingPlatformQueryClient.queryCollateral({
       collectionAddress,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
+  }
+
+  async function cwQueryCollateralByOwner(owner: string) {
+    const res = await lendingPlatformQueryClient.queryCollateralByOwner({
+      owner,
+    });
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddressList(
@@ -1414,10 +1364,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddressList(
         { startAfter, limit }
       );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddress(address: string) {
@@ -1425,10 +1372,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddress({
         address,
       });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddressList(
@@ -1439,10 +1383,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddressList(
         { startAfter, limit }
       );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddress(address: string) {
@@ -1450,10 +1391,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddress({
         address,
       });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryProposals(limit: number = 10_000, startAfter?: number) {
@@ -1461,10 +1399,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryCollectionList(
@@ -1475,39 +1410,27 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryCollection(address: string) {
     const res = await lendingPlatformQueryClient.queryCollection({
       address,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBglCurrencyToMainCurrencyPrice() {
     const res =
       await lendingPlatformQueryClient.queryBglCurrencyToMainCurrencyPrice();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryConditionalDepositApr(amountToDeposit: number) {
     const res = await lendingPlatformQueryClient.queryConditionalDepositApr({
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryLtvList(limit: number = 10_000, startAfter?: string) {
@@ -1515,10 +1438,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       startAfter,
       limit,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryConditionalLtv(
@@ -1531,19 +1451,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
       amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryTotalAvailableToBorrowLiquidity() {
     const res =
       await lendingPlatformQueryClient.queryTotalAvailableToBorrowLiquidity();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryAvailableToBorrow(
@@ -1554,44 +1468,24 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       borrower,
       targetLtv: targetLtv ? targetLtv.toString() : undefined,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryAmounts() {
     const res = await lendingPlatformQueryClient.queryAmounts();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
-
-  // async function cwQueryTargets(borrowers: string[]) {
-  //   const res = await lendingPlatformQueryClient.queryTargets({ borrowers });
-  // l();
-  // li(res);
-  // l();
-  //   return res;
-  // }
 
   // minter
 
   async function cwQueryCurrenciesByCreator(creator: string) {
     const res = await minterQueryClient.queryCurrenciesByCreator({ creator });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwMinterQueryConfig() {
     const res = await minterQueryClient.queryConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   // minter-kujira
@@ -1600,36 +1494,24 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await minterKujiraQueryClient.queryCurrenciesByCreator({
       creator,
     });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwMinterKujiraQueryConfig() {
     const res = await minterKujiraQueryClient.queryConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwMinterKujiraQueryTokenOwner(denom: string) {
     const res = await minterKujiraQueryClient.queryTokenOwner({ denom });
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   // oracle
 
   async function cwOracleQueryConfig() {
     const res = await oracleQueryClient.queryConfig();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryPrices(
@@ -1646,18 +1528,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await oracleQueryClient.queryPrices(
       collectionAddresses.length ? msg_2 : msg_1
     );
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   async function cwQueryBlockTime() {
     const res = await oracleQueryClient.queryBlockTime();
-    l();
-    li(res);
-    l();
-    return res;
+    return logAndReturn(res);
   }
 
   return {
@@ -1689,6 +1565,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryLiquidator,
       cwQueryCollateralList,
       cwQueryCollateral,
+      cwQueryCollateralByOwner,
       cwQueryLiquidationBidsByCollectionAddressList,
       cwQueryLiquidationBidsByCollectionAddress,
       cwQueryLiquidationBidsByLiquidatorAddressList,
@@ -1703,7 +1580,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryTotalAvailableToBorrowLiquidity,
       cwQueryAvailableToBorrow,
       cwQueryAmounts,
-      // cwQueryTargets,
     },
     minter: {
       cwQueryCurrenciesByCreator,
