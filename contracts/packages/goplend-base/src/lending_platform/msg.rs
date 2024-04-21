@@ -265,9 +265,6 @@ pub enum QueryMsg {
 
     #[returns(QueryAmountsResponse)]
     QueryAmounts {},
-    //
-    // #[returns(Vec<crate::lending_platform::types::LiquidationItem>)]
-    // QueryTargets { borrowers: Vec<String> },
 }
 
 #[cw_serde]

@@ -807,7 +807,7 @@ pub fn try_repay(
         let accumulated_rewards_diff =
             std::cmp::min(amount_to_repay, balances.regular.accumulated_rewards);
         balances.regular.accumulated_rewards -= accumulated_rewards_diff;
-        balances.regular.main_pool += accumulated_rewards_diff;
+        balances.regular.main_pool += accumulated_rewards_diff; // main pool can be increased only by rewards amount
         amount_to_repay -= accumulated_rewards_diff;
 
         if amount_to_repay <= balances.reserve.withdrawn {
@@ -816,7 +816,6 @@ pub fn try_repay(
             return Ok(balances);
         }
 
-        // amount_to_repay -= balances.reserve.withdrawn;
         balances.reserve.withdrawn = Uint128::zero();
 
         if amount_to_repay <= balances.reserve.borrowed.amount {
@@ -1342,7 +1341,6 @@ pub fn try_update_bid(
     Err(ContractError::WrongFundsCombination)
 }
 
-// TODO: add proper handling balances
 pub fn try_liquidate(
     deps: DepsMut,
     env: Env,
@@ -1368,7 +1366,6 @@ pub fn try_liquidate(
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
-    let total_liquidation_bids = Uint128::zero();
 
     // iterate over borrowers
     for LiquidationItem {
@@ -1413,6 +1410,8 @@ pub fn try_liquidate(
         &common_config.main_currency,
     )?;
 
+    accumulate_expected_rewards(deps.storage, block_time)?;
+
     // update contract balances
     update_balances(
         deps.storage,
@@ -1421,7 +1420,6 @@ pub fn try_liquidate(
         rate_config.borrow_fee_rate,
         main_currency_pool_addition,
         total_liquidation_value,
-        total_liquidation_bids,
     )?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
