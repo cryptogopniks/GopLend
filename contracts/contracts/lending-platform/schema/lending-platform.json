@@ -2089,6 +2089,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "creation_date": {
+              "description": "used to calculate accumulated rewards before changing amount",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -2114,7 +2115,12 @@
       ],
       "properties": {
         "accumulated_loan": {
-          "$ref": "#/definitions/Uint128"
+          "description": "used for merging vaults",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
         },
         "loan": {
           "$ref": "#/definitions/Vault"
@@ -2137,6 +2143,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "creation_date": {
+              "description": "used to calculate accumulated rewards before changing amount",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -2166,7 +2173,12 @@
           ],
           "properties": {
             "accumulated_loan": {
-              "$ref": "#/definitions/Uint128"
+              "description": "used for merging vaults",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Uint128"
+                }
+              ]
             },
             "loan": {
               "$ref": "#/definitions/Vault"
@@ -2205,6 +2217,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "creation_date": {
+              "description": "used to calculate accumulated rewards before changing amount",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -3331,6 +3344,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "creation_date": {
+              "description": "used to calculate accumulated rewards before changing amount",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -3408,6 +3422,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "creation_date": {
+              "description": "used to calculate accumulated rewards before changing amount",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0

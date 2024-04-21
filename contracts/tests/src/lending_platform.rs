@@ -34,13 +34,13 @@ use crate::helpers::{
     },
 };
 
-fn get_targets(project: &Project, borrowers: &Vec<String>) -> StdResult<Vec<LiquidationItem>> {
+fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<LiquidationItem>> {
     let rate_config = project.lending_platform_query_rate_config()?;
     let common_config = project.lending_platform_query_common_config()?;
     let borrower_list = helpers::offchain::get_borrowers(
         &project.app.wrap(),
         &project.get_lending_platform_address(),
-        &borrowers,
+        borrowers,
     )?;
 
     // get all collaterals
@@ -641,7 +641,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     )?;
 
     // add collateral
-    for user in vec![ProjectAccount::Bob, ProjectAccount::John] {
+    for user in [ProjectAccount::Bob, ProjectAccount::John] {
         project.increase_allowances_nft(
             user,
             project.get_lending_platform_address(),

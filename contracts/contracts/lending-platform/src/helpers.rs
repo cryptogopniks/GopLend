@@ -428,8 +428,8 @@ pub mod offchain {
     pub fn get_collection_prices(
         querier_wrapper: &QuerierWrapper,
         oracle_address: &Addr,
-        borrower_list: &Vec<QueryBorrowersResponseItem>,
-        collection_and_collateral_list: &Vec<QueryCollateralsResponseItem>,
+        borrower_list: &[QueryBorrowersResponseItem],
+        collection_and_collateral_list: &[QueryCollateralsResponseItem],
     ) -> StdResult<Vec<PriceItem>> {
         // collect collection addresses over current page borrowers
         let borrower_addresses: Vec<Addr> =
@@ -531,8 +531,8 @@ pub mod offchain {
 
     // find bids containing at least 1 borrower's collateral token
     pub fn get_collection_and_bid_list(
-        liquidation_bids: &Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
-        collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
+        liquidation_bids: &[QueryLiquidationBidsByCollectionAddressListResponseItem],
+        collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
     ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
         let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
 
