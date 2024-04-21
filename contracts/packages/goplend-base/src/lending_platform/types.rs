@@ -80,6 +80,7 @@ pub struct BiddedCollateralItem {
 #[derive(Default)]
 #[cw_serde]
 pub struct Vault {
+    /// used to calculate accumulated rewards before changing amount
     pub creation_date: u64,
     pub amount: Uint128,
 }
@@ -93,7 +94,8 @@ pub struct Unbonder {
 #[derive(Default)]
 #[cw_serde]
 pub struct Borrower {
-    pub accumulated_loan: Uint128, // used for merging vaults
+    /// used for merging vaults
+    pub accumulated_loan: Uint128,
     pub loan: Vault,
 }
 

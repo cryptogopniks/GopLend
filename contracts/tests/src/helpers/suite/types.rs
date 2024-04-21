@@ -6,7 +6,7 @@ use strum_macros::{Display, EnumIter, IntoStaticStr};
 
 use goplend_base::{assets::Token, converters::str_to_dec, math::P12};
 
-pub const DEFAULT_FUNDS_AMOUNT: u128 = 1 * P12; // give each user 1 asset (1 CRD, 1 INJ, etc.)
+pub const DEFAULT_FUNDS_AMOUNT: u128 = P12; // give each user 1 asset (1 CRD, 1 INJ, etc.)
 pub const INCREASED_FUNDS_AMOUNT: u128 = 100 * P12; // give admin such amount of assets to ensure providing 1e6 of assets to each pair
 
 pub const DEFAULT_DECIMALS: u8 = 6;

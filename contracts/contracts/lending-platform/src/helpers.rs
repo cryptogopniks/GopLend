@@ -1,6 +1,6 @@
 use std::cmp::max;
 
-use cosmwasm_std::{Addr, Api, Decimal, Deps, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, StdResult, Storage, Uint128};
 
 use goplend_base::{
     assets::{Currency, Funds, Token},
@@ -15,7 +15,6 @@ use goplend_base::{
             LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
-    oracle::{self, types::PriceItem},
     utils::{unwrap_field, AuthType},
 };
 
@@ -221,147 +220,6 @@ pub fn increase_platform_revenue(
     Ok(())
 }
 
-// pub fn get_borrowers(
-//     storage: &dyn Storage,
-//     api: &dyn Api,
-//     borrowers: &[String],
-// ) -> StdResult<Vec<(Addr, Borrower)>> {
-//     let borrowers: Vec<(Addr, Borrower)> = borrowers
-//         .iter()
-//         .map(|y| {
-//             let address = api.addr_validate(y)?;
-//             let borrower = BORROWERS.load(storage, &address)?;
-
-//             Ok((address, borrower))
-//         })
-//         .collect::<StdResult<Vec<(Addr, Borrower)>>>()?;
-
-//     Ok(borrowers)
-// }
-
-// pub fn get_collection_prices(
-//     deps: Deps,
-//     borrowers: &[(Addr, Borrower)],
-//     collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
-//     oracle: &Addr,
-// ) -> StdResult<Vec<oracle::types::PriceItem>> {
-//     // collect collection addresses over current page borrowers
-//     let borrower_addresses: Vec<Addr> = borrowers
-//         .iter()
-//         .map(|(address, _)| address.to_owned())
-//         .collect();
-
-//     let mut collection_addresses_by_borrowers: Vec<String> = collection_and_collateral_list
-//         .iter()
-//         .filter(|(_collection_address, collaterals)| {
-//             collaterals
-//                 .iter()
-//                 .any(|collateral| borrower_addresses.contains(&collateral.owner))
-//         })
-//         .map(|(collection_address, _)| collection_address.to_string())
-//         .collect();
-
-//     collection_addresses_by_borrowers.sort_unstable();
-//     collection_addresses_by_borrowers.dedup();
-
-//     // query collection prices
-//     let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
-//         oracle,
-//         &oracle::msg::QueryMsg::QueryPrices {
-//             collection_addresses: Some(collection_addresses_by_borrowers),
-//             start_after: None,
-//             limit: None,
-//         },
-//     )?;
-
-//     Ok(prices)
-// }
-
-// pub fn get_collaterals_by_borrower(
-//     collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
-//     borrower_address: &Addr,
-// ) -> StdResult<Vec<(Addr, Collateral)>> {
-//     // get collaterals owned by borrower
-//     let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
-//         collection_and_collateral_list
-//             .iter()
-//             .cloned()
-//             .map(
-//                 |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-//                     // single collateral per collection
-//                     let collateral = collaterals
-//                         .into_iter()
-//                         .find(|collateral| collateral.owner == borrower_address)
-//                         .ok_or(ContractError::CollateralIsNotFound)?;
-
-//                     Ok((collection, collateral))
-//                 },
-//             )
-//             .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
-
-//     Ok(collection_and_collateral_list_by_borrower)
-// }
-
-// pub fn get_collateral_value(
-//     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
-//     prices: &[PriceItem],
-//     block_time: u64,
-//     price_update_period: u64,
-// ) -> StdResult<Option<Uint128>> {
-//     let mut is_price_outdated = false;
-
-//     let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
-//         Ok(Uint128::zero()),
-//         |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-//             let oracle::types::PriceItem {
-//                 price,
-//                 price_update_date,
-//                 ..
-//             } = prices
-//                 .iter()
-//                 .find(|x| x.address == collection_address)
-//                 .ok_or(ContractError::PriceIsNotFound {
-//                     val: collection_address.to_string(),
-//                 })?;
-
-//             if block_time - price_update_date > price_update_period {
-//                 is_price_outdated = true;
-//             }
-
-//             // TODO: decimals, other currencies
-//             Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
-//         },
-//     )?;
-
-//     Ok(if is_price_outdated {
-//         None
-//     } else {
-//         Some(collateral_value)
-//     })
-// }
-
-// // find bids containing at least 1 borrower's collateral token
-// pub fn get_collection_and_bid_list(
-//     storage: &dyn Storage,
-//     collection_and_collateral_list_by_borrower: &Vec<(Addr, Collateral)>,
-// ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
-//     let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
-
-//     for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
-//         for bid in LIQUIDATION_BIDS.load(storage, collection_address)? {
-//             if bid
-//                 .token_id_list
-//                 .iter()
-//                 .any(|id| collateral.token_id_list.contains(id))
-//             {
-//                 collection_and_bid_list.push((collection_address.clone(), bid));
-//             }
-//         }
-//     }
-
-//     Ok(collection_and_bid_list)
-// }
-
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
@@ -471,18 +329,18 @@ pub fn update_borrowers_storages(
     Ok(())
 }
 
-// TODO: should rewards be paid first?
 pub fn update_balances(
     storage: &mut dyn Storage,
     block_time: u64,
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
-    main_currency_pool_addition: Uint128,
+    mut main_currency_pool_addition: Uint128,
     total_liquidation_value: Uint128,
-    total_liquidation_bids: Uint128,
 ) -> StdResult<()> {
     // update contract balances
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
+        balances.regular.liquidation_bids -= total_liquidation_value;
+
         let regular_rewards = math::calc_expected_rewards(
             block_time,
             balances.regular.borrowed.creation_date,
@@ -501,107 +359,205 @@ pub fn update_balances(
 
         let rewards = balances.regular.accumulated_rewards + regular_rewards + reserve_rewards;
 
-        // let accumulated_rewards_diff =
-        //     std::cmp::min(amount_to_repay, balances.regular.accumulated_rewards);
-        // balances.regular.accumulated_rewards -= accumulated_rewards_diff;
-        // balances.regular.main_pool += accumulated_rewards_diff;
-        // amount_to_repay -= accumulated_rewards_diff;
+        balances.regular.accumulated_rewards = rewards;
+        let accumulated_rewards_diff = std::cmp::min(
+            main_currency_pool_addition,
+            balances.regular.accumulated_rewards,
+        );
+        balances.regular.accumulated_rewards -= accumulated_rewards_diff;
+        balances.regular.main_pool += accumulated_rewards_diff; // main pool can be increased only by rewards amount
+        main_currency_pool_addition -= accumulated_rewards_diff;
 
-        // if amount_to_repay <= balances.reserve.withdrawn {
-        //     balances.reserve.withdrawn -= amount_to_repay;
+        if main_currency_pool_addition <= balances.reserve.withdrawn {
+            balances.reserve.withdrawn -= main_currency_pool_addition;
 
-        //     return Ok(balances);
-        // }
-
-        // // amount_to_repay -= balances.reserve.withdrawn;
-        // balances.reserve.withdrawn = Uint128::zero();
-
-        // if amount_to_repay <= balances.reserve.borrowed.amount {
-        //     balances.reserve.borrowed.amount -= amount_to_repay;
-
-        //     return Ok(balances);
-        // }
-
-        // amount_to_repay -= balances.reserve.borrowed.amount;
-        // balances.reserve.borrowed.amount = Uint128::zero();
-        // balances.regular.borrowed.amount -= amount_to_repay;
-
-        // --------------------------------------
-
-        // balances.regular.accumulated_rewards = rewards;
-        // let accumulated_rewards_diff = std::cmp::min(
-        //     main_currency_pool_addition,
-        //     balances.regular.accumulated_rewards,
-        // );
-        // balances.regular.accumulated_rewards -= accumulated_rewards_diff;
-        // balances.regular.main_pool += accumulated_rewards_diff;
-        // main_currency_pool_addition -= accumulated_rewards_diff;
-
-        // if main_currency_pool_addition <= balances.reserve.withdrawn {
-        //     balances.reserve.withdrawn -= main_currency_pool_addition;
-
-        //     return Ok(balances);
-        // }
-
-        // // main_currency_pool_addition -= balances.reserve.withdrawn;
-        // balances.reserve.withdrawn = Uint128::zero();
-
-        // if main_currency_pool_addition <= balances.reserve.borrowed.amount {
-        //     balances.reserve.borrowed.amount -= main_currency_pool_addition;
-
-        //     return Ok(balances);
-        // }
-
-        // main_currency_pool_addition -= balances.reserve.borrowed.amount;
-        // balances.reserve.borrowed.amount = Uint128::zero();
-        // balances.regular.borrowed.amount -= main_currency_pool_addition;
-
-        // ---------------------------------------
-
-        if balances.reserve.borrowed.amount.is_zero() {
-            if total_liquidation_value <= balances.regular.borrowed.amount {
-                balances.regular.borrowed.amount -= total_liquidation_value;
-            } else {
-                let amount_difference = total_liquidation_value - balances.regular.borrowed.amount;
-
-                balances.regular.borrowed.creation_date = block_time;
-                balances.regular.borrowed.amount = Uint128::zero();
-                balances.regular.accumulated_rewards =
-                    max(rewards, amount_difference) - amount_difference;
-            }
-        } else {
-            if total_liquidation_value <= balances.reserve.borrowed.amount {
-                balances.reserve.borrowed.amount -= total_liquidation_value;
-            } else if total_liquidation_value
-                <= balances.reserve.borrowed.amount + balances.regular.borrowed.amount
-            {
-                let amount_difference = total_liquidation_value - balances.reserve.borrowed.amount;
-
-                balances.reserve.borrowed.creation_date = block_time;
-                balances.reserve.borrowed.amount = Uint128::zero();
-
-                balances.regular.borrowed.amount -= amount_difference;
-            } else {
-                let amount_difference = total_liquidation_value
-                    - balances.reserve.borrowed.amount
-                    - balances.regular.borrowed.amount;
-
-                // TODO: do we need update creation dates?
-                balances.reserve.borrowed.creation_date = block_time;
-                balances.reserve.borrowed.amount = Uint128::zero();
-
-                balances.regular.borrowed.creation_date = block_time;
-                balances.regular.borrowed.amount = Uint128::zero();
-                balances.regular.accumulated_rewards =
-                    max(rewards, amount_difference) - amount_difference;
-            }
+            return Ok(balances);
         }
 
-        balances.regular.main_pool += main_currency_pool_addition;
-        balances.regular.liquidation_bids -= total_liquidation_bids;
+        balances.reserve.withdrawn = Uint128::zero();
+
+        if main_currency_pool_addition <= balances.reserve.borrowed.amount {
+            balances.reserve.borrowed.amount -= main_currency_pool_addition;
+
+            return Ok(balances);
+        }
+
+        main_currency_pool_addition -= balances.reserve.borrowed.amount;
+        balances.reserve.borrowed.amount = Uint128::zero();
+        balances.regular.borrowed.amount -= main_currency_pool_addition;
 
         Ok(balances)
     })?;
 
     Ok(())
+}
+
+pub mod offchain {
+    use cosmwasm_std::{Addr, QuerierWrapper, StdResult, Uint128};
+
+    use goplend_base::{
+        error::ContractError,
+        lending_platform::{
+            msg::{
+                QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+                QueryLiquidationBidsByCollectionAddressListResponseItem, QueryMsg,
+            },
+            types::{Collateral, LiquidationBid},
+        },
+        oracle::{self, types::PriceItem},
+    };
+
+    pub fn get_borrowers(
+        querier_wrapper: &QuerierWrapper,
+        lending_platform_address: &Addr,
+        borrowers: &[String],
+    ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
+        let mut borrower_list = querier_wrapper
+            .query_wasm_smart::<Vec<QueryBorrowersResponseItem>>(
+                lending_platform_address,
+                &QueryMsg::QueryBorrowerList {
+                    start_after: None,
+                    limit: None,
+                },
+            )?;
+        borrower_list.retain(|x| borrowers.contains(&x.address.to_string()));
+
+        Ok(borrower_list)
+    }
+
+    pub fn get_collection_prices(
+        querier_wrapper: &QuerierWrapper,
+        oracle_address: &Addr,
+        borrower_list: &[QueryBorrowersResponseItem],
+        collection_and_collateral_list: &[QueryCollateralsResponseItem],
+    ) -> StdResult<Vec<PriceItem>> {
+        // collect collection addresses over current page borrowers
+        let borrower_addresses: Vec<Addr> =
+            borrower_list.iter().map(|x| x.address.to_owned()).collect();
+
+        let mut collection_addresses_by_borrowers: Vec<Addr> = collection_and_collateral_list
+            .iter()
+            .filter(|x| {
+                x.collateral
+                    .iter()
+                    .any(|y| borrower_addresses.contains(&y.owner))
+            })
+            .map(|x| x.address.to_owned())
+            .collect();
+
+        // dedup
+        collection_addresses_by_borrowers.sort_unstable();
+        collection_addresses_by_borrowers.dedup();
+
+        let collection_addresses = Some(
+            collection_addresses_by_borrowers
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>(),
+        );
+
+        querier_wrapper.query_wasm_smart::<Vec<PriceItem>>(
+            oracle_address,
+            &oracle::msg::QueryMsg::QueryPrices {
+                collection_addresses,
+                start_after: None,
+                limit: None,
+            },
+        )
+    }
+
+    pub fn get_collaterals_by_borrower(
+        collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
+        borrower_address: &Addr,
+    ) -> StdResult<Vec<(Addr, Collateral)>> {
+        // get collaterals owned by borrower
+        let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
+            collection_and_collateral_list
+                .iter()
+                .cloned()
+                .map(
+                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
+                        // single collateral per collection
+                        let collateral = collaterals
+                            .into_iter()
+                            .find(|collateral| collateral.owner == borrower_address)
+                            .ok_or(ContractError::CollateralIsNotFound)?;
+
+                        Ok((collection, collateral))
+                    },
+                )
+                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+
+        Ok(collection_and_collateral_list_by_borrower)
+    }
+
+    pub fn get_collateral_value(
+        collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
+        prices: &[PriceItem],
+        block_time: u64,
+        price_update_period: u64,
+    ) -> StdResult<Option<Uint128>> {
+        let mut is_price_outdated = false;
+
+        let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
+            Ok(Uint128::zero()),
+            |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+                let oracle::types::PriceItem {
+                    price,
+                    price_update_date,
+                    ..
+                } = prices
+                    .iter()
+                    .find(|x| x.address == collection_address)
+                    .ok_or(ContractError::PriceIsNotFound {
+                        val: collection_address.to_string(),
+                    })?;
+
+                if block_time - price_update_date > price_update_period {
+                    is_price_outdated = true;
+                }
+
+                // TODO: decimals, other currencies
+                Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+            },
+        )?;
+
+        Ok(if is_price_outdated {
+            None
+        } else {
+            Some(collateral_value)
+        })
+    }
+
+    // find bids containing at least 1 borrower's collateral token
+    pub fn get_collection_and_bid_list(
+        liquidation_bids: &[QueryLiquidationBidsByCollectionAddressListResponseItem],
+        collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
+    ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
+        let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
+
+        for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
+            let liquidation_bids_by_collection_address = liquidation_bids
+                .iter()
+                .find(|x| x.collection_address == collection_address);
+            if liquidation_bids_by_collection_address.is_none() {
+                continue;
+            }
+
+            for bid in &liquidation_bids_by_collection_address
+                .unwrap()
+                .liquidation_bids
+            {
+                if bid
+                    .token_id_list
+                    .iter()
+                    .any(|id| collateral.token_id_list.contains(id))
+                {
+                    collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));
+                }
+            }
+        }
+
+        Ok(collection_and_bid_list)
+    }
 }

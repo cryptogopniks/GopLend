@@ -50,7 +50,12 @@ pub fn execute(
         ExecuteMsg::RegisterCurrency { currency, creator } => {
             e::try_register_currency(deps, env, info, currency, creator)
         }
+
         ExecuteMsg::UpdateConfig { owner } => e::try_update_config(deps, env, info, owner),
+
+        ExecuteMsg::UpdateTokenOwner { denom, owner } => {
+            e::try_update_token_owner(deps, env, info, denom, owner)
+        }
     }
 }
 
@@ -63,6 +68,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
 
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+
+        QueryMsg::QueryTokenOwner { denom } => {
+            to_json_binary(&q::query_token_owner(deps, env, denom)?)
+        }
     }
 }
 

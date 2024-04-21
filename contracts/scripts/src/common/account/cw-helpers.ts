@@ -575,7 +575,7 @@ async function getCwExecHelpers(
       collateralMinValue,
       isMarketplaceInterfaceEnabled,
       mainCurrency,
-      minAvailableLiquidityMultiplier,
+      borrowersReserveFractionRatio,
       priceUpdatePeriod,
       unbondingPeriod,
     }: {
@@ -583,7 +583,7 @@ async function getCwExecHelpers(
       collateralMinValue?: number;
       isMarketplaceInterfaceEnabled?: boolean;
       mainCurrency?: CurrencyForTokenUnverified;
-      minAvailableLiquidityMultiplier?: number;
+      borrowersReserveFractionRatio?: number;
       priceUpdatePeriod?: number;
       unbondingPeriod?: number;
     },
@@ -596,8 +596,8 @@ async function getCwExecHelpers(
           collateralMinValue: collateralMinValue?.toString(),
           isMarketplaceInterfaceEnabled,
           mainCurrency,
-          minAvailableLiquidityMultiplier:
-            minAvailableLiquidityMultiplier?.toString(),
+          borrowersReserveFractionRatio:
+            borrowersReserveFractionRatio?.toString(),
           priceUpdatePeriod,
           unbondingPeriod,
         }),
@@ -991,6 +991,17 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMinterKujiraUpdateTokenOwner(
+    denom: string,
+    owner: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [minterKujiraMsgComposer.updateTokenOwner({ denom, owner })],
+      gasPrice
+    );
+  }
+
   // oracle
 
   async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
@@ -1061,6 +1072,7 @@ async function getCwExecHelpers(
       cwBurn: cwMinterKujiraBurn,
       cwRegisterCurrency: cwMinterKujiraRegisterCurrency,
       cwUpdateConfig: cwMinterKujiraUpdateConfig,
+      cwUpdateTokenOwner: cwMinterKujiraUpdateTokenOwner,
     },
     oracle: {
       cwUpdateConfig: cwOracleUpdateConfig,
@@ -1602,6 +1614,14 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return res;
   }
 
+  async function cwMinterKujiraQueryTokenOwner(denom: string) {
+    const res = await minterKujiraQueryClient.queryTokenOwner({ denom });
+    l();
+    li(res);
+    l();
+    return res;
+  }
+
   // oracle
 
   async function cwOracleQueryConfig() {
@@ -1692,6 +1712,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     minterKujira: {
       cwQueryCurrenciesByCreator: cwMinterKujiraQueryCurrenciesByCreator,
       cwQueryConfig: cwMinterKujiraQueryConfig,
+      cwQueryTokenOwner: cwMinterKujiraQueryTokenOwner,
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,

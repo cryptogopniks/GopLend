@@ -15,6 +15,11 @@ export interface MinterKujiraReadOnlyInterface {
     creator: string;
   }) => Promise<QueryCurrenciesFromCreatorResponse>;
   queryConfig: () => Promise<Config>;
+  queryTokenOwner: ({
+    denom
+  }: {
+    denom: string;
+  }) => Promise<Addr>;
 }
 export class MinterKujiraQueryClient implements MinterKujiraReadOnlyInterface {
   client: CosmWasmClient;
@@ -25,6 +30,7 @@ export class MinterKujiraQueryClient implements MinterKujiraReadOnlyInterface {
     this.contractAddress = contractAddress;
     this.queryCurrenciesByCreator = this.queryCurrenciesByCreator.bind(this);
     this.queryConfig = this.queryConfig.bind(this);
+    this.queryTokenOwner = this.queryTokenOwner.bind(this);
   }
 
   queryCurrenciesByCreator = async ({
@@ -41,6 +47,17 @@ export class MinterKujiraQueryClient implements MinterKujiraReadOnlyInterface {
   queryConfig = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_config: {}
+    });
+  };
+  queryTokenOwner = async ({
+    denom
+  }: {
+    denom: string;
+  }): Promise<Addr> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_token_owner: {
+        denom
+      }
     });
   };
 }
@@ -78,6 +95,13 @@ export interface MinterKujiraInterface extends MinterKujiraReadOnlyInterface {
   }: {
     owner?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateTokenOwner: ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class MinterKujiraClient extends MinterKujiraQueryClient implements MinterKujiraInterface {
   client: SigningCosmWasmClient;
@@ -94,6 +118,7 @@ export class MinterKujiraClient extends MinterKujiraQueryClient implements Minte
     this.burn = this.burn.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
+    this.updateTokenOwner = this.updateTokenOwner.bind(this);
   }
 
   createNative = async ({
@@ -156,6 +181,20 @@ export class MinterKujiraClient extends MinterKujiraQueryClient implements Minte
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
+        owner
+      }
+    }, fee, memo, _funds);
+  };
+  updateTokenOwner = async ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_token_owner: {
+        denom,
         owner
       }
     }, fee, memo, _funds);

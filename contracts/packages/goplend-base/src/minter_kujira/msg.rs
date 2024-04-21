@@ -38,6 +38,11 @@ pub enum ExecuteMsg {
     UpdateConfig {
         owner: Option<String>,
     },
+
+    UpdateTokenOwner {
+        denom: String,
+        owner: String,
+    },
 }
 
 #[cw_serde]
@@ -48,4 +53,7 @@ pub enum QueryMsg {
 
     #[returns(crate::minter_kujira::types::Config)]
     QueryConfig {},
+
+    #[returns(cosmwasm_std::Addr)]
+    QueryTokenOwner { denom: String },
 }

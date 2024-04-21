@@ -43,6 +43,13 @@ export interface MinterKujiraMsg {
   }: {
     owner?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateTokenOwner: ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class MinterKujiraMsgComposer implements MinterKujiraMsg {
   sender: string;
@@ -56,6 +63,7 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
     this.burn = this.burn.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
+    this.updateTokenOwner = this.updateTokenOwner.bind(this);
   }
 
   createNative = ({
@@ -155,6 +163,28 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
+            owner
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateTokenOwner = ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_token_owner: {
+            denom,
             owner
           }
         })),

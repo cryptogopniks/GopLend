@@ -19,7 +19,7 @@
               "LABEL": "adapter_scheduler",
               "INIT_MSG": "{\"clock_source\":\"offchain\",\"min_clock_period\":1}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira1svnxenvumlt8vpje7a2vue30xjnhyad6k59924q8zdaum4wspz8ssg459r\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m\"}}",
               "CODE": 3269,
               "ADDRESS": "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h"
             },
@@ -38,7 +38,7 @@
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
-              "CODE": 3294,
+              "CODE": 3313,
               "ADDRESS": "kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg"
             },
             {
@@ -56,8 +56,8 @@
               "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ukuji\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla\",\"minter\":\"kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg\",\"scheduler\":\"kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h\"}}",
-              "CODE": 3295,
-              "ADDRESS": "kujira1svnxenvumlt8vpje7a2vue30xjnhyad6k59924q8zdaum4wspz8ssg459r"
+              "CODE": 3312,
+              "ADDRESS": "kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m"
             }
           ],
           "IBC": []
