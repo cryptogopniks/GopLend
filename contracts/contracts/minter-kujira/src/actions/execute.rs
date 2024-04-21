@@ -212,6 +212,23 @@ pub fn try_update_config(
     Ok(response)
 }
 
+pub fn try_update_token_owner(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    denom: String,
+    owner: String,
+) -> Result<Response<KujiraMsg>, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+
+    let owner = deps.api.addr_validate(&owner)?;
+    let (currency, _) = OWNERS.load(deps.storage, &denom)?;
+    OWNERS.save(deps.storage, &denom, &(currency, owner))?;
+
+    Ok(Response::new().add_attributes([("action", "try_update_token_owner")]))
+}
+
 fn get_full_denom(creator: &Addr, subdenom: &str) -> String {
     format!("factory/{creator}/{subdenom}")
 }

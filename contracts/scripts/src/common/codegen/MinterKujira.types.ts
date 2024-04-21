@@ -30,6 +30,11 @@ export type ExecuteMsg = {
   update_config: {
     owner?: string | null;
   };
+} | {
+  update_token_owner: {
+    denom: string;
+    owner: string;
+  };
 };
 export type Uint128 = string;
 export type TokenUnverified = {
@@ -51,6 +56,10 @@ export type QueryMsg = {
   };
 } | {
   query_config: {};
+} | {
+  query_token_owner: {
+    denom: string;
+  };
 };
 export interface MigrateMsg {
   version: string;

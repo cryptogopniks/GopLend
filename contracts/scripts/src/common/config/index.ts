@@ -140,9 +140,9 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 3295,
+              CODE: 3312,
               ADDRESS:
-                "kujira1svnxenvumlt8vpje7a2vue30xjnhyad6k59924q8zdaum4wspz8ssg459r",
+                "kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m",
             },
           ],
           IBC: [],
