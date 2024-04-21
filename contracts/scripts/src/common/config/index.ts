@@ -140,7 +140,7 @@ const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 3312,
+              CODE: 3314,
               ADDRESS:
                 "kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m",
             },

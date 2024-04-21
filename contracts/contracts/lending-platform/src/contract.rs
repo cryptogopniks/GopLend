@@ -269,6 +269,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_collateral(deps, env, collection_address)?)
         }
 
+        QueryMsg::QueryCollateralByOwner { owner } => {
+            to_json_binary(&q::query_collateral_by_owner(deps, env, owner)?)
+        }
+
         QueryMsg::QueryLiquidationBidsByCollectionAddressList { start_after, limit } => {
             to_json_binary(&q::query_liquidation_bids_by_collection_address_list(
                 deps,

@@ -18,6 +18,13 @@ function li(object: any) {
   );
 }
 
+function logAndReturn<T>(object: T): T {
+  l();
+  li(object);
+  l();
+  return object;
+}
+
 function getLast<T>(arr: T[]) {
   return arr[arr.length - 1];
 }
@@ -58,4 +65,4 @@ function decrypt(encryptedData: string, key: string): string | undefined {
   }
 }
 
-export { Request, l, li, getLast, wait, encrypt, decrypt };
+export { Request, l, li, logAndReturn, getLast, wait, encrypt, decrypt };
