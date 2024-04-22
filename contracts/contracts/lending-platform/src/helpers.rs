@@ -42,8 +42,8 @@ pub fn verify_proposal_status(
 }
 
 pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let AddressConfig { admin, owner, .. } = ADDRESS_CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    let worker = unwrap_field(worker, "worker");
 
     match auth_type {
         AuthType::Any => {}
@@ -52,8 +52,8 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
                 Err(ContractError::Unauthorized)?;
             }
         }
@@ -72,7 +72,7 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
             let is_included = allowlist.iter().any(|some_address| {
                 if let Some(x) = some_address {
                     if sender == x {
@@ -83,7 +83,7 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 false
             });
 
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
                 Err(ContractError::Unauthorized)?;
             }
         }

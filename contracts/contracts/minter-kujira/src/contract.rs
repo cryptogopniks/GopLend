@@ -51,7 +51,11 @@ pub fn execute(
             e::try_register_currency(deps, env, info, currency, creator)
         }
 
-        ExecuteMsg::UpdateConfig { owner } => e::try_update_config(deps, env, info, owner),
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
+        ExecuteMsg::UpdateConfig { admin, worker } => {
+            e::try_update_config(deps, env, info, admin, worker)
+        }
 
         ExecuteMsg::UpdateTokenOwner { denom, owner } => {
             e::try_update_token_owner(deps, env, info, denom, owner)

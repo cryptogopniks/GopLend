@@ -14,12 +14,12 @@ use goplend_base::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
             IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
-            PROPOSAL_COUNTER, RATE_CONFIG, UNBONDERS,
+            PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
             CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal, ProposalStatus,
-            ProposalType, RateConfig, Unbonder, Vault,
+            ProposalType, RateConfig, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -1425,12 +1425,50 @@ pub fn try_liquidate(
     Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
 }
 
+pub fn try_accept_admin_role(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let block_time = env.block.time.seconds();
+    let TransferAdminState {
+        new_admin,
+        deadline,
+    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![Some(new_admin)],
+        },
+    )?;
+
+    if block_time >= deadline {
+        Err(ContractError::TransferAdminDeadline)?;
+    }
+
+    ADDRESS_CONFIG.update(deps.storage, |mut x| -> StdResult<AddressConfig> {
+        x.admin = sender_address;
+        Ok(x)
+    })?;
+
+    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
+        x.deadline = block_time;
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_address_config(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    owner: Option<String>,
+    admin: Option<String>,
+    worker: Option<String>,
     oracle: Option<String>,
     minter: Option<String>,
     scheduler: Option<String>,
@@ -1441,38 +1479,53 @@ pub fn try_update_address_config(
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
-    let mut attrs = Attrs::init("try_update_address_config");
 
-    ADDRESS_CONFIG.update(deps.storage, |mut config| -> StdResult<AddressConfig> {
-        if let Some(x) = owner {
-            config.owner = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("owner".to_string(), x));
-        }
+    let mut response = Response::new().add_attribute("action", "try_update_config");
+    let mut config = ADDRESS_CONFIG.load(deps.storage)?;
 
-        if let Some(x) = oracle {
-            config.oracle = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("oracle".to_string(), x));
-        }
+    if let Some(x) = admin {
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
 
-        if let Some(x) = minter {
-            config.minter = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("minter".to_string(), x));
-        }
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
 
-        if let Some(x) = scheduler {
-            config.scheduler = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("scheduler".to_string(), x));
-        }
+        response = response.add_attribute("admin", new_admin);
+    }
 
-        if let Some(x) = marketplace {
-            config.marketplace = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("marketplace".to_string(), x));
-        }
+    if let Some(x) = worker {
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("worker", x);
+    }
 
-        Ok(config)
-    })?;
+    if let Some(x) = oracle {
+        config.oracle = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("oracle", x);
+    }
 
-    Ok(Response::new().add_attributes(attrs))
+    if let Some(x) = minter {
+        config.minter = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("minter", x);
+    }
+
+    if let Some(x) = scheduler {
+        config.scheduler = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("scheduler", x);
+    }
+
+    if let Some(x) = marketplace {
+        config.marketplace = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("marketplace", x);
+    }
+
+    ADDRESS_CONFIG.save(deps.storage, &config)?;
+
+    Ok(response)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1618,7 +1671,7 @@ pub fn try_deposit_reserve_liquidity(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1688,7 +1741,7 @@ pub fn try_reinforce_bgl_token(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1712,7 +1765,7 @@ pub fn try_reinforce_bgl_token(
 
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
 
@@ -1721,7 +1774,7 @@ pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response,
 
 pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
 
@@ -1736,7 +1789,7 @@ pub fn try_distribute_funds(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     // verify weights
     // check if all weights are in range [0, 1]
@@ -1797,7 +1850,7 @@ pub fn try_remove_collection(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     // update state
     let collection_address = &deps.api.addr_validate(&address)?;
@@ -1814,7 +1867,7 @@ pub fn try_create_proposal(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     // verify proposal fields
     let Proposal {
@@ -1908,7 +1961,7 @@ pub fn try_reject_proposal(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     // update proposal status
     PROPOSALS.update(

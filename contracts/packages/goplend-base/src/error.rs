@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("It's too late to accept admin role!")]
+    TransferAdminDeadline,
+
     // adapter-scheduler
     #[error("Scheduler is executed too early!")]
     EarlyExecution,

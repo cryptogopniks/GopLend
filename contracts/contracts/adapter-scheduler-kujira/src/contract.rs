@@ -35,7 +35,11 @@ pub fn execute(
     match msg {
         ExecuteMsg::Push { targets } => e::try_push(deps, env, info, targets),
 
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
         ExecuteMsg::UpdateConfig {
+            admin,
+            worker,
             lending_platform,
             offchain_clock,
             clock_source,
@@ -44,6 +48,8 @@ pub fn execute(
             deps,
             env,
             info,
+            admin,
+            worker,
             lending_platform,
             offchain_clock,
             clock_source,

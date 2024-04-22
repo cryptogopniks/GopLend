@@ -1,15 +1,15 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
+    to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
 };
 
 use goplend_base::{
     adapters::scheduler::kujira::{
-        state::{CONFIG, LOG},
-        types::{ClockSource, Config},
+        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        types::{ClockSource, Config, TransferAdminState},
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
-    utils::{check_funds, unwrap_field, Attrs, FundsType},
+    utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
 
 // offchain handler
@@ -64,53 +64,170 @@ pub fn try_push(
         .add_attributes(vec![("action", "try_push")]))
 }
 
+pub fn try_accept_admin_role(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let block_time = env.block.time.seconds();
+    let TransferAdminState {
+        new_admin,
+        deadline,
+    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![Some(new_admin)],
+        },
+    )?;
+
+    if block_time >= deadline {
+        Err(ContractError::TransferAdminDeadline)?;
+    }
+
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+        x.admin = sender_address;
+        Ok(x)
+    })?;
+
+    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
+        x.deadline = block_time;
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
+}
+
 pub fn try_update_config(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
+    admin: Option<String>,
+    worker: Option<String>,
     lending_platform: Option<String>,
     offchain_clock: Option<Vec<String>>,
     clock_source: Option<ClockSource>,
     min_clock_period: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
-    let mut attrs = Attrs::init("try_update_config");
+    let mut response = Response::new().add_attribute("action", "try_update_config");
+    let mut config = CONFIG.load(deps.storage)?;
 
-    CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
-        if sender_address != config.admin {
-            Err(ContractError::Unauthorized)?;
+    if let Some(x) = admin {
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
+
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
+
+        response = response.add_attribute("admin", new_admin);
+    }
+
+    if let Some(x) = worker {
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("worker", x);
+    }
+
+    if let Some(x) = lending_platform {
+        config.lending_platform = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("lending_platform", x);
+    }
+
+    if let Some(x) = offchain_clock {
+        config.offchain_clock = Some(
+            x.into_iter()
+                .map(|y| deps.api.addr_validate(&y))
+                .collect::<StdResult<Vec<Addr>>>()?,
+        );
+        response =
+            response.add_attribute("offchain_clock", format!("{:#?}", config.offchain_clock));
+    }
+
+    if let Some(x) = clock_source {
+        config.clock_source = x.clone();
+        response = response.add_attribute("clock_source", format!("{:#?}", x));
+    }
+
+    if let Some(x) = min_clock_period {
+        config.min_clock_period = x;
+        response = response.add_attribute("min_clock_period", x.to_string());
+    }
+
+    Ok(response)
+}
+
+fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
+    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
+    let worker = unwrap_field(worker, "worker");
+
+    match auth_type {
+        AuthType::Any => {}
+        AuthType::Admin => {
+            if sender != admin {
+                Err(ContractError::Unauthorized)?;
+            }
         }
-
-        if let Some(x) = lending_platform {
-            config.lending_platform = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("lending_platform".to_string(), x));
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
+                Err(ContractError::Unauthorized)?;
+            }
         }
+        AuthType::Specified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
 
-        if let Some(x) = offchain_clock {
-            config.offchain_clock = Some(
-                x.into_iter()
-                    .map(|y| deps.api.addr_validate(&y))
-                    .collect::<StdResult<Vec<Addr>>>()?,
-            );
-            attrs.push((
-                "offchain_clock".to_string(),
-                format!("{:#?}", config.offchain_clock),
-            ));
+                false
+            });
+
+            if !is_included {
+                Err(ContractError::Unauthorized)?;
+            }
         }
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
 
-        if let Some(x) = clock_source {
-            config.clock_source = x.clone();
-            attrs.push(("clock_source".to_string(), format!("{:#?}", x)));
+                false
+            });
+
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
+                Err(ContractError::Unauthorized)?;
+            }
         }
+        AuthType::AdminOrSpecified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
 
-        if let Some(x) = min_clock_period {
-            config.min_clock_period = x;
-            attrs.push(("min_clock_period".to_string(), x.to_string()));
+                false
+            });
+
+            if !((sender == admin) || is_included) {
+                Err(ContractError::Unauthorized)?;
+            }
         }
+    };
 
-        Ok(config)
-    })?;
-
-    Ok(Response::new().add_attributes(attrs))
+    Ok(())
 }

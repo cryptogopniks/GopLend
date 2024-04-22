@@ -25,16 +25,13 @@ pub struct Metadata {
 #[cw_serde]
 pub struct Config {
     pub admin: Addr,
-    pub owner: Option<Addr>,
+    pub worker: Option<Addr>,
 }
 
-impl Config {
-    pub fn new(admin: &Addr, owner: &Option<Addr>) -> Self {
-        Self {
-            admin: admin.to_owned(),
-            owner: owner.to_owned(),
-        }
-    }
+#[cw_serde]
+pub struct TransferAdminState {
+    pub new_admin: Addr,
+    pub deadline: u64,
 }
 
 #[cw_serde]

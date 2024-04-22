@@ -8,7 +8,6 @@ use goplend_base::{
         types::Config,
     },
     error::ContractError,
-    utils::{validate_attr, Attrs},
 };
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,33 +20,32 @@ pub fn try_instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let mut attrs = Attrs::init("try_instantiate");
-    let api = deps.api;
+    let sender = &info.sender;
     let block_time = env.block.time.seconds();
 
     let offchain_clock = match msg.offchain_clock {
         None => None,
-        Some(x) => {
-            attrs.push(("offchain_clock".to_string(), format!("{:#?}", x)));
-
-            Some(
-                x.into_iter()
-                    .map(|y| deps.api.addr_validate(&y))
-                    .collect::<StdResult<Vec<Addr>>>()?,
-            )
-        }
+        Some(x) => Some(
+            x.into_iter()
+                .map(|y| deps.api.addr_validate(&y))
+                .collect::<StdResult<Vec<Addr>>>()?,
+        ),
     };
 
     CONFIG.save(
         deps.storage,
         &Config {
-            admin: info.sender,
-            lending_platform: validate_attr(
-                &mut attrs,
-                api,
-                "lending_platform",
-                &msg.lending_platform,
-            )?,
+            admin: sender.to_owned(),
+            worker: msg
+                .worker
+                .and_then(|x| Some(deps.api.addr_validate(&x)))
+                .transpose()
+                .unwrap_or(Some(sender.to_owned())),
+            lending_platform: msg
+                .lending_platform
+                .and_then(|x| Some(deps.api.addr_validate(&x)))
+                .transpose()
+                .unwrap_or(Some(sender.to_owned())),
             offchain_clock,
             clock_source: msg.clock_source.unwrap_or(CLOCK_SOURCE),
             min_clock_period: msg.min_clock_period.unwrap_or(MIN_CLOCK_PERIOD),
@@ -56,5 +54,5 @@ pub fn try_instantiate(
 
     LOG.push_back(deps.storage, &(block_time, LOG_COUNTER))?;
 
-    Ok(Response::new().add_attributes(attrs))
+    Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

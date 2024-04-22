@@ -162,7 +162,7 @@ pub struct ReserveBalances {
 #[cw_serde]
 pub struct AddressConfig {
     pub admin: Addr,
-    pub owner: Option<Addr>,
+    pub worker: Option<Addr>,
     pub oracle: Option<Addr>,
     pub minter: Option<Addr>,
     pub scheduler: Option<Addr>,
@@ -188,4 +188,10 @@ pub struct CommonConfig {
     pub borrowers_reserve_fraction_ratio: Decimal,
     pub price_update_period: u64,
     pub is_marketplace_interface_enabled: bool,
+}
+
+#[cw_serde]
+pub struct TransferAdminState {
+    pub new_admin: Addr,
+    pub deadline: u64,
 }

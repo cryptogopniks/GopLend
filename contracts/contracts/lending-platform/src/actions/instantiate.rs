@@ -48,7 +48,7 @@ pub fn try_instantiate(
         deps.storage,
         &AddressConfig {
             admin: info.sender,
-            owner: validate_attr(&mut attrs, api, "owner", &msg.owner)?,
+            worker: validate_attr(&mut attrs, api, "worker", &msg.worker)?,
             oracle: validate_attr(&mut attrs, api, "oracle", &msg.oracle)?,
             minter: validate_attr(&mut attrs, api, "minter", &msg.minter)?,
             scheduler: validate_attr(&mut attrs, api, "scheduler", &msg.scheduler)?,

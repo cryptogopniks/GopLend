@@ -11,7 +11,7 @@ use crate::{
 
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub owner: Option<String>,
+    pub worker: Option<String>,
     pub cw20_base_code_id: Option<u64>,
 }
 
@@ -72,6 +72,9 @@ pub enum ExecuteMsg {
         new_minter: String,
     },
 
+    // any
+    AcceptAdminRole {},
+
     // admin
     RegisterCurrency {
         currency: Currency<TokenUnverified>,
@@ -79,8 +82,14 @@ pub enum ExecuteMsg {
     },
 
     UpdateConfig {
-        owner: Option<String>,
+        admin: Option<String>,
+        worker: Option<String>,
         cw20_base_code_id: Option<u64>,
+    },
+
+    UpdateTokenOwner {
+        denom: String,
+        owner: String,
     },
 }
 
@@ -92,4 +101,7 @@ pub enum QueryMsg {
 
     #[returns(crate::minter::types::Config)]
     QueryConfig {},
+
+    #[returns(cosmwasm_std::Addr)]
+    QueryTokenOwner { denom: String },
 }

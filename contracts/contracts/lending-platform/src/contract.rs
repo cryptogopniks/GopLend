@@ -136,8 +136,11 @@ pub fn execute(
 
         ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
         ExecuteMsg::UpdateAddressConfig {
-            owner,
+            admin,
+            worker,
             oracle,
             minter,
             scheduler,
@@ -146,7 +149,8 @@ pub fn execute(
             deps,
             env,
             info,
-            owner,
+            admin,
+            worker,
             oracle,
             minter,
             scheduler,

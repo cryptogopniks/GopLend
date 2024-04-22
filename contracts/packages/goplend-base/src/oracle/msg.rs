@@ -4,6 +4,7 @@ use crate::oracle::types::RawPriceItem;
 
 #[cw_serde]
 pub struct InstantiateMsg {
+    pub worker: Option<String>,
     pub scheduler: Option<String>,
 }
 
@@ -14,11 +15,20 @@ pub struct MigrateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
+    // any
+    AcceptAdminRole {},
+
     // admin
-    UpdateConfig { scheduler: Option<String> },
+    UpdateConfig {
+        admin: Option<String>,
+        worker: Option<String>,
+        scheduler: Option<String>,
+    },
 
     // scheduler
-    UpdatePrices { data: Vec<RawPriceItem> },
+    UpdatePrices {
+        data: Vec<RawPriceItem>,
+    },
 }
 
 #[cw_serde]
