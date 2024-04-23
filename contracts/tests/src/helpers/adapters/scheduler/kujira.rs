@@ -16,6 +16,8 @@ pub trait AdapterSchedulerKujiraExtension {
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
@@ -39,6 +41,8 @@ impl AdapterSchedulerKujiraExtension for Project {
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
@@ -49,6 +53,8 @@ impl AdapterSchedulerKujiraExtension for Project {
                 sender.into(),
                 self.get_adapter_scheduler_kujira_address(),
                 &ExecuteMsg::UpdateConfig {
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                     offchain_clock: offchain_clock
                         .as_ref()

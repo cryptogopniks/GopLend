@@ -553,6 +553,8 @@ pub fn try_update_config(
         response = response.add_attribute("cw20_base_code_id", &x.to_string());
     }
 
+    CONFIG.save(deps.storage, &config)?;
+
     Ok(response)
 }
 

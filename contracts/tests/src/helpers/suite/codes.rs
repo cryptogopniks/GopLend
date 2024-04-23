@@ -38,7 +38,7 @@ pub trait WithCodes {
         &mut self,
         lending_platform_code_id: u64,
 
-        owner: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -63,19 +63,21 @@ pub trait WithCodes {
     fn instantiate_oracle(
         &mut self,
         oracle_code_id: u64,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> Addr;
 
     fn instantiate_minter(
         &mut self,
         minter_code_id: u64,
-        owner: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         cw20_base_code_id: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_adapter_scheduler_kujira(
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
@@ -233,7 +235,7 @@ impl WithCodes for Project {
         &mut self,
         lending_platform_code_id: u64,
 
-        owner: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -258,7 +260,7 @@ impl WithCodes for Project {
             lending_platform_code_id,
             "lending_platform",
             &goplend_base::lending_platform::msg::InstantiateMsg {
-                owner: owner.as_ref().map(|x| x.to_string()),
+                worker: worker.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 minter: minter.as_ref().map(|x| x.to_string()),
                 scheduler: scheduler.as_ref().map(|x| x.to_string()),
@@ -287,12 +289,14 @@ impl WithCodes for Project {
     fn instantiate_oracle(
         &mut self,
         oracle_code_id: u64,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> Addr {
         self.instantiate_contract(
             oracle_code_id,
             "oracle",
             &goplend_base::oracle::msg::InstantiateMsg {
+                worker: worker.as_ref().map(|x| x.to_string()),
                 scheduler: scheduler.as_ref().map(|x| x.to_string()),
             },
         )
@@ -301,14 +305,14 @@ impl WithCodes for Project {
     fn instantiate_minter(
         &mut self,
         minter_code_id: u64,
-        owner: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         cw20_base_code_id: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             minter_code_id,
             "minter",
             &goplend_base::minter::msg::InstantiateMsg {
-                owner: owner.as_ref().map(|x| x.to_string()),
+                worker: worker.as_ref().map(|x| x.to_string()),
                 cw20_base_code_id: cw20_base_code_id.to_owned(),
             },
         )
@@ -317,6 +321,7 @@ impl WithCodes for Project {
     fn instantiate_adapter_scheduler_kujira(
         &mut self,
         adapter_scheduler_kujira_code_id: u64,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
@@ -326,6 +331,7 @@ impl WithCodes for Project {
             adapter_scheduler_kujira_code_id,
             "adapter_scheduler_kujira",
             &goplend_base::adapters::scheduler::kujira::msg::InstantiateMsg {
+                worker: worker.as_ref().map(|x| x.to_string()),
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                 offchain_clock: offchain_clock
                     .as_ref()

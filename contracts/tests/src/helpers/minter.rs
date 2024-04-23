@@ -100,7 +100,8 @@ pub trait MinterExtension {
     fn minter_try_update_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<Addr>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<Addr>,
         cw20_base_code_id: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
@@ -323,7 +324,8 @@ impl MinterExtension for Project {
     fn minter_try_update_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<Addr>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<Addr>,
         cw20_base_code_id: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -331,7 +333,8 @@ impl MinterExtension for Project {
                 sender.into(),
                 self.get_minter_address(),
                 &ExecuteMsg::UpdateConfig {
-                    owner: owner.as_ref().map(|x| x.to_string()),
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     cw20_base_code_id: cw20_base_code_id.to_owned(),
                 },
                 &[],

@@ -18,6 +18,8 @@ pub trait OracleExtension {
     fn oracle_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> StdResult<AppResponse>;
 
@@ -44,6 +46,8 @@ impl OracleExtension for Project {
     fn oracle_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -51,6 +55,8 @@ impl OracleExtension for Project {
                 sender.into(),
                 self.get_oracle_address(),
                 &ExecuteMsg::UpdateConfig {
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     scheduler: scheduler.as_ref().map(|x| x.to_string()),
                 },
                 &[],

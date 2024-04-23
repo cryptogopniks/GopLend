@@ -163,6 +163,8 @@ pub fn try_update_config(
         response = response.add_attribute("min_clock_period", x.to_string());
     }
 
+    CONFIG.save(deps.storage, &config)?;
+
     Ok(response)
 }
 

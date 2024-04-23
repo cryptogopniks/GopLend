@@ -1462,6 +1462,7 @@ pub fn try_accept_admin_role(
     Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
 }
 
+// TODO: distribute parameters by roles
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_address_config(
     deps: DepsMut,

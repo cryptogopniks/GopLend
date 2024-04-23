@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult, Uint128,
+    Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
 };
 
 use kujira::{DenomMsg, KujiraMsg};
@@ -243,24 +243,7 @@ pub fn try_update_config(
         response = response.add_attribute("worker", x);
     }
 
-    // TODO: is it required?
-    // fake msg to get proper response
-    if env.block.time.seconds() < 10 {
-        let owners = OWNERS
-            .range(deps.storage, None, None, Order::Ascending)
-            .take(1)
-            .flatten()
-            .collect::<Vec<(String, (Currency<Token>, Addr))>>();
-        let (denom, (_, owner)) = owners.first().ok_or(ContractError::AssetIsNotFound)?;
-
-        let msg: CosmosMsg<KujiraMsg> =
-            CosmosMsg::Custom(KujiraMsg::Denom(DenomMsg::ChangeAdmin {
-                denom: denom.into(),
-                address: owner.to_owned(),
-            }));
-
-        response = response.add_message(msg);
-    }
+    CONFIG.save(deps.storage, &config)?;
 
     Ok(response)
 }

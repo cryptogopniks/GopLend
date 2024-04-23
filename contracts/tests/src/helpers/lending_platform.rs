@@ -103,7 +103,8 @@ pub trait LendingPlatformExtension {
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<ProjectAccount>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -286,11 +287,6 @@ pub trait LendingPlatformExtension {
     ) -> StdResult<Uint128>;
 
     fn lending_platform_query_amounts(&self) -> StdResult<QueryAmountsResponse>;
-
-    // fn lending_platform_query_targets(
-    //     &self,
-    //     borrowers: &[impl ToString],
-    // ) -> StdResult<Vec<LiquidationItem>>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -480,7 +476,8 @@ impl LendingPlatformExtension for Project {
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<ProjectAccount>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -491,7 +488,8 @@ impl LendingPlatformExtension for Project {
                 sender.into(),
                 self.get_lending_platform_address(),
                 &ExecuteMsg::UpdateAddressConfig {
-                    owner: owner.as_ref().map(|x| x.to_string()),
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
                     minter: minter.as_ref().map(|x| x.to_string()),
                     scheduler: scheduler.as_ref().map(|x| x.to_string()),
