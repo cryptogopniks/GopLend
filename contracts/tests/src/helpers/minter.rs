@@ -97,6 +97,8 @@ pub trait MinterExtension {
         creator: &Addr,
     ) -> StdResult<AppResponse>;
 
+    fn minter_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
     fn minter_try_update_config(
         &mut self,
         sender: ProjectAccount,
@@ -315,6 +317,18 @@ impl MinterExtension for Project {
                     currency: Currency::new(&currency.clone().token.into(), currency.decimals),
                     creator: creator.to_string(),
                 },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn minter_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_minter_address(),
+                &ExecuteMsg::AcceptAdminRole {},
                 &[],
             )
             .map_err(parse_err)

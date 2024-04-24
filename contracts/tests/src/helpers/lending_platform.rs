@@ -100,6 +100,11 @@ pub trait LendingPlatformExtension {
         targets: &[LiquidationItem],
     ) -> StdResult<AppResponse>;
 
+    fn lending_platform_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
@@ -467,6 +472,21 @@ impl LendingPlatformExtension for Project {
                 &ExecuteMsg::Liquidate {
                     targets: targets.to_owned(),
                 },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::AcceptAdminRole {},
                 &[],
             )
             .map_err(parse_err)

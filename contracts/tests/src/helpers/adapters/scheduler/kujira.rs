@@ -13,6 +13,11 @@ use goplend_base::{
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait AdapterSchedulerKujiraExtension {
+    fn adapter_scheduler_kujira_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,
@@ -37,6 +42,21 @@ pub trait AdapterSchedulerKujiraExtension {
 }
 
 impl AdapterSchedulerKujiraExtension for Project {
+    #[track_caller]
+    fn adapter_scheduler_kujira_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_adapter_scheduler_kujira_address(),
+                &ExecuteMsg::AcceptAdminRole {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
     #[track_caller]
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
