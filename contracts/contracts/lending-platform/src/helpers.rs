@@ -314,17 +314,21 @@ pub fn update_borrowers_storages(
     };
 
     // update borrowers
-    BORROWERS.save(
-        storage,
-        borrower_address,
-        &Borrower {
-            accumulated_loan,
-            loan: Vault {
-                creation_date: block_time,
-                amount,
+    if (amount + accumulated_loan).is_zero() {
+        BORROWERS.remove(storage, borrower_address);
+    } else {
+        BORROWERS.save(
+            storage,
+            borrower_address,
+            &Borrower {
+                accumulated_loan,
+                loan: Vault {
+                    creation_date: block_time,
+                    amount,
+                },
             },
-        },
-    )?;
+        )?;
+    }
 
     Ok(())
 }
@@ -384,7 +388,14 @@ pub fn update_balances(
 
         main_currency_pool_addition -= balances.reserve.borrowed.amount;
         balances.reserve.borrowed.amount = Uint128::zero();
-        balances.regular.borrowed.amount -= main_currency_pool_addition;
+
+        if balances.regular.borrowed.amount >= main_currency_pool_addition {
+            balances.regular.borrowed.amount -= main_currency_pool_addition;
+        } else {
+            balances.regular.main_pool +=
+                main_currency_pool_addition - balances.regular.borrowed.amount;
+            balances.regular.borrowed.amount = Uint128::zero();
+        }
 
         Ok(balances)
     })?;

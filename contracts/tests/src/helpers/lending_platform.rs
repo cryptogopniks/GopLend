@@ -224,7 +224,12 @@ pub trait LendingPlatformExtension {
         limit: &Option<u32>,
     ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
-    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral>;
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Vec<Collateral>>;
+
+    fn lending_platform_query_collateral_by_owner(
+        &self,
+        owner: ProjectAccount,
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
     fn lending_platform_query_liquidation_bids_by_collection_address_list(
         &self,
@@ -835,11 +840,24 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral> {
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Vec<Collateral>> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryCollateral {
                 collection_address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collateral_by_owner(
+        &self,
+        owner: ProjectAccount,
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollateralByOwner {
+                owner: owner.to_string(),
             },
         )
     }

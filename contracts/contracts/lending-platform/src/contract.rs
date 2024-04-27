@@ -351,10 +351,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         QueryMsg::QueryAmounts {} => to_json_binary(&q::query_amounts(deps, env)?),
-        //
-        // QueryMsg::QueryTargets { borrowers } => {
-        //     to_json_binary(&q::query_targets(deps, env, borrowers)?)
-        // }
     }
 }
 
