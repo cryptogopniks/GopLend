@@ -1619,52 +1619,6 @@ fn repay_withdraw_loop() -> StdResult<()> {
     Ok(())
 }
 
-// #[test]
-// fn price_ratio_with_different_decimals() -> StdResult<()> {
-//     let mut project = Project::new();
-
-//     const DEPOSIT_AMOUNT: u128 = 1_000_000_000_000_000_000;
-
-//     project
-//         .lending_platform_try_update_config(
-//             ProjectAccount::Admin,
-//             &None,
-//             &None,
-//             &Some(Currency::new(
-//                 &TokenUnverified::new_cw20(ProjectToken::Inj.into()),
-//                 ProjectToken::Inj.get_decimals(),
-//             )),
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//         )
-//         .unwrap();
-
-//     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-//     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
-
-//     project.lending_platform_try_deposit(
-//         ProjectAccount::Alice,
-//         DEPOSIT_AMOUNT,
-//         ProjectToken::Inj,
-//     )?;
-
-//     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-//     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
-
-//     let balances = project.lending_platform_query_balances()?;
-//     assert_that(&(balances.total_main_currency_pool / balances.total_bgl_currency_supply).u128())
-//         .is_equal_to(1_000_000_000_000);
-
-//     Ok(())
-// }
-
 #[test]
 fn deposit_improper_main_currency() -> StdResult<()> {
     let mut project = Project::new();

@@ -74,8 +74,6 @@ pub fn try_deposit(
         balances.regular.main_pool,
         balances.regular.bgl_supply,
         balances.regular.accumulated_rewards,
-        common_config.main_currency.decimals,
-        bgl_currency.decimals,
     );
 
     balances.regular.deposited += asset_amount;
@@ -133,8 +131,6 @@ pub fn try_unbond(
         balances.regular.main_pool,
         balances.regular.bgl_supply,
         balances.regular.accumulated_rewards,
-        common_config.main_currency.decimals,
-        bgl_currency.decimals,
     );
 
     balances.regular.unbonded += main_token_amount;
@@ -1702,8 +1698,6 @@ pub fn try_deposit_reserve_liquidity(
         balances.regular.main_pool,
         balances.regular.bgl_supply,
         rewards,
-        common_config.main_currency.decimals,
-        bgl_currency.decimals,
     );
 
     // it doesn't affect on deposit APR

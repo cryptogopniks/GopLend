@@ -414,9 +414,6 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
     let block_time = env.block.time.seconds();
     let balances = BALANCES.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let main_currency = common_config.main_currency;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
 
     let regular_rewards = math::calc_expected_rewards(
         block_time,
@@ -440,8 +437,6 @@ pub fn query_bgl_currency_to_main_currency_price(deps: Deps, env: Env) -> StdRes
         balances.regular.main_pool,
         balances.regular.bgl_supply,
         rewards,
-        main_currency.decimals,
-        bgl_currency.decimals,
     ))
 }
 
@@ -647,7 +642,6 @@ pub fn query_conditional_ltv(
                 })?;
             }
 
-            // TODO: decimals, other currencies
             Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
         },
     )?;
@@ -784,7 +778,6 @@ pub fn query_available_to_borrow(
                 })?;
             }
 
-            // TODO: decimals, other currencies
             Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
         },
     )?;
