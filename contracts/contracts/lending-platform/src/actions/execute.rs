@@ -1462,7 +1462,6 @@ pub fn try_accept_admin_role(
     Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
 }
 
-// TODO: distribute parameters by roles
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_address_config(
     deps: DepsMut,
@@ -1481,7 +1480,7 @@ pub fn try_update_address_config(
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
 
-    let mut response = Response::new().add_attribute("action", "try_update_config");
+    let mut response = Response::new().add_attribute("action", "try_update_address_config");
     let mut config = ADDRESS_CONFIG.load(deps.storage)?;
 
     if check_authorization(deps.as_ref(), &sender_address, AuthType::Admin).is_ok() {
@@ -1602,20 +1601,21 @@ pub fn try_update_common_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
-    let mut attrs = Attrs::init("try_update_common_config");
+    let mut response = Response::new().add_attribute("action", "try_update_common_config");
+    let mut config = COMMON_CONFIG.load(deps.storage)?;
 
-    COMMON_CONFIG.update(deps.storage, |mut config| -> StdResult<CommonConfig> {
+    if check_authorization(deps.as_ref(), &sender_address, AuthType::Admin).is_ok() {
         if let Some(x) = main_currency {
             if !balances.regular.main_pool.is_zero() {
                 Err(ContractError::ChangingCurrency)?;
             }
 
             config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
-            attrs.push(("main_currency".to_string(), x.token.get_symbol()));
+            response = response.add_attribute("main_currency", x.token.get_symbol());
         }
 
         if let Some(x) = bgl_currency {
@@ -1624,44 +1624,38 @@ pub fn try_update_common_config(
             }
 
             config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
-            attrs.push(("bgl_currency".to_string(), x.token.get_symbol()));
+            response = response.add_attribute("bgl_currency", x.token.get_symbol());
         }
 
         if let Some(x) = unbonding_period {
             config.unbonding_period = x;
-            attrs.push(("unbonding_period".to_string(), x.to_string()));
+            response = response.add_attribute("unbonding_period", x.to_string());
         }
 
         if let Some(x) = collateral_min_value {
             config.collateral_min_value = x;
-            attrs.push(("collateral_min_value".to_string(), x.to_string()));
+            response = response.add_attribute("collateral_min_value", x.to_string());
         }
 
         if let Some(x) = borrowers_reserve_fraction_ratio {
             config.borrowers_reserve_fraction_ratio = x;
-            attrs.push((
-                "borrowers_reserve_fraction_ratio".to_string(),
-                x.to_string(),
-            ));
+            response = response.add_attribute("borrowers_reserve_fraction_ratio", x.to_string());
         }
+    }
 
-        if let Some(x) = price_update_period {
-            config.price_update_period = x;
-            attrs.push(("price_update_period".to_string(), x.to_string()));
-        }
+    if let Some(x) = price_update_period {
+        config.price_update_period = x;
+        response = response.add_attribute("price_update_period", x.to_string());
+    }
 
-        if let Some(x) = is_marketplace_interface_enabled {
-            config.is_marketplace_interface_enabled = x;
-            attrs.push((
-                "is_marketplace_interface_enabled".to_string(),
-                x.to_string(),
-            ));
-        }
+    if let Some(x) = is_marketplace_interface_enabled {
+        config.is_marketplace_interface_enabled = x;
+        response = response.add_attribute("is_marketplace_interface_enabled", x.to_string());
+    }
 
-        Ok(config)
-    })?;
+    COMMON_CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attributes(attrs))
+    Ok(response)
 }
 
 pub fn try_deposit_reserve_liquidity(
