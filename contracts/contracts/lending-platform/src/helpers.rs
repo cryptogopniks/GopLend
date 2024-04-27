@@ -528,7 +528,6 @@ pub mod offchain {
                     is_price_outdated = true;
                 }
 
-                // TODO: decimals, other currencies
                 Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
             },
         )?;

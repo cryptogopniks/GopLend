@@ -19,13 +19,12 @@ use goplend_base::{
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
             CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal, ProposalStatus,
-            ProposalType, RateConfig, TransferAdminState, Unbonder, Vault,
+            ProposalType, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
     utils::{
-        add_funds_to_exec_msg, check_funds, get_transfer_msg, unwrap_field, Attrs, AuthType,
-        FundsType,
+        add_funds_to_exec_msg, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
     },
 };
 
@@ -1472,58 +1471,65 @@ pub fn try_update_address_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
-
-    let mut response = Response::new().add_attribute("action", "try_update_address_config");
     let mut config = ADDRESS_CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
-    if check_authorization(deps.as_ref(), &sender_address, AuthType::Admin).is_ok() {
-        if let Some(x) = admin {
-            let block_time = env.block.time.seconds();
-            let new_admin = &deps.api.addr_validate(&x)?;
+    if let Some(x) = admin {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
 
-            TRANSFER_ADMIN_STATE.save(
-                deps.storage,
-                &TransferAdminState {
-                    new_admin: new_admin.to_owned(),
-                    deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-                },
-            )?;
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
 
-            response = response.add_attribute("admin", new_admin);
-        }
+        is_config_updated = true;
+    }
 
-        if let Some(x) = worker {
-            config.worker = Some(deps.api.addr_validate(&x)?);
-            response = response.add_attribute("worker", x);
-        }
+    if let Some(x) = worker {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
     }
 
     if let Some(x) = oracle {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.oracle = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("oracle", x);
+        is_config_updated = true;
     }
 
     if let Some(x) = minter {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.minter = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("minter", x);
+        is_config_updated = true;
     }
 
     if let Some(x) = scheduler {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.scheduler = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("scheduler", x);
+        is_config_updated = true;
     }
 
     if let Some(x) = marketplace {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.marketplace = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("marketplace", x);
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
     }
 
     ADDRESS_CONFIG.save(deps.storage, &config)?;
 
-    Ok(response)
+    Ok(Response::new().add_attribute("action", "try_update_address_config"))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1540,46 +1546,55 @@ pub fn try_update_rate_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
-    let mut attrs = Attrs::init("try_update_rate_config");
+    let mut config = RATE_CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
-    RATE_CONFIG.update(deps.storage, |mut config| -> StdResult<RateConfig> {
-        if let Some(x) = borrow_apr {
-            config.borrow_apr = x;
-            attrs.push(("borrow_apr".to_string(), x.to_string()));
-        }
+    if let Some(x) = borrow_apr {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.borrow_apr = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = borrow_fee_rate {
-            config.borrow_fee_rate = x;
-            attrs.push(("borrow_fee_rate".to_string(), x.to_string()));
-        }
+    if let Some(x) = borrow_fee_rate {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.borrow_fee_rate = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = liquidation_fee_rate {
-            config.liquidation_fee_rate = x;
-            attrs.push(("liquidation_fee_rate".to_string(), x.to_string()));
-        }
+    if let Some(x) = liquidation_fee_rate {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.liquidation_fee_rate = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = discount_min_rate {
-            config.discount_min_rate = x;
-            attrs.push(("discount_min_rate".to_string(), x.to_string()));
-        }
+    if let Some(x) = discount_min_rate {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.discount_min_rate = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = discount_max_rate {
-            config.discount_max_rate = x;
-            attrs.push(("discount_max_rate".to_string(), x.to_string()));
-        }
+    if let Some(x) = discount_max_rate {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.discount_max_rate = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = bid_min_rate {
-            config.bid_min_rate = x;
-            attrs.push(("bid_min_rate".to_string(), x.to_string()));
-        }
+    if let Some(x) = bid_min_rate {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.bid_min_rate = x;
+        is_config_updated = true;
+    }
 
-        Ok(config)
-    })?;
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
+    }
 
-    Ok(Response::new().add_attributes(attrs))
+    RATE_CONFIG.save(deps.storage, &config)?;
+
+    Ok(Response::new().add_attribute("action", "try_update_rate_config"))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1597,61 +1612,72 @@ pub fn try_update_common_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
-    let mut response = Response::new().add_attribute("action", "try_update_common_config");
     let mut config = COMMON_CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
-    if check_authorization(deps.as_ref(), &sender_address, AuthType::Admin).is_ok() {
-        if let Some(x) = main_currency {
-            if !balances.regular.main_pool.is_zero() {
-                Err(ContractError::ChangingCurrency)?;
-            }
+    if let Some(x) = main_currency {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
-            config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
-            response = response.add_attribute("main_currency", x.token.get_symbol());
+        if !balances.regular.main_pool.is_zero() {
+            Err(ContractError::ChangingCurrency)?;
         }
 
-        if let Some(x) = bgl_currency {
-            if !balances.regular.bgl_supply.is_zero() {
-                Err(ContractError::ChangingCurrency)?;
-            }
+        config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
+        is_config_updated = true;
+    }
 
-            config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
-            response = response.add_attribute("bgl_currency", x.token.get_symbol());
+    if let Some(x) = bgl_currency {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+
+        if !balances.regular.bgl_supply.is_zero() {
+            Err(ContractError::ChangingCurrency)?;
         }
 
-        if let Some(x) = unbonding_period {
-            config.unbonding_period = x;
-            response = response.add_attribute("unbonding_period", x.to_string());
-        }
+        config.bgl_currency = Some(Currency::new(&x.token.verify(deps.api)?, x.decimals));
+        is_config_updated = true;
+    }
 
-        if let Some(x) = collateral_min_value {
-            config.collateral_min_value = x;
-            response = response.add_attribute("collateral_min_value", x.to_string());
-        }
+    if let Some(x) = unbonding_period {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.unbonding_period = x;
+        is_config_updated = true;
+    }
 
-        if let Some(x) = borrowers_reserve_fraction_ratio {
-            config.borrowers_reserve_fraction_ratio = x;
-            response = response.add_attribute("borrowers_reserve_fraction_ratio", x.to_string());
-        }
+    if let Some(x) = collateral_min_value {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.collateral_min_value = x;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = borrowers_reserve_fraction_ratio {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.borrowers_reserve_fraction_ratio = x;
+        is_config_updated = true;
     }
 
     if let Some(x) = price_update_period {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.price_update_period = x;
-        response = response.add_attribute("price_update_period", x.to_string());
+        is_config_updated = true;
     }
 
     if let Some(x) = is_marketplace_interface_enabled {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.is_marketplace_interface_enabled = x;
-        response = response.add_attribute("is_marketplace_interface_enabled", x.to_string());
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
     }
 
     COMMON_CONFIG.save(deps.storage, &config)?;
 
-    Ok(response)
+    Ok(Response::new().add_attribute("action", "try_update_common_config"))
 }
 
 pub fn try_deposit_reserve_liquidity(

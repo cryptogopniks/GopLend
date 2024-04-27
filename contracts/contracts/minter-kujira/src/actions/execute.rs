@@ -218,12 +218,11 @@ pub fn try_update_config(
     worker: Option<String>,
 ) -> Result<Response<KujiraMsg>, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
-
-    let mut response = Response::new().add_attribute("action", "try_update_config");
     let mut config = CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
     if let Some(x) = admin {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         let block_time = env.block.time.seconds();
         let new_admin = &deps.api.addr_validate(&x)?;
 
@@ -235,17 +234,23 @@ pub fn try_update_config(
             },
         )?;
 
-        response = response.add_attribute("admin", new_admin);
+        is_config_updated = true;
     }
 
     if let Some(x) = worker {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.worker = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("worker", x);
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
     }
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(response)
+    Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
 pub fn try_update_token_owner(

@@ -5209,3 +5209,104 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
 
     Ok(())
 }
+
+#[test]
+fn authorization() -> StdResult<()> {
+    let mut project = Project::new();
+
+    // set collateral min value
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Admin,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::NoParameters);
+
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Alice,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &Some(1),
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::Unauthorized);
+
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Owner,
+            &None,
+            &None,
+            &Some(1),
+            &None,
+            &None,
+            &None,
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::Unauthorized);
+
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Owner,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(true),
+    )?;
+
+    // transfer admin
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Admin,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    project.wait(2 * 7 * 24 * 3600);
+
+    let res = project
+        .lending_platform_try_accept_admin_role(ProjectAccount::Alice)
+        .unwrap_err();
+    assert_error(&res, ContractError::TransferAdminDeadline);
+
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Admin,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    project.lending_platform_try_accept_admin_role(ProjectAccount::Alice)?;
+
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Alice,
+        &None,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    Ok(())
+}

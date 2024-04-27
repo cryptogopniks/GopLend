@@ -113,61 +113,67 @@ pub fn try_update_config(
     min_clock_period: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-
-    let mut response = Response::new().add_attribute("action", "try_update_config");
     let mut config = CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
-    if check_authorization(deps.as_ref(), &sender_address, AuthType::Admin).is_ok() {
-        if let Some(x) = admin {
-            let block_time = env.block.time.seconds();
-            let new_admin = &deps.api.addr_validate(&x)?;
+    if let Some(x) = admin {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
 
-            TRANSFER_ADMIN_STATE.save(
-                deps.storage,
-                &TransferAdminState {
-                    new_admin: new_admin.to_owned(),
-                    deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-                },
-            )?;
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
 
-            response = response.add_attribute("admin", new_admin);
-        }
+        is_config_updated = true;
+    }
 
-        if let Some(x) = worker {
-            config.worker = Some(deps.api.addr_validate(&x)?);
-            response = response.add_attribute("worker", x);
-        }
+    if let Some(x) = worker {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
     }
 
     if let Some(x) = lending_platform {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.lending_platform = Some(deps.api.addr_validate(&x)?);
-        response = response.add_attribute("lending_platform", x);
+        is_config_updated = true;
     }
 
     if let Some(x) = offchain_clock {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.offchain_clock = Some(
             x.into_iter()
                 .map(|y| deps.api.addr_validate(&y))
                 .collect::<StdResult<Vec<Addr>>>()?,
         );
-        response =
-            response.add_attribute("offchain_clock", format!("{:#?}", config.offchain_clock));
+        is_config_updated = true;
     }
 
     if let Some(x) = clock_source {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.clock_source = x.clone();
-        response = response.add_attribute("clock_source", format!("{:#?}", x));
+        is_config_updated = true;
     }
 
     if let Some(x) = min_clock_period {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.min_clock_period = x;
-        response = response.add_attribute("min_clock_period", x.to_string());
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
     }
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(response)
+    Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {

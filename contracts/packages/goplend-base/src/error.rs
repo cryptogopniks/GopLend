@@ -37,6 +37,9 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Parameters are not provided!")]
+    NoParameters,
+
     #[error("It's too late to accept admin role!")]
     TransferAdminDeadline,
 
