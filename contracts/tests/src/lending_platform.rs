@@ -5183,6 +5183,10 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     // 570 / 800 = 0.7125
     assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
 
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    assert_that(&available_to_borrow.u128()).is_equal_to(11);
+
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
@@ -5205,6 +5209,10 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     // 570 / 700 = 0.814286359806479669
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
 
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    assert_that(&available_to_borrow.u128()).is_equal_to(0);
+
     // process with liquidations
     let borrowers = project
         .lending_platform_query_borrower_list(&None, &None)?
@@ -5224,6 +5232,8 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
     let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
 
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
     let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
     let collateral_by_owner =
@@ -5232,6 +5242,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
     // borrower was removed from storage
     assert_that(&ltv_list_after).is_equal_to(vec![]);
+    assert_that(&available_to_borrow.u128()).is_equal_to(0);
     // borrower was removed from storage
     assert_that(&borrower).is_equal_to(Borrower::default());
 
