@@ -29,7 +29,7 @@ use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
     suite::{
-        core::{assert_error, Project},
+        core::{assert_error, Project, INITIAL_LIQUIDITY},
         types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
@@ -2395,14 +2395,13 @@ fn clear_borrowers_storage() -> StdResult<()> {
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    // TODO
-    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    // assert_that(&borrowers.len()).is_equal_to(1);
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    assert_that(&borrowers.len()).is_equal_to(1);
 
-    // project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
-    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    // assert_that(&borrowers.is_empty()).is_equal_to(true);
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    assert_that(&borrowers.is_empty()).is_equal_to(true);
 
     Ok(())
 }
@@ -4070,6 +4069,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         }],
     )?;
 
+    // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
 
     // deposit
@@ -4130,8 +4130,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let balances_after = project.lending_platform_query_balances()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -4166,13 +4166,41 @@ fn single_discount_liquidation() -> StdResult<()> {
             }],
         }];
 
-    // TODO
-    // println!("{:#?}", platform_revenue);
-    // println!("{:#?}", balances_after);
-
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.713846153846153846");
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
     assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    // 2 * 650 * 0.95 * 0.05 = 62
+    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(62);
+    assert_that(&balances_after).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(AMOUNT_TO_BORROW),
+            unbonded: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797519,
+                amount: Uint128::new(0),
+            },
+            accumulated_rewards: Uint128::new(0),
+            liquidation_bids: Uint128::new(
+                LIQUIDATION_BID
+                    - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT)))
+                    .to_uint_ceil()
+                    .u128(),
+            ),
+            main_pool: Uint128::new(AMOUNT_TO_BORROW),
+            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(INITIAL_LIQUIDITY),
+            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797519,
+                // 1700 - 2 * 650 * 0.95 * 0.95 = 526
+                amount: Uint128::new(526),
+            },
+        },
+    });
 
     Ok(())
 }
@@ -4333,8 +4361,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let balances_after = project.lending_platform_query_balances()?;
+    let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -4385,13 +4413,45 @@ fn multiple_discount_liquidation() -> StdResult<()> {
             ],
         }];
 
-    // TODO
-    // println!("{:#?}", platform_revenue);
-    // println!("{:#?}", balances_after);
-
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
     assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    // 2 * 650 * 0.95 * 0.05 = 62
+    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(62);
+    assert_that(&balances_after).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(AMOUNT_TO_BORROW),
+            unbonded: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797529,
+                amount: Uint128::new(0),
+            },
+            accumulated_rewards: Uint128::new(0),
+            liquidation_bids: Uint128::new(
+                LIQUIDATION_BID
+                    - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT_1)))
+                    .to_uint_ceil()
+                    .u128()
+                    - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT_0)))
+                    .to_uint_ceil()
+                    .u128(),
+            ),
+            main_pool: Uint128::new(AMOUNT_TO_BORROW),
+            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(INITIAL_LIQUIDITY),
+            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797529,
+                // 1700 - 680 * 0.95 - 680 * 0.8 * 0.95 = 538
+                amount: Uint128::new(538),
+            },
+        },
+    });
 
     Ok(())
 }
@@ -4586,12 +4646,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         }],
     )?;
 
-    // let ltv_before =
-    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    // let collaterals_before = project.lending_platform_query_collateral_list(&None,&None)?;
-    // let liquidation_bids_before =
-    //     project.lending_platform_query_liquidation_bids_by_collection_address_list(&None,&None)?;
-
     // process with liquidations
     let borrowers = project
         .lending_platform_query_borrower_list(&None, &None)?
@@ -4611,8 +4665,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![
         QueryCollateralsResponseItem {
