@@ -345,18 +345,6 @@ fn log_zero_cross() -> StdResult<()> {
             )?;
         }
 
-        // project.lending_platform_try_update_bid(
-        //     ProjectAccount::Alice,
-        //     &[CollectionInfo {
-        //         collection_address: ProjectNft::Gopniks.to_string(),
-        //         token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
-        //     }],
-        //     bids[0].creation_date,
-        //     LIQUIDATION_BID,
-        //     "0",
-        //     ProjectCoin::Stars,
-        // )?;
-
         project.lending_platform_try_place_bid(
             ProjectAccount::Alice,
             &[CollectionInfo {

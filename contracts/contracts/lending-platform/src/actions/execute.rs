@@ -917,8 +917,13 @@ pub fn try_place_bid(
             .into_iter()
             .fold(Ok(vec![]), |acc, cur| -> StdResult<Vec<String>> {
                 // doesn't allow to place bids on own collateral
-                if cur.owner == sender_address {
-                    Err(ContractError::Unauthorized)?;
+                if cur.owner == sender_address
+                    && cur
+                        .token_id_list
+                        .iter()
+                        .any(|id| token_id_list.contains(id))
+                {
+                    Err(ContractError::OwnCollateralBids)?;
                 }
 
                 Ok(vec![acc?, cur.token_id_list].concat())
@@ -1019,7 +1024,6 @@ pub fn try_place_bid(
     Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
 }
 
-// TODO: make possible to change tokens
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_bid(
     deps: DepsMut,
@@ -1100,6 +1104,31 @@ pub fn try_update_bid(
             Err(ContractError::CollectionIsNotFound)?;
         }
 
+        // check if token_id's are in collateral
+        let collateral_tokens = COLLATERALS
+            .load(deps.storage, &collection_address)?
+            .into_iter()
+            .fold(Ok(vec![]), |acc, cur| -> StdResult<Vec<String>> {
+                // doesn't allow to place bids on own collateral
+                if cur.owner == sender_address
+                    && cur
+                        .token_id_list
+                        .iter()
+                        .any(|id| token_id_list.contains(id))
+                {
+                    Err(ContractError::OwnCollateralBids)?;
+                }
+
+                Ok(vec![acc?, cur.token_id_list].concat())
+            })?;
+
+        if !token_id_list
+            .iter()
+            .all(|id| collateral_tokens.contains(id))
+        {
+            Err(ContractError::NftIsNotFound)?;
+        }
+
         // update new bid value
         new_bid_value += bid_amount * Uint128::from(token_id_list.len() as u128);
 
@@ -1110,21 +1139,6 @@ pub fn try_update_bid(
             |x| -> StdResult<Vec<LiquidationBid>> {
                 let bids = match x {
                     Some(mut y) => {
-                        let bids_by_liquidator: Vec<LiquidationBid> = y
-                            .iter()
-                            .cloned()
-                            .filter(|z| z.liquidator == sender_address)
-                            .collect();
-
-                        // check if all token_id_list are included in bid.token_id_list
-                        if !token_id_list.iter().all(|id| {
-                            bids_by_liquidator
-                                .iter()
-                                .any(|bid| bid.token_id_list.contains(id))
-                        }) {
-                            Err(ContractError::NftIsNotFound)?;
-                        }
-
                         // replace bids
                         y = y
                             .into_iter()
