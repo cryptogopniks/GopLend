@@ -45,6 +45,6 @@ pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<(u64,u32)>)]
-    QueryLog { amount: u32 },
+    #[returns(Vec<super::types::Log>)]
+    QueryLog {},
 }

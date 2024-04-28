@@ -111,6 +111,9 @@ pub enum ContractError {
     #[error("Empty price vector!")]
     EmptyPriceVector,
 
+    #[error("Empty target list!")]
+    EmptyTargetList,
+
     #[error("Collateral is not found!")]
     CollateralIsNotFound,
 

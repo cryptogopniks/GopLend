@@ -4,7 +4,7 @@ use cw_multi_test::{AppResponse, Executor};
 use goplend_base::{
     adapters::scheduler::kujira::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{ClockSource, Config},
+        types::{ClockSource, Config, Log},
     },
     error::parse_err,
     lending_platform::types::LiquidationItem,
@@ -38,7 +38,7 @@ pub trait AdapterSchedulerKujiraExtension {
 
     fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config>;
 
-    fn adapter_scheduler_kujira_query_log(&self, amount: u32) -> StdResult<Vec<(u64, u32)>>;
+    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>>;
 }
 
 impl AdapterSchedulerKujiraExtension for Project {
@@ -119,10 +119,10 @@ impl AdapterSchedulerKujiraExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_query_log(&self, amount: u32) -> StdResult<Vec<(u64, u32)>> {
+    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>> {
         self.app.wrap().query_wasm_smart(
             self.get_adapter_scheduler_kujira_address(),
-            &QueryMsg::QueryLog { amount },
+            &QueryMsg::QueryLog {},
         )
     }
 }

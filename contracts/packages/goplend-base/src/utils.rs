@@ -166,12 +166,14 @@ pub fn check_funds(
                 let Coin { denom, amount } = one_coin(info)?;
 
                 Ok((info.sender.clone(), amount, Token::new_native(&denom)))
-            } else {
+            } else if sender.is_some() && amount.is_some() {
                 Ok((
-                    deps.api.addr_validate(&sender.unwrap_or_default())?,
-                    amount.unwrap_or_default(),
+                    deps.api.addr_validate(&sender.unwrap())?,
+                    amount.unwrap(),
                     Token::new_cw20(&info.sender),
                 ))
+            } else {
+                Err(ContractError::WrongFundsCombination)?
             }
         }
     }

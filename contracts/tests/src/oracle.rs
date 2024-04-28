@@ -1,3 +1,4 @@
+use cw_multi_test::Executor;
 use speculoos::assert_that;
 
 use cosmwasm_std::{StdResult, Uint128};
@@ -5,7 +6,10 @@ use cosmwasm_std::{StdResult, Uint128};
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::ContractError,
-    oracle::types::{PriceItem, RawPriceItem},
+    oracle::{
+        msg::MigrateMsg,
+        types::{PriceItem, RawPriceItem},
+    },
 };
 
 use crate::helpers::{
@@ -190,4 +194,21 @@ fn zeros_in_prices() -> StdResult<()> {
     assert_error(&res, ContractError::ZerosInPrices);
 
     Ok(())
+}
+
+#[test]
+fn migrate_default() {
+    let mut project = Project::new();
+
+    project
+        .app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            project.get_oracle_address(),
+            &MigrateMsg {
+                version: "1.0.0".to_string(),
+            },
+            project.get_oracle_code_id(),
+        )
+        .unwrap();
 }

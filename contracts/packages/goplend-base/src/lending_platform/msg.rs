@@ -73,16 +73,16 @@ pub enum ExecuteMsg {
         discount: Decimal,
     },
 
-    RemoveBid {
-        collections: Vec<CollectionInfo<String>>,
-        creation_date: u64,
-    },
-
     UpdateBid {
         collections: Vec<CollectionInfo<String>>,
         creation_date: u64,
         amount: Uint128, // amount is required to decrease bid
         discount: Decimal,
+    },
+
+    RemoveBid {
+        collection_addresses: Vec<String>,
+        creation_date: u64,
     },
 
     // scheduler

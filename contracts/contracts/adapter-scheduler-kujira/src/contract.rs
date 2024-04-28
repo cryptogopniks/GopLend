@@ -64,7 +64,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryLog { amount } => to_json_binary(&q::query_log(deps, env, amount)?),
+        QueryMsg::QueryLog {} => to_json_binary(&q::query_log(deps, env)?),
     }
 }
 

@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use goplend_base::{
     adapters::scheduler::kujira::{
         state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{ClockSource, Config, TransferAdminState},
+        types::{ClockSource, Config, Log, TransferAdminState},
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
@@ -20,7 +20,7 @@ pub fn try_push(
     targets: Vec<LiquidationItem>,
 ) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
-    let sender = &info.sender;
+    let sender = info.sender;
     let Config {
         lending_platform,
         offchain_clock,
@@ -34,22 +34,33 @@ pub fn try_push(
     }
 
     if let ClockSource::Offchain = clock_source {
-        if !unwrap_field(offchain_clock, "offchain_clock")?.contains(sender) {
+        if !unwrap_field(offchain_clock, "offchain_clock")?.contains(&sender) {
             Err(ContractError::Unauthorized)?;
         }
     }
 
-    let (time, cnt) = unwrap_field(LOG.back(deps.storage)?, "log")?;
-    let cnt = if cnt == u32::MAX { 0 } else { cnt + 1 };
+    let Log {
+        block_time: block_time_prev,
+        counter,
+        ..
+    } = unwrap_field(LOG.back(deps.storage)?, "log")?;
+    let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
-    if block_time < time + min_clock_period {
+    if block_time < block_time_prev + min_clock_period {
         Err(ContractError::EarlyExecution)?;
     }
 
-    if LOG.len(deps.storage)? == u32::MAX - 1 {
+    if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
         LOG.pop_front(deps.storage)?;
     }
-    LOG.push_back(deps.storage, &(block_time, cnt))?;
+    LOG.push_back(
+        deps.storage,
+        &Log {
+            block_time,
+            sender,
+            counter,
+        },
+    )?;
 
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),

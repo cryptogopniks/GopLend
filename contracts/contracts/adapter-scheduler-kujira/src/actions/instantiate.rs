@@ -5,7 +5,7 @@ use goplend_base::{
     adapters::scheduler::kujira::{
         msg::InstantiateMsg,
         state::{CLOCK_SOURCE, CONFIG, CONTRACT_NAME, LOG, LOG_COUNTER, MIN_CLOCK_PERIOD},
-        types::Config,
+        types::{Config, Log},
     },
     error::ContractError,
 };
@@ -52,7 +52,14 @@ pub fn try_instantiate(
         },
     )?;
 
-    LOG.push_back(deps.storage, &(block_time, LOG_COUNTER))?;
+    LOG.push_back(
+        deps.storage,
+        &Log {
+            block_time,
+            sender: sender.to_owned(),
+            counter: LOG_COUNTER,
+        },
+    )?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

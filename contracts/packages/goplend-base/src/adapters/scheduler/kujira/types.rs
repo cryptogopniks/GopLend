@@ -22,3 +22,10 @@ pub struct TransferAdminState {
     pub new_admin: Addr,
     pub deadline: u64,
 }
+
+#[cw_serde]
+pub struct Log {
+    pub block_time: u64,
+    pub sender: Addr,
+    pub counter: u8,
+}

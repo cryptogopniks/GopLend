@@ -15,10 +15,7 @@ use crate::helpers::suite::{
 };
 
 pub trait OracleExtension {
-    fn oracle_platform_try_accept_admin_role(
-        &mut self,
-        sender: ProjectAccount,
-    ) -> StdResult<AppResponse>;
+    fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
     fn oracle_try_update_config(
         &mut self,
@@ -48,10 +45,7 @@ pub trait OracleExtension {
 
 impl OracleExtension for Project {
     #[track_caller]
-    fn oracle_platform_try_accept_admin_role(
-        &mut self,
-        sender: ProjectAccount,
-    ) -> StdResult<AppResponse> {
+    fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),

@@ -113,9 +113,9 @@ pub fn execute(
         } => e::try_place_bid(deps, env, info, collections, discount, None, None),
 
         ExecuteMsg::RemoveBid {
-            collections,
+            collection_addresses,
             creation_date,
-        } => e::try_remove_bid(deps, env, info, collections, creation_date),
+        } => e::try_remove_bid(deps, env, info, collection_addresses, creation_date),
 
         ExecuteMsg::UpdateBid {
             collections,

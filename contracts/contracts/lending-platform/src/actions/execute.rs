@@ -12,7 +12,7 @@ use goplend_base::{
     lending_platform::{
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
-            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_AMOUNT,
+            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
@@ -984,7 +984,7 @@ pub fn try_place_bid(
     }
 
     // limit max collection amount
-    if bid_amount_by_liquidator > LIQUIDATION_BID_MAX_AMOUNT {
+    if bid_amount_by_liquidator > LIQUIDATION_BID_MAX_COLLECTION_AMOUNT {
         Err(ContractError::ExceededBidAmount)?;
     }
 
@@ -1019,126 +1019,7 @@ pub fn try_place_bid(
     Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
 }
 
-pub fn try_remove_bid(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    collections: Vec<CollectionInfo<String>>,
-    creation_date: u64,
-) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
-
-    let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
-
-    if collections.iter().any(|x| x.token_id_list.is_empty()) {
-        Err(ContractError::EmptyCollectionList)?;
-    }
-
-    // check collection address duplication
-    let mut collection_addresses: Vec<String> = collections
-        .iter()
-        .map(|x| x.collection_address.to_string())
-        .collect();
-
-    collection_addresses.sort_unstable();
-    collection_addresses.dedup();
-
-    if collections.len() != collection_addresses.len() {
-        Err(ContractError::CollectionDuplication)?;
-    }
-
-    // check token duplication
-    if collections.iter().any(|x| {
-        let mut token_list = x.token_id_list.clone();
-        token_list.sort_unstable();
-        token_list.dedup();
-
-        token_list.len() != x.token_id_list.len()
-    }) {
-        Err(ContractError::NftDuplication)?;
-    }
-
-    let mut amount_to_withdraw = Uint128::zero();
-    let mut collection_addresses: Vec<Addr> = vec![];
-    let mut liquidator = LIQUIDATORS.load(deps.storage, &sender_address)?;
-
-    for CollectionInfo {
-        collection_address,
-        token_id_list,
-    } in collections
-    {
-        // validate collection
-        let collection_address = deps.api.addr_validate(&collection_address)?;
-        if !COLLECTIONS.has(deps.storage, &collection_address) {
-            Err(ContractError::CollectionIsNotFound)?;
-        }
-        collection_addresses.push(collection_address.clone());
-
-        // update bids
-        let liquidation_bids = LIQUIDATION_BIDS
-            .load(deps.storage, &collection_address)
-            .map_err(|_| ContractError::CollectionIsNotFound)?;
-
-        let bids_by_liquidator: Vec<LiquidationBid> = liquidation_bids
-            .iter()
-            .cloned()
-            .filter(|z| z.liquidator == sender_address)
-            .collect();
-
-        // check if all token_id_list are included in bid.token_id_list
-        if !token_id_list.iter().all(|id| {
-            bids_by_liquidator
-                .iter()
-                .any(|bid| bid.token_id_list.contains(id))
-        }) {
-            Err(ContractError::NftIsNotFound)?;
-        }
-
-        // remove bids
-        let liquidation_bids = liquidation_bids
-            .into_iter()
-            .filter(|z| {
-                if z.liquidator == sender_address && z.creation_date == creation_date {
-                    amount_to_withdraw += z.amount;
-
-                    false
-                } else {
-                    true
-                }
-            })
-            .collect::<Vec<LiquidationBid>>();
-
-        if liquidation_bids.is_empty() {
-            LIQUIDATION_BIDS.remove(deps.storage, &collection_address);
-            liquidator
-                .collection_addresses
-                .retain(|x| x != collection_address);
-        } else {
-            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
-        }
-    }
-
-    if liquidator.collection_addresses.is_empty() {
-        LIQUIDATORS.remove(deps.storage, &sender_address);
-    } else {
-        LIQUIDATORS.save(deps.storage, &sender_address, &liquidator)?;
-    }
-
-    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
-        x.regular.liquidation_bids -= amount_to_withdraw;
-
-        Ok(x)
-    })?;
-
-    let msg = get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?;
-
-    Ok(Response::new()
-        .add_message(msg)
-        .add_attributes(vec![("action", "try_remove_bid")]))
-}
-
+// TODO: make possible to change tokens
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_bid(
     deps: DepsMut,
@@ -1152,23 +1033,8 @@ pub fn try_update_bid(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
-
-    let (sender_address, asset_amount, asset_info) = if sender.is_some() && amount.is_some() {
-        (
-            deps.api.addr_validate(&sender.unwrap_or_default())?,
-            amount.unwrap_or_default(),
-            Token::new_cw20(&info.sender),
-        )
-    } else if sender.is_none() && amount.is_none() {
-        (
-            info.sender,
-            Uint128::default(),
-            Token::new_native(&String::default()),
-        )
-    } else {
-        Err(ContractError::WrongFundsCombination)?
-    };
-
+    let (sender_address, asset_amount, asset_info) =
+        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let block_time = env.block.time.seconds();
@@ -1222,7 +1088,6 @@ pub fn try_update_bid(
 
     let mut current_bid_value = Uint128::zero();
     let mut new_bid_value = Uint128::zero();
-    let mut collection_addresses: Vec<Addr> = vec![];
 
     for CollectionInfo {
         collection_address,
@@ -1234,7 +1099,6 @@ pub fn try_update_bid(
         if !COLLECTIONS.has(deps.storage, &collection_address) {
             Err(ContractError::CollectionIsNotFound)?;
         }
-        collection_addresses.push(collection_address.clone());
 
         // update new bid value
         new_bid_value += bid_amount * Uint128::from(token_id_list.len() as u128);
@@ -1336,6 +1200,91 @@ pub fn try_update_bid(
     Err(ContractError::WrongFundsCombination)
 }
 
+pub fn try_remove_bid(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    collection_addresses: Vec<String>,
+    creation_date: u64,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
+
+    if collection_addresses.is_empty() {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection address duplication
+    let mut collection_addresses_after: Vec<String> = collection_addresses.clone();
+
+    collection_addresses_after.sort_unstable();
+    collection_addresses_after.dedup();
+
+    if collection_addresses_after.len() != collection_addresses.len() {
+        Err(ContractError::CollectionDuplication)?;
+    }
+
+    let mut amount_to_withdraw = Uint128::zero();
+    let mut liquidator = LIQUIDATORS.load(deps.storage, &sender_address)?;
+
+    for collection_address in collection_addresses {
+        // validate collection
+        let collection_address = deps.api.addr_validate(&collection_address)?;
+        if !COLLECTIONS.has(deps.storage, &collection_address) {
+            Err(ContractError::CollectionIsNotFound)?;
+        }
+
+        // update bids
+        let liquidation_bids = LIQUIDATION_BIDS
+            .load(deps.storage, &collection_address)
+            .map_err(|_| ContractError::CollectionIsNotFound)?;
+
+        // remove bids
+        let liquidation_bids = liquidation_bids
+            .into_iter()
+            .filter(|z| {
+                if z.liquidator == sender_address && z.creation_date == creation_date {
+                    amount_to_withdraw += z.amount;
+
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect::<Vec<LiquidationBid>>();
+
+        if liquidation_bids.is_empty() {
+            LIQUIDATION_BIDS.remove(deps.storage, &collection_address);
+            liquidator
+                .collection_addresses
+                .retain(|x| x != collection_address);
+        } else {
+            LIQUIDATION_BIDS.save(deps.storage, &collection_address, &liquidation_bids)?;
+        }
+    }
+
+    if liquidator.collection_addresses.is_empty() {
+        LIQUIDATORS.remove(deps.storage, &sender_address);
+    } else {
+        LIQUIDATORS.save(deps.storage, &sender_address, &liquidator)?;
+    }
+
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.regular.liquidation_bids -= amount_to_withdraw;
+
+        Ok(x)
+    })?;
+
+    let msg = get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?;
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attributes(vec![("action", "try_remove_bid")]))
+}
+
 pub fn try_liquidate(
     deps: DepsMut,
     env: Env,
@@ -1358,6 +1307,10 @@ pub fn try_liquidate(
             allowlist: vec![Some(scheduler)],
         },
     )?;
+
+    if targets.is_empty() {
+        Err(ContractError::EmptyTargetList)?;
+    }
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();

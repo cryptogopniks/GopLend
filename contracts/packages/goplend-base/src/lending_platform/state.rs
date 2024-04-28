@@ -26,7 +26,7 @@ pub const BID_MIN_RATE: &str = "0.1";
 pub const MAX_DEPOSIT_APR: &str = "100"; // 10_000 %
 
 pub const LIQUIDATION_BID_MAX_TOKEN_AMOUNT: usize = 5;
-pub const LIQUIDATION_BID_MAX_AMOUNT: usize = 5;
+pub const LIQUIDATION_BID_MAX_COLLECTION_AMOUNT: usize = 5;
 
 pub const COLLATERAL_MIN_VALUE: u128 = 500_000_000;
 

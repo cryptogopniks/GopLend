@@ -251,9 +251,22 @@ pub fn update_liquidation_storages(
 
                 bid
             })
+            .filter(|bid| !bid.amount.is_zero() || !bid.token_id_list.is_empty())
             .collect();
 
-        LIQUIDATION_BIDS.save(storage, collection, &bids)?;
+        let bids_sum = bids
+            .iter()
+            .fold(Uint128::zero(), |acc, cur| acc + cur.amount);
+        let tokens_sum = Uint128::new(
+            bids.iter()
+                .fold(0, |acc, cur| acc + cur.token_id_list.len()) as u128,
+        );
+
+        if bids_sum.is_zero() && tokens_sum.is_zero() {
+            LIQUIDATION_BIDS.remove(storage, collection);
+        } else {
+            LIQUIDATION_BIDS.save(storage, collection, &bids)?;
+        }
 
         // update collaterals
         let mut collaterals = COLLATERALS.load(storage, collection)?;

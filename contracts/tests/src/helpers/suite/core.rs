@@ -403,6 +403,23 @@ impl Project {
         }
     }
 
+    pub fn transfer_nft(
+        &mut self,
+        owner: ProjectAccount,
+        recipient: impl ToString,
+        collection: ProjectNft,
+        token_id: impl ToString,
+    ) {
+        let msg = &cw721_base::msg::ExecuteMsg::TransferNft::<Empty, Empty> {
+            recipient: recipient.to_string(),
+            token_id: token_id.to_string(),
+        };
+
+        self.app
+            .execute_contract(owner.into(), collection.into(), msg, &[])
+            .unwrap();
+    }
+
     pub fn query_all_nft(&self, owner: ProjectAccount) -> Vec<(ProjectNft, cw721::TokensResponse)> {
         let mut collection_and_tokens_response_list: Vec<(ProjectNft, cw721::TokensResponse)> =
             vec![];

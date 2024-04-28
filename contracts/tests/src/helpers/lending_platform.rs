@@ -80,7 +80,7 @@ pub trait LendingPlatformExtension {
     fn lending_platform_try_remove_bid(
         &mut self,
         sender: ProjectAccount,
-        collections: &[CollectionInfo<String>],
+        collection_addresses: &[String],
         creation_date: u64,
     ) -> StdResult<AppResponse>;
 
@@ -424,26 +424,6 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_remove_bid(
-        &mut self,
-        sender: ProjectAccount,
-        collections: &[CollectionInfo<String>],
-        creation_date: u64,
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_lending_platform_address(),
-                &ExecuteMsg::RemoveBid {
-                    collections: collections.to_owned(),
-                    creation_date,
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
     fn lending_platform_try_update_bid(
         &mut self,
         sender: ProjectAccount,
@@ -462,6 +442,26 @@ impl LendingPlatformExtension for Project {
         };
 
         add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset)
+    }
+
+    #[track_caller]
+    fn lending_platform_try_remove_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collection_addresses: &[String],
+        creation_date: u64,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::RemoveBid {
+                    collection_addresses: collection_addresses.to_owned(),
+                    creation_date,
+                },
+                &[],
+            )
+            .map_err(parse_err)
     }
 
     #[track_caller]

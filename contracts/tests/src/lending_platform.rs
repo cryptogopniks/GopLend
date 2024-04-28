@@ -1,3 +1,4 @@
+use cw_multi_test::Executor;
 use goplend_base::{
     adapters::scheduler::kujira::types::ClockSource,
     assets::{Currency, Funds, Token, TokenUnverified},
@@ -5,7 +6,7 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         msg::{
-            QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+            MigrateMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryLiquidationBidsByCollectionAddressListResponseItem,
         },
         state::{
@@ -34,7 +35,7 @@ use crate::helpers::{
     },
 };
 
-fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<LiquidationItem>> {
+pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<LiquidationItem>> {
     let rate_config = project.lending_platform_query_rate_config()?;
     let common_config = project.lending_platform_query_common_config()?;
     let borrower_list = helpers::offchain::get_borrowers(
@@ -2492,10 +2493,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
 
     project.lending_platform_try_remove_bid(
         ProjectAccount::Alice,
-        &[CollectionInfo {
-            collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
-        }],
+        &[ProjectNft::Gopniks.to_string()],
         block_time,
     )?;
 
@@ -2632,11 +2630,13 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
-        ProjectAccount::Scheduler,
-        ClockSource::Offchain,
-        &targets,
-    )?;
+    project
+        .adapter_scheduler_kujira_try_push(
+            ProjectAccount::Scheduler,
+            ClockSource::Offchain,
+            &targets,
+        )
+        .unwrap_err();
 
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
@@ -5621,4 +5621,21 @@ fn big_numbers() -> StdResult<()> {
     let _res = project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
 
     Ok(())
+}
+
+#[test]
+fn migrate_default() {
+    let mut project = Project::new();
+
+    project
+        .app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            project.get_lending_platform_address(),
+            &MigrateMsg {
+                version: "1.0.0".to_string(),
+            },
+            project.get_lending_platform_code_id(),
+        )
+        .unwrap();
 }
