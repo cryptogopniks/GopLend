@@ -105,6 +105,7 @@ pub trait LendingPlatformExtension {
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,

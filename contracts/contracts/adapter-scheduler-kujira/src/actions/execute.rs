@@ -112,6 +112,7 @@ pub fn try_accept_admin_role(
     Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
     deps: DepsMut,
     env: Env,
@@ -167,7 +168,7 @@ pub fn try_update_config(
 
     if let Some(x) = clock_source {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.clock_source = x.clone();
+        config.clock_source = x;
         is_config_updated = true;
     }
 

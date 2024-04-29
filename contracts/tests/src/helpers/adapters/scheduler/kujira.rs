@@ -18,6 +18,7 @@ pub trait AdapterSchedulerKujiraExtension {
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,

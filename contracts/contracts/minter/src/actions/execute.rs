@@ -550,7 +550,7 @@ pub fn try_update_config(
 
     if let Some(x) = cw20_base_code_id {
         config.cw20_base_code_id = Some(x);
-        response = response.add_attribute("cw20_base_code_id", &x.to_string());
+        response = response.add_attribute("cw20_base_code_id", x.to_string());
     }
 
     CONFIG.save(deps.storage, &config)?;

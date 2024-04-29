@@ -28,12 +28,12 @@ pub fn try_instantiate(
             admin: sender.to_owned(),
             worker: msg
                 .worker
-                .and_then(|x| Some(deps.api.addr_validate(&x)))
+                .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
             scheduler: msg
                 .scheduler
-                .and_then(|x| Some(deps.api.addr_validate(&x)))
+                .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
         },
