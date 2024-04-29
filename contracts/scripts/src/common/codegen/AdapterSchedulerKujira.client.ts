@@ -6,15 +6,11 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerKujira.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerKujira.types";
 export interface AdapterSchedulerKujiraReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
-  queryLog: ({
-    amount
-  }: {
-    amount: number;
-  }) => Promise<ArrayOfTupleOfUint64AndUint32>;
+  queryLog: () => Promise<ArrayOfLog>;
 }
 export class AdapterSchedulerKujiraQueryClient implements AdapterSchedulerKujiraReadOnlyInterface {
   client: CosmWasmClient;
@@ -32,31 +28,30 @@ export class AdapterSchedulerKujiraQueryClient implements AdapterSchedulerKujira
       query_config: {}
     });
   };
-  queryLog = async ({
-    amount
-  }: {
-    amount: number;
-  }): Promise<ArrayOfTupleOfUint64AndUint32> => {
+  queryLog = async (): Promise<ArrayOfLog> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_log: {
-        amount
-      }
+      query_log: {}
     });
   };
 }
 export interface AdapterSchedulerKujiraInterface extends AdapterSchedulerKujiraReadOnlyInterface {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
+    admin,
     clockSource,
     lendingPlatform,
     minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
+    admin?: string;
     clockSource?: ClockSource;
     lendingPlatform?: string;
     minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   push: ({
     targets
@@ -74,27 +69,39 @@ export class AdapterSchedulerKujiraClient extends AdapterSchedulerKujiraQueryCli
     this.client = client;
     this.sender = sender;
     this.contractAddress = contractAddress;
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.push = this.push.bind(this);
   }
 
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   updateConfig = async ({
+    admin,
     clockSource,
     lendingPlatform,
     minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
+    admin?: string;
     clockSource?: ClockSource;
     lendingPlatform?: string;
     minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
+        admin,
         clock_source: clockSource,
         lending_platform: lendingPlatform,
         min_clock_period: minClockPeriod,
-        offchain_clock: offchainClock
+        offchain_clock: offchainClock,
+        worker
       }
     }, fee, memo, _funds);
   };

@@ -5,7 +5,7 @@
 */
 
 export interface InstantiateMsg {
-  owner?: string | null;
+  worker?: string | null;
 }
 export type ExecuteMsg = {
   create_native: {
@@ -22,13 +22,16 @@ export type ExecuteMsg = {
 } | {
   burn: {};
 } | {
+  accept_admin_role: {};
+} | {
   register_currency: {
     creator: string;
     currency: CurrencyForTokenUnverified;
   };
 } | {
   update_config: {
-    owner?: string | null;
+    admin?: string | null;
+    worker?: string | null;
   };
 } | {
   update_token_owner: {
@@ -67,7 +70,7 @@ export interface MigrateMsg {
 export type Addr = string;
 export interface Config {
   admin: Addr;
-  owner?: Addr | null;
+  worker?: Addr | null;
 }
 export type Token = {
   native: {

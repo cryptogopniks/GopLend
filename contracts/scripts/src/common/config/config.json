@@ -19,16 +19,16 @@
               "LABEL": "adapter_scheduler",
               "INIT_MSG": "{\"clock_source\":\"offchain\",\"min_clock_period\":1}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m\"}}",
-              "CODE": 3269,
-              "ADDRESS": "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h"
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l\"}}",
+              "CODE": 3347,
+              "ADDRESS": "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7"
             },
             {
               "WASM": "minter.wasm",
               "LABEL": "minter",
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
               "CODE": 3270,
               "ADDRESS": "kujira1e5r6th2p697xkg9t782rk7cv5k2n7wdrhxvytnrn0mdkcpl4d30surk9kc"
             },
@@ -37,9 +37,9 @@
               "LABEL": "minter-kujira",
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
-              "CODE": 3313,
-              "ADDRESS": "kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg"
+              "UPDATE_MSG": "{\"update_config\":{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
+              "CODE": 3348,
+              "ADDRESS": "kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs"
             },
             {
               "WASM": "oracle.wasm",
@@ -47,17 +47,17 @@
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"scheduler\":\"kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3\"}}",
-              "CODE": 3271,
-              "ADDRESS": "kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla"
+              "CODE": 3349,
+              "ADDRESS": "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj"
             },
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
               "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ukuji\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla\",\"minter\":\"kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg\",\"scheduler\":\"kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h\"}}",
-              "CODE": 3314,
-              "ADDRESS": "kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m"
+              "UPDATE_MSG": "{\"update_address_config\":{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"oracle\":\"kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj\",\"minter\":\"kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs\",\"scheduler\":\"kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7\"}}",
+              "CODE": 3350,
+              "ADDRESS": "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l"
             }
           ],
           "IBC": []
@@ -81,7 +81,7 @@
               "LABEL": "lending_platform",
               "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"owner\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"worker\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
               "CODE": 0,
               "ADDRESS": ""
             },

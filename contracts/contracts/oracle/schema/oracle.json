@@ -12,6 +12,12 @@
           "string",
           "null"
         ]
+      },
+      "worker": {
+        "type": [
+          "string",
+          "null"
+        ]
       }
     },
     "additionalProperties": false
@@ -23,13 +29,38 @@
       {
         "type": "object",
         "required": [
+          "accept_admin_role"
+        ],
+        "properties": {
+          "accept_admin_role": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "update_config"
         ],
         "properties": {
           "update_config": {
             "type": "object",
             "properties": {
+              "admin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "scheduler": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "worker": {
                 "type": [
                   "string",
                   "null"
@@ -274,6 +305,16 @@
           "$ref": "#/definitions/Addr"
         },
         "scheduler": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "worker": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"

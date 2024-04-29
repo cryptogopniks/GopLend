@@ -12,10 +12,15 @@ import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, RawPriceItem, Fun
 export interface OracleMsg {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
-    scheduler
+    admin,
+    scheduler,
+    worker
   }: {
+    admin?: string;
     scheduler?: string;
+    worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updatePrices: ({
     data
@@ -30,14 +35,32 @@ export class OracleMsgComposer implements OracleMsg {
   constructor(sender: string, contractAddress: string) {
     this.sender = sender;
     this.contractAddress = contractAddress;
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.updatePrices = this.updatePrices.bind(this);
   }
 
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
   updateConfig = ({
-    scheduler
+    admin,
+    scheduler,
+    worker
   }: {
+    admin?: string;
     scheduler?: string;
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -46,7 +69,9 @@ export class OracleMsgComposer implements OracleMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
-            scheduler
+            admin,
+            scheduler,
+            worker
           }
         })),
         funds: _funds

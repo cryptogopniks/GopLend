@@ -47,13 +47,6 @@ export interface LendingPlatformMsg {
     collections: CollectionInfoForString[];
     discount: Decimal;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  removeBid: ({
-    collections,
-    creationDate
-  }: {
-    collections: CollectionInfoForString[];
-    creationDate: number;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateBid: ({
     amount,
     collections,
@@ -65,23 +58,33 @@ export interface LendingPlatformMsg {
     creationDate: number;
     discount: Decimal;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  removeBid: ({
+    collectionAddresses,
+    creationDate
+  }: {
+    collectionAddresses: string[];
+    creationDate: number;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   liquidate: ({
     targets
   }: {
     targets: LiquidationItem[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateAddressConfig: ({
+    admin,
     marketplace,
     minter,
     oracle,
-    owner,
-    scheduler
+    scheduler,
+    worker
   }: {
+    admin?: string;
     marketplace?: string;
     minter?: string;
     oracle?: string;
-    owner?: string;
     scheduler?: string;
+    worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateRateConfig: ({
     bidMinRate,
@@ -161,9 +164,10 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     this.borrow = this.borrow.bind(this);
     this.repay = this.repay.bind(this);
     this.placeBid = this.placeBid.bind(this);
-    this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
+    this.removeBid = this.removeBid.bind(this);
     this.liquidate = this.liquidate.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateAddressConfig = this.updateAddressConfig.bind(this);
     this.updateRateConfig = this.updateRateConfig.bind(this);
     this.updateCommonConfig = this.updateCommonConfig.bind(this);
@@ -334,28 +338,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
       })
     };
   };
-  removeBid = ({
-    collections,
-    creationDate
-  }: {
-    collections: CollectionInfoForString[];
-    creationDate: number;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          remove_bid: {
-            collections,
-            creation_date: creationDate
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
   updateBid = ({
     amount,
     collections,
@@ -384,6 +366,28 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
       })
     };
   };
+  removeBid = ({
+    collectionAddresses,
+    creationDate
+  }: {
+    collectionAddresses: string[];
+    creationDate: number;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          remove_bid: {
+            collection_addresses: collectionAddresses,
+            creation_date: creationDate
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
   liquidate = ({
     targets
   }: {
@@ -403,18 +407,33 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
       })
     };
   };
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
   updateAddressConfig = ({
+    admin,
     marketplace,
     minter,
     oracle,
-    owner,
-    scheduler
+    scheduler,
+    worker
   }: {
+    admin?: string;
     marketplace?: string;
     minter?: string;
     oracle?: string;
-    owner?: string;
     scheduler?: string;
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -423,11 +442,12 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_address_config: {
+            admin,
             marketplace,
             minter,
             oracle,
-            owner,
-            scheduler
+            scheduler,
+            worker
           }
         })),
         funds: _funds

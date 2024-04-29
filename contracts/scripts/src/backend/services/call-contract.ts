@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l, wait } from "../../common/utils";
+import { l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
@@ -31,7 +31,7 @@ const COLLECTION = {
 const TOKEN = {
   KUJI: "ukuji",
   BGL_KUJI:
-    "factory/kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg/bglKUJI",
+    "factory/kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs/bglKUJI",
   TEST: "factory/kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg/test",
 };
 
@@ -84,9 +84,12 @@ async function main() {
       );
 
       const [bglCurrency] = (
-        await minterKujira.cwQueryCurrenciesByCreator(owner)
+        await minterKujira.cwQueryCurrenciesByCreator(
+          LENDING_PLATFORM_CONTRACT.ADDRESS
+        )
       ).currencies;
       const bglKUJI = (bglCurrency as any)?.token?.native?.denom || "";
+      l({ bglKUJI });
 
       // setup lending
       await h.lending.cwUpdateCommonConfig(
@@ -99,6 +102,13 @@ async function main() {
           unbondingPeriod: 60,
           priceUpdatePeriod: 7 * 24 * 3600,
         },
+        gasPrice
+      );
+
+      // deposit reserve liquidity
+      await h.lending.cwDepositReserveLiquidity(
+        1_000_000_000,
+        { native: { denom: TOKEN.KUJI } },
         gasPrice
       );
 
@@ -138,11 +148,10 @@ async function main() {
           gasPrice
         );
       }
-
-      l({ bglKUJI });
     };
 
     // await updateConfigs();
+    // return;
 
     // await lending.cwQueryCollectionList();
 

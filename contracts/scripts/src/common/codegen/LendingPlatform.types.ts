@@ -30,10 +30,10 @@ export interface InstantiateMsg {
   marketplace?: string | null;
   minter?: string | null;
   oracle?: string | null;
-  owner?: string | null;
   price_update_period?: number | null;
   scheduler?: string | null;
   unbonding_period?: number | null;
+  worker?: string | null;
 }
 export interface CurrencyForTokenUnverified {
   decimals: number;
@@ -67,11 +67,6 @@ export type ExecuteMsg = {
     discount: Decimal;
   };
 } | {
-  remove_bid: {
-    collections: CollectionInfoForString[];
-    creation_date: number;
-  };
-} | {
   update_bid: {
     amount: Uint128;
     collections: CollectionInfoForString[];
@@ -79,16 +74,24 @@ export type ExecuteMsg = {
     discount: Decimal;
   };
 } | {
+  remove_bid: {
+    collection_addresses: string[];
+    creation_date: number;
+  };
+} | {
   liquidate: {
     targets: LiquidationItem[];
   };
 } | {
+  accept_admin_role: {};
+} | {
   update_address_config: {
+    admin?: string | null;
     marketplace?: string | null;
     minter?: string | null;
     oracle?: string | null;
-    owner?: string | null;
     scheduler?: string | null;
+    worker?: string | null;
   };
 } | {
   update_rate_config: {
@@ -307,8 +310,8 @@ export interface AddressConfig {
   marketplace?: Addr | null;
   minter?: Addr | null;
   oracle?: Addr | null;
-  owner?: Addr | null;
   scheduler?: Addr | null;
+  worker?: Addr | null;
 }
 export interface QueryAmountsResponse {
   borrowers: number;

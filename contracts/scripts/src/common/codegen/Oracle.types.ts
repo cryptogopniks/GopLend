@@ -6,10 +6,15 @@
 
 export interface InstantiateMsg {
   scheduler?: string | null;
+  worker?: string | null;
 }
 export type ExecuteMsg = {
+  accept_admin_role: {};
+} | {
   update_config: {
+    admin?: string | null;
     scheduler?: string | null;
+    worker?: string | null;
   };
 } | {
   update_prices: {
@@ -57,6 +62,7 @@ export type Addr = string;
 export interface Config {
   admin: Addr;
   scheduler?: Addr | null;
+  worker?: Addr | null;
 }
 export type Token = {
   native: {

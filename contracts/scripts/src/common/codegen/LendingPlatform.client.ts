@@ -514,13 +514,6 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     collections: CollectionInfoForString[];
     discount: Decimal;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  removeBid: ({
-    collections,
-    creationDate
-  }: {
-    collections: CollectionInfoForString[];
-    creationDate: number;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateBid: ({
     amount,
     collections,
@@ -532,23 +525,33 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     creationDate: number;
     discount: Decimal;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  removeBid: ({
+    collectionAddresses,
+    creationDate
+  }: {
+    collectionAddresses: string[];
+    creationDate: number;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   liquidate: ({
     targets
   }: {
     targets: LiquidationItem[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateAddressConfig: ({
+    admin,
     marketplace,
     minter,
     oracle,
-    owner,
-    scheduler
+    scheduler,
+    worker
   }: {
+    admin?: string;
     marketplace?: string;
     minter?: string;
     oracle?: string;
-    owner?: string;
     scheduler?: string;
+    worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateRateConfig: ({
     bidMinRate,
@@ -631,9 +634,10 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     this.borrow = this.borrow.bind(this);
     this.repay = this.repay.bind(this);
     this.placeBid = this.placeBid.bind(this);
-    this.removeBid = this.removeBid.bind(this);
     this.updateBid = this.updateBid.bind(this);
+    this.removeBid = this.removeBid.bind(this);
     this.liquidate = this.liquidate.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateAddressConfig = this.updateAddressConfig.bind(this);
     this.updateRateConfig = this.updateRateConfig.bind(this);
     this.updateCommonConfig = this.updateCommonConfig.bind(this);
@@ -732,20 +736,6 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
       }
     }, fee, memo, _funds);
   };
-  removeBid = async ({
-    collections,
-    creationDate
-  }: {
-    collections: CollectionInfoForString[];
-    creationDate: number;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      remove_bid: {
-        collections,
-        creation_date: creationDate
-      }
-    }, fee, memo, _funds);
-  };
   updateBid = async ({
     amount,
     collections,
@@ -766,6 +756,20 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
       }
     }, fee, memo, _funds);
   };
+  removeBid = async ({
+    collectionAddresses,
+    creationDate
+  }: {
+    collectionAddresses: string[];
+    creationDate: number;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      remove_bid: {
+        collection_addresses: collectionAddresses,
+        creation_date: creationDate
+      }
+    }, fee, memo, _funds);
+  };
   liquidate = async ({
     targets
   }: {
@@ -777,26 +781,34 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
       }
     }, fee, memo, _funds);
   };
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   updateAddressConfig = async ({
+    admin,
     marketplace,
     minter,
     oracle,
-    owner,
-    scheduler
+    scheduler,
+    worker
   }: {
+    admin?: string;
     marketplace?: string;
     minter?: string;
     oracle?: string;
-    owner?: string;
     scheduler?: string;
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_address_config: {
+        admin,
         marketplace,
         minter,
         oracle,
-        owner,
-        scheduler
+        scheduler,
+        worker
       }
     }, fee, memo, _funds);
   };
