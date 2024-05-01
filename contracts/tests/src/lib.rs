@@ -1,4 +1,6 @@
 #[cfg(test)]
+pub mod adapter_scheduler_kujira;
+#[cfg(test)]
 pub mod lending_platform;
 #[cfg(test)]
 pub mod math;

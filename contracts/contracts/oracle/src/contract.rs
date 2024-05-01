@@ -35,7 +35,13 @@ pub fn execute(
     match msg {
         ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
 
-        ExecuteMsg::UpdateConfig { scheduler } => e::try_update_config(deps, env, info, scheduler),
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
+        ExecuteMsg::UpdateConfig {
+            admin,
+            worker,
+            scheduler,
+        } => e::try_update_config(deps, env, info, admin, worker, scheduler),
     }
 }
 

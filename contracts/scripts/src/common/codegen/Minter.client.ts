@@ -15,6 +15,11 @@ export interface MinterReadOnlyInterface {
     creator: string;
   }) => Promise<QueryCurrenciesFromCreatorResponse>;
   queryConfig: () => Promise<Config>;
+  queryTokenOwner: ({
+    denom
+  }: {
+    denom: string;
+  }) => Promise<Addr>;
 }
 export class MinterQueryClient implements MinterReadOnlyInterface {
   client: CosmWasmClient;
@@ -25,6 +30,7 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
     this.contractAddress = contractAddress;
     this.queryCurrenciesByCreator = this.queryCurrenciesByCreator.bind(this);
     this.queryConfig = this.queryConfig.bind(this);
+    this.queryTokenOwner = this.queryTokenOwner.bind(this);
   }
 
   queryCurrenciesByCreator = async ({
@@ -41,6 +47,17 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
   queryConfig = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_config: {}
+    });
+  };
+  queryTokenOwner = async ({
+    denom
+  }: {
+    denom: string;
+  }): Promise<Addr> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_token_owner: {
+        denom
+      }
     });
   };
 }
@@ -125,6 +142,7 @@ export interface MinterInterface extends MinterReadOnlyInterface {
     newMinter: string;
     token: TokenUnverified;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   registerCurrency: ({
     creator,
     currency
@@ -133,11 +151,20 @@ export interface MinterInterface extends MinterReadOnlyInterface {
     currency: CurrencyForTokenUnverified;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
+    admin,
     cw20BaseCodeId,
+    worker
+  }: {
+    admin?: string;
+    cw20BaseCodeId?: number;
+    worker?: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateTokenOwner: ({
+    denom,
     owner
   }: {
-    cw20BaseCodeId?: number;
-    owner?: string;
+    denom: string;
+    owner: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class MinterClient extends MinterQueryClient implements MinterInterface {
@@ -160,8 +187,10 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
     this.uploadLogoCw20 = this.uploadLogoCw20.bind(this);
     this.changeAdminNative = this.changeAdminNative.bind(this);
     this.updateMinterCw20 = this.updateMinterCw20.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
+    this.updateTokenOwner = this.updateTokenOwner.bind(this);
   }
 
   receive = async ({
@@ -316,6 +345,11 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
       }
     }, fee, memo, _funds);
   };
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   registerCurrency = async ({
     creator,
     currency
@@ -331,15 +365,32 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
     }, fee, memo, _funds);
   };
   updateConfig = async ({
+    admin,
     cw20BaseCodeId,
-    owner
+    worker
   }: {
+    admin?: string;
     cw20BaseCodeId?: number;
-    owner?: string;
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
+        admin,
         cw20_base_code_id: cw20BaseCodeId,
+        worker
+      }
+    }, fee, memo, _funds);
+  };
+  updateTokenOwner = async ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_token_owner: {
+        denom,
         owner
       }
     }, fee, memo, _funds);

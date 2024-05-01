@@ -42,8 +42,8 @@ pub fn verify_proposal_status(
 }
 
 pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let AddressConfig { admin, owner, .. } = ADDRESS_CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    let worker = unwrap_field(worker, "worker");
 
     match auth_type {
         AuthType::Any => {}
@@ -52,8 +52,8 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
                 Err(ContractError::Unauthorized)?;
             }
         }
@@ -72,7 +72,7 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
             let is_included = allowlist.iter().any(|some_address| {
                 if let Some(x) = some_address {
                     if sender == x {
@@ -83,7 +83,7 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
                 false
             });
 
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
                 Err(ContractError::Unauthorized)?;
             }
         }
@@ -251,9 +251,22 @@ pub fn update_liquidation_storages(
 
                 bid
             })
+            .filter(|bid| !bid.amount.is_zero() || !bid.token_id_list.is_empty())
             .collect();
 
-        LIQUIDATION_BIDS.save(storage, collection, &bids)?;
+        let bids_sum = bids
+            .iter()
+            .fold(Uint128::zero(), |acc, cur| acc + cur.amount);
+        let tokens_sum = Uint128::new(
+            bids.iter()
+                .fold(0, |acc, cur| acc + cur.token_id_list.len()) as u128,
+        );
+
+        if bids_sum.is_zero() && tokens_sum.is_zero() {
+            LIQUIDATION_BIDS.remove(storage, collection);
+        } else {
+            LIQUIDATION_BIDS.save(storage, collection, &bids)?;
+        }
 
         // update collaterals
         let mut collaterals = COLLATERALS.load(storage, collection)?;
@@ -314,17 +327,21 @@ pub fn update_borrowers_storages(
     };
 
     // update borrowers
-    BORROWERS.save(
-        storage,
-        borrower_address,
-        &Borrower {
-            accumulated_loan,
-            loan: Vault {
-                creation_date: block_time,
-                amount,
+    if (amount + accumulated_loan).is_zero() {
+        BORROWERS.remove(storage, borrower_address);
+    } else {
+        BORROWERS.save(
+            storage,
+            borrower_address,
+            &Borrower {
+                accumulated_loan,
+                loan: Vault {
+                    creation_date: block_time,
+                    amount,
+                },
             },
-        },
-    )?;
+        )?;
+    }
 
     Ok(())
 }
@@ -384,7 +401,14 @@ pub fn update_balances(
 
         main_currency_pool_addition -= balances.reserve.borrowed.amount;
         balances.reserve.borrowed.amount = Uint128::zero();
-        balances.regular.borrowed.amount -= main_currency_pool_addition;
+
+        if balances.regular.borrowed.amount >= main_currency_pool_addition {
+            balances.regular.borrowed.amount -= main_currency_pool_addition;
+        } else {
+            balances.regular.main_pool +=
+                main_currency_pool_addition - balances.regular.borrowed.amount;
+            balances.regular.borrowed.amount = Uint128::zero();
+        }
 
         Ok(balances)
     })?;
@@ -517,7 +541,6 @@ pub mod offchain {
                     is_price_outdated = true;
                 }
 
-                // TODO: decimals, other currencies
                 Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
             },
         )?;

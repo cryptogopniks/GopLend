@@ -8,7 +8,7 @@ import * as OracleTypes from "../codegen/Oracle.types";
 
 const ADDRESS = {
   ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
-  OWNER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
+  WORKER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
   LIQUIDATION_WORKER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
   ORACLE_WORKER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
 };
@@ -48,7 +48,7 @@ const CHAIN_CONFIG: ChainConfig = {
                 update_config: {
                   offchain_clock: [
                     ADDRESS.ADMIN,
-                    ADDRESS.OWNER,
+                    ADDRESS.WORKER,
                     ADDRESS.LIQUIDATION_WORKER,
                   ],
                   lending_platform: $(
@@ -70,7 +70,7 @@ const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
-                  owner: ADDRESS.OWNER,
+                  worker: ADDRESS.WORKER,
                 },
               }),
               CODE: 3270,
@@ -87,7 +87,7 @@ const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<MinterKujiraTypes.ExecuteMsg>({
                 update_config: {
-                  owner: ADDRESS.OWNER,
+                  worker: ADDRESS.WORKER,
                 },
               }),
               CODE: 3294,
@@ -128,7 +128,7 @@ const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
-                  owner: ADDRESS.OWNER,
+                  worker: ADDRESS.WORKER,
                   oracle: $(
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
@@ -178,7 +178,7 @@ const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
-                  owner: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                  worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
                 },
               }),
               CODE: 0,

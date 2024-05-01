@@ -105,10 +105,17 @@ pub fn execute(
             e::try_register_currency(deps, env, info, currency, creator)
         }
 
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
         ExecuteMsg::UpdateConfig {
-            owner,
+            admin,
+            worker,
             cw20_base_code_id,
-        } => e::try_update_config(deps, env, info, owner, cw20_base_code_id),
+        } => e::try_update_config(deps, env, info, admin, worker, cw20_base_code_id),
+
+        ExecuteMsg::UpdateTokenOwner { denom, owner } => {
+            e::try_update_token_owner(deps, env, info, denom, owner)
+        }
     }
 }
 
@@ -121,6 +128,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
 
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+
+        QueryMsg::QueryTokenOwner { denom } => {
+            to_json_binary(&q::query_token_owner(deps, env, denom)?)
+        }
     }
 }
 

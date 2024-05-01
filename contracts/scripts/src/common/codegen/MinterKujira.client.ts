@@ -83,6 +83,7 @@ export interface MinterKujiraInterface extends MinterKujiraReadOnlyInterface {
     token: TokenUnverified;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   burn: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   registerCurrency: ({
     creator,
     currency
@@ -91,9 +92,11 @@ export interface MinterKujiraInterface extends MinterKujiraReadOnlyInterface {
     currency: CurrencyForTokenUnverified;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
-    owner
+    admin,
+    worker
   }: {
-    owner?: string;
+    admin?: string;
+    worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateTokenOwner: ({
     denom,
@@ -116,6 +119,7 @@ export class MinterKujiraClient extends MinterKujiraQueryClient implements Minte
     this.createNative = this.createNative.bind(this);
     this.mint = this.mint.bind(this);
     this.burn = this.burn.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.updateTokenOwner = this.updateTokenOwner.bind(this);
@@ -160,6 +164,11 @@ export class MinterKujiraClient extends MinterKujiraQueryClient implements Minte
       burn: {}
     }, fee, memo, _funds);
   };
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   registerCurrency = async ({
     creator,
     currency
@@ -175,13 +184,16 @@ export class MinterKujiraClient extends MinterKujiraQueryClient implements Minte
     }, fee, memo, _funds);
   };
   updateConfig = async ({
-    owner
+    admin,
+    worker
   }: {
-    owner?: string;
+    admin?: string;
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
-        owner
+        admin,
+        worker
       }
     }, fee, memo, _funds);
   };

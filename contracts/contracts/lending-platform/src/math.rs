@@ -1,9 +1,9 @@
 use std::cmp::{max, min};
 
-use cosmwasm_std::{Addr, Decimal, Decimal256, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use goplend_base::{
-    converters::{dec256_to_dec, dec256_to_uint128, str_to_dec, u128_to_dec, u128_to_dec256},
+    converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
         state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
@@ -32,63 +32,43 @@ pub fn calc_expected_rewards(
     .to_uint_floor()
 }
 
-// bgl = m1 * main * bgl_pool / (main_pool + accumulated_rewards)
+// bgl = main * bgl_pool / (main_pool + accumulated_rewards)
+// optional decimals_multiplier = 10^bgl_currency_decimals / 10^main_currency_decimals
 pub fn calc_minted_bgl_token_amount(
     main_currency_amount: Uint128,
     main_pool: Uint128,
     bgl_supply: Uint128,
     accumulated_rewards: Uint128,
-    main_currency_decimals: u8,
-    bgl_currency_decimals: u8,
 ) -> Uint128 {
-    let decimals_multiplier = u128_to_dec256(10u128.pow(bgl_currency_decimals as u32))
-        / u128_to_dec256(10u128.pow(main_currency_decimals as u32));
-
-    dec256_to_uint128(if bgl_supply.is_zero() {
-        // initially 1 bgl_token == 1 main_token
-        decimals_multiplier * u128_to_dec256(main_currency_amount)
+    if bgl_supply.is_zero() {
+        main_currency_amount // initially 1 bgl_token == 1 main_token
     } else {
-        decimals_multiplier * u128_to_dec256(main_currency_amount * bgl_supply)
-            / u128_to_dec256(main_pool + accumulated_rewards)
-    })
+        main_currency_amount * bgl_supply / (main_pool + accumulated_rewards)
+    }
 }
 
-// main = m2 * bgl * (main_pool + accumulated_rewards) / bgl_pool
+// main = bgl * (main_pool + accumulated_rewards) / bgl_pool
+// optional decimals_multiplier = 10^main_currency_decimals / 10^bgl_currency_decimals
 pub fn calc_unbonded_main_token_amount(
     bgl_currency_amount: Uint128,
     main_pool: Uint128,
     bgl_supply: Uint128,
     accumulated_rewards: Uint128,
-    main_currency_decimals: u8,
-    bgl_currency_decimals: u8,
 ) -> Uint128 {
-    let decimals_multiplier = u128_to_dec256(10u128.pow(main_currency_decimals as u32))
-        / u128_to_dec256(10u128.pow(bgl_currency_decimals as u32));
-
-    dec256_to_uint128(
-        decimals_multiplier
-            * u128_to_dec256(bgl_currency_amount * (main_pool + accumulated_rewards))
-            / u128_to_dec256(bgl_supply),
-    )
+    bgl_currency_amount * (main_pool + accumulated_rewards) / bgl_supply
 }
 
+// bgl_to_main_price = (main_pool + accumulated_rewards) / bgl_supply
 pub fn calc_bgl_to_main_price(
     main_pool: Uint128,
     bgl_supply: Uint128,
     accumulated_rewards: Uint128,
-    main_currency_decimals: u8,
-    bgl_currency_decimals: u8,
 ) -> Decimal {
-    let price = if bgl_supply.is_zero() {
-        Decimal256::one()
+    if bgl_supply.is_zero() {
+        Decimal::one()
     } else {
-        u128_to_dec256(main_pool + accumulated_rewards)
-            * u128_to_dec256(10u128.pow(bgl_currency_decimals as u32))
-            / (u128_to_dec256(bgl_supply)
-                * u128_to_dec256(10u128.pow(main_currency_decimals as u32)))
-    };
-
-    dec256_to_dec(price)
+        u128_to_dec(main_pool + accumulated_rewards) / u128_to_dec(bgl_supply)
+    }
 }
 
 pub fn calc_conditional_deposit_apr(

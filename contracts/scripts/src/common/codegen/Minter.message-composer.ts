@@ -90,6 +90,7 @@ export interface MinterMsg {
     newMinter: string;
     token: TokenUnverified;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   registerCurrency: ({
     creator,
     currency
@@ -98,11 +99,20 @@ export interface MinterMsg {
     currency: CurrencyForTokenUnverified;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
+    admin,
     cw20BaseCodeId,
+    worker
+  }: {
+    admin?: string;
+    cw20BaseCodeId?: number;
+    worker?: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateTokenOwner: ({
+    denom,
     owner
   }: {
-    cw20BaseCodeId?: number;
-    owner?: string;
+    denom: string;
+    owner: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class MinterMsgComposer implements MinterMsg {
@@ -122,8 +132,10 @@ export class MinterMsgComposer implements MinterMsg {
     this.uploadLogoCw20 = this.uploadLogoCw20.bind(this);
     this.changeAdminNative = this.changeAdminNative.bind(this);
     this.updateMinterCw20 = this.updateMinterCw20.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
+    this.updateTokenOwner = this.updateTokenOwner.bind(this);
   }
 
   receive = ({
@@ -358,6 +370,19 @@ export class MinterMsgComposer implements MinterMsg {
       })
     };
   };
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
   registerCurrency = ({
     creator,
     currency
@@ -381,11 +406,13 @@ export class MinterMsgComposer implements MinterMsg {
     };
   };
   updateConfig = ({
+    admin,
     cw20BaseCodeId,
-    owner
+    worker
   }: {
+    admin?: string;
     cw20BaseCodeId?: number;
-    owner?: string;
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -394,7 +421,30 @@ export class MinterMsgComposer implements MinterMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
+            admin,
             cw20_base_code_id: cw20BaseCodeId,
+            worker
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateTokenOwner = ({
+    denom,
+    owner
+  }: {
+    denom: string;
+    owner: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_token_owner: {
+            denom,
             owner
           }
         })),

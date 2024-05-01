@@ -64,10 +64,15 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
 export interface OracleInterface extends OracleReadOnlyInterface {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
-    scheduler
+    admin,
+    scheduler,
+    worker
   }: {
+    admin?: string;
     scheduler?: string;
+    worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updatePrices: ({
     data
@@ -85,18 +90,30 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
     this.client = client;
     this.sender = sender;
     this.contractAddress = contractAddress;
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.updatePrices = this.updatePrices.bind(this);
   }
 
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   updateConfig = async ({
-    scheduler
+    admin,
+    scheduler,
+    worker
   }: {
+    admin?: string;
     scheduler?: string;
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
-        scheduler
+        admin,
+        scheduler,
+        worker
       }
     }, fee, memo, _funds);
   };

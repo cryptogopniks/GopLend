@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult, Uint128,
+    Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
 };
 
 use kujira::{DenomMsg, KujiraMsg};
@@ -8,8 +8,8 @@ use goplend_base::{
     assets::{Currency, Token, TokenUnverified},
     error::ContractError,
     minter_kujira::{
-        state::{CONFIG, DEFAULT_DECIMALS, OWNERS},
-        types::Config,
+        state::{CONFIG, DEFAULT_DECIMALS, OWNERS, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        types::{Config, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
@@ -30,7 +30,7 @@ pub fn try_create_native(
             amount: None,
         },
     )?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let owner = deps.api.addr_validate(&token_owner)?;
     let creator = env.contract.address;
@@ -149,7 +149,7 @@ pub fn try_register_currency(
     creator: String,
 ) -> Result<Response<KujiraMsg>, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let creator = deps.api.addr_validate(&creator)?;
     let token = currency.token.verify(deps.api)?;
@@ -173,43 +173,84 @@ pub fn try_register_currency(
     Ok(Response::new().add_attributes([("action", "try_register_currency")]))
 }
 
+pub fn try_accept_admin_role(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response<KujiraMsg>, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let block_time = env.block.time.seconds();
+    let TransferAdminState {
+        new_admin,
+        deadline,
+    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![Some(new_admin)],
+        },
+    )?;
+
+    if block_time >= deadline {
+        Err(ContractError::TransferAdminDeadline)?;
+    }
+
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+        x.admin = sender_address;
+        Ok(x)
+    })?;
+
+    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
+        x.deadline = block_time;
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
+}
+
 pub fn try_update_config(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    owner: Option<String>,
+    admin: Option<String>,
+    worker: Option<String>,
 ) -> Result<Response<KujiraMsg>, ContractError> {
-    let mut response = Response::new().add_attribute("action", "try_update_config");
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+    let mut config = CONFIG.load(deps.storage)?;
+    let mut is_config_updated = false;
 
-    CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
-        if let Some(x) = owner {
-            config.owner = Some(deps.api.addr_validate(&x)?);
-        }
+    if let Some(x) = admin {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
 
-        Ok(config)
-    })?;
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
 
-    // fake msg to get proper response
-    if env.block.time.seconds() < 10 {
-        let owners = OWNERS
-            .range(deps.storage, None, None, Order::Ascending)
-            .take(1)
-            .flatten()
-            .collect::<Vec<(String, (Currency<Token>, Addr))>>();
-        let (denom, (_, owner)) = owners.first().ok_or(ContractError::AssetIsNotFound)?;
-
-        let msg: CosmosMsg<KujiraMsg> =
-            CosmosMsg::Custom(KujiraMsg::Denom(DenomMsg::ChangeAdmin {
-                denom: denom.into(),
-                address: owner.to_owned(),
-            }));
-
-        response = response.add_message(msg);
+        is_config_updated = true;
     }
 
-    Ok(response)
+    if let Some(x) = worker {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
+    }
+
+    CONFIG.save(deps.storage, &config)?;
+
+    Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
 pub fn try_update_token_owner(
@@ -220,7 +261,7 @@ pub fn try_update_token_owner(
     owner: String,
 ) -> Result<Response<KujiraMsg>, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let owner = deps.api.addr_validate(&owner)?;
     let (currency, _) = OWNERS.load(deps.storage, &denom)?;
@@ -234,8 +275,8 @@ fn get_full_denom(creator: &Addr, subdenom: &str) -> String {
 }
 
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, owner, .. } = CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
+    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
+    let worker = unwrap_field(worker, "worker");
 
     match auth_type {
         AuthType::Any => {}
@@ -244,8 +285,8 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
                 Err(ContractError::Unauthorized)?;
             }
         }
@@ -264,7 +305,7 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
             let is_included = allowlist.iter().any(|some_address| {
                 if let Some(x) = some_address {
                     if sender == x {
@@ -275,7 +316,7 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 false
             });
 
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
                 Err(ContractError::Unauthorized)?;
             }
         }

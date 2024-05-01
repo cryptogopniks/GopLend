@@ -5,14 +5,15 @@ use cw20::Cw20ReceiveMsg;
 
 use crate::{
     assets::{Currency, Token, TokenUnverified},
-    lending_platform::types::{Collateral, Collection, CollectionInfo, Proposal},
+    lending_platform::types::{
+        Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
+        Liquidator, Proposal, Unbonder,
+    },
 };
-
-use super::types::{Borrower, LiquidationBid, LiquidationItem, Liquidator, Unbonder};
 
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub owner: Option<String>,
+    pub worker: Option<String>,
     pub oracle: Option<String>,
     pub minter: Option<String>,
     pub scheduler: Option<String>,
@@ -72,11 +73,6 @@ pub enum ExecuteMsg {
         discount: Decimal,
     },
 
-    RemoveBid {
-        collections: Vec<CollectionInfo<String>>,
-        creation_date: u64,
-    },
-
     UpdateBid {
         collections: Vec<CollectionInfo<String>>,
         creation_date: u64,
@@ -84,14 +80,23 @@ pub enum ExecuteMsg {
         discount: Decimal,
     },
 
+    RemoveBid {
+        collection_addresses: Vec<String>,
+        creation_date: u64,
+    },
+
     // scheduler
     Liquidate {
         targets: Vec<LiquidationItem>,
     },
 
+    // any
+    AcceptAdminRole {},
+
     // admin
     UpdateAddressConfig {
-        owner: Option<String>,
+        admin: Option<String>,
+        worker: Option<String>,
         oracle: Option<String>,
         minter: Option<String>,
         scheduler: Option<String>,
@@ -117,7 +122,7 @@ pub enum ExecuteMsg {
         is_marketplace_interface_enabled: Option<bool>,
     },
 
-    // admin, owner
+    // admin, worker
     DepositReserveLiquidity {},
 
     ReinforceBglToken {},

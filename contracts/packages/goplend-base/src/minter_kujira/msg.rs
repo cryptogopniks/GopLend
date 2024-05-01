@@ -5,7 +5,7 @@ use crate::assets::{Currency, TokenUnverified};
 
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub owner: Option<String>,
+    pub worker: Option<String>,
 }
 
 #[cw_serde]
@@ -29,6 +29,9 @@ pub enum ExecuteMsg {
 
     Burn {},
 
+    // any
+    AcceptAdminRole {},
+
     // admin
     RegisterCurrency {
         currency: Currency<TokenUnverified>,
@@ -36,7 +39,8 @@ pub enum ExecuteMsg {
     },
 
     UpdateConfig {
-        owner: Option<String>,
+        admin: Option<String>,
+        worker: Option<String>,
     },
 
     UpdateTokenOwner {

@@ -8,20 +8,25 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerKujira.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerKujira.types";
 export interface AdapterSchedulerKujiraMsg {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
+    admin,
     clockSource,
     lendingPlatform,
     minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
+    admin?: string;
     clockSource?: ClockSource;
     lendingPlatform?: string;
     minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   push: ({
     targets
@@ -36,20 +41,38 @@ export class AdapterSchedulerKujiraMsgComposer implements AdapterSchedulerKujira
   constructor(sender: string, contractAddress: string) {
     this.sender = sender;
     this.contractAddress = contractAddress;
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.push = this.push.bind(this);
   }
 
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
   updateConfig = ({
+    admin,
     clockSource,
     lendingPlatform,
     minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
+    admin?: string;
     clockSource?: ClockSource;
     lendingPlatform?: string;
     minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -58,10 +81,12 @@ export class AdapterSchedulerKujiraMsgComposer implements AdapterSchedulerKujira
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
+            admin,
             clock_source: clockSource,
             lending_platform: lendingPlatform,
             min_clock_period: minClockPeriod,
-            offchain_clock: offchainClock
+            offchain_clock: offchainClock,
+            worker
           }
         })),
         funds: _funds

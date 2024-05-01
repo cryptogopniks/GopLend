@@ -7,7 +7,7 @@
     "title": "InstantiateMsg",
     "type": "object",
     "properties": {
-      "owner": {
+      "worker": {
         "type": [
           "string",
           "null"
@@ -98,6 +98,19 @@
       {
         "type": "object",
         "required": [
+          "accept_admin_role"
+        ],
+        "properties": {
+          "accept_admin_role": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "register_currency"
         ],
         "properties": {
@@ -129,7 +142,13 @@
           "update_config": {
             "type": "object",
             "properties": {
-              "owner": {
+              "admin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "worker": {
                 "type": [
                   "string",
                   "null"
@@ -326,7 +345,7 @@
         "admin": {
           "$ref": "#/definitions/Addr"
         },
-        "owner": {
+        "worker": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"

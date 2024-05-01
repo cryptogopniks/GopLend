@@ -127,12 +127,6 @@
           "null"
         ]
       },
-      "owner": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
       "price_update_period": {
         "type": [
           "integer",
@@ -154,6 +148,12 @@
         ],
         "format": "uint64",
         "minimum": 0.0
+      },
+      "worker": {
+        "type": [
+          "string",
+          "null"
+        ]
       }
     },
     "additionalProperties": false,
@@ -400,36 +400,6 @@
       {
         "type": "object",
         "required": [
-          "remove_bid"
-        ],
-        "properties": {
-          "remove_bid": {
-            "type": "object",
-            "required": [
-              "collections",
-              "creation_date"
-            ],
-            "properties": {
-              "collections": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/CollectionInfo_for_String"
-                }
-              },
-              "creation_date": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
           "update_bid"
         ],
         "properties": {
@@ -468,6 +438,36 @@
       {
         "type": "object",
         "required": [
+          "remove_bid"
+        ],
+        "properties": {
+          "remove_bid": {
+            "type": "object",
+            "required": [
+              "collection_addresses",
+              "creation_date"
+            ],
+            "properties": {
+              "collection_addresses": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "creation_date": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "liquidate"
         ],
         "properties": {
@@ -492,12 +492,31 @@
       {
         "type": "object",
         "required": [
+          "accept_admin_role"
+        ],
+        "properties": {
+          "accept_admin_role": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "update_address_config"
         ],
         "properties": {
           "update_address_config": {
             "type": "object",
             "properties": {
+              "admin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "marketplace": {
                 "type": [
                   "string",
@@ -516,13 +535,13 @@
                   "null"
                 ]
               },
-              "owner": {
+              "scheduler": {
                 "type": [
                   "string",
                   "null"
                 ]
               },
-              "scheduler": {
+              "worker": {
                 "type": [
                   "string",
                   "null"
@@ -1880,7 +1899,7 @@
             }
           ]
         },
-        "owner": {
+        "scheduler": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -1890,7 +1909,7 @@
             }
           ]
         },
-        "scheduler": {
+        "worker": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"

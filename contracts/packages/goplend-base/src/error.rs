@@ -37,6 +37,12 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Parameters are not provided!")]
+    NoParameters,
+
+    #[error("It's too late to accept admin role!")]
+    TransferAdminDeadline,
+
     // adapter-scheduler
     #[error("Scheduler is executed too early!")]
     EarlyExecution,
@@ -104,6 +110,9 @@ pub enum ContractError {
 
     #[error("Empty price vector!")]
     EmptyPriceVector,
+
+    #[error("Empty target list!")]
+    EmptyTargetList,
 
     #[error("Collateral is not found!")]
     CollateralIsNotFound,

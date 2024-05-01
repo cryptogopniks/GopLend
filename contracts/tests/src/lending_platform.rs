@@ -1,11 +1,12 @@
+use cw_multi_test::Executor;
 use goplend_base::{
     adapters::scheduler::kujira::types::ClockSource,
-    assets::{Currency, Funds, TokenUnverified},
+    assets::{Currency, Funds, Token, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
         msg::{
-            QueryBorrowersResponseItem, QueryCollateralsResponseItem,
+            MigrateMsg, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryLiquidationBidsByCollectionAddressListResponseItem,
         },
         state::{
@@ -13,8 +14,8 @@ use goplend_base::{
             MAX_DEPOSIT_APR,
         },
         types::{
-            Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
-            Proposal, ProposalType,
+            Balances, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
+            LiquidationItem, Proposal, ProposalType, RegularBalances, ReserveBalances, Vault,
         },
     },
     oracle::types::RawPriceItem,
@@ -29,12 +30,12 @@ use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
     suite::{
-        core::{assert_error, Project},
+        core::{assert_error, Project, INITIAL_LIQUIDITY},
         types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
 
-fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<LiquidationItem>> {
+pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<LiquidationItem>> {
     let rate_config = project.lending_platform_query_rate_config()?;
     let common_config = project.lending_platform_query_common_config()?;
     let borrower_list = helpers::offchain::get_borrowers(
@@ -1619,52 +1620,6 @@ fn repay_withdraw_loop() -> StdResult<()> {
     Ok(())
 }
 
-// #[test]
-// fn price_ratio_with_different_decimals() -> StdResult<()> {
-//     let mut project = Project::new();
-
-//     const DEPOSIT_AMOUNT: u128 = 1_000_000_000_000_000_000;
-
-//     project
-//         .lending_platform_try_update_config(
-//             ProjectAccount::Admin,
-//             &None,
-//             &None,
-//             &Some(Currency::new(
-//                 &TokenUnverified::new_cw20(ProjectToken::Inj.into()),
-//                 ProjectToken::Inj.get_decimals(),
-//             )),
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//             &None,
-//         )
-//         .unwrap();
-
-//     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-//     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
-
-//     project.lending_platform_try_deposit(
-//         ProjectAccount::Alice,
-//         DEPOSIT_AMOUNT,
-//         ProjectToken::Inj,
-//     )?;
-
-//     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-//     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
-
-//     let balances = project.lending_platform_query_balances()?;
-//     assert_that(&(balances.total_main_currency_pool / balances.total_bgl_currency_supply).u128())
-//         .is_equal_to(1_000_000_000_000);
-
-//     Ok(())
-// }
-
 #[test]
 fn deposit_improper_main_currency() -> StdResult<()> {
     let mut project = Project::new();
@@ -2441,14 +2396,13 @@ fn clear_borrowers_storage() -> StdResult<()> {
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
-    // TODO
-    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    // assert_that(&borrowers.len()).is_equal_to(1);
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    assert_that(&borrowers.len()).is_equal_to(1);
 
-    // project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
-    // let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
-    // assert_that(&borrowers.is_empty()).is_equal_to(true);
+    let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
+    assert_that(&borrowers.is_empty()).is_equal_to(true);
 
     Ok(())
 }
@@ -2539,10 +2493,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
 
     project.lending_platform_try_remove_bid(
         ProjectAccount::Alice,
-        &[CollectionInfo {
-            collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
-        }],
+        &[ProjectNft::Gopniks.to_string()],
         block_time,
     )?;
 
@@ -2679,11 +2630,13 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
-        ProjectAccount::Scheduler,
-        ClockSource::Offchain,
-        &targets,
-    )?;
+    project
+        .adapter_scheduler_kujira_try_push(
+            ProjectAccount::Scheduler,
+            ClockSource::Offchain,
+            &targets,
+        )
+        .unwrap_err();
 
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
@@ -4116,6 +4069,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         }],
     )?;
 
+    // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
 
     // deposit
@@ -4176,8 +4130,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let balances_after = project.lending_platform_query_balances()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -4212,13 +4166,41 @@ fn single_discount_liquidation() -> StdResult<()> {
             }],
         }];
 
-    // TODO
-    // println!("{:#?}", platform_revenue);
-    // println!("{:#?}", balances_after);
-
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.713846153846153846");
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
     assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    // 2 * 650 * 0.95 * 0.05 = 62
+    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(62);
+    assert_that(&balances_after).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(AMOUNT_TO_BORROW),
+            unbonded: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797519,
+                amount: Uint128::new(0),
+            },
+            accumulated_rewards: Uint128::new(0),
+            liquidation_bids: Uint128::new(
+                LIQUIDATION_BID
+                    - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT)))
+                    .to_uint_ceil()
+                    .u128(),
+            ),
+            main_pool: Uint128::new(AMOUNT_TO_BORROW),
+            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(INITIAL_LIQUIDITY),
+            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797519,
+                // 1700 - 2 * 650 * 0.95 * 0.95 = 526
+                amount: Uint128::new(526),
+            },
+        },
+    });
 
     Ok(())
 }
@@ -4379,8 +4361,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
+    let balances_after = project.lending_platform_query_balances()?;
+    let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![QueryCollateralsResponseItem {
         address: ProjectNft::Gopniks.into(),
@@ -4431,13 +4413,45 @@ fn multiple_discount_liquidation() -> StdResult<()> {
             ],
         }];
 
-    // TODO
-    // println!("{:#?}", platform_revenue);
-    // println!("{:#?}", balances_after);
-
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7");
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
     assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    // 2 * 650 * 0.95 * 0.05 = 62
+    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(62);
+    assert_that(&balances_after).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(AMOUNT_TO_BORROW),
+            unbonded: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797529,
+                amount: Uint128::new(0),
+            },
+            accumulated_rewards: Uint128::new(0),
+            liquidation_bids: Uint128::new(
+                LIQUIDATION_BID
+                    - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT_1)))
+                    .to_uint_ceil()
+                    .u128()
+                    - (u128_to_dec(COLLECTION_PRICE_AFTER)
+                        * (Decimal::one() - str_to_dec(DISCOUNT_0)))
+                    .to_uint_ceil()
+                    .u128(),
+            ),
+            main_pool: Uint128::new(AMOUNT_TO_BORROW),
+            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(INITIAL_LIQUIDITY),
+            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1571797529,
+                // 1700 - 680 * 0.95 - 680 * 0.8 * 0.95 = 538
+                amount: Uint128::new(538),
+            },
+        },
+    });
 
     Ok(())
 }
@@ -4632,12 +4646,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         }],
     )?;
 
-    // let ltv_before =
-    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    // let collaterals_before = project.lending_platform_query_collateral_list(&None,&None)?;
-    // let liquidation_bids_before =
-    //     project.lending_platform_query_liquidation_bids_by_collection_address_list(&None,&None)?;
-
     // process with liquidations
     let borrowers = project
         .lending_platform_query_borrower_list(&None, &None)?
@@ -4657,8 +4665,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let collaterals_after = project.lending_platform_query_collateral_list(&None, &None)?;
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
-    // let balances_after = project.lending_platform_query_balances()?;
-    // let platform_revenue = project.lending_platform_query_platform_revenue()?;
 
     let expected_collateral = vec![
         QueryCollateralsResponseItem {
@@ -5039,4 +5045,1007 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     assert_that(&balances_after.regular.liquidation_bids.u128()).is_equal_to(1_570);
 
     Ok(())
+}
+
+#[test]
+fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 800;
+    const COLLECTION_PRICE_AFTER: u128 = 700;
+    const AMOUNT_TO_BORROW: u128 = 570;
+    const LIQUIDATION_BID: u128 = 2_000;
+    const DISCOUNT: &str = "0.1";
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal_a: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    let proposal_b: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Pinjeons.to_string(),
+            collection: Collection {
+                name: ProjectNft::Pinjeons.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_a)?;
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_b)?;
+
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        2,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Pinjeons,
+    );
+
+    // collateral value = 3 * collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Admin,
+        AMOUNT_TO_BORROW,
+        ProjectCoin::Stars,
+    )?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+
+    // place bid
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        DISCOUNT,
+        LIQUIDATION_BID,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(100);
+
+    // check ltv
+    let ltv_before =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 800 = 0.7125
+    assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
+
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    assert_that(&available_to_borrow.u128()).is_equal_to(11);
+
+    // reduce prices to trigger liquidation
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // check ltv
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 700 = 0.814286359806479669
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
+
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    assert_that(&available_to_borrow.u128()).is_equal_to(0);
+
+    // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address.to_string())
+        .collect::<Vec<String>>();
+    let targets = get_targets(&project, &borrowers)?;
+
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &targets,
+    )?;
+
+    // check results
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
+
+    let available_to_borrow =
+        project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
+    let collateral_by_owner =
+        project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
+
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    // borrower was removed from storage
+    assert_that(&ltv_list_after).is_equal_to(vec![]);
+    assert_that(&available_to_borrow.u128()).is_equal_to(0);
+    // borrower was removed from storage
+    assert_that(&borrower).is_equal_to(Borrower::default());
+
+    assert_that(&collateral).is_equal_to(vec![Collateral {
+        owner: ProjectAccount::Alice.into(),
+        token_id_list: vec!["4".to_string()],
+    }]);
+
+    assert_that(&collateral_by_owner).is_equal_to(vec![]);
+
+    Ok(())
+}
+
+#[test]
+fn authorization() -> StdResult<()> {
+    let mut project = Project::new();
+
+    // set collateral min value
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Admin,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::NoParameters);
+
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Alice,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &Some(1),
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::Unauthorized);
+
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Owner,
+            &None,
+            &None,
+            &Some(1),
+            &None,
+            &None,
+            &None,
+            &None,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::Unauthorized);
+
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Owner,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(true),
+    )?;
+
+    // transfer admin
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Admin,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    project.wait(2 * 7 * 24 * 3600);
+
+    let res = project
+        .lending_platform_try_accept_admin_role(ProjectAccount::Alice)
+        .unwrap_err();
+    assert_error(&res, ContractError::TransferAdminDeadline);
+
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Admin,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    project.lending_platform_try_accept_admin_role(ProjectAccount::Alice)?;
+
+    project.lending_platform_try_update_address_config(
+        ProjectAccount::Alice,
+        &None,
+        &Some(ProjectAccount::Alice),
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    Ok(())
+}
+
+#[test]
+fn big_numbers() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const AMOUNT: u128 = 100_000_000_000_000_000;
+    const COLLECTION_PRICE_BEFORE: u128 = 100_000_000_000_000_000;
+    const COLLECTION_PRICE_AFTER: u128 = 90_000_000_000_000_000;
+    const AMOUNT_TO_BORROW: u128 = 60_000_000_000_000_000;
+    const LIQUIDATION_BID: u128 = 100_000_000_000_000_000;
+    const DISCOUNT: &str = "0.1";
+    const DELAY: u64 = 10 * 365 * 24 * 3600;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[
+            RawPriceItem {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                        ProjectToken::Atom.get_decimals(),
+                    ),
+                ),
+            },
+            RawPriceItem {
+                collection_address: ProjectNft::Pinjeons.to_string(),
+                price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                        ProjectToken::Atom.get_decimals(),
+                    ),
+                ),
+            },
+        ],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &Some(DELAY),
+        &Some(AMOUNT),
+        &None,
+        &Some(10 * DELAY),
+        &None,
+    )?;
+
+    // add liquidity
+    project.lending_platform_try_deposit_reserve_liquidity(
+        ProjectAccount::Admin,
+        AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // list collection
+    let proposal_a: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            AMOUNT,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    let proposal_b: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            AMOUNT,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Pinjeons.to_string(),
+            collection: Collection {
+                name: ProjectNft::Pinjeons.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_a)?;
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_b)?;
+
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        AMOUNT,
+        ProjectToken::Atom,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        2,
+        AMOUNT,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Pinjeons,
+    );
+
+    // collateral value = 3 * collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5", "6"]
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }],
+    )?;
+
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Admin, AMOUNT, ProjectCoin::Stars)?;
+
+    // unbond
+    project.lending_platform_try_unbond(ProjectAccount::Admin, AMOUNT / 2, &bgl_token)?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+
+    // place bid
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5", "6"]
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }],
+        DISCOUNT,
+        LIQUIDATION_BID,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(DELAY);
+
+    let res = project.lending_platform_query_platform_revenue()?;
+    assert_that(&res).is_equal_to(vec![Funds {
+        amount: Uint128::new(2 * AMOUNT),
+        currency: Currency::new(&Token::new_cw20(&ProjectToken::Atom.into()), 6),
+    }]);
+
+    let res = project.lending_platform_query_balances()?;
+    assert_that(&res).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(AMOUNT),
+            unbonded: Uint128::new(AMOUNT / 2),
+            borrowed: Vault {
+                creation_date: 1887157419,
+                amount: Uint128::new(AMOUNT / 2),
+            },
+            accumulated_rewards: Uint128::new(AMOUNT * 12 / 10),
+            liquidation_bids: Uint128::new(AMOUNT),
+            main_pool: Uint128::new(AMOUNT),
+            bgl_supply: Uint128::new(AMOUNT),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(100_000_100_000_000_000),
+            bgl_supply: Uint128::new(100_000_100_000_000_000),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1887157419,
+                amount: Uint128::new(AMOUNT / 10),
+            },
+        },
+    });
+
+    let res = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    assert_that(&res).is_equal_to(str_to_dec("2.2"));
+
+    let res = project.lending_platform_query_conditional_deposit_apr(&Some(AMOUNT))?;
+    assert_that(&res).is_equal_to(str_to_dec("0.08"));
+
+    let res = project.lending_platform_query_conditional_ltv(
+        ProjectAccount::Bob,
+        &Some(AMOUNT),
+        &Some(2 * AMOUNT),
+    )?;
+    assert_that(&res).is_equal_to(str_to_dec("1.025"));
+
+    let res = project.lending_platform_query_total_available_to_borrow_liquidity()?;
+    assert_that(&res).is_equal_to(Uint128::new(170_000_060_000_000_000));
+
+    let res = project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+    assert_that(&res).is_equal_to(Uint128::new(8_181_818_181_818_181));
+
+    // reduce prices to trigger liquidation
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address.to_string())
+        .collect::<Vec<String>>();
+    let targets = get_targets(&project, &borrowers)?;
+
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &targets,
+    )?;
+
+    let _res = project.lending_platform_query_platform_revenue()?;
+    let _res = project.lending_platform_query_balances()?;
+    let _res = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
+    let _res = project.lending_platform_query_conditional_deposit_apr(&Some(AMOUNT))?;
+    let _res = project.lending_platform_query_conditional_ltv(
+        ProjectAccount::Bob,
+        &Some(AMOUNT),
+        &Some(2 * AMOUNT),
+    )?;
+    let _res = project.lending_platform_query_total_available_to_borrow_liquidity()?;
+    let _res = project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
+
+    Ok(())
+}
+
+#[test]
+fn place_bid_own_collateral() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 800;
+    const LIQUIDATION_BID: u128 = 1_500_000;
+
+    const CLOCK_PERIOD: u64 = 1_000;
+
+    project.adapter_scheduler_kujira_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(CLOCK_PERIOD),
+    )?;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Alice,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    project.transfer_nft(
+        ProjectAccount::Bob,
+        ProjectAccount::Alice,
+        ProjectNft::Gopniks,
+        "5",
+    );
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    let res = project
+        .lending_platform_try_place_bid(
+            ProjectAccount::Alice,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+            }],
+            "0",
+            LIQUIDATION_BID,
+            ProjectCoin::Stars,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::OwnCollateralBids);
+
+    let res = project
+        .lending_platform_try_place_bid(
+            ProjectAccount::Alice,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+            }],
+            "0",
+            LIQUIDATION_BID,
+            ProjectCoin::Stars,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::NftIsNotFound);
+
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        LIQUIDATION_BID,
+        ProjectCoin::Stars,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+    assert_that(&bids[0].token_id_list).is_equal_to(
+        vec!["4"]
+            .into_iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>(),
+    );
+
+    Ok(())
+}
+
+#[test]
+fn update_bid_replace_tokens() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 800;
+    const COLLECTION_PRICE_AFTER: u128 = 700;
+    const AMOUNT_TO_BORROW: u128 = 1100;
+    const LIQUIDATION_BID: u128 = 1_500_000;
+
+    const CLOCK_PERIOD: u64 = 1_000;
+
+    project.adapter_scheduler_kujira_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(CLOCK_PERIOD),
+    )?;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        "0",
+        LIQUIDATION_BID,
+        ProjectCoin::Stars,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+
+    let res = project
+        .lending_platform_try_update_bid(
+            ProjectAccount::Alice,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["4", "5", "6"]
+                    .into_iter()
+                    .map(|x| x.to_string())
+                    .collect(),
+            }],
+            bids[0].creation_date,
+            LIQUIDATION_BID,
+            "0",
+            ProjectCoin::Stars,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::NftIsNotFound);
+
+    let res = project
+        .lending_platform_try_update_bid(
+            ProjectAccount::Alice,
+            &[CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: vec!["4", "5", "4"]
+                    .into_iter()
+                    .map(|x| x.to_string())
+                    .collect(),
+            }],
+            bids[0].creation_date,
+            LIQUIDATION_BID,
+            "0",
+            ProjectCoin::Stars,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::NftDuplication);
+
+    project.lending_platform_try_update_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        bids[0].creation_date,
+        LIQUIDATION_BID,
+        "0",
+        ProjectCoin::Stars,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+    assert_that(&bids[0].token_id_list).is_equal_to(
+        vec!["4", "5"]
+            .into_iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>(),
+    );
+
+    project.lending_platform_try_update_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        bids[0].creation_date,
+        LIQUIDATION_BID,
+        "0",
+        ProjectCoin::Stars,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+    assert_that(&bids[0].token_id_list).is_equal_to(
+        vec!["5"]
+            .into_iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>(),
+    );
+
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+
+    project.wait(CLOCK_PERIOD);
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // process without liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address.to_string())
+        .collect::<Vec<String>>();
+    let targets = get_targets(&project, &borrowers)?;
+
+    project.adapter_scheduler_kujira_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &targets,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+    assert_that(&bids[0].token_id_list).is_equal_to(vec![]);
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    project.lending_platform_try_update_bid(
+        ProjectAccount::Alice,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+        bids[0].creation_date,
+        LIQUIDATION_BID,
+        "0",
+        ProjectCoin::Stars,
+    )?;
+
+    let bids = project
+        .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+    assert_that(&bids[0].token_id_list).is_equal_to(
+        vec!["6"]
+            .into_iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>(),
+    );
+
+    Ok(())
+}
+
+#[test]
+fn migrate_default() {
+    let mut project = Project::new();
+
+    project
+        .app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            project.get_lending_platform_address(),
+            &MigrateMsg {
+                version: "1.0.0".to_string(),
+            },
+            project.get_lending_platform_code_id(),
+        )
+        .unwrap();
 }

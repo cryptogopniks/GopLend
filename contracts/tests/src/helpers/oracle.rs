@@ -15,9 +15,13 @@ use crate::helpers::suite::{
 };
 
 pub trait OracleExtension {
+    fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
     fn oracle_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> StdResult<AppResponse>;
 
@@ -41,9 +45,23 @@ pub trait OracleExtension {
 
 impl OracleExtension for Project {
     #[track_caller]
+    fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_oracle_address(),
+                &ExecuteMsg::AcceptAdminRole {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
     fn oracle_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         scheduler: &Option<ProjectAccount>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -51,6 +69,8 @@ impl OracleExtension for Project {
                 sender.into(),
                 self.get_oracle_address(),
                 &ExecuteMsg::UpdateConfig {
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     scheduler: scheduler.as_ref().map(|x| x.to_string()),
                 },
                 &[],

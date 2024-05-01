@@ -19,7 +19,7 @@ overflow-checks = true
 
 [workspace.dependencies]
 cosmwasm-schema = "1.5.0"
-cosmwasm-std = "1.5.0"
+cosmwasm-std = "1.5.4"
 cw-storage-plus = "1.1.0"
 cw2 = "1.1.0"
 cw20 = "1.0.1"

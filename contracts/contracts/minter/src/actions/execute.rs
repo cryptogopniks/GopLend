@@ -12,10 +12,13 @@ use goplend_base::{
     assets::{Currency, Token, TokenUnverified},
     error::ContractError,
     minter::{
-        state::{CONFIG, DEFAULT_DECIMALS, OWNERS, OWNER_AND_DECIMALS, SAVE_CW20_ADDRESS_REPLY},
-        types::{Config, DenomUnit, Metadata},
+        state::{
+            CONFIG, DEFAULT_DECIMALS, OWNERS, OWNER_AND_DECIMALS, SAVE_CW20_ADDRESS_REPLY,
+            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+        },
+        types::{Config, DenomUnit, Metadata, TransferAdminState},
     },
-    utils::{check_funds, unwrap_field, Attrs, AuthType, FundsType},
+    utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
 
 pub fn try_create_native(
@@ -34,7 +37,7 @@ pub fn try_create_native(
             amount: None,
         },
     )?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let owner = deps.api.addr_validate(&token_owner)?;
     let creator = env.contract.address;
@@ -79,7 +82,7 @@ pub fn try_create_cw20(
     marketing: Option<cw20_base::msg::InstantiateMarketingInfo>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let owner = deps.api.addr_validate(&token_owner)?;
     let creator = env.contract.address;
@@ -249,7 +252,7 @@ pub fn try_set_metadata_native(
     check_authorization(
         deps.as_ref(),
         &sender_address,
-        AuthType::AdminOrOwnerOrSpecified {
+        AuthType::AdminOrWorkerOrSpecified {
             allowlist: vec![Some(token_owner)],
         },
     )?;
@@ -316,7 +319,7 @@ pub fn try_update_marketing_cw20(
     check_authorization(
         deps.as_ref(),
         &sender_address,
-        AuthType::AdminOrOwnerOrSpecified {
+        AuthType::AdminOrWorkerOrSpecified {
             allowlist: vec![Some(token_owner)],
         },
     )?;
@@ -354,7 +357,7 @@ pub fn try_upload_logo_cw20(
     check_authorization(
         deps.as_ref(),
         &sender_address,
-        AuthType::AdminOrOwnerOrSpecified {
+        AuthType::AdminOrWorkerOrSpecified {
             allowlist: vec![Some(token_owner)],
         },
     )?;
@@ -387,7 +390,7 @@ pub fn try_change_admin_native(
     check_authorization(
         deps.as_ref(),
         &sender_address,
-        AuthType::AdminOrOwnerOrSpecified {
+        AuthType::AdminOrWorkerOrSpecified {
             allowlist: vec![Some(token_owner.clone())],
         },
     )?;
@@ -422,7 +425,7 @@ pub fn try_update_minter_cw20(
     check_authorization(
         deps.as_ref(),
         &sender_address,
-        AuthType::AdminOrOwnerOrSpecified {
+        AuthType::AdminOrWorkerOrSpecified {
             allowlist: vec![Some(token_owner)],
         },
     )?;
@@ -450,7 +453,7 @@ pub fn try_register_currency(
     creator: String,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrOwner)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let creator = deps.api.addr_validate(&creator)?;
     let token = currency.token.verify(deps.api)?;
@@ -474,33 +477,85 @@ pub fn try_register_currency(
     Ok(Response::new().add_attributes([("action", "try_register_currency")]))
 }
 
+pub fn try_accept_admin_role(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let block_time = env.block.time.seconds();
+    let TransferAdminState {
+        new_admin,
+        deadline,
+    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![Some(new_admin)],
+        },
+    )?;
+
+    if block_time >= deadline {
+        Err(ContractError::TransferAdminDeadline)?;
+    }
+
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+        x.admin = sender_address;
+        Ok(x)
+    })?;
+
+    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
+        x.deadline = block_time;
+        Ok(x)
+    })?;
+
+    Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
+}
+
 pub fn try_update_config(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
-    owner: Option<String>,
+    admin: Option<String>,
+    worker: Option<String>,
     cw20_base_code_id: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
-    let mut attrs = Attrs::init("try_update_config");
+    let mut response = Response::new().add_attribute("action", "try_update_config");
+    let mut config = CONFIG.load(deps.storage)?;
 
-    CONFIG.update(deps.storage, |mut config| -> StdResult<Config> {
-        if let Some(x) = owner {
-            config.owner = Some(deps.api.addr_validate(&x)?);
-            attrs.push(("owner".to_string(), x));
-        }
+    if let Some(x) = admin {
+        let block_time = env.block.time.seconds();
+        let new_admin = &deps.api.addr_validate(&x)?;
 
-        if let Some(x) = cw20_base_code_id {
-            config.cw20_base_code_id = Some(x);
-            attrs.push(("cw20_base_code_id".to_string(), x.to_string()));
-        }
+        TRANSFER_ADMIN_STATE.save(
+            deps.storage,
+            &TransferAdminState {
+                new_admin: new_admin.to_owned(),
+                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+            },
+        )?;
 
-        Ok(config)
-    })?;
+        response = response.add_attribute("admin", new_admin);
+    }
 
-    Ok(Response::new().add_attributes(attrs))
+    if let Some(x) = worker {
+        config.worker = Some(deps.api.addr_validate(&x)?);
+        response = response.add_attribute("worker", x);
+    }
+
+    if let Some(x) = cw20_base_code_id {
+        config.cw20_base_code_id = Some(x);
+        response = response.add_attribute("cw20_base_code_id", x.to_string());
+    }
+
+    CONFIG.save(deps.storage, &config)?;
+
+    Ok(response)
 }
 
 pub fn save_cw20_address(
@@ -551,13 +606,30 @@ pub fn save_cw20_address(
     Ok(Response::new().add_attributes([("cw20_address", cw20_address)]))
 }
 
+pub fn try_update_token_owner(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    denom: String,
+    owner: String,
+) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+
+    let owner = deps.api.addr_validate(&owner)?;
+    let (currency, _) = OWNERS.load(deps.storage, &denom)?;
+    OWNERS.save(deps.storage, &denom, &(currency, owner))?;
+
+    Ok(Response::new().add_attributes([("action", "try_update_token_owner")]))
+}
+
 fn get_full_denom(creator: &Addr, subdenom: &str) -> String {
     format!("factory/{creator}/{subdenom}")
 }
 
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, owner, .. } = CONFIG.load(deps.storage)?;
-    let owner = unwrap_field(owner, "owner");
+    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
+    let worker = unwrap_field(worker, "worker");
 
     match auth_type {
         AuthType::Any => {}
@@ -566,8 +638,8 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwner => {
-            if !((sender == admin) || (owner.is_ok() && sender == owner?)) {
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
                 Err(ContractError::Unauthorized)?;
             }
         }
@@ -586,7 +658,7 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 Err(ContractError::Unauthorized)?;
             }
         }
-        AuthType::AdminOrOwnerOrSpecified { allowlist } => {
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
             let is_included = allowlist.iter().any(|some_address| {
                 if let Some(x) = some_address {
                     if sender == x {
@@ -597,7 +669,7 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
                 false
             });
 
-            if !((sender == admin) || (owner.is_ok() && sender == owner?) || is_included) {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
                 Err(ContractError::Unauthorized)?;
             }
         }

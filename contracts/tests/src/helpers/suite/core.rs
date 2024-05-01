@@ -158,11 +158,12 @@ impl Project {
             &None,
             &None,
         );
-        let oracle_address = project.instantiate_oracle(oracle_code_id, &None);
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None);
         let minter_address =
             project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
         let adapter_scheduler_kujira_address = project.instantiate_adapter_scheduler_kujira(
             adapter_scheduler_kujira_code_id,
+            &None,
             &None,
             &None,
             &None,
@@ -189,7 +190,12 @@ impl Project {
 
         // prepare contracts
         project
-            .oracle_try_update_config(ProjectAccount::Admin, &Some(ProjectAccount::Scheduler))
+            .oracle_try_update_config(
+                ProjectAccount::Admin,
+                &Some(ProjectAccount::Admin),
+                &Some(ProjectAccount::Owner),
+                &Some(ProjectAccount::Scheduler),
+            )
             .unwrap();
 
         // create bgl_token
@@ -212,6 +218,7 @@ impl Project {
         project
             .lending_platform_try_update_address_config(
                 ProjectAccount::Admin,
+                &Some(ProjectAccount::Admin),
                 &Some(ProjectAccount::Owner),
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
@@ -239,6 +246,8 @@ impl Project {
         project
             .adapter_scheduler_kujira_try_update_config(
                 ProjectAccount::Admin,
+                &None,
+                &None,
                 &Some(project.get_lending_platform_address()),
                 &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
@@ -392,6 +401,23 @@ impl Project {
                 .execute_contract(owner.into(), collection.into(), msg, &[])
                 .unwrap();
         }
+    }
+
+    pub fn transfer_nft(
+        &mut self,
+        owner: ProjectAccount,
+        recipient: impl ToString,
+        collection: ProjectNft,
+        token_id: impl ToString,
+    ) {
+        let msg = &cw721_base::msg::ExecuteMsg::TransferNft::<Empty, Empty> {
+            recipient: recipient.to_string(),
+            token_id: token_id.to_string(),
+        };
+
+        self.app
+            .execute_contract(owner.into(), collection.into(), msg, &[])
+            .unwrap();
     }
 
     pub fn query_all_nft(&self, owner: ProjectAccount) -> Vec<(ProjectNft, cw721::TokensResponse)> {

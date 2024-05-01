@@ -80,7 +80,7 @@ pub trait LendingPlatformExtension {
     fn lending_platform_try_remove_bid(
         &mut self,
         sender: ProjectAccount,
-        collections: &[CollectionInfo<String>],
+        collection_addresses: &[String],
         creation_date: u64,
     ) -> StdResult<AppResponse>;
 
@@ -100,10 +100,17 @@ pub trait LendingPlatformExtension {
         targets: &[LiquidationItem],
     ) -> StdResult<AppResponse>;
 
+    fn lending_platform_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
+    #[allow(clippy::too_many_arguments)]
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<ProjectAccount>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -218,7 +225,12 @@ pub trait LendingPlatformExtension {
         limit: &Option<u32>,
     ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
-    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral>;
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Vec<Collateral>>;
+
+    fn lending_platform_query_collateral_by_owner(
+        &self,
+        owner: ProjectAccount,
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>>;
 
     fn lending_platform_query_liquidation_bids_by_collection_address_list(
         &self,
@@ -286,11 +298,6 @@ pub trait LendingPlatformExtension {
     ) -> StdResult<Uint128>;
 
     fn lending_platform_query_amounts(&self) -> StdResult<QueryAmountsResponse>;
-
-    // fn lending_platform_query_targets(
-    //     &self,
-    //     borrowers: &[impl ToString],
-    // ) -> StdResult<Vec<LiquidationItem>>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -418,26 +425,6 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_try_remove_bid(
-        &mut self,
-        sender: ProjectAccount,
-        collections: &[CollectionInfo<String>],
-        creation_date: u64,
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_lending_platform_address(),
-                &ExecuteMsg::RemoveBid {
-                    collections: collections.to_owned(),
-                    creation_date,
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
     fn lending_platform_try_update_bid(
         &mut self,
         sender: ProjectAccount,
@@ -459,6 +446,26 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
+    fn lending_platform_try_remove_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collection_addresses: &[String],
+        creation_date: u64,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::RemoveBid {
+                    collection_addresses: collection_addresses.to_owned(),
+                    creation_date,
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
     fn lending_platform_try_liquidate(
         &mut self,
         sender: &Addr,
@@ -477,10 +484,26 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
+    fn lending_platform_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::AcceptAdminRole {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
     fn lending_platform_try_update_address_config(
         &mut self,
         sender: ProjectAccount,
-        owner: &Option<ProjectAccount>,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
         scheduler: &Option<Addr>,
@@ -491,7 +514,8 @@ impl LendingPlatformExtension for Project {
                 sender.into(),
                 self.get_lending_platform_address(),
                 &ExecuteMsg::UpdateAddressConfig {
-                    owner: owner.as_ref().map(|x| x.to_string()),
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
                     minter: minter.as_ref().map(|x| x.to_string()),
                     scheduler: scheduler.as_ref().map(|x| x.to_string()),
@@ -817,11 +841,24 @@ impl LendingPlatformExtension for Project {
     }
 
     #[track_caller]
-    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Collateral> {
+    fn lending_platform_query_collateral(&self, address: ProjectNft) -> StdResult<Vec<Collateral>> {
         self.app.wrap().query_wasm_smart(
             self.get_lending_platform_address(),
             &QueryMsg::QueryCollateral {
                 collection_address: address.to_string(),
+            },
+        )
+    }
+
+    #[track_caller]
+    fn lending_platform_query_collateral_by_owner(
+        &self,
+        owner: ProjectAccount,
+    ) -> StdResult<Vec<QueryCollateralsResponseItem>> {
+        self.app.wrap().query_wasm_smart(
+            self.get_lending_platform_address(),
+            &QueryMsg::QueryCollateralByOwner {
+                owner: owner.to_string(),
             },
         )
     }

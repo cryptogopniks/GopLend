@@ -21,9 +21,9 @@ pub enum FundsType {
 pub enum AuthType {
     Any,
     Admin,
-    AdminOrOwner,
+    AdminOrWorker,
     Specified { allowlist: Vec<Option<Addr>> },
-    AdminOrOwnerOrSpecified { allowlist: Vec<Option<Addr>> },
+    AdminOrWorkerOrSpecified { allowlist: Vec<Option<Addr>> },
     AdminOrSpecified { allowlist: Vec<Option<Addr>> },
 }
 
@@ -58,7 +58,6 @@ pub fn validate_attr(
 ) -> StdResult<Option<Addr>> {
     if let Some(x) = field {
         let value = api.addr_validate(x)?;
-
         attrs.push((attr.to_string(), value.to_string()));
 
         return Ok(Some(value));
@@ -169,8 +168,9 @@ pub fn check_funds(
                 Ok((info.sender.clone(), amount, Token::new_native(&denom)))
             } else {
                 Ok((
-                    deps.api.addr_validate(&sender.unwrap_or_default())?,
-                    amount.unwrap_or_default(),
+                    deps.api
+                        .addr_validate(&sender.ok_or(ContractError::WrongFundsCombination)?)?,
+                    amount.ok_or(ContractError::WrongFundsCombination)?,
                     Token::new_cw20(&info.sender),
                 ))
             }

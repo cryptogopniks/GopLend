@@ -6,7 +6,7 @@
 
 export interface InstantiateMsg {
   cw20_base_code_id?: number | null;
-  owner?: string | null;
+  worker?: string | null;
 }
 export type ExecuteMsg = {
   receive: Cw20ReceiveMsg;
@@ -59,14 +59,22 @@ export type ExecuteMsg = {
     token: TokenUnverified;
   };
 } | {
+  accept_admin_role: {};
+} | {
   register_currency: {
     creator: string;
     currency: CurrencyForTokenUnverified;
   };
 } | {
   update_config: {
+    admin?: string | null;
     cw20_base_code_id?: number | null;
-    owner?: string | null;
+    worker?: string | null;
+  };
+} | {
+  update_token_owner: {
+    denom: string;
+    owner: string;
   };
 };
 export type Uint128 = string;
@@ -126,6 +134,10 @@ export type QueryMsg = {
   };
 } | {
   query_config: {};
+} | {
+  query_token_owner: {
+    denom: string;
+  };
 };
 export interface MigrateMsg {
   version: string;
@@ -134,7 +146,7 @@ export type Addr = string;
 export interface Config {
   admin: Addr;
   cw20_base_code_id?: number | null;
-  owner?: Addr | null;
+  worker?: Addr | null;
 }
 export type Token = {
   native: {

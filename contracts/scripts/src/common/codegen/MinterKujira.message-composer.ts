@@ -31,6 +31,7 @@ export interface MinterKujiraMsg {
     token: TokenUnverified;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   burn: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   registerCurrency: ({
     creator,
     currency
@@ -39,9 +40,11 @@ export interface MinterKujiraMsg {
     currency: CurrencyForTokenUnverified;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
-    owner
+    admin,
+    worker
   }: {
-    owner?: string;
+    admin?: string;
+    worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateTokenOwner: ({
     denom,
@@ -61,6 +64,7 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
     this.createNative = this.createNative.bind(this);
     this.mint = this.mint.bind(this);
     this.burn = this.burn.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.registerCurrency = this.registerCurrency.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.updateTokenOwner = this.updateTokenOwner.bind(this);
@@ -129,6 +133,19 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
       })
     };
   };
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
   registerCurrency = ({
     creator,
     currency
@@ -152,9 +169,11 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
     };
   };
   updateConfig = ({
-    owner
+    admin,
+    worker
   }: {
-    owner?: string;
+    admin?: string;
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -163,7 +182,8 @@ export class MinterKujiraMsgComposer implements MinterKujiraMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
-            owner
+            admin,
+            worker
           }
         })),
         funds: _funds

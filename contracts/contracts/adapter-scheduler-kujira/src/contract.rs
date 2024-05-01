@@ -35,7 +35,11 @@ pub fn execute(
     match msg {
         ExecuteMsg::Push { targets } => e::try_push(deps, env, info, targets),
 
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
         ExecuteMsg::UpdateConfig {
+            admin,
+            worker,
             lending_platform,
             offchain_clock,
             clock_source,
@@ -44,6 +48,8 @@ pub fn execute(
             deps,
             env,
             info,
+            admin,
+            worker,
             lending_platform,
             offchain_clock,
             clock_source,
@@ -58,7 +64,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryLog { amount } => to_json_binary(&q::query_log(deps, env, amount)?),
+        QueryMsg::QueryLog {} => to_json_binary(&q::query_log(deps, env)?),
     }
 }
 

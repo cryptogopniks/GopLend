@@ -261,6 +261,13 @@ async function getCwExecHelpers(
 
   // adapter-scheduler-kujira
 
+  async function cwAdapterSchedulerKujiraAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [adapterSchedulerKujiraMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
   async function cwAdapterSchedulerKujiraUpdateConfig(
     {
       clockSource,
@@ -431,12 +438,17 @@ async function getCwExecHelpers(
   }
 
   async function cwRemoveBid(
-    collections: CollectionInfoForString[],
+    collectionAddresses: string[],
     creationDate: number,
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.removeBid({ collections, creationDate })],
+      [
+        lendingPlatformMsgComposer.removeBid({
+          collectionAddresses,
+          creationDate,
+        }),
+      ],
       gasPrice
     );
   }
@@ -506,18 +518,25 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwLendingPlatformAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [lendingPlatformMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
   async function cwLendingPlatformUpdateAddressConfig(
     {
       marketplace,
       minter,
       oracle,
-      owner,
+      worker,
       scheduler,
     }: {
       marketplace?: string;
       minter?: string;
       oracle?: string;
-      owner?: string;
+      worker?: string;
       scheduler?: string;
     },
     gasPrice: string
@@ -528,7 +547,7 @@ async function getCwExecHelpers(
           marketplace,
           minter,
           oracle,
-          owner,
+          worker,
           scheduler,
         }),
       ],
@@ -873,20 +892,27 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMinterAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
   async function cwMinterUpdateConfig(
     {
       cw20BaseCodeId,
-      owner,
+      worker,
     }: {
       cw20BaseCodeId?: number;
-      owner?: string;
+      worker?: string;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterMsgComposer.updateConfig({
-          owner,
+          worker,
           cw20BaseCodeId,
         }),
       ],
@@ -973,18 +999,25 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMinterKujiraAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterKujiraMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
   async function cwMinterKujiraUpdateConfig(
     {
-      owner,
+      worker,
     }: {
-      owner?: string;
+      worker?: string;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterKujiraMsgComposer.updateConfig({
-          owner,
+          worker,
         }),
       ],
       gasPrice
@@ -1003,6 +1036,13 @@ async function getCwExecHelpers(
   }
 
   // oracle
+
+  async function cwOracleAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
 
   async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
@@ -1023,6 +1063,7 @@ async function getCwExecHelpers(
     adapter: {
       scheduler: {
         kujira: {
+          cwAcceptAdminRole: cwAdapterSchedulerKujiraAcceptAdminRole,
           cwUpdateConfig: cwAdapterSchedulerKujiraUpdateConfig,
           cwPush,
         },
@@ -1040,6 +1081,7 @@ async function getCwExecHelpers(
       cwRemoveBid,
       cwUpdateBid,
       cwLiquidate,
+      cwAcceptAdminRole: cwLendingPlatformAcceptAdminRole,
       cwUpdateAddressConfig: cwLendingPlatformUpdateAddressConfig,
       cwUpdateRateConfig: cwLendingPlatformUpdateRateConfig,
       cwUpdateCommonConfig: cwLendingPlatformUpdateCommonConfig,
@@ -1064,6 +1106,7 @@ async function getCwExecHelpers(
       cwChangeAdminNative,
       cwUpdateMinterCw20,
       cwRegisterCurrency,
+      cwAcceptAdminRole: cwMinterAcceptAdminRole,
       cwUpdateConfig: cwMinterUpdateConfig,
     },
     minterKujira: {
@@ -1071,10 +1114,12 @@ async function getCwExecHelpers(
       cwMint: cwMinterKujiraMint,
       cwBurn: cwMinterKujiraBurn,
       cwRegisterCurrency: cwMinterKujiraRegisterCurrency,
+      cwAcceptAdminRole: cwMinterKujiraAcceptAdminRole,
       cwUpdateConfig: cwMinterKujiraUpdateConfig,
       cwUpdateTokenOwner: cwMinterKujiraUpdateTokenOwner,
     },
     oracle: {
+      cwAcceptAdminRole: cwOracleAcceptAdminRole,
       cwUpdateConfig: cwOracleUpdateConfig,
       cwUpdatePrices,
     },
@@ -1251,8 +1296,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryLog(amount: number) {
-    const res = await adapterSchedulerKujiraQueryClient.queryLog({ amount });
+  async function cwQueryLog() {
+    const res = await adapterSchedulerKujiraQueryClient.queryLog();
     return logAndReturn(res);
   }
 

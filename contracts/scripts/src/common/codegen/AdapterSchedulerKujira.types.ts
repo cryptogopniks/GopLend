@@ -10,13 +10,18 @@ export interface InstantiateMsg {
   lending_platform?: string | null;
   min_clock_period?: number | null;
   offchain_clock?: string[] | null;
+  worker?: string | null;
 }
 export type ExecuteMsg = {
+  accept_admin_role: {};
+} | {
   update_config: {
+    admin?: string | null;
     clock_source?: ClockSource | null;
     lending_platform?: string | null;
     min_clock_period?: number | null;
     offchain_clock?: string[] | null;
+    worker?: string | null;
   };
 } | {
   push: {
@@ -44,9 +49,7 @@ export interface BiddedCollateralItem {
 export type QueryMsg = {
   query_config: {};
 } | {
-  query_log: {
-    amount: number;
-  };
+  query_log: {};
 };
 export interface MigrateMsg {
   version: string;
@@ -57,5 +60,11 @@ export interface Config {
   lending_platform?: Addr | null;
   min_clock_period: number;
   offchain_clock?: Addr[] | null;
+  worker?: Addr | null;
 }
-export type ArrayOfTupleOfUint64AndUint32 = [number, number][];
+export type ArrayOfLog = Log[];
+export interface Log {
+  block_time: number;
+  counter: number;
+  sender: Addr;
+}

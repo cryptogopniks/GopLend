@@ -4,7 +4,7 @@ use cw_multi_test::{AppResponse, Executor};
 use goplend_base::{
     adapters::scheduler::kujira::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{ClockSource, Config},
+        types::{ClockSource, Config, Log},
     },
     error::parse_err,
     lending_platform::types::LiquidationItem,
@@ -13,9 +13,17 @@ use goplend_base::{
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait AdapterSchedulerKujiraExtension {
+    fn adapter_scheduler_kujira_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
+
+    #[allow(clippy::too_many_arguments)]
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
@@ -31,14 +39,31 @@ pub trait AdapterSchedulerKujiraExtension {
 
     fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config>;
 
-    fn adapter_scheduler_kujira_query_log(&self, amount: u32) -> StdResult<Vec<(u64, u32)>>;
+    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>>;
 }
 
 impl AdapterSchedulerKujiraExtension for Project {
     #[track_caller]
+    fn adapter_scheduler_kujira_try_accept_admin_role(
+        &mut self,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_adapter_scheduler_kujira_address(),
+                &ExecuteMsg::AcceptAdminRole {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
     fn adapter_scheduler_kujira_try_update_config(
         &mut self,
         sender: ProjectAccount,
+        admin: &Option<ProjectAccount>,
+        worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
@@ -49,6 +74,8 @@ impl AdapterSchedulerKujiraExtension for Project {
                 sender.into(),
                 self.get_adapter_scheduler_kujira_address(),
                 &ExecuteMsg::UpdateConfig {
+                    admin: admin.as_ref().map(|x| x.to_string()),
+                    worker: worker.as_ref().map(|x| x.to_string()),
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                     offchain_clock: offchain_clock
                         .as_ref()
@@ -93,10 +120,10 @@ impl AdapterSchedulerKujiraExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_query_log(&self, amount: u32) -> StdResult<Vec<(u64, u32)>> {
+    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>> {
         self.app.wrap().query_wasm_smart(
             self.get_adapter_scheduler_kujira_address(),
-            &QueryMsg::QueryLog { amount },
+            &QueryMsg::QueryLog {},
         )
     }
 }
