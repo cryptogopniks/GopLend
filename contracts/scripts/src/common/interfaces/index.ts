@@ -1,5 +1,7 @@
 import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
+import { NetworkName, Wasm } from "../config";
+
 import {
   CurrencyForTokenUnverified,
   Decimal,
@@ -140,14 +142,6 @@ interface LocalInterchainLogs {
     };
   }[];
 }
-
-type Wasm =
-  | "adapter_scheduler_kujira.wasm"
-  | "adapter_scheduler_stargaze.wasm"
-  | "lending_platform.wasm"
-  | "minter.wasm"
-  | "minter_kujira.wasm"
-  | "oracle.wasm";
 
 type ChainType = "main" | "test" | "local";
 
@@ -344,8 +338,6 @@ interface OwnerOfResponse {
   owner: string;
   approvals: Approval[];
 }
-
-type NetworkName = "STARGAZE" | "INJECTIVE" | "KUJIRA";
 
 type NetworkConfig = {
   [network in NetworkName]: {

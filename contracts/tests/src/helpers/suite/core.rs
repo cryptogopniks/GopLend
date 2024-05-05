@@ -17,7 +17,10 @@ use goplend_base::{
 };
 
 use crate::helpers::{
-    adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
+    adapters::{
+        marketplace::kujira::AdapterMarketplaceKujiraExtension,
+        scheduler::kujira::AdapterSchedulerKujiraExtension,
+    },
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
     oracle::OracleExtension,
@@ -46,6 +49,7 @@ pub struct Project {
     oracle_code_id: u64,
     minter_code_id: u64,
     adapter_scheduler_kujira_code_id: u64,
+    adapter_marketplace_kujira_code_id: u64,
 
     // package address
     gopniks_address: Addr,
@@ -56,6 +60,7 @@ pub struct Project {
     oracle_address: Addr,
     minter_address: Addr,
     adapter_scheduler_kujira_address: Addr,
+    adapter_marketplace_kujira_address: Addr,
     //
     // other
 }
@@ -73,6 +78,7 @@ impl Project {
             oracle_code_id: 0,
             minter_code_id: 0,
             adapter_scheduler_kujira_code_id: 0,
+            adapter_marketplace_kujira_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
@@ -81,6 +87,7 @@ impl Project {
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
             adapter_scheduler_kujira_address: Addr::unchecked(""),
+            adapter_marketplace_kujira_address: Addr::unchecked(""),
         }
     }
 
@@ -98,6 +105,7 @@ impl Project {
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
         let adapter_scheduler_kujira_code_id = project.store_adapter_scheduler_kujira_code();
+        let adapter_marketplace_kujira_code_id = project.store_adapter_marketplace_kujira_code();
 
         // instantiate packages
 
@@ -169,6 +177,11 @@ impl Project {
             &None,
             &None,
         );
+        let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
+            adapter_marketplace_kujira_code_id,
+            &None,
+            &None,
+        );
 
         project = Self {
             cw20_base_code_id,
@@ -176,6 +189,7 @@ impl Project {
             oracle_code_id,
             minter_code_id,
             adapter_scheduler_kujira_code_id,
+            adapter_marketplace_kujira_code_id,
 
             gopniks_address,
             pinjeons_address,
@@ -184,6 +198,7 @@ impl Project {
             oracle_address,
             minter_address,
             adapter_scheduler_kujira_address,
+            adapter_marketplace_kujira_address,
 
             ..project
         };
@@ -223,7 +238,7 @@ impl Project {
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
                 &Some(project.get_adapter_scheduler_kujira_address()),
-                &None,
+                &Some(project.get_adapter_marketplace_kujira_address()),
             )
             .unwrap();
 
@@ -239,7 +254,7 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &None,
+                &Some(true),
             )
             .unwrap();
 
@@ -252,6 +267,15 @@ impl Project {
                 &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
                 &Some(0),
+            )
+            .unwrap();
+
+        project
+            .adapter_marketplace_kujira_try_update_config(
+                ProjectAccount::Admin,
+                &None,
+                &None,
+                &Some(project.get_lending_platform_address()),
             )
             .unwrap();
 
@@ -288,6 +312,10 @@ impl Project {
         self.adapter_scheduler_kujira_code_id
     }
 
+    pub fn get_adapter_marketplace_kujira_code_id(&self) -> u64 {
+        self.adapter_marketplace_kujira_code_id
+    }
+
     // package address getters
     pub fn get_gopniks_address(&self) -> Addr {
         self.gopniks_address.clone()
@@ -312,6 +340,10 @@ impl Project {
 
     pub fn get_adapter_scheduler_kujira_address(&self) -> Addr {
         self.adapter_scheduler_kujira_address.clone()
+    }
+
+    pub fn get_adapter_marketplace_kujira_address(&self) -> Addr {
+        self.adapter_marketplace_kujira_address.clone()
     }
 
     // utils

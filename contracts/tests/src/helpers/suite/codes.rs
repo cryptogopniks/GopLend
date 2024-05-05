@@ -26,6 +26,7 @@ pub trait WithCodes {
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
     fn store_adapter_scheduler_kujira_code(&mut self) -> u64;
+    fn store_adapter_marketplace_kujira_code(&mut self) -> u64;
     // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
     // instantiate packages
@@ -82,6 +83,13 @@ pub trait WithCodes {
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
         min_clock_period: &Option<u64>,
+    ) -> Addr;
+
+    fn instantiate_adapter_marketplace_kujira(
+        &mut self,
+        adapter_marketplace_kujira_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -157,6 +165,18 @@ impl WithCodes for Project {
             )
             .with_reply(adapter_scheduler_kujira::contract::reply)
             .with_migrate(adapter_scheduler_kujira::contract::migrate),
+        ))
+    }
+
+    fn store_adapter_marketplace_kujira_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                adapter_marketplace_kujira::contract::execute,
+                adapter_marketplace_kujira::contract::instantiate,
+                adapter_marketplace_kujira::contract::query,
+            )
+            .with_reply(adapter_marketplace_kujira::contract::reply)
+            .with_migrate(adapter_marketplace_kujira::contract::migrate),
         ))
     }
 
@@ -264,6 +284,7 @@ impl WithCodes for Project {
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 minter: minter.as_ref().map(|x| x.to_string()),
                 scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                marketplace: marketplace.as_ref().map(|x| x.to_string()),
 
                 borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
                 borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
@@ -272,7 +293,6 @@ impl WithCodes for Project {
                 discount_max_rate: discount_max_rate.as_ref().map(|x| str_to_dec(x)),
                 bid_min_rate: bid_min_rate.as_ref().map(|x| str_to_dec(x)),
 
-                marketplace: marketplace.as_ref().map(|x| x.to_string()),
                 main_currency: main_currency.to_owned(),
                 bgl_currency: bgl_currency.as_ref().map(|x| x.to_owned()),
                 unbonding_period: unbonding_period.as_ref().map(|x| x.to_owned()),
@@ -338,6 +358,22 @@ impl WithCodes for Project {
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
                 min_clock_period: min_clock_period.to_owned(),
+            },
+        )
+    }
+
+    fn instantiate_adapter_marketplace_kujira(
+        &mut self,
+        adapter_marketplace_kujira_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+    ) -> Addr {
+        self.instantiate_contract(
+            adapter_marketplace_kujira_code_id,
+            "adapter_marketplace_kujira",
+            &goplend_base::adapters::marketplace::kujira::msg::InstantiateMsg {
+                worker: worker.as_ref().map(|x| x.to_string()),
+                lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
             },
         )
     }

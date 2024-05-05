@@ -1,16 +1,18 @@
+import CONFIG_JSON from "../config/config.json";
 import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
+import { AdapterMarketplaceKujiraMsgComposer } from "../codegen/AdapterMarketplaceKujira.message-composer";
+import { AdapterMarketplaceKujiraQueryClient } from "../codegen/AdapterMarketplaceKujira.client";
 import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
-import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
-import { MinterMsgComposer } from "../codegen/Minter.message-composer";
-import { MinterKujiraMsgComposer } from "../codegen/MinterKujira.message-composer";
-import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
 import { AdapterSchedulerKujiraQueryClient } from "../codegen/AdapterSchedulerKujira.client";
+import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
 import { LendingPlatformQueryClient } from "../codegen/LendingPlatform.client";
+import { MinterMsgComposer } from "../codegen/Minter.message-composer";
 import { MinterQueryClient } from "../codegen/Minter.client";
+import { MinterKujiraMsgComposer } from "../codegen/MinterKujira.message-composer";
 import { MinterKujiraQueryClient } from "../codegen/MinterKujira.client";
+import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
 import { OracleQueryClient } from "../codegen/Oracle.client";
-import CONFIG_JSON from "../config/config.json";
 import { getChainOptionById, getContractByWasm } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
 import {
@@ -25,6 +27,7 @@ import {
 } from "@cosmjs/cosmwasm-stargate";
 import {
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
+  BiddedCollateralItem,
   CollectionInfoForString,
   CurrencyForTokenUnverified,
   LiquidationItem,
@@ -157,12 +160,21 @@ async function getCwExecHelpers(
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let ADAPTER_MARKETPLACE_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
-  // let ADAPTER_SCHEDULER_STARGAZE_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
   let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
+
+  try {
+    ADAPTER_MARKETPLACE_KUJIRA_CONTRACT = getContractByWasm(
+      CONTRACTS,
+      "adapter_marketplace_kujira.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
 
   try {
     ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
@@ -205,6 +217,14 @@ async function getCwExecHelpers(
 
   const signingClient = cwClient.client as SigningCosmWasmClient;
   const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
+
+  const adapterMarketplaceKujiraMsgComposer =
+    new AdapterMarketplaceKujiraMsgComposer(
+      owner,
+      ADAPTER_MARKETPLACE_KUJIRA_CONTRACT
+        ? ADAPTER_MARKETPLACE_KUJIRA_CONTRACT.ADDRESS
+        : ""
+    );
 
   const adapterSchedulerKujiraMsgComposer =
     new AdapterSchedulerKujiraMsgComposer(
@@ -255,6 +275,53 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [getRevokeCollectionMsg(collectionAddress, senderAddress, operator)],
+      gasPrice
+    );
+  }
+
+  // adapter-marketplace-kujira
+
+  async function cwAdapterMarketplaceKujiraAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [adapterMarketplaceKujiraMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
+  async function cwAdapterMarketplaceKujiraUpdateConfig(
+    {
+      admin,
+      worker,
+      lendingPlatform,
+    }: {
+      admin?: string;
+      worker?: string;
+      lendingPlatform?: string;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        adapterMarketplaceKujiraMsgComposer.updateConfig({
+          admin,
+          worker,
+          lendingPlatform,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwAcceptBids(
+    biddedCollateralItemList: BiddedCollateralItem[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        adapterMarketplaceKujiraMsgComposer.acceptBids({
+          biddedCollateralItemList,
+        }),
+      ],
       gasPrice
     );
   }
@@ -1061,6 +1128,13 @@ async function getCwExecHelpers(
   return {
     utils: { cwRevoke },
     adapter: {
+      marketplace: {
+        kujira: {
+          cwAcceptAdminRole: cwAdapterMarketplaceKujiraAcceptAdminRole,
+          cwUpdateConfig: cwAdapterMarketplaceKujiraUpdateConfig,
+          cwAcceptBids,
+        },
+      },
       scheduler: {
         kujira: {
           cwAcceptAdminRole: cwAdapterSchedulerKujiraAcceptAdminRole,
@@ -1132,11 +1206,21 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let ADAPTER_MARKETPLACE_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
   let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
+
+  try {
+    ADAPTER_MARKETPLACE_KUJIRA_CONTRACT = getContractByWasm(
+      CONTRACTS,
+      "adapter_marketplace_kujira.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
 
   try {
     ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
@@ -1178,6 +1262,14 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   if (!cwClient) throw new Error("cwClient is not found!");
 
   const cosmwasmQueryClient: CosmWasmClient = cwClient.client;
+
+  const adapterMarketplaceKujiraQueryClient =
+    new AdapterMarketplaceKujiraQueryClient(
+      cosmwasmQueryClient,
+      ADAPTER_MARKETPLACE_KUJIRA_CONTRACT
+        ? ADAPTER_MARKETPLACE_KUJIRA_CONTRACT.ADDRESS
+        : ""
+    );
 
   const adapterSchedulerKujiraQueryClient =
     new AdapterSchedulerKujiraQueryClient(
@@ -1286,6 +1378,59 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryOwnerOfMsg
     );
+    return logAndReturn(res);
+  }
+
+  // adapter-marketplace-kujira
+
+  async function cwAdapterMarketplaceKujiraQueryConfig() {
+    const res = await adapterMarketplaceKujiraQueryClient.queryConfig();
+    return logAndReturn(res);
+  }
+
+  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddressList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res =
+      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByCollectionAddressList(
+        { startAfter, limit }
+      );
+    return logAndReturn(res);
+  }
+
+  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddress(
+    address: string
+  ) {
+    const res =
+      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByCollectionAddress(
+        {
+          address,
+        }
+      );
+    return logAndReturn(res);
+  }
+
+  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddressList(
+    limit: number = 10_000,
+    startAfter?: string
+  ) {
+    const res =
+      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByLiquidatorAddressList(
+        { startAfter, limit }
+      );
+    return logAndReturn(res);
+  }
+
+  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddress(
+    address: string
+  ) {
+    const res =
+      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByLiquidatorAddress(
+        {
+          address,
+        }
+      );
     return logAndReturn(res);
   }
 
@@ -1589,6 +1734,19 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryNftOwner,
     },
     adapter: {
+      marketplace: {
+        kujira: {
+          cwQueryConfig: cwAdapterMarketplaceKujiraQueryConfig,
+          cwQueryLiquidationBidsByCollectionAddressList:
+            cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddressList,
+          cwQueryLiquidationBidsByCollectionAddress:
+            cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddress,
+          cwQueryLiquidationBidsByLiquidatorAddressList:
+            cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddressList,
+          cwQueryLiquidationBidsByLiquidatorAddress:
+            cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddress,
+        },
+      },
       scheduler: {
         kujira: {
           cwQueryConfig: cwAdapterSchedulerKujiraQueryConfig,

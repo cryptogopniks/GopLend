@@ -6,6 +6,7 @@ import { getChainOptionById } from "../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
 import {
   Addr,
+  ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   Borrower,
   Collateral,
   LiquidationBid,
@@ -35,7 +36,7 @@ export async function queryTargets(
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, adapter } = await getCwQueryHelpers(chainId, RPC);
 
   // helpers
   const getBorrowers = async (
@@ -122,15 +123,25 @@ export async function queryTargets(
     const liquidationBids =
       await lending.cwQueryLiquidationBidsByCollectionAddressList();
 
+    let liquidationBidsFromMarketplace: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem =
+      [];
+    try {
+      liquidationBidsFromMarketplace =
+        await adapter.marketplace.kujira.cwQueryLiquidationBidsByCollectionAddressList();
+    } catch (error) {
+      l(error);
+    }
+
     let collectionAndBidList: [Addr, LiquidationBid][] = [];
 
     for (const [
       collection_address,
       collateral,
     ] of collectionAndCollateralListByBorrower) {
-      const liquidationBidsByCollectionAddress = liquidationBids.find(
-        (x) => x.collection_address === collection_address
-      );
+      const liquidationBidsByCollectionAddress = [
+        ...liquidationBids,
+        ...liquidationBidsFromMarketplace,
+      ].find((x) => x.collection_address === collection_address);
       if (!liquidationBidsByCollectionAddress) continue;
 
       for (const bid of liquidationBidsByCollectionAddress.liquidation_bids) {
