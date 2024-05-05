@@ -232,7 +232,6 @@ pub fn update_liquidation_storages(
         owner,
         liquidator,
         liquidation_price,
-        // is_offer, // TODO: add offers handler
         ..
     } in liquidation_set
     {

@@ -177,23 +177,23 @@ async function main() {
     // );
     // await getAllBalances(owner);
 
-    await h.lending.cwDeposit(
-      10_000,
-      { native: { denom: TOKEN.KUJI } },
-      gasPrice
-    );
-    await getAllBalances(owner);
+    // await h.lending.cwDeposit(
+    //   10_000,
+    //   { native: { denom: TOKEN.KUJI } },
+    //   gasPrice
+    // );
+    // await getAllBalances(owner);
 
-    await h.lending.cwUnbond(
-      10_000,
-      { native: { denom: TOKEN.BGL_KUJI } },
-      gasPrice
-    );
-    await lending.cwQueryUnbonder(owner);
+    // await h.lending.cwUnbond(
+    //   10_000,
+    //   { native: { denom: TOKEN.BGL_KUJI } },
+    //   gasPrice
+    // );
+    // await lending.cwQueryUnbonder(owner);
 
-    await wait(60_000);
-    await h.lending.cwWithdraw(gasPrice);
-    await getAllBalances(owner);
+    // await wait(60_000);
+    // await h.lending.cwWithdraw(gasPrice);
+    // await getAllBalances(owner);
 
     // await minterKujira.cwQueryCurrenciesByCreator(
     //   LENDING_PLATFORM_CONTRACT.ADDRESS
@@ -201,22 +201,36 @@ async function main() {
 
     // await updateConfigs();
 
-    // await utils.cwQueryBalanceInNft(owner, collectionAddress);
-    // await utils.cwQueryOperators(owner, collectionAddress);
+    // await utils.cwQueryBalanceInNft(owner, COLLECTION.BANDIT_3); // 2,3 - [ '5', '6', '7', '8' ]
+    // await utils.cwQueryOperators(owner, COLLECTION.BANDIT_1);
 
     // await lending.cwQueryCollectionList();
+
+    await lending.cwQueryCollateralByOwner(owner);
 
     // await h.lending.cwApproveAndDepositCollateral(
     //   owner,
     //   LENDING_PLATFORM_CONTRACT.ADDRESS,
     //   [
     //     {
-    //       collection_address: collectionAddress,
+    //       collection_address: COLLECTION.BANDIT_2,
     //       token_id_list: ["5"],
     //     },
     //   ],
     //   gasPrice
     // );
+
+    await h.lending.cwWithdrawCollateral(
+      [
+        {
+          collection_address: COLLECTION.BANDIT_2,
+          token_id_list: ["5"],
+        },
+      ],
+      gasPrice
+    );
+
+    await lending.cwQueryCollateralByOwner(owner);
 
     // await oracle.cwQueryPrices();
 

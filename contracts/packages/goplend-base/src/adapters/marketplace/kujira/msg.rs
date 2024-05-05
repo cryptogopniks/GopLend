@@ -2,6 +2,7 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 
 #[cw_serde]
 pub struct InstantiateMsg {
+    pub worker: Option<String>,
     pub lending_platform: Option<String>,
 }
 
@@ -12,43 +13,43 @@ pub struct MigrateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
+    // any
+    AcceptAdminRole {},
+
     // admin
     UpdateConfig {
+        admin: Option<String>,
+        worker: Option<String>,
         lending_platform: Option<String>,
     },
 
     // lending platform
     AcceptBids {
-        liquidation_bids: Vec<crate::lending_platform::types::LiquidationBid>,
+        bidded_collateral_item_list: Vec<crate::lending_platform::types::BiddedCollateralItem>,
     },
 }
-
-// #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
-// QueryLiquidationBidsByCollectionAddressList {
-//     start_after: Option<String>,
-//     limit: Option<u32>,
-// },
-
-// #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
-// QueryLiquidationBidsByCollectionAddress { address: String },
-
-// #[returns(Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
-// QueryLiquidationBidsByLiquidatorAddressList {
-//     start_after: Option<String>,
-//     limit: Option<u32>,
-// },
-
-// #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
-// QueryLiquidationBidsByLiquidatorAddress { address: String },
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
-    // #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
-    // QueryLiquidationBidsByCollectionAddresses { addresses: Option<Vec<String>> },
 
-    // #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsResponseItem>)]
-    // QueryLiquidationBidsByLiquidatorAddresses { addresses: Option<Vec<String>> },
+    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+    QueryLiquidationBidsByCollectionAddressList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    QueryLiquidationBidsByCollectionAddress { address: String },
+
+    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
+    QueryLiquidationBidsByLiquidatorAddressList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+    QueryLiquidationBidsByLiquidatorAddress { address: String },
 }

@@ -17,9 +17,9 @@ use goplend_base::{
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
-            AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
-            CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal, ProposalStatus,
-            ProposalType, TransferAdminState, Unbonder, Vault,
+            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, Collection,
+            CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal,
+            ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -1328,6 +1328,7 @@ pub fn try_liquidate(
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
+    let mut marketplace_bidded_collateral_item_list: Vec<BiddedCollateralItem> = vec![];
 
     // iterate over borrowers
     for LiquidationItem {
@@ -1356,6 +1357,15 @@ pub fn try_liquidate(
             block_time,
             rate_config.borrow_apr,
         )?;
+
+        // collect marketplace offers
+        for bidded_collateral_item in liquidation_set {
+            if !bidded_collateral_item.is_offer {
+                continue;
+            }
+
+            marketplace_bidded_collateral_item_list.push(bidded_collateral_item);
+        }
     }
 
     // collect platform fee
@@ -1384,7 +1394,24 @@ pub fn try_liquidate(
         total_liquidation_value,
     )?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_liquidate")]))
+    // send messages to marketplace
+    let mut response = Response::new().add_attributes(vec![("action", "try_liquidate")]);
+
+    if common_config.is_marketplace_interface_enabled
+        && !marketplace_bidded_collateral_item_list.is_empty()
+    {
+        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: unwrap_field(address_config.marketplace, "marketplace")?.to_string(),
+            msg: to_json_binary(
+                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
+                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                },
+            )?,
+            funds: vec![],
+        }));
+    }
+
+    Ok(response)
 }
 
 pub fn try_accept_admin_role(
