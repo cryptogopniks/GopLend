@@ -26,7 +26,10 @@ use speculoos::assert_that;
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use crate::helpers::{
-    adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
+    adapters::{
+        marketplace::kujira::AdapterMarketplaceKujiraExtension,
+        scheduler::kujira::AdapterSchedulerKujiraExtension,
+    },
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
     suite::{
@@ -120,8 +123,13 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
         let liquidation_bids: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem> =
             project
                 .lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
+        let liquidation_bids_from_marketplace: Vec<
+            QueryLiquidationBidsByCollectionAddressListResponseItem,
+        > = project.adapter_marketplace_kujira_query_liquidation_bids_by_collection_address_list(
+            &None, &None,
+        )?;
         let collection_and_bid_list = helpers::offchain::get_collection_and_bid_list(
-            &liquidation_bids,
+            &[liquidation_bids, liquidation_bids_from_marketplace].concat(),
             &collection_and_collateral_list_by_borrower,
         )?;
 

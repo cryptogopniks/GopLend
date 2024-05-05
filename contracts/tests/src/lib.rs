@@ -23,5 +23,9 @@ pub mod helpers {
             pub mod kujira;
             pub mod stargaze;
         }
+
+        pub mod marketplace {
+            pub mod kujira;
+        }
     }
 }
