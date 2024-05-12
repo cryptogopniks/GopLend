@@ -2044,8 +2044,7 @@ pub fn try_accept_proposal(
         } => {
             let collections = &COLLECTIONS
                 .range(deps.storage, None, None, Order::Ascending)
-                .flatten()
-                .collect::<Vec<(Addr, Collection<Addr>)>>();
+                .collect::<StdResult<Vec<(Addr, Collection<Addr>)>>>()?;
 
             let is_collection_found = collections
                 .iter()
