@@ -497,10 +497,9 @@ pub fn query_ltv_list(
         },
     )?;
 
-    let all_collaterals: Vec<(Addr, Vec<Collateral>)> = COLLATERALS
+    let all_collaterals = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .collect();
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
 
     BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)

@@ -156,8 +156,8 @@ impl Project {
             &None,
             &None,
             &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
+                &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                ProjectCoin::Kuji.get_decimals(),
             ),
             &None,
             &None,
@@ -284,7 +284,7 @@ impl Project {
             .lending_platform_try_deposit_reserve_liquidity(
                 ProjectAccount::Admin,
                 INITIAL_LIQUIDITY,
-                ProjectCoin::Stars,
+                ProjectCoin::Kuji,
             )
             .unwrap();
 
@@ -355,8 +355,8 @@ impl Project {
         format!("contract{}", self.contract_counter)
     }
 
-    pub fn get_timestamp(&self) -> Timestamp {
-        self.app.block_info().time
+    pub fn get_block_time(&self) -> u64 {
+        self.app.block_info().time.seconds()
     }
 
     pub fn reset_time(&mut self) {

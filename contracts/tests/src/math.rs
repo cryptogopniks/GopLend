@@ -41,7 +41,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
@@ -52,7 +52,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
@@ -397,7 +397,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
@@ -408,7 +408,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),

@@ -24,7 +24,7 @@ use crate::helpers::{
 fn default() -> StdResult<()> {
     let mut project = Project::new();
 
-    let block_time = project.get_timestamp().seconds();
+    let block_time = project.get_block_time();
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
@@ -34,8 +34,8 @@ fn default() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(300),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                        ProjectCoin::Kuji.get_decimals(),
                     ),
                 ),
             },
@@ -73,8 +73,8 @@ fn default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(300),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
+                    ProjectCoin::Kuji.get_decimals(),
                 ),
             ),
             price_update_date: block_time,
@@ -97,8 +97,8 @@ fn unauthorized() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                            ProjectCoin::Kuji.get_decimals(),
                         ),
                     ),
                 },
@@ -134,8 +134,8 @@ fn duplicated_collections() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                            ProjectCoin::Kuji.get_decimals(),
                         ),
                     ),
                 },
@@ -144,8 +144,8 @@ fn duplicated_collections() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                            ProjectCoin::Kuji.get_decimals(),
                         ),
                     ),
                 },
@@ -183,8 +183,8 @@ fn zeros_in_prices() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(0),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
+                        ProjectCoin::Kuji.get_decimals(),
                     ),
                 ),
             }],

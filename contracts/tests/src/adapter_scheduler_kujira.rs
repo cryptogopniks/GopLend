@@ -138,7 +138,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Stars,
+        ProjectCoin::Kuji,
     )?;
 
     project.wait(100);
@@ -353,7 +353,7 @@ fn log_zero_cross() -> StdResult<()> {
             }],
             "0",
             LIQUIDATION_BID,
-            ProjectCoin::Stars,
+            ProjectCoin::Kuji,
         )?;
 
         project.wait(CLOCK_PERIOD);

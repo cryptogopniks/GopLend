@@ -10,5 +10,5 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 }
 
 pub fn query_log(deps: Deps, _env: Env) -> StdResult<Vec<Log>> {
-    Ok(LOG.iter(deps.storage)?.rev().flatten().collect())
+    LOG.iter(deps.storage)?.rev().collect()
 }
