@@ -29,6 +29,12 @@ pub mod adapters {
             pub mod state;
             pub mod types;
         }
+
+        pub mod stargaze {
+            pub mod msg;
+            pub mod state;
+            pub mod types;
+        }
     }
 
     pub mod scheduler {
