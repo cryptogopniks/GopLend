@@ -47,3 +47,7 @@ minter-kujira = { path = "./contracts/minter-kujira" }
 adapter-scheduler-kujira = { path = "./contracts/adapter-scheduler-kujira" }
 adapter-scheduler-stargaze = { path = "./contracts/adapter-scheduler-stargaze" }
 adapter-marketplace-kujira = { path = "./contracts/adapter-marketplace-kujira" }
+adapter-marketplace-stargaze = { path = "./contracts/adapter-marketplace-stargaze" }
+
+stargaze-marketplace-v2 = "0.1.0"
+infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }
