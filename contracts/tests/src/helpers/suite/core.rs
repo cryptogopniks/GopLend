@@ -19,7 +19,7 @@ use goplend_base::{
 use crate::helpers::{
     adapters::{
         marketplace::kujira::AdapterMarketplaceKujiraExtension,
-        scheduler::kujira::AdapterSchedulerKujiraExtension,
+        scheduler::common::AdapterSchedulerCommonExtension,
     },
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
@@ -48,7 +48,7 @@ pub struct Project {
     lending_platform_code_id: u64,
     oracle_code_id: u64,
     minter_code_id: u64,
-    adapter_scheduler_kujira_code_id: u64,
+    adapter_scheduler_common_code_id: u64,
     adapter_marketplace_kujira_code_id: u64,
 
     // package address
@@ -59,7 +59,7 @@ pub struct Project {
     lending_platform_address: Addr,
     oracle_address: Addr,
     minter_address: Addr,
-    adapter_scheduler_kujira_address: Addr,
+    adapter_scheduler_common_address: Addr,
     adapter_marketplace_kujira_address: Addr,
     //
     // other
@@ -77,7 +77,7 @@ impl Project {
             lending_platform_code_id: 0,
             oracle_code_id: 0,
             minter_code_id: 0,
-            adapter_scheduler_kujira_code_id: 0,
+            adapter_scheduler_common_code_id: 0,
             adapter_marketplace_kujira_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
@@ -86,7 +86,7 @@ impl Project {
             lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
-            adapter_scheduler_kujira_address: Addr::unchecked(""),
+            adapter_scheduler_common_address: Addr::unchecked(""),
             adapter_marketplace_kujira_address: Addr::unchecked(""),
         }
     }
@@ -104,7 +104,7 @@ impl Project {
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
-        let adapter_scheduler_kujira_code_id = project.store_adapter_scheduler_kujira_code();
+        let adapter_scheduler_common_code_id = project.store_adapter_scheduler_common_code();
         let adapter_marketplace_kujira_code_id = project.store_adapter_marketplace_kujira_code();
 
         // instantiate packages
@@ -169,8 +169,8 @@ impl Project {
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None);
         let minter_address =
             project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
-        let adapter_scheduler_kujira_address = project.instantiate_adapter_scheduler_kujira(
-            adapter_scheduler_kujira_code_id,
+        let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
+            adapter_scheduler_common_code_id,
             &None,
             &None,
             &None,
@@ -188,7 +188,7 @@ impl Project {
             lending_platform_code_id,
             oracle_code_id,
             minter_code_id,
-            adapter_scheduler_kujira_code_id,
+            adapter_scheduler_common_code_id,
             adapter_marketplace_kujira_code_id,
 
             gopniks_address,
@@ -197,7 +197,7 @@ impl Project {
             lending_platform_address,
             oracle_address,
             minter_address,
-            adapter_scheduler_kujira_address,
+            adapter_scheduler_common_address,
             adapter_marketplace_kujira_address,
 
             ..project
@@ -237,7 +237,7 @@ impl Project {
                 &Some(ProjectAccount::Owner),
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
-                &Some(project.get_adapter_scheduler_kujira_address()),
+                &Some(project.get_adapter_scheduler_common_address()),
                 &Some(project.get_adapter_marketplace_kujira_address()),
             )
             .unwrap();
@@ -259,7 +259,7 @@ impl Project {
             .unwrap();
 
         project
-            .adapter_scheduler_kujira_try_update_config(
+            .adapter_scheduler_common_try_update_config(
                 ProjectAccount::Admin,
                 &None,
                 &None,
@@ -308,8 +308,8 @@ impl Project {
         self.minter_code_id
     }
 
-    pub fn get_adapter_scheduler_kujira_code_id(&self) -> u64 {
-        self.adapter_scheduler_kujira_code_id
+    pub fn get_adapter_scheduler_common_code_id(&self) -> u64 {
+        self.adapter_scheduler_common_code_id
     }
 
     pub fn get_adapter_marketplace_kujira_code_id(&self) -> u64 {
@@ -338,8 +338,8 @@ impl Project {
         self.minter_address.clone()
     }
 
-    pub fn get_adapter_scheduler_kujira_address(&self) -> Addr {
-        self.adapter_scheduler_kujira_address.clone()
+    pub fn get_adapter_scheduler_common_address(&self) -> Addr {
+        self.adapter_scheduler_common_address.clone()
     }
 
     pub fn get_adapter_marketplace_kujira_address(&self) -> Addr {

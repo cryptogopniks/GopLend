@@ -6,7 +6,7 @@ use crate::{
     oracle::types::{Config, TransferAdminState},
 };
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-oracle";
+pub const CONTRACT_NAME: &str = "goplend-oracle";
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;

@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
-    adapters::scheduler::kujira::{
+    adapters::scheduler::common::{
         msg::InstantiateMsg,
         state::{CLOCK_SOURCE, CONFIG, CONTRACT_NAME, LOG, LOG_COUNTER, MIN_CLOCK_PERIOD},
         types::{Config, Log},

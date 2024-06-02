@@ -4,7 +4,7 @@ use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
 use goplend_base::{
-    adapters::scheduler::kujira::{msg::MigrateMsg, state::CONTRACT_NAME},
+    adapters::scheduler::common::{msg::MigrateMsg, state::CONTRACT_NAME},
     error::ContractError,
 };
 

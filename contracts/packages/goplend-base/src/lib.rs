@@ -38,7 +38,7 @@ pub mod adapters {
     }
 
     pub mod scheduler {
-        pub mod kujira {
+        pub mod common {
             pub mod msg;
             pub mod state;
             pub mod types;

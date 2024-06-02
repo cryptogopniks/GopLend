@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use goplend_base::adapters::scheduler::kujira::msg::{
+use goplend_base::adapters::scheduler::common::msg::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 

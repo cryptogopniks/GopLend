@@ -4,7 +4,7 @@ use speculoos::assert_that;
 use cosmwasm_std::{StdResult, Uint128};
 
 use goplend_base::{
-    adapters::scheduler::kujira::{
+    adapters::scheduler::common::{
         msg::MigrateMsg,
         types::{ClockSource, Log},
     },
@@ -16,7 +16,7 @@ use goplend_base::{
 
 use crate::{
     helpers::{
-        adapters::scheduler::kujira::AdapterSchedulerKujiraExtension,
+        adapters::scheduler::common::AdapterSchedulerCommonExtension,
         lending_platform::LendingPlatformExtension,
         oracle::OracleExtension,
         suite::{
@@ -38,7 +38,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     const CLOCK_PERIOD: u64 = 1_000;
     const DELAY: u64 = 100;
 
-    project.adapter_scheduler_kujira_try_update_config(
+    project.adapter_scheduler_common_try_update_config(
         ProjectAccount::Admin,
         &None,
         &None,
@@ -167,7 +167,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     let targets = get_targets(&project, &borrowers)?;
 
     project
-        .adapter_scheduler_kujira_try_push(
+        .adapter_scheduler_common_try_push(
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
@@ -175,7 +175,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         .unwrap_err();
 
     project.wait(CLOCK_PERIOD);
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Alice,
         ClockSource::Offchain,
         &targets,
@@ -183,7 +183,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
 
     project.wait(DELAY);
     let res = project
-        .adapter_scheduler_kujira_try_push(ProjectAccount::Bob, ClockSource::Offchain, &[])
+        .adapter_scheduler_common_try_push(ProjectAccount::Bob, ClockSource::Offchain, &[])
         .unwrap_err();
     assert_error(&res, ContractError::EarlyExecution);
 
@@ -212,13 +212,13 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Bob,
         ClockSource::Offchain,
         &targets,
     )?;
 
-    let log = project.adapter_scheduler_kujira_query_log()?;
+    let log = project.adapter_scheduler_common_query_log()?;
     assert_that(&log).is_equal_to(vec![
         Log {
             block_time: 1571799519,
@@ -250,7 +250,7 @@ fn log_zero_cross() -> StdResult<()> {
 
     const CLOCK_PERIOD: u64 = 1_000;
 
-    project.adapter_scheduler_kujira_try_update_config(
+    project.adapter_scheduler_common_try_update_config(
         ProjectAccount::Admin,
         &None,
         &None,
@@ -381,7 +381,7 @@ fn log_zero_cross() -> StdResult<()> {
             .collect::<Vec<String>>();
         let targets = get_targets(&project, &borrowers)?;
 
-        project.adapter_scheduler_kujira_try_push(
+        project.adapter_scheduler_common_try_push(
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
@@ -420,7 +420,7 @@ fn log_zero_cross() -> StdResult<()> {
         );
     }
 
-    let log = project.adapter_scheduler_kujira_query_log()?;
+    let log = project.adapter_scheduler_common_query_log()?;
     assert_that(&log.into_iter().take(4).collect::<Vec<Log>>()).is_equal_to(vec![
         Log {
             block_time: 1572054675,
@@ -455,11 +455,11 @@ fn migrate_default() {
         .app
         .migrate_contract(
             ProjectAccount::Admin.into(),
-            project.get_adapter_scheduler_kujira_address(),
+            project.get_adapter_scheduler_common_address(),
             &MigrateMsg {
                 version: "1.0.0".to_string(),
             },
-            project.get_adapter_scheduler_kujira_code_id(),
+            project.get_adapter_scheduler_common_code_id(),
         )
         .unwrap();
 }

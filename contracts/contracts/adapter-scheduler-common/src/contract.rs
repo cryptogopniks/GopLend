@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 
 use goplend_base::{
-    adapters::scheduler::kujira::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    adapters::scheduler::common::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     error::ContractError,
 };
 

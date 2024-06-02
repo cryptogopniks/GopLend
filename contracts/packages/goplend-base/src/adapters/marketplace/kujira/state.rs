@@ -2,7 +2,7 @@ use cw_storage_plus::Item;
 
 use crate::adapters::marketplace::kujira::types::{Config, TransferAdminState};
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-adapter-marketplace-kujira";
+pub const CONTRACT_NAME: &str = "goplend-adapter-marketplace-kujira";
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;

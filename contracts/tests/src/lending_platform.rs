@@ -1,6 +1,6 @@
 use cw_multi_test::Executor;
 use goplend_base::{
-    adapters::scheduler::kujira::types::ClockSource,
+    adapters::scheduler::common::types::ClockSource,
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
@@ -28,7 +28,7 @@ use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 use crate::helpers::{
     adapters::{
         marketplace::kujira::AdapterMarketplaceKujiraExtension,
-        scheduler::kujira::AdapterSchedulerKujiraExtension,
+        scheduler::common::AdapterSchedulerCommonExtension,
     },
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
@@ -2635,7 +2635,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     let targets = get_targets(&project, &borrowers)?;
 
     project
-        .adapter_scheduler_kujira_try_push(
+        .adapter_scheduler_common_try_push(
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
@@ -2672,7 +2672,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -2855,7 +2855,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3035,7 +3035,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3215,7 +3215,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3398,7 +3398,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3573,7 +3573,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3753,7 +3753,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -3933,7 +3933,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -4123,7 +4123,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -4354,7 +4354,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -4658,7 +4658,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -4919,7 +4919,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     assert_that(&balances_before.regular.borrowed.amount.u128()).is_equal_to(AMOUNT_TO_BORROW);
     assert_that(&balances_before.regular.liquidation_bids.u128()).is_equal_to(LIQUIDATION_BID);
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -5022,7 +5022,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     // 740 + 2_000 = 2_740
     assert_that(&balances_after.regular.liquidation_bids.u128()).is_equal_to(2_740);
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -5231,7 +5231,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -5606,7 +5606,7 @@ fn big_numbers() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
@@ -5636,7 +5636,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
 
     const CLOCK_PERIOD: u64 = 1_000;
 
-    project.adapter_scheduler_kujira_try_update_config(
+    project.adapter_scheduler_common_try_update_config(
         ProjectAccount::Admin,
         &None,
         &None,
@@ -5797,7 +5797,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     const CLOCK_PERIOD: u64 = 1_000;
 
-    project.adapter_scheduler_kujira_try_update_config(
+    project.adapter_scheduler_common_try_update_config(
         ProjectAccount::Admin,
         &None,
         &None,
@@ -5995,7 +5995,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    project.adapter_scheduler_kujira_try_push(
+    project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,

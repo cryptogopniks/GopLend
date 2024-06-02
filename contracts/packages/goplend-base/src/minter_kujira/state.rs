@@ -6,7 +6,7 @@ use crate::{
     minter_kujira::types::{Config, TransferAdminState},
 };
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-minter-kujira";
+pub const CONTRACT_NAME: &str = "goplend-minter-kujira";
 
 pub const DEFAULT_DECIMALS: u8 = 6;
 

@@ -2,7 +2,7 @@ use cw_storage_plus::{Deque, Item};
 
 use super::types::{ClockSource, Config};
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-adapter-scheduler-stargaze";
+pub const CONTRACT_NAME: &str = "goplend-adapter-scheduler-stargaze";
 
 pub const CLOCK_SOURCE: ClockSource = ClockSource::Offchain;
 pub const MIN_CLOCK_PERIOD: u64 = 3;

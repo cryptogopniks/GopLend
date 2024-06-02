@@ -1,5 +1,5 @@
 #[cfg(test)]
-pub mod adapter_scheduler_kujira;
+pub mod adapter_scheduler_common;
 #[cfg(test)]
 pub mod lending_platform;
 #[cfg(test)]
@@ -20,7 +20,7 @@ pub mod helpers {
 
     pub mod adapters {
         pub mod scheduler {
-            pub mod kujira;
+            pub mod common;
             pub mod stargaze;
         }
 

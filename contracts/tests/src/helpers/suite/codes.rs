@@ -25,7 +25,7 @@ pub trait WithCodes {
     fn store_lending_platform_code(&mut self) -> u64;
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
-    fn store_adapter_scheduler_kujira_code(&mut self) -> u64;
+    fn store_adapter_scheduler_common_code(&mut self) -> u64;
     fn store_adapter_marketplace_kujira_code(&mut self) -> u64;
     // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
@@ -75,13 +75,13 @@ pub trait WithCodes {
         cw20_base_code_id: &Option<u64>,
     ) -> Addr;
 
-    fn instantiate_adapter_scheduler_kujira(
+    fn instantiate_adapter_scheduler_common(
         &mut self,
-        adapter_scheduler_kujira_code_id: u64,
+        adapter_scheduler_common_code_id: u64,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
-        clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
+        clock_source: &Option<adapters::scheduler::common::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr;
 
@@ -156,15 +156,15 @@ impl WithCodes for Project {
         ))
     }
 
-    fn store_adapter_scheduler_kujira_code(&mut self) -> u64 {
+    fn store_adapter_scheduler_common_code(&mut self) -> u64 {
         self.app.store_code(Box::new(
             ContractWrapper::new(
-                adapter_scheduler_kujira::contract::execute,
-                adapter_scheduler_kujira::contract::instantiate,
-                adapter_scheduler_kujira::contract::query,
+                adapter_scheduler_common::contract::execute,
+                adapter_scheduler_common::contract::instantiate,
+                adapter_scheduler_common::contract::query,
             )
-            .with_reply(adapter_scheduler_kujira::contract::reply)
-            .with_migrate(adapter_scheduler_kujira::contract::migrate),
+            .with_reply(adapter_scheduler_common::contract::reply)
+            .with_migrate(adapter_scheduler_common::contract::migrate),
         ))
     }
 
@@ -338,19 +338,19 @@ impl WithCodes for Project {
         )
     }
 
-    fn instantiate_adapter_scheduler_kujira(
+    fn instantiate_adapter_scheduler_common(
         &mut self,
-        adapter_scheduler_kujira_code_id: u64,
+        adapter_scheduler_common_code_id: u64,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
-        clock_source: &Option<adapters::scheduler::kujira::types::ClockSource>,
+        clock_source: &Option<adapters::scheduler::common::types::ClockSource>,
         min_clock_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
-            adapter_scheduler_kujira_code_id,
-            "adapter_scheduler_kujira",
-            &goplend_base::adapters::scheduler::kujira::msg::InstantiateMsg {
+            adapter_scheduler_common_code_id,
+            "adapter_scheduler_common",
+            &goplend_base::adapters::scheduler::common::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                 offchain_clock: offchain_clock

@@ -36,6 +36,6 @@ lending-platform = { workspace = true }
 oracle = { workspace = true }
 minter = { workspace = true }
 minter-kujira = { workspace = true }
-adapter-scheduler-kujira = { workspace = true }
+adapter-scheduler-common = { workspace = true }
 adapter-scheduler-stargaze = { workspace = true }
 adapter-marketplace-kujira = { workspace = true }

@@ -1,5 +1,5 @@
 [package]
-name = "adapter-scheduler-kujira"
+name = "adapter-scheduler-common"
 version = "1.0.0"
 authors = ["M. Daeva <embedmad@gmail.com>"]
 edition = "2021"

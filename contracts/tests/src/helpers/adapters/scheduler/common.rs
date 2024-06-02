@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, StdResult};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    adapters::scheduler::kujira::{
+    adapters::scheduler::common::{
         msg::{ExecuteMsg, QueryMsg},
         types::{ClockSource, Config, Log},
     },
@@ -12,14 +12,14 @@ use goplend_base::{
 
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
-pub trait AdapterSchedulerKujiraExtension {
-    fn adapter_scheduler_kujira_try_accept_admin_role(
+pub trait AdapterSchedulerCommonExtension {
+    fn adapter_scheduler_common_try_accept_admin_role(
         &mut self,
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
     #[allow(clippy::too_many_arguments)]
-    fn adapter_scheduler_kujira_try_update_config(
+    fn adapter_scheduler_common_try_update_config(
         &mut self,
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
@@ -30,28 +30,28 @@ pub trait AdapterSchedulerKujiraExtension {
         min_clock_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
-    fn adapter_scheduler_kujira_try_push(
+    fn adapter_scheduler_common_try_push(
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
         targets: &[LiquidationItem],
     ) -> StdResult<AppResponse>;
 
-    fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config>;
+    fn adapter_scheduler_common_query_config(&self) -> StdResult<Config>;
 
-    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>>;
+    fn adapter_scheduler_common_query_log(&self) -> StdResult<Vec<Log>>;
 }
 
-impl AdapterSchedulerKujiraExtension for Project {
+impl AdapterSchedulerCommonExtension for Project {
     #[track_caller]
-    fn adapter_scheduler_kujira_try_accept_admin_role(
+    fn adapter_scheduler_common_try_accept_admin_role(
         &mut self,
         sender: ProjectAccount,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_adapter_scheduler_kujira_address(),
+                self.get_adapter_scheduler_common_address(),
                 &ExecuteMsg::AcceptAdminRole {},
                 &[],
             )
@@ -59,7 +59,7 @@ impl AdapterSchedulerKujiraExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_try_update_config(
+    fn adapter_scheduler_common_try_update_config(
         &mut self,
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
@@ -72,7 +72,7 @@ impl AdapterSchedulerKujiraExtension for Project {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_adapter_scheduler_kujira_address(),
+                self.get_adapter_scheduler_common_address(),
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
@@ -89,7 +89,7 @@ impl AdapterSchedulerKujiraExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_try_push(
+    fn adapter_scheduler_common_try_push(
         &mut self,
         sender: ProjectAccount,
         clock_source: ClockSource,
@@ -100,7 +100,7 @@ impl AdapterSchedulerKujiraExtension for Project {
                 .app
                 .execute_contract(
                     sender.into(),
-                    self.get_adapter_scheduler_kujira_address(),
+                    self.get_adapter_scheduler_common_address(),
                     &ExecuteMsg::Push {
                         targets: targets.to_owned(),
                     },
@@ -112,17 +112,17 @@ impl AdapterSchedulerKujiraExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_query_config(&self) -> StdResult<Config> {
+    fn adapter_scheduler_common_query_config(&self) -> StdResult<Config> {
         self.app.wrap().query_wasm_smart(
-            self.get_adapter_scheduler_kujira_address(),
+            self.get_adapter_scheduler_common_address(),
             &QueryMsg::QueryConfig {},
         )
     }
 
     #[track_caller]
-    fn adapter_scheduler_kujira_query_log(&self) -> StdResult<Vec<Log>> {
+    fn adapter_scheduler_common_query_log(&self) -> StdResult<Vec<Log>> {
         self.app.wrap().query_wasm_smart(
-            self.get_adapter_scheduler_kujira_address(),
+            self.get_adapter_scheduler_common_address(),
             &QueryMsg::QueryLog {},
         )
     }

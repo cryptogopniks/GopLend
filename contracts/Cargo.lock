@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "adapter-scheduler-kujira"
+name = "adapter-scheduler-common"
 version = "1.0.0"
 dependencies = [
  "cosmwasm-schema",
@@ -1702,7 +1702,7 @@ name = "tests"
 version = "1.0.0"
 dependencies = [
  "adapter-marketplace-kujira",
- "adapter-scheduler-kujira",
+ "adapter-scheduler-common",
  "adapter-scheduler-stargaze",
  "anyhow",
  "cosmwasm-schema",

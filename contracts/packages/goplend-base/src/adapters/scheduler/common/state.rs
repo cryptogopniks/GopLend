@@ -1,8 +1,8 @@
 use cw_storage_plus::{Deque, Item};
 
-use crate::adapters::scheduler::kujira::types::{ClockSource, Config, Log, TransferAdminState};
+use crate::adapters::scheduler::common::types::{ClockSource, Config, Log, TransferAdminState};
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-adapter-scheduler-kujira";
+pub const CONTRACT_NAME: &str = "goplend-adapter-scheduler-common";
 
 pub const CLOCK_SOURCE: ClockSource = ClockSource::Offchain;
 pub const MIN_CLOCK_PERIOD: u64 = 3;

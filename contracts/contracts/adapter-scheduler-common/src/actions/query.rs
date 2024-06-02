@@ -1,6 +1,6 @@
 use cosmwasm_std::{Deps, Env, StdResult};
 
-use goplend_base::adapters::scheduler::kujira::{
+use goplend_base::adapters::scheduler::common::{
     state::{CONFIG, LOG},
     types::{Config, Log},
 };

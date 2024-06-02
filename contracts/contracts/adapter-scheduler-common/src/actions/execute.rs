@@ -3,7 +3,7 @@ use cosmwasm_std::{
 };
 
 use goplend_base::{
-    adapters::scheduler::kujira::{
+    adapters::scheduler::common::{
         state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
         types::{ClockSource, Config, Log, TransferAdminState},
     },

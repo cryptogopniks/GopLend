@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use crate::{
-    adapters::scheduler::kujira::types::ClockSource, lending_platform::types::LiquidationItem,
+    adapters::scheduler::common::types::ClockSource, lending_platform::types::LiquidationItem,
 };
 
 #[cw_serde]
