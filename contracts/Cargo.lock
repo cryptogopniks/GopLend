@@ -28,7 +28,7 @@ dependencies = [
  "infinity-factory",
  "semver",
  "serde",
- "stargaze-marketplace-v2",
+ "sg-marketplace",
 ]
 
 [[package]]
@@ -438,6 +438,19 @@ dependencies = [
 
 [[package]]
 name = "cw20"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a45a8794a5dd33b66af34caee52a7beceb690856adcc1682b6e3db88b2cdee62"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-utils 0.16.0",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "cw20"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "526e39bb20534e25a1cd0386727f0038f4da294e5e535729ba3ef54055246abd"
@@ -459,7 +472,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20",
+ "cw20 1.1.2",
  "schemars",
  "semver",
  "serde",
@@ -685,7 +698,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
- "cw20",
+ "cw20 1.1.2",
  "cw20-base",
  "cw721 0.18.0",
  "serde",
@@ -815,7 +828,7 @@ dependencies = [
  "infinity-shared",
  "semver",
  "sg-index-query",
- "sg-marketplace-common 1.2.0 (git+https://github.com/public-awesome/marketplace?rev=02be12b82ceb88188b227cc73d0c2631aaa201c0)",
+ "sg-marketplace-common",
  "sg-std",
  "sg721",
  "stargaze-fair-burn",
@@ -907,7 +920,7 @@ checksum = "d79c452d84f1b446f7efa4f8b4373ed69a2021e25aeea3b13fdcce9b764b7326"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw20",
+ "cw20 1.1.2",
  "kujira-std",
 ]
 
@@ -956,7 +969,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
- "cw20",
+ "cw20 1.1.2",
  "hex",
  "sha2 0.10.8",
  "thiserror",
@@ -970,7 +983,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20",
+ "cw20 1.1.2",
  "cw721 0.18.0",
  "goplend-base",
  "semver",
@@ -991,7 +1004,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20",
+ "cw20 1.1.2",
  "cw20-base",
  "goplend-base",
  "osmosis-std",
@@ -1401,24 +1414,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "sg-marketplace-common"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8194932ee76d38b75d19be7b9537bef7c2c94f05dc9c577d8de828f5566f986"
+name = "sg-marketplace"
+version = "1.4.0"
+source = "git+https://github.com/public-awesome/marketplace.git#e0e7811e024ae1fd8458abc643cde32d5d15f8c0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
+ "cosmwasm-storage",
+ "cw-storage-plus 0.16.0",
+ "cw-utils 0.16.0",
+ "cw2 0.16.0",
+ "cw20 0.16.0",
+ "cw721 0.16.0",
+ "cw721-base 0.16.0",
+ "schemars",
+ "semver",
  "serde",
+ "sg-controllers",
  "sg-std",
  "sg1",
+ "sg2",
  "sg721",
  "sg721-base",
- "stargaze-fair-burn",
  "thiserror",
 ]
 
@@ -1596,32 +1613,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "stargaze-marketplace-v2"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2fd6873f2a3dba8341303eec40dc0c132f27870da1f3f84b45ade7089f64488"
+name = "stargaze-mocks-marketplace"
+version = "1.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-address-like",
  "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
  "cw2 1.1.2",
  "cw721 0.18.0",
- "cw721-base 0.18.0",
+ "goplend-base",
  "semver",
  "serde",
- "sg-controllers",
- "sg-index-query",
- "sg-marketplace-common 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sg-std",
- "sg1",
- "sg2",
- "sg721",
- "sg721-base",
- "stargaze-fair-burn",
- "stargaze-royalty-registry",
- "thiserror",
+ "sg-marketplace",
 ]
 
 [[package]]
@@ -1702,6 +1705,7 @@ name = "tests"
 version = "1.0.0"
 dependencies = [
  "adapter-marketplace-kujira",
+ "adapter-marketplace-stargaze",
  "adapter-scheduler-common",
  "adapter-scheduler-stargaze",
  "anyhow",
@@ -1710,7 +1714,7 @@ dependencies = [
  "cw-multi-test",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20",
+ "cw20 1.1.2",
  "cw20-base",
  "cw721 0.18.0",
  "cw721-base 0.18.0",

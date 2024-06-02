@@ -1,12 +1,15 @@
 use cosmwasm_std::{Decimal, Deps, Env, StdResult};
 
-use stargaze_marketplace_v2::{
-    msg::QueryMsg as MarketplaceQueryMsg,
-    state::{CollectionOffer, Offer},
+use sg_marketplace::{
+    msg::{CollectionBidsResponse, QueryMsg as MarketplaceQueryMsg},
+    state::CollectionBid,
 };
 
 use goplend_base::{
-    adapters::marketplace::stargaze::{state::CONFIG, types::Config},
+    adapters::marketplace::stargaze::{
+        state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
+        types::Config,
+    },
     lending_platform::{
         msg::{
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -47,31 +50,54 @@ pub fn query_liquidation_bids_by_collection_address_list(
         vec![];
 
     for QueryCollectionsResponseItem { address, .. } in collection_list {
-        let collection_offers: Vec<Offer> = deps.querier.query_wasm_smart(
+        let CollectionBidsResponse { bids } = deps.querier.query_wasm_smart(
             marketplace,
-            &MarketplaceQueryMsg::CollectionOffersByCollection {
+            // &MarketplaceQueryMsg::CollectionOffersByCollection {
+            //     collection: address.to_string(),
+            //     query_options: None,
+            // },
+            &MarketplaceQueryMsg::CollectionBidsSortedByPrice {
                 collection: address.to_string(),
-                query_options: None,
+                start_after: None,
+                limit: Some(PAGINATION_DEFAULT_LIMIT),
             },
         )?;
 
-        let liquidation_bids = collection_offers
+        let liquidation_bids = bids
             .into_iter()
             .map(
-                |Offer {
-                     token_id,
-                     order_info,
+                |CollectionBid {
+                     collection,
+                     price,
+                     bidder,
                      ..
-                 }| LiquidationBid {
-                    creation_date: block_time,
-                    liquidator: order_info.creator,
-                    token_id_list: vec![token_id],
-                    amount: order_info.price.amount,
-                    discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
-                    is_offer: true,
+                 }|
+                 -> StdResult<LiquidationBid> {
+                    let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
+                        lending_platform,
+                        &LendingPlatformQueryMsg::QueryCollateral {
+                            collection_address: collection.to_string(),
+                        },
+                    )?;
+
+                    // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
+                    let token_id_list = collateral
+                        .into_iter()
+                        .map(|x| x.token_id_list)
+                        .flatten()
+                        .collect();
+
+                    Ok(LiquidationBid {
+                        creation_date: block_time,
+                        liquidator: bidder,
+                        token_id_list,
+                        amount: price,
+                        discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
+                        is_offer: true,
+                    })
                 },
             )
-            .collect();
+            .collect::<StdResult<Vec<LiquidationBid>>>()?;
 
         total_liquidation_bids.push(QueryLiquidationBidsByCollectionAddressListResponseItem {
             collection_address: address,
@@ -89,36 +115,58 @@ pub fn query_liquidation_bids_by_collection_address(
 ) -> StdResult<Vec<LiquidationBid>> {
     let block_time = env.block.time.seconds();
     let collection = &deps.api.addr_validate(&address)?;
-    let Config { marketplace, .. } = CONFIG.load(deps.storage)?;
+    let Config {
+        lending_platform,
+        marketplace,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
     // let infinity_pool = &unwrap_field(infinity_pool, "infinity_pool")?;
 
     // TODO: check if it will return token offers as well
-    let collection_offers: Vec<Offer> = deps.querier.query_wasm_smart(
+    let CollectionBidsResponse { bids } = deps.querier.query_wasm_smart(
         marketplace,
-        &MarketplaceQueryMsg::CollectionOffersByCollection {
-            collection: collection.to_string(),
-            query_options: None,
+        // &MarketplaceQueryMsg::CollectionOffersByCollection {
+        //     collection: address.to_string(),
+        //     query_options: None,
+        // },
+        &MarketplaceQueryMsg::CollectionBidsSortedByPrice {
+            collection: address.to_string(),
+            start_after: None,
+            limit: Some(PAGINATION_DEFAULT_LIMIT),
         },
     )?;
 
-    let liquidation_bids = collection_offers
+    let liquidation_bids = bids
         .into_iter()
         .map(
-            |Offer {
-                 token_id,
-                 order_info,
-                 ..
-             }| LiquidationBid {
-                creation_date: block_time,
-                liquidator: order_info.creator,
-                token_id_list: vec![token_id],
-                amount: order_info.price.amount,
-                discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
-                is_offer: true,
+            |CollectionBid { price, bidder, .. }| -> StdResult<LiquidationBid> {
+                let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
+                    lending_platform,
+                    &LendingPlatformQueryMsg::QueryCollateral {
+                        collection_address: collection.to_string(),
+                    },
+                )?;
+
+                // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
+                let token_id_list = collateral
+                    .into_iter()
+                    .map(|x| x.token_id_list)
+                    .flatten()
+                    .collect();
+
+                Ok(LiquidationBid {
+                    creation_date: block_time,
+                    liquidator: bidder,
+                    token_id_list,
+                    amount: price,
+                    discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
+                    is_offer: true,
+                })
             },
         )
-        .collect();
+        .collect::<StdResult<Vec<LiquidationBid>>>()?;
 
     Ok(liquidation_bids)
 }
@@ -203,20 +251,27 @@ pub fn query_liquidation_bids_by_liquidator_address(
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
     // let infinity_pool = &unwrap_field(infinity_pool, "infinity_pool")?;
 
-    let collection_offers: Vec<CollectionOffer> = deps.querier.query_wasm_smart(
+    let CollectionBidsResponse { bids } = deps.querier.query_wasm_smart(
         marketplace,
-        &MarketplaceQueryMsg::CollectionOffersByCreator {
-            creator: address,
-            query_options: None,
+        // &MarketplaceQueryMsg::CollectionOffersByCollection {
+        //     collection: address.to_string(),
+        //     query_options: None,
+        // },
+        &MarketplaceQueryMsg::CollectionBidsByBidder {
+            bidder: address,
+            start_after: None,
+            limit: Some(PAGINATION_DEFAULT_LIMIT),
         },
     )?;
 
-    let liquidation_bids = collection_offers
+    let liquidation_bids = bids
         .into_iter()
         .map(
-            |CollectionOffer {
+            |CollectionBid {
                  collection,
-                 order_info,
+                 price,
+                 bidder,
+                 ..
              }| {
                 let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
                     lending_platform,
@@ -236,9 +291,9 @@ pub fn query_liquidation_bids_by_liquidator_address(
                     collection_address: collection,
                     liquidation_bids: vec![LiquidationBid {
                         creation_date: block_time,
-                        liquidator: order_info.creator,
-                        token_id_list, // all tokens
-                        amount: order_info.price.amount,
+                        liquidator: bidder,
+                        token_id_list,
+                        amount: price,
                         discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                         is_offer: true,
                     }],

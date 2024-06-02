@@ -3,7 +3,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 
-use stargaze_marketplace_v2::msg::ExecuteMsg as MarketplaceExecuteMsg;
+use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
 
 use goplend_base::{
     adapters::marketplace::stargaze::{
@@ -163,16 +163,23 @@ pub fn try_accept_bids(
 
     let mut liquidated_value = Uint128::zero();
 
-    for bidded_collateral_item in bidded_collateral_item_list {
-        liquidated_value += bidded_collateral_item.liquidation_price;
+    for BiddedCollateralItem {
+        collection,
+        token_id,
+        liquidator,
+        liquidation_price,
+        ..
+    } in bidded_collateral_item_list
+    {
+        liquidated_value += liquidation_price;
 
         // TODO: check if changing nft owner will not reset offers
         // transfer nfts from platform
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: bidded_collateral_item.collection.to_string(),
+            contract_addr: collection.to_string(),
             msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
                 recipient: env.contract.address.to_string(),
-                token_id: bidded_collateral_item.token_id.to_string(),
+                token_id: token_id.to_string(),
             })?,
             funds: vec![],
         });
@@ -182,11 +189,19 @@ pub fn try_accept_bids(
         // add accept offer msgs
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: marketplace.to_string(),
-            msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionOffer {
-                collection: bidded_collateral_item.collection.to_string(),
-                token_id: bidded_collateral_item.token_id.to_string(),
-                creator: bidded_collateral_item.liquidator.to_string(),
-                order_options: None,
+            // msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionOffer {
+            //     collection: collection.to_string(),
+            //     token_id: token_id.to_string(),
+            //     creator: liquidator.to_string(),
+            //     order_options: None,
+            // })?,
+            msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionBid {
+                collection: collection.to_string(),
+                token_id: token_id.parse().map_err(|_| ContractError::CustomError {
+                    val: format!("{} token_id parsing error", token_id),
+                })?,
+                bidder: liquidator.to_string(),
+                finder: None,
             })?,
             funds: vec![],
         });
