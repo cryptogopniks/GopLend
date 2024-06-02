@@ -1,6 +1,6 @@
-use cosmwasm_std::{Deps, Env, Order, StdResult};
+use cosmwasm_std::{Deps, Env, StdResult};
 
-use cw_storage_plus::Bound;
+// use cw_storage_plus::Bound;
 use goplend_base::adapters::marketplace::kujira::{
     state::{CONFIG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
     types::Config,
@@ -11,12 +11,12 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 }
 
 pub fn query_liquidation_bids_by_collection_address_list(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
-    start_after: Option<String>,
+    _start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
-    let limit = limit
+    let _limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
 
@@ -45,9 +45,9 @@ pub fn query_liquidation_bids_by_collection_address_list(
 }
 
 pub fn query_liquidation_bids_by_collection_address(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
-    address: String,
+    _address: String,
 ) -> StdResult<Vec<goplend_base::lending_platform::types::LiquidationBid>> {
     // Ok(LIQUIDATION_BIDS
     //     .load(deps.storage, &deps.api.addr_validate(&address)?)
@@ -57,12 +57,12 @@ pub fn query_liquidation_bids_by_collection_address(
 }
 
 pub fn query_liquidation_bids_by_liquidator_address_list(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
-    start_after: Option<String>,
+    _start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByLiquidatorAddressListResponseItem>>{
-    let limit = limit
+    let _limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
 
@@ -111,9 +111,9 @@ pub fn query_liquidation_bids_by_liquidator_address_list(
 }
 
 pub fn query_liquidation_bids_by_liquidator_address(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
-    address: String,
+    _address: String,
 ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
     // let liquidator = LIQUIDATORS
     //     .load(deps.storage, &deps.api.addr_validate(&address)?)

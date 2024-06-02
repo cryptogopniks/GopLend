@@ -23,6 +23,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
+ "cw721 0.18.0",
  "goplend-base",
  "infinity-factory",
  "semver",
@@ -686,6 +687,7 @@ dependencies = [
  "cw-storage-plus 1.2.0",
  "cw20",
  "cw20-base",
+ "cw721 0.18.0",
  "serde",
  "thiserror",
 ]

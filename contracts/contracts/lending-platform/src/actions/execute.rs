@@ -24,7 +24,8 @@ use goplend_base::{
     },
     minter, oracle,
     utils::{
-        add_funds_to_exec_msg, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
+        add_funds_to_exec_msg, check_funds, get_collection_operator_approvals, get_transfer_msg,
+        unwrap_field, AuthType, FundsType,
     },
 };
 
@@ -1397,18 +1398,36 @@ pub fn try_liquidate(
     // send messages to marketplace
     let mut response = Response::new().add_attributes(vec![("action", "try_liquidate")]);
 
+    // TODO: use different adapters depending on chain id
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
     {
-        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: unwrap_field(address_config.marketplace, "marketplace")?.to_string(),
-            msg: to_json_binary(
-                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
-                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-                },
-            )?,
-            funds: vec![],
-        }));
+        let marketplace = unwrap_field(address_config.marketplace, "marketplace")?;
+
+        // check operator and add approvals if it's required
+        let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
+            .iter()
+            .map(|x| x.collection.to_string())
+            .collect();
+        collection_list.sort_unstable();
+        collection_list.dedup();
+
+        response = response
+            .add_messages(get_collection_operator_approvals(
+                deps.querier,
+                &collection_list,
+                env.contract.address,
+                &marketplace,
+            )?)
+            .add_message(WasmMsg::Execute {
+                contract_addr: marketplace.to_string(),
+                msg: to_json_binary(
+                    &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
+                        bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                    },
+                )?,
+                funds: vec![],
+            });
     }
 
     Ok(response)

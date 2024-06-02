@@ -2,8 +2,8 @@ use std::fmt::Debug;
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    coin, to_json_binary, Addr, Api, BankMsg, Coin, CosmosMsg, Deps, MessageInfo, StdError,
-    StdResult, Uint128, WasmMsg,
+    coin, to_json_binary, Addr, Api, BankMsg, Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper,
+    StdError, StdResult, Uint128, WasmMsg,
 };
 
 use crate::{assets::Token, error::ContractError};
@@ -201,4 +201,40 @@ fn nonpayable(info: &MessageInfo) -> StdResult<()> {
     }
 
     Ok(())
+}
+
+pub fn get_collection_operator_approvals(
+    querier: QuerierWrapper,
+    collection_list: &[impl ToString],
+    owner: impl ToString,
+    operator: impl ToString,
+) -> StdResult<Vec<CosmosMsg>> {
+    let mut msg_list: Vec<CosmosMsg> = vec![];
+
+    for collection in collection_list {
+        let cw721::OperatorsResponse { operators } = querier.query_wasm_smart(
+            collection.to_string(),
+            &cw721::Cw721QueryMsg::AllOperators {
+                owner: owner.to_string(),
+                include_expired: None,
+                start_after: None,
+                limit: None,
+            },
+        )?;
+
+        let target_operator = operators.iter().find(|x| x.spender == operator.to_string());
+
+        if target_operator.is_none() {
+            msg_list.push(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: collection.to_string(),
+                msg: to_json_binary(&cw721::Cw721ExecuteMsg::ApproveAll {
+                    operator: operator.to_string(),
+                    expires: None,
+                })?,
+                funds: vec![],
+            }));
+        }
+    }
+
+    Ok(msg_list)
 }

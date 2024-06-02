@@ -93,6 +93,7 @@ pub fn query_liquidation_bids_by_collection_address(
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
     // let infinity_pool = &unwrap_field(infinity_pool, "infinity_pool")?;
 
+    // TODO: check if it will return token offers as well
     let collection_offers: Vec<Offer> = deps.querier.query_wasm_smart(
         marketplace,
         &MarketplaceQueryMsg::CollectionOffersByCollection {
@@ -224,6 +225,7 @@ pub fn query_liquidation_bids_by_liquidator_address(
                     },
                 )?;
 
+                // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
                 let token_id_list = collateral
                     .into_iter()
                     .map(|x| x.token_id_list)

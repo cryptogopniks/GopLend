@@ -1,4 +1,9 @@
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    WasmMsg,
+};
+
+use stargaze_marketplace_v2::msg::ExecuteMsg as MarketplaceExecuteMsg;
 
 use goplend_base::{
     adapters::marketplace::stargaze::{
@@ -6,7 +11,14 @@ use goplend_base::{
         types::{Config, TransferAdminState},
     },
     error::ContractError,
-    utils::{check_funds, unwrap_field, AuthType, FundsType},
+    lending_platform::{
+        msg::QueryMsg as LendingPlatformQueryMsg,
+        types::{BiddedCollateralItem, CommonConfig},
+    },
+    utils::{
+        check_funds, get_collection_operator_approvals, get_transfer_msg, unwrap_field, AuthType,
+        FundsType,
+    },
 };
 
 pub fn try_accept_admin_role(
@@ -115,7 +127,7 @@ pub fn try_accept_bids(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    bidded_collateral_item_list: Vec<goplend_base::lending_platform::types::BiddedCollateralItem>,
+    bidded_collateral_item_list: Vec<BiddedCollateralItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(
@@ -126,9 +138,80 @@ pub fn try_accept_bids(
         },
     )?;
 
-    Ok(Response::new().add_attribute("action", "try_accept_bids"))
+    let Config {
+        lending_platform,
+        marketplace,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
+    let marketplace = &unwrap_field(marketplace, "marketplace")?;
+
+    // check operator and add approvals if it's required
+    let mut collection_list: Vec<String> = bidded_collateral_item_list
+        .iter()
+        .map(|x| x.collection.to_string())
+        .collect();
+    collection_list.sort_unstable();
+    collection_list.dedup();
+
+    let mut msg_list = get_collection_operator_approvals(
+        deps.querier,
+        &collection_list,
+        &env.contract.address,
+        marketplace,
+    )?;
+
+    let mut liquidated_value = Uint128::zero();
+
+    for bidded_collateral_item in bidded_collateral_item_list {
+        liquidated_value += bidded_collateral_item.liquidation_price;
+
+        // TODO: check if changing nft owner will not reset offers
+        // transfer nfts from platform
+        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: bidded_collateral_item.collection.to_string(),
+            msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
+                recipient: env.contract.address.to_string(),
+                token_id: bidded_collateral_item.token_id.to_string(),
+            })?,
+            funds: vec![],
+        });
+
+        msg_list.push(msg);
+
+        // add accept offer msgs
+        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: marketplace.to_string(),
+            msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionOffer {
+                collection: bidded_collateral_item.collection.to_string(),
+                token_id: bidded_collateral_item.token_id.to_string(),
+                creator: bidded_collateral_item.liquidator.to_string(),
+                order_options: None,
+            })?,
+            funds: vec![],
+        });
+
+        msg_list.push(msg);
+    }
+
+    // send liquidated value to platform
+    let CommonConfig { main_currency, .. } = deps.querier.query_wasm_smart(
+        lending_platform,
+        &LendingPlatformQueryMsg::QueryCommonConfig {},
+    )?;
+
+    msg_list.push(get_transfer_msg(
+        &sender_address,
+        liquidated_value,
+        &main_currency.token,
+    )?);
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attribute("action", "try_accept_bids"))
 }
 
+// TODO: refactoring
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
     let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
     let worker = unwrap_field(worker, "worker");

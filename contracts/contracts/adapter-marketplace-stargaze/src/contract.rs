@@ -77,7 +77,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             &q::query_liquidation_bids_by_collection_address(deps, env, address)?,
         ),
 
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList { start_after, limit } => {
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList {
+            start_after: _,
+            limit: _,
+        } => {
             unimplemented!()
         }
 
