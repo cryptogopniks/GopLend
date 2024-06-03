@@ -39,7 +39,7 @@ getrandom = { version = "0.2.9", features = ["js"] }
 semver = "1.0.20"
 
 goplend-base = { path = "./packages/goplend-base" }
-stargaze-mocks-marketplace = { path = "./packages/stargaze-mocks-marketplace" }
+stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }
 
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }

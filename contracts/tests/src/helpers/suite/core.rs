@@ -4,6 +4,7 @@ use cosmwasm_std::{coin, to_json_binary, Addr, Coin, Empty, StdResult, Timestamp
 use cw_multi_test::{App, AppResponse, Executor};
 
 use serde::Serialize;
+use stargaze_mocks_marketplace::state::Bid;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
@@ -18,7 +19,10 @@ use goplend_base::{
 
 use crate::helpers::{
     adapters::{
-        marketplace::kujira::AdapterMarketplaceKujiraExtension,
+        marketplace::{
+            kujira::AdapterMarketplaceKujiraExtension,
+            stargaze::AdapterMarketplaceStargazeExtension,
+        },
         scheduler::common::AdapterSchedulerCommonExtension,
     },
     lending_platform::LendingPlatformExtension,
@@ -43,23 +47,27 @@ pub struct Project {
     // package code id
     cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
+    stargaze_mocks_marketplace_code_id: u64,
 
     // contract code id
     lending_platform_code_id: u64,
     oracle_code_id: u64,
     minter_code_id: u64,
     adapter_scheduler_common_code_id: u64,
+    adapter_marketplace_stargaze_code_id: u64,
     adapter_marketplace_kujira_code_id: u64,
 
     // package address
     gopniks_address: Addr,
     pinjeons_address: Addr,
+    stargaze_mocks_marketplace_address: Addr,
 
     // contract address
     lending_platform_address: Addr,
     oracle_address: Addr,
     minter_address: Addr,
     adapter_scheduler_common_address: Addr,
+    adapter_marketplace_stargaze_address: Addr,
     adapter_marketplace_kujira_address: Addr,
     //
     // other
@@ -74,19 +82,24 @@ impl Project {
 
             cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
+            stargaze_mocks_marketplace_code_id: 0,
+
             lending_platform_code_id: 0,
             oracle_code_id: 0,
             minter_code_id: 0,
             adapter_scheduler_common_code_id: 0,
+            adapter_marketplace_stargaze_code_id: 0,
             adapter_marketplace_kujira_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
+            stargaze_mocks_marketplace_address: Addr::unchecked(""),
 
             lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
             adapter_scheduler_common_address: Addr::unchecked(""),
+            adapter_marketplace_stargaze_address: Addr::unchecked(""),
             adapter_marketplace_kujira_address: Addr::unchecked(""),
         }
     }
@@ -99,12 +112,15 @@ impl Project {
         // packages
         let cw20_base_code_id = project.store_cw20_base_code();
         let cw721_base_code_id = project.store_cw721_base_code();
+        let stargaze_mocks_marketplace_code_id = project.store_stargaze_mocks_marketplace_code();
 
         // contracts
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
         let adapter_scheduler_common_code_id = project.store_adapter_scheduler_common_code();
+        let adapter_marketplace_stargaze_code_id =
+            project.store_adapter_marketplace_stargaze_code();
         let adapter_marketplace_kujira_code_id = project.store_adapter_marketplace_kujira_code();
 
         // instantiate packages
@@ -139,6 +155,34 @@ impl Project {
                 project.mint_nft(ProjectAccount::Owner, recipient, collection, nft_list);
             }
         }
+
+        let stargaze_mocks_marketplace_address = project.instantiate_stargaze_mocks_marketplace(
+            stargaze_mocks_marketplace_code_id,
+            &[
+                Bid {
+                    bidder: ProjectAccount::John.into(),
+                    collection: ProjectNft::Gopniks.into(),
+                    price: Uint128::new(700),
+                },
+                Bid {
+                    bidder: ProjectAccount::John.into(),
+                    collection: ProjectNft::Pinjeons.into(),
+                    price: Uint128::new(700),
+                },
+                Bid {
+                    bidder: ProjectAccount::Kate.into(),
+                    collection: ProjectNft::Gopniks.into(),
+                    price: Uint128::new(700),
+                },
+                Bid {
+                    bidder: ProjectAccount::Kate.into(),
+                    collection: ProjectNft::Pinjeons.into(),
+                    price: Uint128::new(700),
+                },
+            ],
+            4 * 700,
+            ProjectCoin::Kuji,
+        );
 
         // instantiate goplend contracts
 
@@ -177,6 +221,14 @@ impl Project {
             &None,
             &None,
         );
+        let adapter_marketplace_stargaze_address = project
+            .instantiate_adapter_marketplace_stargaze(
+                adapter_marketplace_stargaze_code_id,
+                &None,
+                &None,
+                &None,
+                &None,
+            );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
             adapter_marketplace_kujira_code_id,
             &None,
@@ -185,19 +237,24 @@ impl Project {
 
         project = Self {
             cw20_base_code_id,
+            stargaze_mocks_marketplace_code_id,
+
             lending_platform_code_id,
             oracle_code_id,
             minter_code_id,
             adapter_scheduler_common_code_id,
+            adapter_marketplace_stargaze_code_id,
             adapter_marketplace_kujira_code_id,
 
             gopniks_address,
             pinjeons_address,
+            stargaze_mocks_marketplace_address,
 
             lending_platform_address,
             oracle_address,
             minter_address,
             adapter_scheduler_common_address,
+            adapter_marketplace_stargaze_address,
             adapter_marketplace_kujira_address,
 
             ..project
@@ -238,7 +295,7 @@ impl Project {
                 &Some(project.get_oracle_address()),
                 &Some(project.get_minter_address()),
                 &Some(project.get_adapter_scheduler_common_address()),
-                &Some(project.get_adapter_marketplace_kujira_address()),
+                &Some(project.get_adapter_marketplace_stargaze_address()),
             )
             .unwrap();
 
@@ -271,6 +328,17 @@ impl Project {
             .unwrap();
 
         project
+            .adapter_marketplace_stargaze_try_update_config(
+                ProjectAccount::Admin,
+                &None,
+                &None,
+                &Some(project.get_lending_platform_address()),
+                &Some(project.get_adapter_marketplace_stargaze_address()),
+                &None,
+            )
+            .unwrap();
+
+        project
             .adapter_marketplace_kujira_try_update_config(
                 ProjectAccount::Admin,
                 &None,
@@ -296,6 +364,10 @@ impl Project {
         self.cw20_base_code_id
     }
 
+    pub fn get_stargaze_mocks_marketplace_code_id(&self) -> u64 {
+        self.stargaze_mocks_marketplace_code_id
+    }
+
     pub fn get_lending_platform_code_id(&self) -> u64 {
         self.lending_platform_code_id
     }
@@ -312,6 +384,10 @@ impl Project {
         self.adapter_scheduler_common_code_id
     }
 
+    pub fn get_adapter_marketplace_stargaze_code_id(&self) -> u64 {
+        self.adapter_marketplace_stargaze_code_id
+    }
+
     pub fn get_adapter_marketplace_kujira_code_id(&self) -> u64 {
         self.adapter_marketplace_kujira_code_id
     }
@@ -323,6 +399,10 @@ impl Project {
 
     pub fn get_pinjeons_address(&self) -> Addr {
         self.pinjeons_address.clone()
+    }
+
+    pub fn get_stargaze_mocks_marketplace_address(&self) -> Addr {
+        self.stargaze_mocks_marketplace_address.clone()
     }
 
     // contract address getters
@@ -340,6 +420,10 @@ impl Project {
 
     pub fn get_adapter_scheduler_common_address(&self) -> Addr {
         self.adapter_scheduler_common_address.clone()
+    }
+
+    pub fn get_adapter_marketplace_stargaze_address(&self) -> Addr {
+        self.adapter_marketplace_stargaze_address.clone()
     }
 
     pub fn get_adapter_marketplace_kujira_address(&self) -> Addr {

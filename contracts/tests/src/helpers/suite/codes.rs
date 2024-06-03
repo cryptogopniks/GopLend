@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdResult, Uint128};
+use cosmwasm_std::{coins, Addr, StdResult, Uint128};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
 use serde::Serialize;
@@ -13,25 +13,34 @@ use goplend_base::{
 
 use crate::helpers::suite::{
     core::Project,
-    types::{GetDecimals, ProjectAccount, ProjectNft, ProjectToken},
+    types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
 };
 
 pub trait WithCodes {
     // store packages
     fn store_cw20_base_code(&mut self) -> u64;
     fn store_cw721_base_code(&mut self) -> u64;
+    fn store_stargaze_mocks_marketplace_code(&mut self) -> u64;
 
     // store contracts
     fn store_lending_platform_code(&mut self) -> u64;
     fn store_oracle_code(&mut self) -> u64;
     fn store_minter_code(&mut self) -> u64;
     fn store_adapter_scheduler_common_code(&mut self) -> u64;
+    fn store_adapter_marketplace_stargaze_code(&mut self) -> u64;
     fn store_adapter_marketplace_kujira_code(&mut self) -> u64;
     // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
     fn instantiate_cw721_base_token(&mut self, code_id: u64, project_nft: ProjectNft) -> Addr;
+    fn instantiate_stargaze_mocks_marketplace(
+        &mut self,
+        stargaze_mocks_marketplace_code_id: u64,
+        bids: &[stargaze_mocks_marketplace::state::Bid],
+        amount: u128,
+        denom: ProjectCoin,
+    ) -> Addr;
 
     // instantiate contracts
     #[allow(clippy::too_many_arguments)]
@@ -85,6 +94,15 @@ pub trait WithCodes {
         min_clock_period: &Option<u64>,
     ) -> Addr;
 
+    fn instantiate_adapter_marketplace_stargaze(
+        &mut self,
+        adapter_marketplace_stargaze_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+        marketplace: &Option<Addr>,
+        infinity_pool: &Option<Addr>,
+    ) -> Addr;
+
     fn instantiate_adapter_marketplace_kujira(
         &mut self,
         adapter_marketplace_kujira_code_id: u64,
@@ -116,6 +134,14 @@ impl WithCodes for Project {
             cw721_base::entry::execute,
             cw721_base::entry::instantiate,
             cw721_base::entry::query,
+        )))
+    }
+
+    fn store_stargaze_mocks_marketplace_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(ContractWrapper::new(
+            stargaze_mocks_marketplace::contract::execute,
+            stargaze_mocks_marketplace::contract::instantiate,
+            stargaze_mocks_marketplace::contract::query,
         )))
     }
 
@@ -168,18 +194,6 @@ impl WithCodes for Project {
         ))
     }
 
-    fn store_adapter_marketplace_kujira_code(&mut self) -> u64 {
-        self.app.store_code(Box::new(
-            ContractWrapper::new(
-                adapter_marketplace_kujira::contract::execute,
-                adapter_marketplace_kujira::contract::instantiate,
-                adapter_marketplace_kujira::contract::query,
-            )
-            .with_reply(adapter_marketplace_kujira::contract::reply)
-            .with_migrate(adapter_marketplace_kujira::contract::migrate),
-        ))
-    }
-
     // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64 {
     //     self.app.store_code(Box::new(
     //         ContractWrapper::new(
@@ -192,6 +206,30 @@ impl WithCodes for Project {
     //         .with_sudo(adapter_scheduler_stargaze::contract::sudo),
     //     ))
     // }
+
+    fn store_adapter_marketplace_stargaze_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                adapter_marketplace_stargaze::contract::execute,
+                adapter_marketplace_stargaze::contract::instantiate,
+                adapter_marketplace_stargaze::contract::query,
+            )
+            .with_reply(adapter_marketplace_stargaze::contract::reply)
+            .with_migrate(adapter_marketplace_stargaze::contract::migrate),
+        ))
+    }
+
+    fn store_adapter_marketplace_kujira_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                adapter_marketplace_kujira::contract::execute,
+                adapter_marketplace_kujira::contract::instantiate,
+                adapter_marketplace_kujira::contract::query,
+            )
+            .with_reply(adapter_marketplace_kujira::contract::reply)
+            .with_migrate(adapter_marketplace_kujira::contract::migrate),
+        ))
+    }
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr {
@@ -250,6 +288,31 @@ impl WithCodes for Project {
             },
         )
     }
+
+    fn instantiate_stargaze_mocks_marketplace(
+        &mut self,
+        stargaze_mocks_marketplace_code_id: u64,
+        bids: &[stargaze_mocks_marketplace::state::Bid],
+        amount: u128,
+        denom: ProjectCoin,
+    ) -> Addr {
+        self.increase_contract_counter(1);
+
+        self.app
+            .instantiate_contract(
+                stargaze_mocks_marketplace_code_id,
+                ProjectAccount::Admin.into(),
+                &stargaze_mocks_marketplace::msg::InstantiateMsg {
+                    bids: bids.to_owned(),
+                },
+                &coins(amount, denom.to_string()),
+                "stargaze_mocks_marketplace",
+                Some(ProjectAccount::Admin.to_string()),
+            )
+            .unwrap()
+    }
+
+    // instantiate contracts
 
     fn instantiate_lending_platform(
         &mut self,
@@ -358,6 +421,26 @@ impl WithCodes for Project {
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
                 min_clock_period: min_clock_period.to_owned(),
+            },
+        )
+    }
+
+    fn instantiate_adapter_marketplace_stargaze(
+        &mut self,
+        adapter_marketplace_stargaze_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+        marketplace: &Option<Addr>,
+        infinity_pool: &Option<Addr>,
+    ) -> Addr {
+        self.instantiate_contract(
+            adapter_marketplace_stargaze_code_id,
+            "adapter_marketplace_stargaze",
+            &goplend_base::adapters::marketplace::stargaze::msg::InstantiateMsg {
+                worker: worker.as_ref().map(|x| x.to_string()),
+                lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
             },
         )
     }

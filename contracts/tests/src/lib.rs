@@ -11,6 +11,7 @@ pub mod helpers {
     pub mod lending_platform;
     pub mod minter;
     pub mod oracle;
+    pub mod stargaze_mocks_marketplace;
 
     pub mod suite {
         pub mod codes;
@@ -26,6 +27,7 @@ pub mod helpers {
 
         pub mod marketplace {
             pub mod kujira;
+            pub mod stargaze;
         }
     }
 }
