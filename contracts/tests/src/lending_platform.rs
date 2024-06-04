@@ -27,7 +27,7 @@ use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use crate::helpers::{
     adapters::{
-        marketplace::kujira::AdapterMarketplaceKujiraExtension,
+        marketplace::stargaze::AdapterMarketplaceStargazeExtension,
         scheduler::common::AdapterSchedulerCommonExtension,
     },
     lending_platform::LendingPlatformExtension,
@@ -125,9 +125,10 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
                 .lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
         let liquidation_bids_from_marketplace: Vec<
             QueryLiquidationBidsByCollectionAddressListResponseItem,
-        > = project.adapter_marketplace_kujira_query_liquidation_bids_by_collection_address_list(
-            &None, &None,
-        )?;
+        > = project
+            .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address_list(
+                &None, &None,
+            )?;
         let collection_and_bid_list = helpers::offchain::get_collection_and_bid_list(
             &[liquidation_bids, liquidation_bids_from_marketplace].concat(),
             &collection_and_collateral_list_by_borrower,
@@ -167,6 +168,23 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
     }
 
     Ok(targets)
+}
+
+#[test]
+fn migrate_default() {
+    let mut project = Project::new();
+
+    project
+        .app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            project.get_lending_platform_address(),
+            &MigrateMsg {
+                version: "1.0.0".to_string(),
+            },
+            project.get_lending_platform_code_id(),
+        )
+        .unwrap();
 }
 
 #[test]
@@ -6035,21 +6053,4 @@ fn update_bid_replace_tokens() -> StdResult<()> {
     );
 
     Ok(())
-}
-
-#[test]
-fn migrate_default() {
-    let mut project = Project::new();
-
-    project
-        .app
-        .migrate_contract(
-            ProjectAccount::Admin.into(),
-            project.get_lending_platform_address(),
-            &MigrateMsg {
-                version: "1.0.0".to_string(),
-            },
-            project.get_lending_platform_code_id(),
-        )
-        .unwrap();
 }

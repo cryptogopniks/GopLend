@@ -333,7 +333,7 @@ impl Project {
                 &None,
                 &None,
                 &Some(project.get_lending_platform_address()),
-                &Some(project.get_adapter_marketplace_stargaze_address()),
+                &Some(project.get_stargaze_mocks_marketplace_address()),
                 &None,
             )
             .unwrap();
