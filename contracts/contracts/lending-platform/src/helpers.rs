@@ -223,8 +223,11 @@ pub fn increase_platform_revenue(
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
-) -> StdResult<Uint128> {
+) -> StdResult<(Uint128, Uint128)> {
+    // bids + offers
     let mut current_liquidation_value = Uint128::zero();
+    // bids
+    let mut current_internal_liquidation_value = Uint128::zero();
 
     for BiddedCollateralItem {
         collection,
@@ -232,13 +235,45 @@ pub fn update_liquidation_storages(
         owner,
         liquidator,
         liquidation_price,
+        is_offer,
         ..
     } in liquidation_set
     {
+        // update collaterals
+        let mut collaterals = COLLATERALS.load(storage, collection)?;
+
+        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
+        if !is_offer && collaterals_by_liquidator.is_none() {
+            collaterals.push(Collateral {
+                owner: liquidator.to_owned(),
+                token_id_list: vec![],
+            });
+        }
+
+        collaterals = collaterals
+            .into_iter()
+            .map(|mut x| {
+                if x.owner == owner {
+                    x.token_id_list.retain(|id| id != token_id);
+                } else if x.owner == liquidator {
+                    x.token_id_list.push(token_id.to_string());
+                }
+
+                x
+            })
+            .filter(|x| !x.token_id_list.is_empty())
+            .collect();
+
+        COLLATERALS.save(storage, collection, &collaterals)?;
+
         // update current_liquidation_value
         current_liquidation_value += liquidation_price;
 
-        // update bids
+        // update bids if it's required
+        if is_offer.to_owned() {
+            continue;
+        }
+
         let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
             .load(storage, collection)?
             .into_iter()
@@ -267,35 +302,14 @@ pub fn update_liquidation_storages(
             LIQUIDATION_BIDS.save(storage, collection, &bids)?;
         }
 
-        // update collaterals
-        let mut collaterals = COLLATERALS.load(storage, collection)?;
-
-        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-        if collaterals_by_liquidator.is_none() {
-            collaterals.push(Collateral {
-                owner: liquidator.to_owned(),
-                token_id_list: vec![],
-            });
-        }
-
-        collaterals = collaterals
-            .into_iter()
-            .map(|mut x| {
-                if x.owner == owner {
-                    x.token_id_list.retain(|id| id != token_id);
-                } else if x.owner == liquidator {
-                    x.token_id_list.push(token_id.to_string());
-                }
-
-                x
-            })
-            .filter(|x| !x.token_id_list.is_empty())
-            .collect();
-
-        COLLATERALS.save(storage, collection, &collaterals)?;
+        // update current_internal_liquidation_value
+        current_internal_liquidation_value += liquidation_price;
     }
 
-    Ok(current_liquidation_value)
+    Ok((
+        current_liquidation_value,
+        current_internal_liquidation_value,
+    ))
 }
 
 pub fn update_borrowers_storages(
@@ -351,11 +365,11 @@ pub fn update_balances(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
     mut main_currency_pool_addition: Uint128,
-    total_liquidation_value: Uint128,
+    total_internal_liquidation_value: Uint128,
 ) -> StdResult<()> {
     // update contract balances
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
-        balances.regular.liquidation_bids -= total_liquidation_value;
+        balances.regular.liquidation_bids -= total_internal_liquidation_value;
 
         let regular_rewards = math::calc_expected_rewards(
             block_time,

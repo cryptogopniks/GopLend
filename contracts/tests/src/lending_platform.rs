@@ -6054,3 +6054,238 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     Ok(())
 }
+
+#[test]
+fn marketplace_bid_liquidation() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 800;
+    const COLLECTION_PRICE_AFTER: u128 = 700;
+    const AMOUNT_TO_BORROW: u128 = 570;
+    //  const LIQUIDATION_BID: u128 = 2_000;
+    const DISCOUNT: &str = "0.1";
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value and enable marketplace interface
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &Some(true),
+    )?;
+
+    // list collection
+    let proposal_a: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    let proposal_b: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Pinjeons.to_string(),
+            collection: Collection {
+                name: ProjectNft::Pinjeons.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_a)?;
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_b)?;
+
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        2,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Pinjeons,
+    );
+
+    // collateral value = collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Admin,
+        AMOUNT_TO_BORROW,
+        ProjectCoin::Kuji,
+    )?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+
+    // // place bid
+    // project.lending_platform_try_place_bid(
+    //     ProjectAccount::Alice,
+    //     &[CollectionInfo {
+    //         collection_address: ProjectNft::Gopniks.to_string(),
+    //         token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+    //     }],
+    //     DISCOUNT,
+    //     LIQUIDATION_BID,
+    //     ProjectCoin::Kuji,
+    // )?;
+
+    project.wait(100);
+
+    // check ltv
+    let ltv_before =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 800 = 0.7125
+    assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
+
+    // reduce prices to trigger liquidation
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                    ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // check ltv
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 700 = 0.814286359806479669
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
+
+    // check marketplace offers
+    let offers = project
+        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
+            ProjectNft::Gopniks,
+        )?;
+    assert_that(&offers.len()).is_equal_to(2);
+
+    // check balances
+    let balances = project.lending_platform_query_balances()?;
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(AMOUNT_TO_BORROW);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+
+    // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address.to_string())
+        .collect::<Vec<String>>();
+    let targets = get_targets(&project, &borrowers)?;
+
+    project.adapter_scheduler_common_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &targets,
+    )?;
+
+    // check results
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
+
+    let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
+    let collateral_by_owner =
+        project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
+
+    let offers = project
+        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
+            ProjectNft::Gopniks,
+        )?;
+
+    // check balances
+    let balances = project.lending_platform_query_balances()?;
+
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    // borrower was removed from storage
+    assert_that(&ltv_list_after).is_equal_to(vec![]);
+    // borrower was removed from storage
+    assert_that(&borrower).is_equal_to(Borrower::default());
+
+    // collateral is completely removed as it was sent to marketplace bidder
+    assert_that(&collateral).is_equal_to(vec![]);
+    assert_that(&collateral_by_owner).is_equal_to(vec![]);
+    assert_that(&offers.len()).is_equal_to(1);
+
+    // 570 + (700 - 570 - 0.05 * 700) = 665
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+
+    let res = project.query_all_nft(ProjectAccount::John);
+    let (_collection, token_info) = res
+        .iter()
+        .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?;
+    assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
+
+    Ok(())
+}
+
+// TODO: use bid and offer to liquidate 2 users after long time period

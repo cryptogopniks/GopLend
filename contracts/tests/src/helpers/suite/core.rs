@@ -536,7 +536,7 @@ impl Project {
             .unwrap();
     }
 
-    pub fn query_all_nft(&self, owner: ProjectAccount) -> Vec<(ProjectNft, cw721::TokensResponse)> {
+    pub fn query_all_nft(&self, owner: impl ToString) -> Vec<(ProjectNft, cw721::TokensResponse)> {
         let mut collection_and_tokens_response_list: Vec<(ProjectNft, cw721::TokensResponse)> =
             vec![];
 

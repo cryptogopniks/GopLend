@@ -1329,6 +1329,7 @@ pub fn try_liquidate(
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
+    let mut total_internal_liquidation_value = Uint128::zero();
     let mut marketplace_bidded_collateral_item_list: Vec<BiddedCollateralItem> = vec![];
 
     // iterate over borrowers
@@ -1343,11 +1344,12 @@ pub fn try_liquidate(
             loan,
         } = BORROWERS.load(deps.storage, &borrower_address)?;
 
-        let current_liquidation_value =
+        let (current_liquidation_value, current_internal_liquidation_value) =
             update_liquidation_storages(deps.storage, &liquidation_set)?;
 
         // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;
+        total_internal_liquidation_value += current_internal_liquidation_value;
 
         update_borrowers_storages(
             deps.storage,
@@ -1392,7 +1394,7 @@ pub fn try_liquidate(
         rate_config.borrow_apr,
         rate_config.borrow_fee_rate,
         main_currency_pool_addition,
-        total_liquidation_value,
+        total_internal_liquidation_value,
     )?;
 
     // send messages to marketplace
@@ -1422,7 +1424,7 @@ pub fn try_liquidate(
             .add_message(WasmMsg::Execute {
                 contract_addr: marketplace.to_string(),
                 msg: to_json_binary(
-                    &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
+                    &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptBids {
                         bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
                     },
                 )?,

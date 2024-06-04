@@ -11,7 +11,7 @@ use crate::state::{COLLECTION_OFFERS, TOKEN};
 #[allow(clippy::too_many_arguments)]
 pub fn accept_collection_bid(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     collection: String,
     token_id: TokenId,
@@ -36,16 +36,15 @@ pub fn accept_collection_bid(
         &TOKEN.load(deps.storage)?,
     )?);
 
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+    // transfer nft to liquidator
+    msg_list.push(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: collection.clone(),
         msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
-            recipient: env.contract.address.to_string(),
+            recipient: current_bid.bidder.to_string(),
             token_id: token_id.to_string(),
         })?,
         funds: vec![],
-    });
-
-    msg_list.push(msg);
+    }));
 
     bids.retain(|x| !(x.bidder == bidder && x.collection == collection));
     COLLECTION_OFFERS.save(deps.storage, &bids)?;
