@@ -1,11 +1,11 @@
-// #[cfg(test)]
-// pub mod adapter_scheduler_common;
+#[cfg(test)]
+pub mod adapter_scheduler_common;
 #[cfg(test)]
 pub mod lending_platform;
-// #[cfg(test)]
-// pub mod math;
-// #[cfg(test)]
-// pub mod oracle;
+#[cfg(test)]
+pub mod math;
+#[cfg(test)]
+pub mod oracle;
 
 pub mod helpers {
     pub mod lending_platform;
