@@ -10,7 +10,7 @@ use strum::IntoEnumIterator;
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
-    lending_platform::state::BGL_CURRENCY_DECIMALS,
+    lending_platform::state::{BGL_CURRENCY_DECIMALS, CHAIN_ID_STARGAZE_MAIN},
     minter::{
         state::{CW20_NAME, CW20_SYMBOL},
         types::QueryCurrenciesFromCreatorResponse,
@@ -107,6 +107,7 @@ impl Project {
     pub fn new() -> Self {
         // create app and distribute coins to accounts
         let mut project = Self::create_project_with_balances();
+        project.set_chain_id(CHAIN_ID_STARGAZE_MAIN);
 
         // register contracts code
         // packages
@@ -454,6 +455,12 @@ impl Project {
         self.app.update_block(|block| {
             block.time = block.time.plus_seconds(delay_s);
             block.height += delay_s / 5;
+        });
+    }
+
+    pub fn set_chain_id(&mut self, chain_id: &str) {
+        self.app.update_block(|block| {
+            block.chain_id = chain_id.to_string();
         });
     }
 

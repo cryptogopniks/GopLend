@@ -43,6 +43,9 @@ pub enum ContractError {
     #[error("It's too late to accept admin role!")]
     TransferAdminDeadline,
 
+    #[error("Chain ID is not found!")]
+    ChainIdIsNotFound,
+
     // adapter-scheduler
     #[error("Scheduler is executed too early!")]
     EarlyExecution,
