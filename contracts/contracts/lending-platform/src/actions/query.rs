@@ -227,7 +227,10 @@ pub fn query_collateral_by_owner(
         .filter(|(_, collateral)| collateral.iter().any(|x| x.owner == owner))
         .map(|(address, collateral)| QueryCollateralsResponseItem {
             address,
-            collateral,
+            collateral: collateral
+                .into_iter()
+                .filter(|x| x.owner == owner)
+                .collect(),
         })
         .collect())
 }
