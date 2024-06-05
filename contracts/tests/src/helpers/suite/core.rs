@@ -311,7 +311,7 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &Some(true),
+                &None,
             )
             .unwrap();
 

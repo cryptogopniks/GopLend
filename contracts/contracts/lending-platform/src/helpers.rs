@@ -503,33 +503,6 @@ pub mod offchain {
         )
     }
 
-    // // old
-    // pub fn get_collaterals_by_borrower(
-    //     collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
-    //     borrower_address: &Addr,
-    // ) -> StdResult<Vec<(Addr, Collateral)>> {
-    //     // get collaterals owned by borrower
-    //     let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
-    //         collection_and_collateral_list
-    //             .iter()
-    //             .cloned()
-    //             .map(
-    //                 |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-    //                     // single collateral per collection
-    //                     let collateral = collaterals
-    //                         .into_iter()
-    //                         .find(|collateral| collateral.owner == borrower_address)
-    //                         .ok_or(ContractError::CollateralIsNotFound)?;
-
-    //                     Ok((collection, collateral))
-    //                 },
-    //             )
-    //             .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
-
-    //     Ok(collection_and_collateral_list_by_borrower)
-    // }
-
-    // new
     pub fn get_collaterals_by_borrower(
         collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
         borrower_address: &Addr,
@@ -588,40 +561,6 @@ pub mod offchain {
         })
     }
 
-    // // old
-    // // find bids containing at least 1 borrower's collateral token
-    // pub fn get_collection_and_bid_list(
-    //     liquidation_bids: &[QueryLiquidationBidsByCollectionAddressListResponseItem],
-    //     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
-    // ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
-    //     let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
-
-    //     for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
-    //         let liquidation_bids_by_collection_address = liquidation_bids
-    //             .iter()
-    //             .find(|x| x.collection_address == collection_address);
-    //         if liquidation_bids_by_collection_address.is_none() {
-    //             continue;
-    //         }
-
-    //         for bid in &liquidation_bids_by_collection_address
-    //             .unwrap()
-    //             .liquidation_bids
-    //         {
-    //             if bid
-    //                 .token_id_list
-    //                 .iter()
-    //                 .any(|id| collateral.token_id_list.contains(id))
-    //             {
-    //                 collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));
-    //             }
-    //         }
-    //     }
-
-    //     Ok(collection_and_bid_list)
-    // }
-
-    // new
     // find bids containing at least 1 borrower's collateral token
     pub fn get_collection_and_bid_list(
         liquidation_bids: &[QueryLiquidationBidsByCollectionAddressListResponseItem],
