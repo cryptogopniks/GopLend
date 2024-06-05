@@ -562,7 +562,7 @@ impl Project {
 
     pub fn query_balance(
         &self,
-        account: ProjectAccount,
+        account: impl ToString,
         token: &(impl Into<Token> + Clone),
     ) -> StdResult<u128> {
         let token: Token = token.to_owned().into();
