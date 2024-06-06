@@ -30,7 +30,7 @@ pub trait AdapterMarketplaceStargazeExtension {
         infinity_pool: &Option<Addr>,
     ) -> StdResult<AppResponse>;
 
-    fn adapter_marketplace_stargaze_try_accept_bids(
+    fn adapter_marketplace_stargaze_try_accept_offers(
         &mut self,
         sender: ProjectAccount,
         bidded_collateral_item_list: &[goplend_base::lending_platform::types::BiddedCollateralItem],
@@ -38,26 +38,10 @@ pub trait AdapterMarketplaceStargazeExtension {
 
     fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config>;
 
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address_list(
+    fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
-
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-        &self,
-        address: ProjectNft,
-    ) -> StdResult<Vec<goplend_base::lending_platform::types::LiquidationBid>>;
-
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_liquidator_address_list(
-        &self,
-        start_after: &Option<ProjectAccount>,
-        limit: &Option<u32>,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByLiquidatorAddressListResponseItem>>;
-
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_liquidator_address(
-        &self,
-        address: ProjectAccount,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
 }
 
@@ -104,7 +88,7 @@ impl AdapterMarketplaceStargazeExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_marketplace_stargaze_try_accept_bids(
+    fn adapter_marketplace_stargaze_try_accept_offers(
         &mut self,
         sender: ProjectAccount,
         bidded_collateral_item_list: &[goplend_base::lending_platform::types::BiddedCollateralItem],
@@ -113,7 +97,7 @@ impl AdapterMarketplaceStargazeExtension for Project {
             .execute_contract(
                 sender.into(),
                 self.get_adapter_marketplace_stargaze_address(),
-                &ExecuteMsg::AcceptBids {
+                &ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: bidded_collateral_item_list.to_owned(),
                 },
                 &[],
@@ -130,57 +114,16 @@ impl AdapterMarketplaceStargazeExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address_list(
+    fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryLiquidationBidsByCollectionAddressList {
+            &QueryMsg::QueryOffersByCollectionAddressList {
                 start_after: start_after.as_ref().map(|x| x.to_string()),
                 limit: limit.to_owned(),
-            },
-        )
-    }
-
-    #[track_caller]
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-        &self,
-        address: ProjectNft,
-    ) -> StdResult<Vec<goplend_base::lending_platform::types::LiquidationBid>> {
-        self.app.wrap().query_wasm_smart(
-            self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryLiquidationBidsByCollectionAddress {
-                address: address.to_string(),
-            },
-        )
-    }
-
-    #[track_caller]
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_liquidator_address_list(
-        &self,
-        start_after: &Option<ProjectAccount>,
-        limit: &Option<u32>,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByLiquidatorAddressListResponseItem>>{
-        self.app.wrap().query_wasm_smart(
-            self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryLiquidationBidsByLiquidatorAddressList {
-                start_after: start_after.as_ref().map(|x| x.to_string()),
-                limit: limit.to_owned(),
-            },
-        )
-    }
-
-    #[track_caller]
-    fn adapter_marketplace_stargaze_query_liquidation_bids_by_liquidator_address(
-        &self,
-        address: ProjectAccount,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
-        self.app.wrap().query_wasm_smart(
-            self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryLiquidationBidsByLiquidatorAddress {
-                address: address.to_string(),
             },
         )
     }

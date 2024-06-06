@@ -41,9 +41,9 @@ pub fn execute(
             lending_platform,
         } => e::try_update_config(deps, env, info, admin, worker, lending_platform),
 
-        ExecuteMsg::AcceptBids {
+        ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
-        } => e::try_accept_bids(deps, env, info, bidded_collateral_item_list),
+        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),
     }
 }
 
@@ -53,30 +53,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryLiquidationBidsByCollectionAddressList { start_after, limit } => {
-            to_json_binary(&q::query_liquidation_bids_by_collection_address_list(
-                deps,
-                env,
-                start_after,
-                limit,
-            )?)
-        }
-
-        QueryMsg::QueryLiquidationBidsByCollectionAddress { address } => to_json_binary(
-            &q::query_liquidation_bids_by_collection_address(deps, env, address)?,
-        ),
-
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList { start_after, limit } => {
-            to_json_binary(&q::query_liquidation_bids_by_liquidator_address_list(
-                deps,
-                env,
-                start_after,
-                limit,
-            )?)
-        }
-
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddress { address } => to_json_binary(
-            &q::query_liquidation_bids_by_liquidator_address(deps, env, address)?,
+        QueryMsg::QueryOffersByCollectionAddressList { start_after, limit } => to_json_binary(
+            &q::query_offers_by_collection_address_list(deps, env, start_after, limit)?,
         ),
     }
 }

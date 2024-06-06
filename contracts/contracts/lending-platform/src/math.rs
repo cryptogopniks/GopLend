@@ -287,7 +287,7 @@ pub fn match_collaterals_and_bids(
     collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.amount);
     collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.creation_date);
     collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.discount);
-    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.is_offer);
+    collection_and_bid_list.sort_unstable_by_key(|(_, bid)| bid.bid_type.clone());
 
     // add best bid for each collateral token
     let mut bidded_collateral_list: Vec<BiddedCollateralItem> = vec![];
@@ -314,7 +314,7 @@ pub fn match_collaterals_and_bids(
                         liquidation_price: discounted_price,
                         collateral_price: price.amount,
                         bid_discount: bid.discount,
-                        is_offer: bid.is_offer,
+                        bid_type: bid.bid_type.clone(),
                     });
 
                     bid.amount -= discounted_price;

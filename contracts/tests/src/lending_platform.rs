@@ -14,7 +14,7 @@ use goplend_base::{
             MAX_DEPOSIT_APR,
         },
         types::{
-            Balances, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
+            Balances, BidType, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
             LiquidationItem, Proposal, ProposalType, RegularBalances, ReserveBalances, Vault,
         },
     },
@@ -128,10 +128,9 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
             // TODO: use paginated query properly
             let liquidation_bids_from_marketplace: Vec<
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
-            > = project
-                .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address_list(
-                    &None, &None,
-                )?;
+            > = project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+                &None, &None,
+            )?;
 
             liquidation_bids = [liquidation_bids, liquidation_bids_from_marketplace].concat();
         }
@@ -2738,7 +2737,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
                 token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -2915,7 +2914,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
                 token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3089,7 +3088,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
                 token_id_list: vec![],
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3263,7 +3262,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
                 token_id_list: vec![],
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3437,7 +3436,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
                 token_id_list: vec![],
                 amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3614,7 +3613,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
                 token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3788,7 +3787,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
                 token_id_list: vec![],
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -3962,7 +3961,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
                 token_id_list: vec![],
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -4154,7 +4153,7 @@ fn single_discount_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         }];
 
@@ -4386,7 +4385,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                             .u128(),
                     ),
                     discount: str_to_dec(DISCOUNT_1),
-                    is_offer: false,
+                    bid_type: BidType::LiquidationBid,
                 },
                 LiquidationBid {
                     creation_date: 1571797429,
@@ -4400,7 +4399,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                             .u128(),
                     ),
                     discount: str_to_dec(DISCOUNT_0),
-                    is_offer: false,
+                    bid_type: BidType::LiquidationBid,
                 },
             ],
         }];
@@ -4702,7 +4701,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         },
         QueryLiquidationBidsByCollectionAddressListResponseItem {
@@ -4719,7 +4718,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                         .u128(),
                 ),
                 discount: str_to_dec(DISCOUNT),
-                is_offer: false,
+                bid_type: BidType::LiquidationBid,
             }],
         },
     ];
@@ -6176,10 +6175,16 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
 
     // check marketplace offers
-    let offers = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?[0]
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
     assert_that(&offers.len()).is_equal_to(2);
 
     // check balances
@@ -6211,10 +6216,16 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     let collateral_by_owner =
         project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
-    let offers = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?[0]
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
@@ -6408,14 +6419,32 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("0.72957436399217221");
 
     // check marketplace offers
-    let offers_gopniks = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
-    let offers_pingeons = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Pinjeons,
-        )?;
+    let offers_gopniks = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
+    let offers_pingeons = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     assert_that(&offers_gopniks.len()).is_equal_to(2);
     assert_that(&offers_pingeons.len()).is_equal_to(2);
@@ -6448,14 +6477,32 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     let collateral_gopniks = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
     let collateral_pingeons = project.lending_platform_query_collateral(ProjectNft::Pinjeons)?;
 
-    let offers_gopniks = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
-    let offers_pingeons = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Pinjeons,
-        )?;
+    let offers_gopniks = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
+    let offers_pingeons = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
@@ -6632,10 +6679,19 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         project.lending_platform_query_collateral_by_owner(ProjectAccount::Alice)?;
     let collateral_bob = project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
-    let offers_gopniks = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
+    let offers_gopniks = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     let platform_balance =
         project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Kuji)?;
@@ -6851,14 +6907,32 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("0.850509470657872484");
 
     // check marketplace offers
-    let offers_gopniks = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
-    let offers_pingeons = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Pinjeons,
-        )?;
+    let offers_gopniks = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
+    let offers_pingeons = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     assert_that(&offers_gopniks.len()).is_equal_to(2);
     assert_that(&offers_pingeons.len()).is_equal_to(2);
@@ -6891,14 +6965,32 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     let collateral_gopniks = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
     let collateral_pingeons = project.lending_platform_query_collateral(ProjectNft::Pinjeons)?;
 
-    let offers_gopniks = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Gopniks,
-        )?;
-    let offers_pingeons = project
-        .adapter_marketplace_stargaze_query_liquidation_bids_by_collection_address(
-            ProjectNft::Pinjeons,
-        )?;
+    let offers_gopniks = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
+    let offers_pingeons = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
+        .into_iter()
+        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| match x.bid_type {
+            BidType::CollectionOffer => true,
+            _ => false,
+        })
+        .collect::<Vec<_>>();
 
     // check balances
     let balances = project.lending_platform_query_balances()?;

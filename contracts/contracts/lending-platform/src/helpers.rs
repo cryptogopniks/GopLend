@@ -11,8 +11,8 @@ use goplend_base::{
             PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
-            LiquidationBid, Proposal, ProposalStatus, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
     utils::{unwrap_field, AuthType},
@@ -235,7 +235,7 @@ pub fn update_liquidation_storages(
         owner,
         liquidator,
         liquidation_price,
-        is_offer,
+        bid_type,
         ..
     } in liquidation_set
     {
@@ -243,11 +243,13 @@ pub fn update_liquidation_storages(
         let mut collaterals = COLLATERALS.load(storage, collection)?;
 
         let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-        if !is_offer && collaterals_by_liquidator.is_none() {
-            collaterals.push(Collateral {
-                owner: liquidator.to_owned(),
-                token_id_list: vec![],
-            });
+        if let BidType::LiquidationBid = bid_type {
+            if collaterals_by_liquidator.is_none() {
+                collaterals.push(Collateral {
+                    owner: liquidator.to_owned(),
+                    token_id_list: vec![],
+                });
+            }
         }
 
         collaterals = collaterals
@@ -270,7 +272,7 @@ pub fn update_liquidation_storages(
         current_liquidation_value += liquidation_price;
 
         // update bids if it's required
-        if is_offer.to_owned() {
+        if let BidType::TokenOffer | BidType::CollectionOffer = bid_type {
             continue;
         }
 

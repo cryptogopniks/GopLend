@@ -5,6 +5,7 @@ members = [
     "tests"
 ]
 exclude = []
+resolver = "2"
 
 [profile.release]
 opt-level = 3
@@ -35,7 +36,6 @@ thiserror = "1.0.40"
 anyhow = "1.0.71"
 cw-multi-test = "0.17.0"
 speculoos = "0.11.0"
-getrandom = { version = "0.2.9", features = ["js"] }
 semver = "1.0.20"
 
 goplend-base = { path = "./packages/goplend-base" }
@@ -51,5 +51,5 @@ adapter-marketplace-kujira = { path = "./contracts/adapter-marketplace-kujira" }
 adapter-marketplace-stargaze = { path = "./contracts/adapter-marketplace-stargaze" }
 
 sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", version = "1.4.0" }
-stargaze-marketplace-v2 = "0.1.0"
-infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }
+# stargaze-marketplace-v2 = "0.1.0"
+# infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }

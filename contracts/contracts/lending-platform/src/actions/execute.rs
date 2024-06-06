@@ -18,9 +18,9 @@ use goplend_base::{
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, Collection,
-            CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal,
-            ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
+            Proposal, ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -949,7 +949,7 @@ pub fn try_place_bid(
                     token_id_list: token_id_list.clone(),
                     amount: asset_amount,
                     discount,
-                    is_offer: false,
+                    bid_type: BidType::LiquidationBid,
                 };
 
                 let bids = match x {
@@ -1157,7 +1157,7 @@ pub fn try_update_bid(
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,
                                         discount,
-                                        is_offer: false,
+                                        bid_type: BidType::LiquidationBid,
                                     }
                                 } else {
                                     z
@@ -1364,7 +1364,7 @@ pub fn try_liquidate(
 
         // collect marketplace offers
         for bidded_collateral_item in liquidation_set {
-            if !bidded_collateral_item.is_offer {
+            if let BidType::LiquidationBid = bidded_collateral_item.bid_type {
                 continue;
             }
 
@@ -1417,12 +1417,12 @@ pub fn try_liquidate(
         // use different adapters depending on chain id
         let accept_bids_msg = match env.block.chain_id.split("-").collect::<Vec<&str>>()[0] {
             CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
-                &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptBids {
+                &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
                 },
             )?,
             CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(
-                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
+                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
                 },
             )?,

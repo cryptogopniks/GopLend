@@ -39,6 +39,13 @@ pub fn execute(
             finder,
         } => e::accept_collection_bid(deps, env, info, collection, token_id, bidder, finder),
 
+        ExecuteMsg::AcceptBid {
+            collection,
+            token_id,
+            bidder,
+            finder,
+        } => e::accept_collection_bid(deps, env, info, collection, token_id, bidder, finder),
+
         _ => unimplemented!(),
     }
 }
@@ -47,27 +54,27 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::CollectionBidsSortedByPrice {
+        QueryMsg::ReverseCollectionBidsSortedByPrice {
             collection,
-            start_after,
+            start_before,
             limit,
         } => to_json_binary(&q::collection_bids_sorted_by_price(
             deps,
             env,
             collection,
-            start_after,
+            start_before,
             limit,
         )?),
 
-        QueryMsg::CollectionBidsByBidder {
-            bidder,
-            start_after,
+        QueryMsg::ReverseBidsSortedByPrice {
+            collection,
+            start_before,
             limit,
-        } => to_json_binary(&q::collection_bids_by_bidder(
+        } => to_json_binary(&q::bids_sorted_by_price(
             deps,
             env,
-            bidder,
-            start_after,
+            collection,
+            start_before,
             limit,
         )?),
 
