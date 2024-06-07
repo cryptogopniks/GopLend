@@ -97,7 +97,7 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
-pub fn try_accept_bids(
+pub fn try_accept_offers(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,

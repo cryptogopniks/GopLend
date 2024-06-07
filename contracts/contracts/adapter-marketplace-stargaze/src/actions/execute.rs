@@ -13,7 +13,7 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         msg::QueryMsg as LendingPlatformQueryMsg,
-        types::{BiddedCollateralItem, CommonConfig},
+        types::{BidType, BiddedCollateralItem, CommonConfig},
     },
     utils::{
         check_funds, get_collection_operator_approvals, get_transfer_msg, unwrap_field, AuthType,
@@ -123,7 +123,7 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
-pub fn try_accept_bids(
+pub fn try_accept_offers(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -168,12 +168,12 @@ pub fn try_accept_bids(
         token_id,
         liquidator,
         liquidation_price,
+        bid_type,
         ..
     } in bidded_collateral_item_list
     {
         liquidated_value += liquidation_price;
 
-        // TODO: check if changing nft owner will not reset offers
         // transfer nfts from platform
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: collection.to_string(),
@@ -187,22 +187,29 @@ pub fn try_accept_bids(
         msg_list.push(msg);
 
         // add accept offer msgs
-        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: marketplace.to_string(),
-            // msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionOffer {
-            //     collection: collection.to_string(),
-            //     token_id: token_id.to_string(),
-            //     creator: liquidator.to_string(),
-            //     order_options: None,
-            // })?,
-            msg: to_json_binary(&MarketplaceExecuteMsg::AcceptCollectionBid {
+        let accept_offer_msg = match bid_type {
+            BidType::CollectionOffer => MarketplaceExecuteMsg::AcceptCollectionBid {
                 collection: collection.to_string(),
                 token_id: token_id.parse().map_err(|_| ContractError::CustomError {
                     val: format!("{} token_id parsing error", token_id),
                 })?,
                 bidder: liquidator.to_string(),
                 finder: None,
-            })?,
+            },
+            BidType::TokenOffer => MarketplaceExecuteMsg::AcceptBid {
+                collection: collection.to_string(),
+                token_id: token_id.parse().map_err(|_| ContractError::CustomError {
+                    val: format!("{} token_id parsing error", token_id),
+                })?,
+                bidder: liquidator.to_string(),
+                finder: None,
+            },
+            _ => unimplemented!(),
+        };
+
+        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: marketplace.to_string(),
+            msg: to_json_binary(&accept_offer_msg)?,
             funds: vec![],
         });
 

@@ -28,7 +28,7 @@ pub enum ExecuteMsg {
     },
 
     // lending platform
-    AcceptBids {
+    AcceptOffers {
         bidded_collateral_item_list: Vec<crate::lending_platform::types::BiddedCollateralItem>,
     },
 }
@@ -40,20 +40,8 @@ pub enum QueryMsg {
     QueryConfig {},
 
     #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
-    QueryLiquidationBidsByCollectionAddressList {
+    QueryOffersByCollectionAddressList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
-
-    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
-    QueryLiquidationBidsByCollectionAddress { address: String },
-
-    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
-    QueryLiquidationBidsByLiquidatorAddressList {
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-
-    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
-    QueryLiquidationBidsByLiquidatorAddress { address: String },
 }

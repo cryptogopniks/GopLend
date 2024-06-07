@@ -11,8 +11,8 @@ use goplend_base::{
             PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
-            LiquidationBid, Proposal, ProposalStatus, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
     utils::{unwrap_field, AuthType},
@@ -235,7 +235,7 @@ pub fn update_liquidation_storages(
         owner,
         liquidator,
         liquidation_price,
-        is_offer,
+        bid_type,
         ..
     } in liquidation_set
     {
@@ -243,7 +243,7 @@ pub fn update_liquidation_storages(
         let mut collaterals = COLLATERALS.load(storage, collection)?;
 
         let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-        if !is_offer && collaterals_by_liquidator.is_none() {
+        if matches!(bid_type, BidType::LiquidationBid) && collaterals_by_liquidator.is_none() {
             collaterals.push(Collateral {
                 owner: liquidator.to_owned(),
                 token_id_list: vec![],
@@ -270,7 +270,7 @@ pub fn update_liquidation_storages(
         current_liquidation_value += liquidation_price;
 
         // update bids if it's required
-        if is_offer.to_owned() {
+        if matches!(bid_type, BidType::TokenOffer | BidType::CollectionOffer) {
             continue;
         }
 
@@ -506,26 +506,22 @@ pub mod offchain {
     pub fn get_collaterals_by_borrower(
         collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
         borrower_address: &Addr,
-    ) -> StdResult<Vec<(Addr, Collateral)>> {
+    ) -> Vec<(Addr, Collateral)> {
         // get collaterals owned by borrower
-        let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
-            collection_and_collateral_list
+        let mut collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> = vec![];
+
+        for (collection, collaterals) in collection_and_collateral_list {
+            // single collateral per collection
+            if let Some(collateral) = collaterals
                 .iter()
-                .cloned()
-                .map(
-                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-                        // single collateral per collection
-                        let collateral = collaterals
-                            .into_iter()
-                            .find(|collateral| collateral.owner == borrower_address)
-                            .ok_or(ContractError::CollateralIsNotFound)?;
+                .find(|collateral| collateral.owner == borrower_address)
+            {
+                collection_and_collateral_list_by_borrower
+                    .push((collection.to_owned(), collateral.to_owned()));
+            }
+        }
 
-                        Ok((collection, collateral))
-                    },
-                )
-                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
-
-        Ok(collection_and_collateral_list_by_borrower)
+        collection_and_collateral_list_by_borrower
     }
 
     pub fn get_collateral_value(
@@ -572,23 +568,21 @@ pub mod offchain {
     ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
         let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
 
-        for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
-            let liquidation_bids_by_collection_address = liquidation_bids
-                .iter()
-                .find(|x| x.collection_address == collection_address);
-            if liquidation_bids_by_collection_address.is_none() {
-                continue;
-            }
-
-            for bid in &liquidation_bids_by_collection_address
-                .unwrap()
-                .liquidation_bids
-            {
-                if bid
-                    .token_id_list
-                    .iter()
-                    .any(|id| collateral.token_id_list.contains(id))
-                {
+        for QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address,
+            liquidation_bids,
+        } in liquidation_bids
+        {
+            for bid in liquidation_bids {
+                if collection_and_collateral_list_by_borrower.iter().any(
+                    |(collection, collateral)| {
+                        collection == collection_address
+                            && bid
+                                .token_id_list
+                                .iter()
+                                .any(|y| collateral.token_id_list.contains(y))
+                    },
+                ) {
                     collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));
                 }
             }

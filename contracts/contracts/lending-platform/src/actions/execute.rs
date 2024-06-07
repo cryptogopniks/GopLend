@@ -11,15 +11,16 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
-            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, CHAIN_ID_KUJIRA_MAIN, CHAIN_ID_KUJIRA_TEST,
+            CHAIN_ID_STARGAZE_MAIN, CHAIN_ID_STARGAZE_TEST, COLLATERALS, COLLECTIONS,
+            COMMON_CONFIG, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, Collection,
-            CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal,
-            ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
+            Proposal, ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -948,7 +949,7 @@ pub fn try_place_bid(
                     token_id_list: token_id_list.clone(),
                     amount: asset_amount,
                     discount,
-                    is_offer: false,
+                    bid_type: BidType::LiquidationBid,
                 };
 
                 let bids = match x {
@@ -1156,7 +1157,7 @@ pub fn try_update_bid(
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,
                                         discount,
-                                        is_offer: false,
+                                        bid_type: BidType::LiquidationBid,
                                     }
                                 } else {
                                     z
@@ -1363,7 +1364,7 @@ pub fn try_liquidate(
 
         // collect marketplace offers
         for bidded_collateral_item in liquidation_set {
-            if !bidded_collateral_item.is_offer {
+            if matches!(bidded_collateral_item.bid_type, BidType::LiquidationBid) {
                 continue;
             }
 
@@ -1400,7 +1401,6 @@ pub fn try_liquidate(
     // send messages to marketplace
     let mut response = Response::new().add_attributes(vec![("action", "try_liquidate")]);
 
-    // TODO: use different adapters depending on chain id
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
     {
@@ -1414,6 +1414,21 @@ pub fn try_liquidate(
         collection_list.sort_unstable();
         collection_list.dedup();
 
+        // use different adapters depending on chain id
+        let accept_bids_msg = match env.block.chain_id.split('-').collect::<Vec<&str>>()[0] {
+            CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
+                &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
+                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                },
+            )?,
+            CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(
+                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptOffers {
+                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                },
+            )?,
+            _ => Err(ContractError::ChainIdIsNotFound)?,
+        };
+
         response = response
             .add_messages(get_collection_operator_approvals(
                 deps.querier,
@@ -1423,11 +1438,7 @@ pub fn try_liquidate(
             )?)
             .add_message(WasmMsg::Execute {
                 contract_addr: marketplace.to_string(),
-                msg: to_json_binary(
-                    &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptBids {
-                        bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-                    },
-                )?,
+                msg: accept_bids_msg,
                 funds: vec![],
             });
     }

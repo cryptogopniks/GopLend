@@ -25,4 +25,4 @@ semver = { workspace = true }
 
 sg-marketplace = { workspace = true }
 # stargaze-marketplace-v2 = { workspace = true }
-infinity-factory = { workspace = true }
+# infinity-factory = { workspace = true }

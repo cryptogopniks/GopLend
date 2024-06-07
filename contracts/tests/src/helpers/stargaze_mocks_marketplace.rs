@@ -22,6 +22,15 @@ pub trait StargazeMocksMarketplaceExtension {
         finder: &Option<&str>,
     ) -> StdResult<AppResponse>;
 
+    fn stargaze_mocks_marketplace_try_accept_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collection: ProjectNft,
+        token_id: &str,
+        bidder: ProjectAccount,
+        finder: &Option<&str>,
+    ) -> StdResult<AppResponse>;
+
     fn stargaze_mocks_marketplace_collection_bids_sorted_by_price(
         &self,
         collection: ProjectNft,
@@ -52,6 +61,30 @@ impl StargazeMocksMarketplaceExtension for Project {
                 sender.into(),
                 self.get_stargaze_mocks_marketplace_address(),
                 &ExecuteMsg::AcceptCollectionBid {
+                    collection: collection.to_string(),
+                    token_id: token_id.parse().unwrap(),
+                    bidder: bidder.to_string(),
+                    finder: finder.as_ref().map(|x| x.to_string()),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn stargaze_mocks_marketplace_try_accept_bid(
+        &mut self,
+        sender: ProjectAccount,
+        collection: ProjectNft,
+        token_id: &str,
+        bidder: ProjectAccount,
+        finder: &Option<&str>,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_stargaze_mocks_marketplace_address(),
+                &ExecuteMsg::AcceptBid {
                     collection: collection.to_string(),
                     token_id: token_id.parse().unwrap(),
                     bidder: bidder.to_string(),
