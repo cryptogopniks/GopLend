@@ -39,5 +39,5 @@ done
 
 # check if contract is ready to be uploaded to the blockchain
 if [ -e $WASM ]; then
-    cosmwasm-check --available-capabilities iterator,stargate,staking $WASM
+    cosmwasm-check --available-capabilities iterator,stargate,staking,stargaze $WASM
 fi
