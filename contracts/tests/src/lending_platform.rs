@@ -125,7 +125,6 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
                 .lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
         if common_config.is_marketplace_interface_enabled {
-            // TODO: use paginated query offchain
             let liquidation_bids_from_marketplace: Vec<
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
             > = project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(

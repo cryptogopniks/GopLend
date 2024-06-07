@@ -191,9 +191,10 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "adapter_marketplace_stargaze.wasm",
               LABEL: "adapter_marketplace",
-              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>(
-                {}
-              ),
+              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
+                marketplace:
+                  "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
+              }),
               MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
                 version: "1.0.0",
               }),

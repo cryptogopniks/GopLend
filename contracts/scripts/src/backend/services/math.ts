@@ -81,7 +81,7 @@ export function matchCollateralsAndBids(
   );
   collectionAndBidList.sort(
     ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.is_offer) - Number(bidB.is_offer)
+      Number(bidA.bid_type) - Number(bidB.bid_type)
   );
 
   // add best bid for each collateral token
@@ -120,7 +120,7 @@ export function matchCollateralsAndBids(
             liquidation_price: discounted_price.toString(),
             collateral_price: price.amount,
             bid_discount: bid.discount,
-            is_offer: bid.is_offer,
+            bid_type: bid.bid_type,
           };
 
           biddedCollateralList.push(biddedCollateralItem);

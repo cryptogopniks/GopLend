@@ -66,8 +66,8 @@ export async function queryTargets(
     ];
 
     return await oracle.cwQueryPrices(
-      0,
-      undefined,
+      0, // as collectionAddressesByBorrowers is used
+      undefined, // as collectionAddressesByBorrowers is used
       collectionAddressesByBorrowers
     );
   };
@@ -77,16 +77,20 @@ export async function queryTargets(
     borrowerAddress: Addr
   ): [Addr, Collateral][] => {
     // get collaterals owned by borrower
-    return collectionAndCollateralList
-      .map(([collection, collaterals]) => {
-        // single collateral per collection
-        const collateral = collaterals.find(
-          (collateral) => collateral.owner === borrowerAddress
-        );
+    let collectionAndCollateralListByBorrower: [Addr, Collateral][] = [];
 
-        return [collection, collateral];
-      })
-      .filter(([_, collateral]) => collateral) as [Addr, Collateral][];
+    for (const [collection, collaterals] of collectionAndCollateralList) {
+      // single collateral per collection
+      const collateral = collaterals.find(
+        (collateral) => collateral.owner === borrowerAddress
+      );
+
+      if (collateral) {
+        collectionAndCollateralListByBorrower.push([collection, collateral]);
+      }
+    }
+
+    return collectionAndCollateralListByBorrower;
   };
 
   const getCollateralValue = (
@@ -116,37 +120,40 @@ export async function queryTargets(
     return !isPriceOutdated ? collateralValue : undefined;
   };
 
-  // find bids containing at least 1 borrower's collateral token
-  const getCollectionAndBidList = async (
-    collectionAndCollateralListByBorrower: [Addr, Collateral][]
-  ): Promise<[Addr, LiquidationBid][]> => {
-    const liquidationBids =
+  const queryLiquidationBids = async (
+    isMarketplaceInterfaceEnabled: boolean
+  ): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
+    let liquidationBids =
       await lending.cwQueryLiquidationBidsByCollectionAddressList();
 
-    let liquidationBidsFromMarketplace: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem =
-      [];
-    try {
-      liquidationBidsFromMarketplace =
-        await adapter.marketplace.kujira.cwQueryLiquidationBidsByCollectionAddressList();
-    } catch (error) {
-      l(error);
+    if (isMarketplaceInterfaceEnabled) {
+      const liquidationBidsFromMarketplace =
+        await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList();
+
+      liquidationBids = [...liquidationBids, ...liquidationBidsFromMarketplace];
     }
 
+    return liquidationBids;
+  };
+
+  // find bids containing at least 1 borrower's collateral token
+  const getCollectionAndBidList = async (
+    liquidationBids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
+    collectionAndCollateralListByBorrower: [Addr, Collateral][]
+  ): Promise<[Addr, LiquidationBid][]> => {
     let collectionAndBidList: [Addr, LiquidationBid][] = [];
 
-    for (const [
-      collection_address,
-      collateral,
-    ] of collectionAndCollateralListByBorrower) {
-      const liquidationBidsByCollectionAddress = [
-        ...liquidationBids,
-        ...liquidationBidsFromMarketplace,
-      ].find((x) => x.collection_address === collection_address);
-      if (!liquidationBidsByCollectionAddress) continue;
-
-      for (const bid of liquidationBidsByCollectionAddress.liquidation_bids) {
+    for (const { collection_address, liquidation_bids } of liquidationBids) {
+      for (const bid of liquidation_bids) {
         if (
-          bid.token_id_list.some((id) => collateral.token_id_list.includes(id))
+          collectionAndCollateralListByBorrower.some(
+            ([collection, collateral]) => {
+              collection == collection_address &&
+                bid.token_id_list.some((y) =>
+                  collateral.token_id_list.includes(y)
+                );
+            }
+          )
         ) {
           collectionAndBidList.push([collection_address, bid]);
         }
@@ -222,7 +229,11 @@ export async function queryTargets(
     }
 
     // find bids containing at least 1 borrower's collateral token
+    const liquidationBids = await queryLiquidationBids(
+      commonConfig.is_marketplace_interface_enabled
+    );
     const collectionAndBidList = await getCollectionAndBidList(
+      liquidationBids,
       collectionAndCollateralListByBorrower
     );
 
