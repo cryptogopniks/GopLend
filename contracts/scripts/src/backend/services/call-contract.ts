@@ -65,8 +65,10 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { adapter, lending, minter, oracle, utils, minterKujira } =
-      await getCwQueryHelpers(chainId, RPC);
+    const { adapter, lending, minter, oracle, utils } = await getCwQueryHelpers(
+      chainId,
+      RPC
+    );
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getAllBalances } = sgQueryHelpers;
@@ -74,7 +76,7 @@ async function main() {
 
     const updateConfigs = async () => {
       // setup minter-kujira
-      await h.minterKujira.cwCreateNative(
+      await h.minter.kujira.cwCreateNative(
         LENDING_PLATFORM_CONTRACT.ADDRESS,
         "bglKUJI",
         6,
@@ -84,7 +86,7 @@ async function main() {
       );
 
       const [bglCurrency] = (
-        await minterKujira.cwQueryCurrenciesByCreator(
+        await minter.kujira.cwQueryCurrenciesByCreator(
           LENDING_PLATFORM_CONTRACT.ADDRESS
         )
       ).currencies;
@@ -159,7 +161,7 @@ async function main() {
     // await lending.cwQueryRateConfig();
     // await lending.cwQueryCommonConfig();
 
-    // await h.minterKujira.cwCreateNative(
+    // await h.minter.kujira.cwCreateNative(
     //   owner,
     //   "test",
     //   6,
@@ -169,7 +171,7 @@ async function main() {
     // );
     // await minterKujira.cwQueryCurrenciesByCreator(owner);
 
-    // await h.minterKujira.cwMint(
+    // await h.minter.kujira.cwMint(
     //   420,
     //   owner,
     //   { native: { denom: TOKEN.TEST } },
