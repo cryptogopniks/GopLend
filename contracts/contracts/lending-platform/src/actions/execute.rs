@@ -1364,7 +1364,7 @@ pub fn try_liquidate(
 
         // collect marketplace offers
         for bidded_collateral_item in liquidation_set {
-            if let BidType::LiquidationBid = bidded_collateral_item.bid_type {
+            if matches!(bidded_collateral_item.bid_type, BidType::LiquidationBid) {
                 continue;
             }
 
@@ -1415,7 +1415,7 @@ pub fn try_liquidate(
         collection_list.dedup();
 
         // use different adapters depending on chain id
-        let accept_bids_msg = match env.block.chain_id.split("-").collect::<Vec<&str>>()[0] {
+        let accept_bids_msg = match env.block.chain_id.split('-').collect::<Vec<&str>>()[0] {
             CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
                 &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,

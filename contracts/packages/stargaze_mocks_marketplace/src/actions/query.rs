@@ -22,7 +22,7 @@ pub fn collection_bids_sorted_by_price(
     let bids: Vec<CollectionBid> = COLLECTION_OFFERS
         .load(deps.storage)?
         .into_iter()
-        .filter(|x| x.collection.to_string() == collection)
+        .filter(|x| x.collection == collection)
         .take(limit)
         .map(|x| CollectionBid {
             collection: x.collection,
@@ -50,7 +50,7 @@ pub fn bids_sorted_by_price(
     let bids: Vec<Bid> = COLLECTION_OFFERS
         .load(deps.storage)?
         .into_iter()
-        .filter(|x| x.collection.to_string() == collection)
+        .filter(|x| x.collection == collection)
         .take(limit)
         .map(|x| Bid {
             collection: x.collection,

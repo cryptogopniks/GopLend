@@ -243,13 +243,11 @@ pub fn update_liquidation_storages(
         let mut collaterals = COLLATERALS.load(storage, collection)?;
 
         let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-        if let BidType::LiquidationBid = bid_type {
-            if collaterals_by_liquidator.is_none() {
-                collaterals.push(Collateral {
-                    owner: liquidator.to_owned(),
-                    token_id_list: vec![],
-                });
-            }
+        if matches!(bid_type, BidType::LiquidationBid) && collaterals_by_liquidator.is_none() {
+            collaterals.push(Collateral {
+                owner: liquidator.to_owned(),
+                token_id_list: vec![],
+            });
         }
 
         collaterals = collaterals
@@ -272,7 +270,7 @@ pub fn update_liquidation_storages(
         current_liquidation_value += liquidation_price;
 
         // update bids if it's required
-        if let BidType::TokenOffer | BidType::CollectionOffer = bid_type {
+        if matches!(bid_type, BidType::TokenOffer | BidType::CollectionOffer) {
             continue;
         }
 

@@ -125,7 +125,7 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
                 .lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
         if common_config.is_marketplace_interface_enabled {
-            // TODO: use paginated query properly
+            // TODO: use paginated query offchain
             let liquidation_bids_from_marketplace: Vec<
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
             > = project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
@@ -6180,10 +6180,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     assert_that(&offers.len()).is_equal_to(2);
 
@@ -6221,10 +6218,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     // check balances
@@ -6422,28 +6416,22 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     let offers_gopniks = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     assert_that(&offers_gopniks.len()).is_equal_to(2);
@@ -6480,28 +6468,22 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     let offers_gopniks = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     // check balances
@@ -6682,15 +6664,12 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     let offers_gopniks = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     let platform_balance =
@@ -6910,28 +6889,22 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     let offers_gopniks = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     assert_that(&offers_gopniks.len()).is_equal_to(2);
@@ -6968,28 +6941,22 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     let offers_gopniks = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Gopniks.to_string())
+        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
         .adapter_marketplace_stargaze_query_offers_by_collection_address_list(&None, &None)?
         .into_iter()
-        .find(|x| x.collection_address.to_string() == ProjectNft::Pinjeons.to_string())
+        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
         .liquidation_bids
         .iter()
         .cloned()
-        .filter(|x| match x.bid_type {
-            BidType::CollectionOffer => true,
-            _ => false,
-        })
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
 
     // check balances

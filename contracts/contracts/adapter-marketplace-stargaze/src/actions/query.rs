@@ -106,8 +106,7 @@ pub fn query_offers_by_collection_address_list(
             // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
             let token_id_list = collateral
                 .into_iter()
-                .map(|x| x.token_id_list)
-                .flatten()
+                .flat_map(|x| x.token_id_list)
                 .collect();
 
             offers.push(LiquidationBid {
