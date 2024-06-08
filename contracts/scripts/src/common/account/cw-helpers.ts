@@ -369,11 +369,15 @@ async function getCwExecHelpers(
 
   async function cwAdapterSchedulerCommonUpdateConfig(
     {
+      admin,
+      worker,
       clockSource,
       lendingPlatform,
       minClockPeriod,
       offchainClock,
     }: {
+      admin?: string;
+      worker?: string;
       clockSource?: ClockSource;
       lendingPlatform?: string;
       minClockPeriod?: number;
@@ -384,6 +388,8 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         adapterSchedulerCommonMsgComposer.updateConfig({
+          admin,
+          worker,
           lendingPlatform,
           offchainClock,
           clockSource,
@@ -1000,17 +1006,20 @@ async function getCwExecHelpers(
 
   async function cwMinterUpdateConfig(
     {
-      cw20BaseCodeId,
+      admin,
       worker,
+      cw20BaseCodeId,
     }: {
-      cw20BaseCodeId?: number;
+      admin?: string;
       worker?: string;
+      cw20BaseCodeId?: number;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterMsgComposer.updateConfig({
+          admin,
           worker,
           cw20BaseCodeId,
         }),
@@ -1107,8 +1116,10 @@ async function getCwExecHelpers(
 
   async function cwMinterKujiraUpdateConfig(
     {
+      admin,
       worker,
     }: {
+      admin?: string;
       worker?: string;
     },
     gasPrice: string
@@ -1116,6 +1127,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         minterKujiraMsgComposer.updateConfig({
+          admin,
           worker,
         }),
       ],
@@ -1143,9 +1155,20 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
+  async function cwOracleUpdateConfig(
+    {
+      admin,
+      worker,
+      scheduler,
+    }: {
+      admin?: string;
+      worker?: string;
+      scheduler?: string;
+    },
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.updateConfig({ scheduler })],
+      [oracleMsgComposer.updateConfig({ admin, worker, scheduler })],
       gasPrice
     );
   }

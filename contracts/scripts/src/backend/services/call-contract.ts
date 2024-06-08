@@ -3,6 +3,7 @@ import { l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
+import { COLLECTION, TOKEN } from "./constants";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -22,28 +23,6 @@ import {
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
 
-const COLLECTION = {
-  KUJIRA: {
-    BANDIT_1:
-      "kujira18wpqlgsl9q8e707yp4gg4ugpy0ccnjq06hr7ggav0m4asdtceuzq7y2mps",
-    BANDIT_2:
-      "kujira1yp4vwjypr0zdcanltz0kgvt05kx3gvlzllge6rhffdn2j49rcauqw8u50c",
-    BANDIT_3:
-      "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0",
-  },
-  STARGAZE: {
-    PIGEON: "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-  },
-};
-
-const TOKEN = {
-  KUJI: "ukuji",
-  BGL_KUJI:
-    "factory/kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs/bglKUJI",
-  STARS: "ustars",
-  BGL_STARS: "",
-};
-
 async function main() {
   try {
     const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
@@ -52,6 +31,7 @@ async function main() {
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
     const { chainId } = parseStoreArgs();
     const {
+      NAME,
       PREFIX: PREFIX,
       OPTION: {
         RPC_LIST: [RPC],
@@ -83,92 +63,17 @@ async function main() {
     const { getAllBalances } = sgQueryHelpers;
     const { sgMultiSend } = sgExecHelpers;
 
-    const updateConfigs = async () => {
-      // setup minter-kujira
-      await h.minter.kujira.cwCreateNative(
-        LENDING_PLATFORM_CONTRACT.ADDRESS,
-        "bglKUJI",
-        6,
-        100_000_000,
-        TOKEN.KUJI,
-        gasPrice
-      );
+    const name = NAME as "kujira" | "stargaze";
 
-      const [bglCurrency] = (
-        await minter.kujira.cwQueryCurrenciesByCreator(
-          LENDING_PLATFORM_CONTRACT.ADDRESS
-        )
-      ).currencies;
-      const bglKUJI = (bglCurrency as any)?.token?.native?.denom || "";
-      l({ bglKUJI });
-
-      // setup lending
-      await h.lending.cwUpdateCommonConfig(
-        {
-          bglCurrency: {
-            token: { native: { denom: bglKUJI } },
-            decimals: 6,
-          },
-          collateralMinValue: 100,
-          unbondingPeriod: 60,
-          priceUpdatePeriod: 7 * 24 * 3600,
-        },
-        gasPrice
-      );
-
-      // deposit reserve liquidity
-      await h.lending.cwDepositReserveLiquidity(
-        1_000_000_000,
-        { native: { denom: TOKEN.KUJI } },
-        gasPrice
-      );
-
-      // add collections
-      const collections = [
-        [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
-        [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
-        [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
-      ];
-
-      let i = 0;
-
-      for (const [collection_address, name] of collections) {
-        await h.lending.cwCreateProposal(
-          {
-            proposal_type: {
-              add_collection: {
-                collection: { name, owner },
-                collection_address,
-              },
-            },
-            listing_price: {
-              amount: "1",
-              currency: {
-                token: { native: { denom: TOKEN.KUJI } },
-                decimals: 6,
-              },
-            },
-          },
-          gasPrice
-        );
-
-        await h.lending.cwAcceptProposal(
-          ++i,
-          1,
-          { native: { denom: TOKEN.KUJI } },
-          gasPrice
-        );
-      }
-    };
-
-    // await updateConfigs();
-    // return;
-
-    // await lending.cwQueryCollectionList();
-
+    // await adapter.marketplace.stargaze.cwQueryConfig();
+    // await adapter.scheduler[name].cwQueryConfig();
     // await lending.cwQueryAddressConfig();
     // await lending.cwQueryRateConfig();
     // await lending.cwQueryCommonConfig();
+    // await minter[name].cwQueryConfig();
+    // await oracle.cwQueryConfig();
+
+    // await lending.cwQueryCollectionList();
 
     // await h.minter.kujira.cwCreateNative(
     //   owner,

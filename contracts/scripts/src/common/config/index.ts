@@ -81,6 +81,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "adapter_scheduler_common.wasm",
               LABEL: "adapter_scheduler",
               INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+                worker: ADDRESS.KUJIRA.WORKER,
                 clock_source: "offchain",
                 min_clock_period: 1,
               }),
@@ -108,6 +109,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "lending_platform.wasm",
               LABEL: "lending_platform",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.KUJIRA.WORKER,
                 main_currency: {
                   token: {
                     native: { denom: $("OPTIONS[CHAIN_ID=harpoon-4]|DENOM") },
@@ -120,7 +122,6 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
-                  worker: ADDRESS.KUJIRA.WORKER,
                   oracle: $(
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
@@ -157,7 +158,9 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "oracle.wasm",
               LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.KUJIRA.WORKER,
+              }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
@@ -192,6 +195,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "adapter_marketplace_stargaze.wasm",
               LABEL: "adapter_marketplace",
               INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
                 marketplace:
                   "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
               }),
@@ -214,6 +218,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "adapter_scheduler_common.wasm",
               LABEL: "adapter_scheduler",
               INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
                 clock_source: "offchain",
                 min_clock_period: 1,
               }),
@@ -241,6 +246,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "lending_platform.wasm",
               LABEL: "lending_platform",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
                 main_currency: {
                   token: {
                     native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
@@ -253,7 +259,6 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
-                  worker: ADDRESS.STARGAZE.WORKER,
                   oracle: $(
                     "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
                   ),
@@ -293,7 +298,9 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "oracle.wasm",
               LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+              }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
               }),

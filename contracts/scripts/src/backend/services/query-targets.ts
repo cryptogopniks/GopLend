@@ -157,7 +157,7 @@ export async function queryTargets(
         lastItem = getLast(items)?.collection_address || "";
         allItems = [...allItems, ...items];
 
-        l({ lastBorrower: lastItem });
+        l({ lastLiquidationBid: lastItem });
       }
 
       return allItems;
@@ -179,7 +179,7 @@ export async function queryTargets(
         lastItem = getLast(items)?.collection_address || "";
         allItems = [...allItems, ...items];
 
-        l({ lastBorrower: lastItem });
+        l({ lastOffer: lastItem });
       }
 
       liquidationBids = [...liquidationBids, ...allItems];
@@ -233,7 +233,7 @@ export async function queryTargets(
         lastItem = getLast(items)?.address || "";
         allItems = [...allItems, ...items];
 
-        l({ lastBorrower: lastItem });
+        l({ lastCollateral: lastItem });
       }
 
       return allItems.map(({ address, collateral }) => [address, collateral]);
