@@ -23,16 +23,25 @@ import {
 } from "../../common/account/cw-helpers";
 
 const COLLECTION = {
-  BANDIT_1: "kujira18wpqlgsl9q8e707yp4gg4ugpy0ccnjq06hr7ggav0m4asdtceuzq7y2mps",
-  BANDIT_2: "kujira1yp4vwjypr0zdcanltz0kgvt05kx3gvlzllge6rhffdn2j49rcauqw8u50c",
-  BANDIT_3: "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0",
+  KUJIRA: {
+    BANDIT_1:
+      "kujira18wpqlgsl9q8e707yp4gg4ugpy0ccnjq06hr7ggav0m4asdtceuzq7y2mps",
+    BANDIT_2:
+      "kujira1yp4vwjypr0zdcanltz0kgvt05kx3gvlzllge6rhffdn2j49rcauqw8u50c",
+    BANDIT_3:
+      "kujira1lnafxjcagzt4qlztarxskpgrlny9d936vmvsx4m4qv0mengwlyes5q84p0",
+  },
+  STARGAZE: {
+    PIGEON: "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+  },
 };
 
 const TOKEN = {
   KUJI: "ukuji",
   BGL_KUJI:
     "factory/kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs/bglKUJI",
-  TEST: "factory/kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg/test",
+  STARS: "ustars",
+  BGL_STARS: "",
 };
 
 async function main() {
@@ -116,9 +125,9 @@ async function main() {
 
       // add collections
       const collections = [
-        [COLLECTION.BANDIT_1, "BANDIT_1"],
-        [COLLECTION.BANDIT_2, "BANDIT_2"],
-        [COLLECTION.BANDIT_3, "BANDIT_3"],
+        [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
+        [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
+        [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
       ];
 
       let i = 0;
@@ -225,7 +234,7 @@ async function main() {
     await h.lending.cwWithdrawCollateral(
       [
         {
-          collection_address: COLLECTION.BANDIT_2,
+          collection_address: COLLECTION.KUJIRA.BANDIT_2,
           token_id_list: ["5"],
         },
       ],
