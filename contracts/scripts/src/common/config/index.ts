@@ -99,9 +99,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 3269,
+              CODE: 3347,
               ADDRESS:
-                "kujira1sj3k6f5e2nxx8cvu3rrq6f8pzyl40e0nkeffmhen23kqrnvltwnse4cz7h",
+                "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7",
             },
 
             {
@@ -132,9 +132,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 3314,
+              CODE: 3350,
               ADDRESS:
-                "kujira1cdas5s8m7zpl7wdujmgkd60lzh0w5haane54hmzydlmwf3ua90xq50nv8m",
+                "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l",
             },
 
             {
@@ -149,9 +149,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   worker: ADDRESS.KUJIRA.WORKER,
                 },
               }),
-              CODE: 3294,
+              CODE: 3348,
               ADDRESS:
-                "kujira1hywaw7mzn89temhe0u0gyyfs7uc6hlj098a7lxt8cuhdsgyehwtshl5dqg",
+                "kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs",
             },
 
             {
@@ -166,9 +166,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   scheduler: ADDRESS.KUJIRA.ORACLE_WORKER,
                 },
               }),
-              CODE: 3271,
+              CODE: 3349,
               ADDRESS:
-                "kujira1k05d6rwgnfxv5vz76dn4563lmejs9hj3kex0rkae4vhjn2nm3umshvjzla",
+                "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj",
             },
           ],
           IBC: [],
@@ -205,8 +205,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4250,
+              ADDRESS:
+                "stars1rynz7ykmgk2x97mghg8tseutzcsj0cr0eqce68zf5u2h5z2h6hsqwqyj26",
             },
 
             {
@@ -231,8 +232,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4251,
+              ADDRESS:
+                "stars1w24jypy6vd2zj9lptcatmxlfr8mqn2kv58juhts03p0dat0t5yjq8hyxad",
             },
 
             {
@@ -266,8 +268,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4252,
+              ADDRESS:
+                "stars1c4umfkz395g77lp7wmy0zrvg880kv2tn33yk93k67wc8az39hc5sceww5c",
             },
 
             {
@@ -282,8 +285,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   worker: ADDRESS.STARGAZE.WORKER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4253,
+              ADDRESS:
+                "stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz",
             },
 
             {
@@ -298,8 +302,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   scheduler: ADDRESS.STARGAZE.ORACLE_WORKER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4254,
+              ADDRESS:
+                "stars1pt64zuz7skmt8vghnr72mcsyywy0uy67lquwq6lew2ax496wl7ks86fv64",
             },
           ],
           IBC: [],
