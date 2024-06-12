@@ -74,7 +74,8 @@ pub trait WithCodes {
         &mut self,
         oracle_code_id: u64,
         worker: &Option<ProjectAccount>,
-        scheduler: &Option<ProjectAccount>,
+        controller: &Option<Vec<ProjectAccount>>,
+        min_price_update_period: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_minter(
@@ -373,14 +374,18 @@ impl WithCodes for Project {
         &mut self,
         oracle_code_id: u64,
         worker: &Option<ProjectAccount>,
-        scheduler: &Option<ProjectAccount>,
+        controller: &Option<Vec<ProjectAccount>>,
+        min_price_update_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             oracle_code_id,
             "oracle",
             &goplend_base::oracle::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
-                scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                controller: controller
+                    .as_ref()
+                    .map(|x| x.iter().map(|y| y.to_string()).collect()),
+                min_price_update_period: min_price_update_period.to_owned(),
             },
         )
     }

@@ -211,7 +211,7 @@ impl Project {
             &None,
             &None,
         );
-        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None);
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None);
         let minter_address =
             project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
         let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
@@ -267,7 +267,8 @@ impl Project {
                 ProjectAccount::Admin,
                 &Some(ProjectAccount::Admin),
                 &Some(ProjectAccount::Owner),
-                &Some(ProjectAccount::Scheduler),
+                &Some(vec![ProjectAccount::Scheduler]),
+                &Some(0),
             )
             .unwrap();
 

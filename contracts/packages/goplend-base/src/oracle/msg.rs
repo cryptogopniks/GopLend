@@ -5,7 +5,8 @@ use crate::oracle::types::RawPriceItem;
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub scheduler: Option<String>,
+    pub controller: Option<Vec<String>>,
+    pub min_price_update_period: Option<u64>,
 }
 
 #[cw_serde]
@@ -22,12 +23,21 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        scheduler: Option<String>,
+        controller: Option<Vec<String>>,
+        min_price_update_period: Option<u64>,
     },
 
-    // scheduler
+    // controller
+    SetPrices {
+        data: Vec<RawPriceItem>,
+    },
+
     UpdatePrices {
         data: Vec<RawPriceItem>,
+    },
+
+    RemovePrices {
+        collections: Vec<String>,
     },
 }
 
@@ -46,6 +56,9 @@ pub enum QueryMsg {
 
     #[returns(u64)]
     QueryBlockTime {},
+
+    #[returns(Vec<crate::adapters::scheduler::common::types::Log>)]
+    QueryLog {},
 }
 
 // TODO: add offers per token in v2

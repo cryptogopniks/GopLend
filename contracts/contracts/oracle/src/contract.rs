@@ -33,15 +33,30 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
+        ExecuteMsg::SetPrices { data } => e::try_set_prices(deps, env, info, data),
+
         ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
+
+        ExecuteMsg::RemovePrices { collections } => {
+            e::try_remove_prices(deps, env, info, collections)
+        }
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            scheduler,
-        } => e::try_update_config(deps, env, info, admin, worker, scheduler),
+            controller,
+            min_price_update_period,
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            worker,
+            controller,
+            min_price_update_period,
+        ),
     }
 }
 
@@ -64,6 +79,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
+
+        QueryMsg::QueryLog {} => to_json_binary(&q::query_log(deps, env)?),
     }
 }
 
