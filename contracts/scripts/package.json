@@ -14,6 +14,8 @@
     "inst": "ts-node ./src/backend/services/instantiate-contract.ts",
     "migrate": "ts-node ./src/backend/services/migrate-contract.ts",
     "config": "ts-node ./src/backend/services/update-config.ts",
+    "prepare-contracts": "ts-node ./src/backend/services/prepare-contracts.ts",
+    "liquidate": "ts-node ./src/backend/services/liquidate.ts",
     "call": "ts-node ./src/backend/services/call-contract.ts",
     "transpile": "shx rm -rf ./dist/backend/* && shx rm -rf ./dist/common/* && npx babel ./src/common --out-dir ./dist/common --extensions '.ts' && shx cp -r ./src/common/config/*.json ./dist/common/config",
     "types": "tsc -p ./src/backend/tsconfig.json",

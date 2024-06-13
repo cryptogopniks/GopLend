@@ -97,11 +97,11 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
-pub fn try_accept_bids(
+pub fn try_accept_offers(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
-    bidded_collateral_item_list: Vec<goplend_base::lending_platform::types::BiddedCollateralItem>,
+    _bidded_collateral_item_list: Vec<goplend_base::lending_platform::types::BiddedCollateralItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(

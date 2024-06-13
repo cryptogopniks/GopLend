@@ -9,7 +9,13 @@ use crate::{
     },
 };
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-lending-platform";
+pub const CONTRACT_NAME: &str = "goplend-lending-platform";
+
+pub const CHAIN_ID_STARGAZE_MAIN: &str = "stargaze";
+pub const CHAIN_ID_STARGAZE_TEST: &str = "elgafar";
+
+pub const CHAIN_ID_KUJIRA_MAIN: &str = "kujira";
+pub const CHAIN_ID_KUJIRA_TEST: &str = "harpoon";
 
 pub const MAIN_CURRENCY_DECIMALS: u8 = 6;
 pub const BGL_CURRENCY_DECIMALS: u8 = 6;

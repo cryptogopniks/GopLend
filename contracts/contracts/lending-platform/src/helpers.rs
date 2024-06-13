@@ -11,8 +11,8 @@ use goplend_base::{
             PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
-            LiquidationBid, Proposal, ProposalStatus, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
     utils::{unwrap_field, AuthType},
@@ -223,8 +223,11 @@ pub fn increase_platform_revenue(
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
-) -> StdResult<Uint128> {
+) -> StdResult<(Uint128, Uint128)> {
+    // bids + offers
     let mut current_liquidation_value = Uint128::zero();
+    // bids
+    let mut current_internal_liquidation_value = Uint128::zero();
 
     for BiddedCollateralItem {
         collection,
@@ -232,13 +235,45 @@ pub fn update_liquidation_storages(
         owner,
         liquidator,
         liquidation_price,
+        bid_type,
         ..
     } in liquidation_set
     {
+        // update collaterals
+        let mut collaterals = COLLATERALS.load(storage, collection)?;
+
+        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
+        if matches!(bid_type, BidType::LiquidationBid) && collaterals_by_liquidator.is_none() {
+            collaterals.push(Collateral {
+                owner: liquidator.to_owned(),
+                token_id_list: vec![],
+            });
+        }
+
+        collaterals = collaterals
+            .into_iter()
+            .map(|mut x| {
+                if x.owner == owner {
+                    x.token_id_list.retain(|id| id != token_id);
+                } else if x.owner == liquidator {
+                    x.token_id_list.push(token_id.to_string());
+                }
+
+                x
+            })
+            .filter(|x| !x.token_id_list.is_empty())
+            .collect();
+
+        COLLATERALS.save(storage, collection, &collaterals)?;
+
         // update current_liquidation_value
         current_liquidation_value += liquidation_price;
 
-        // update bids
+        // update bids if it's required
+        if matches!(bid_type, BidType::TokenOffer | BidType::CollectionOffer) {
+            continue;
+        }
+
         let bids: Vec<LiquidationBid> = LIQUIDATION_BIDS
             .load(storage, collection)?
             .into_iter()
@@ -267,35 +302,14 @@ pub fn update_liquidation_storages(
             LIQUIDATION_BIDS.save(storage, collection, &bids)?;
         }
 
-        // update collaterals
-        let mut collaterals = COLLATERALS.load(storage, collection)?;
-
-        let collaterals_by_liquidator = collaterals.iter().find(|x| x.owner == liquidator);
-        if collaterals_by_liquidator.is_none() {
-            collaterals.push(Collateral {
-                owner: liquidator.to_owned(),
-                token_id_list: vec![],
-            });
-        }
-
-        collaterals = collaterals
-            .into_iter()
-            .map(|mut x| {
-                if x.owner == owner {
-                    x.token_id_list.retain(|id| id != token_id);
-                } else if x.owner == liquidator {
-                    x.token_id_list.push(token_id.to_string());
-                }
-
-                x
-            })
-            .filter(|x| !x.token_id_list.is_empty())
-            .collect();
-
-        COLLATERALS.save(storage, collection, &collaterals)?;
+        // update current_internal_liquidation_value
+        current_internal_liquidation_value += liquidation_price;
     }
 
-    Ok(current_liquidation_value)
+    Ok((
+        current_liquidation_value,
+        current_internal_liquidation_value,
+    ))
 }
 
 pub fn update_borrowers_storages(
@@ -351,11 +365,11 @@ pub fn update_balances(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
     mut main_currency_pool_addition: Uint128,
-    total_liquidation_value: Uint128,
+    total_internal_liquidation_value: Uint128,
 ) -> StdResult<()> {
     // update contract balances
     BALANCES.update(storage, |mut balances| -> StdResult<Balances> {
-        balances.regular.liquidation_bids -= total_liquidation_value;
+        balances.regular.liquidation_bids -= total_internal_liquidation_value;
 
         let regular_rewards = math::calc_expected_rewards(
             block_time,
@@ -492,26 +506,22 @@ pub mod offchain {
     pub fn get_collaterals_by_borrower(
         collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
         borrower_address: &Addr,
-    ) -> StdResult<Vec<(Addr, Collateral)>> {
+    ) -> Vec<(Addr, Collateral)> {
         // get collaterals owned by borrower
-        let collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> =
-            collection_and_collateral_list
+        let mut collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> = vec![];
+
+        for (collection, collaterals) in collection_and_collateral_list {
+            // single collateral per collection
+            if let Some(collateral) = collaterals
                 .iter()
-                .cloned()
-                .map(
-                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-                        // single collateral per collection
-                        let collateral = collaterals
-                            .into_iter()
-                            .find(|collateral| collateral.owner == borrower_address)
-                            .ok_or(ContractError::CollateralIsNotFound)?;
+                .find(|collateral| collateral.owner == borrower_address)
+            {
+                collection_and_collateral_list_by_borrower
+                    .push((collection.to_owned(), collateral.to_owned()));
+            }
+        }
 
-                        Ok((collection, collateral))
-                    },
-                )
-                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
-
-        Ok(collection_and_collateral_list_by_borrower)
+        collection_and_collateral_list_by_borrower
     }
 
     pub fn get_collateral_value(
@@ -558,23 +568,21 @@ pub mod offchain {
     ) -> StdResult<Vec<(Addr, LiquidationBid)>> {
         let mut collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![];
 
-        for (collection_address, collateral) in collection_and_collateral_list_by_borrower {
-            let liquidation_bids_by_collection_address = liquidation_bids
-                .iter()
-                .find(|x| x.collection_address == collection_address);
-            if liquidation_bids_by_collection_address.is_none() {
-                continue;
-            }
-
-            for bid in &liquidation_bids_by_collection_address
-                .unwrap()
-                .liquidation_bids
-            {
-                if bid
-                    .token_id_list
-                    .iter()
-                    .any(|id| collateral.token_id_list.contains(id))
-                {
+        for QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address,
+            liquidation_bids,
+        } in liquidation_bids
+        {
+            for bid in liquidation_bids {
+                if collection_and_collateral_list_by_borrower.iter().any(
+                    |(collection, collateral)| {
+                        collection == collection_address
+                            && bid
+                                .token_id_list
+                                .iter()
+                                .any(|y| collateral.token_id_list.contains(y))
+                    },
+                ) {
                     collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));
                 }
             }

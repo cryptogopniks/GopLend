@@ -6,7 +6,7 @@ use crate::{
     minter::types::{Config, TransferAdminState},
 };
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-minter";
+pub const CONTRACT_NAME: &str = "goplend-minter";
 
 pub const CW20_CODE_ID: u64 = 1;
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;

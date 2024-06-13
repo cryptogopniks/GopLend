@@ -2,6 +2,7 @@ use cosmwasm_std::StdResult;
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
+    adapters::scheduler::common::types::Log,
     error::parse_err,
     oracle::{
         msg::{ExecuteMsg, QueryMsg},
@@ -22,13 +23,26 @@ pub trait OracleExtension {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        scheduler: &Option<ProjectAccount>,
+        controller: &Option<Vec<ProjectAccount>>,
+        min_price_update_period: &Option<u64>,
+    ) -> StdResult<AppResponse>;
+
+    fn oracle_try_set_prices(
+        &mut self,
+        sender: ProjectAccount,
+        data: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
         data: &[RawPriceItem],
+    ) -> StdResult<AppResponse>;
+
+    fn oracle_try_remove_prices(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[impl ToString],
     ) -> StdResult<AppResponse>;
 
     fn oracle_query_config(&self) -> StdResult<Config>;
@@ -41,6 +55,8 @@ pub trait OracleExtension {
     ) -> StdResult<Vec<PriceItem>>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
+
+    fn oracle_query_log(&self) -> StdResult<Vec<Log>>;
 }
 
 impl OracleExtension for Project {
@@ -62,7 +78,8 @@ impl OracleExtension for Project {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        scheduler: &Option<ProjectAccount>,
+        controller: &Option<Vec<ProjectAccount>>,
+        min_price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -71,7 +88,28 @@ impl OracleExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
-                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
+                    controller: controller
+                        .as_ref()
+                        .map(|x| x.iter().map(|y| y.to_string()).collect()),
+                    min_price_update_period: min_price_update_period.to_owned(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn oracle_try_set_prices(
+        &mut self,
+        sender: ProjectAccount,
+        data: &[RawPriceItem],
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_oracle_address(),
+                &ExecuteMsg::SetPrices {
+                    data: data.to_owned(),
                 },
                 &[],
             )
@@ -90,6 +128,24 @@ impl OracleExtension for Project {
                 self.get_oracle_address(),
                 &ExecuteMsg::UpdatePrices {
                     data: data.to_owned(),
+                },
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn oracle_try_remove_prices(
+        &mut self,
+        sender: ProjectAccount,
+        collections: &[impl ToString],
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_oracle_address(),
+                &ExecuteMsg::RemovePrices {
+                    collections: collections.iter().map(|x| x.to_string()).collect(),
                 },
                 &[],
             )
@@ -129,5 +185,12 @@ impl OracleExtension for Project {
         self.app
             .wrap()
             .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryBlockTime {})
+    }
+
+    #[track_caller]
+    fn oracle_query_log(&self) -> StdResult<Vec<Log>> {
+        self.app
+            .wrap()
+            .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryLog {})
     }
 }

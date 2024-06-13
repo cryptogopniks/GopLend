@@ -1,9 +1,12 @@
 use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 use cw_storage_plus::Bound;
-use goplend_base::oracle::{
-    state::{CONFIG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST},
-    types::{Config, PriceItem},
+use goplend_base::{
+    adapters::scheduler::common::types::Log,
+    oracle::{
+        state::{CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST},
+        types::{Config, PriceItem},
+    },
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -62,4 +65,8 @@ pub fn query_prices(
 
 pub fn query_block_time(_deps: Deps, env: Env) -> StdResult<u64> {
     Ok(env.block.time.seconds())
+}
+
+pub fn query_log(deps: Deps, _env: Env) -> StdResult<Vec<Log>> {
+    LOG.iter(deps.storage)?.rev().collect()
 }

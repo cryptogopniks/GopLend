@@ -20,7 +20,8 @@ pub struct PriceItem {
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub scheduler: Option<Addr>,
+    pub controller: Option<Vec<Addr>>,
+    pub min_price_update_period: u64,
 }
 
 #[cw_serde]

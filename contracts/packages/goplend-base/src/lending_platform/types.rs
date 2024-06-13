@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 
@@ -49,7 +51,37 @@ pub struct LiquidationBid {
     pub token_id_list: Vec<String>,
     pub amount: Uint128,
     pub discount: Decimal,
-    pub is_offer: bool,
+    pub bid_type: BidType,
+}
+
+#[derive(Eq)]
+#[cw_serde]
+pub enum BidType {
+    LiquidationBid,
+    CollectionOffer,
+    TokenOffer,
+}
+
+// bids.sort_unstable_by_key(|(_, bid)| bid.bid_type) will give
+// [LiquidationBid, TokenOffer, CollectionOffer]
+impl Ord for BidType {
+    fn cmp(&self, other: &BidType) -> Ordering {
+        match (self, other) {
+            (BidType::LiquidationBid, BidType::LiquidationBid) => Ordering::Equal,
+            (BidType::LiquidationBid, _) => Ordering::Less,
+            (BidType::TokenOffer, BidType::TokenOffer) => Ordering::Equal,
+            (BidType::TokenOffer, BidType::LiquidationBid) => Ordering::Greater,
+            (BidType::TokenOffer, BidType::CollectionOffer) => Ordering::Less,
+            (BidType::CollectionOffer, BidType::CollectionOffer) => Ordering::Equal,
+            (BidType::CollectionOffer, _) => Ordering::Greater,
+        }
+    }
+}
+
+impl PartialOrd for BidType {
+    fn partial_cmp(&self, other: &BidType) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 #[cw_serde]
@@ -74,7 +106,7 @@ pub struct BiddedCollateralItem {
     pub liquidation_price: Uint128,
     pub collateral_price: Uint128,
     pub bid_discount: Decimal,
-    pub is_offer: bool,
+    pub bid_type: BidType,
 }
 
 #[derive(Default)]

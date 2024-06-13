@@ -11,20 +11,22 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
-            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, CHAIN_ID_KUJIRA_MAIN, CHAIN_ID_KUJIRA_TEST,
+            CHAIN_ID_STARGAZE_MAIN, CHAIN_ID_STARGAZE_TEST, COLLATERALS, COLLECTIONS,
+            COMMON_CONFIG, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
-            AddressConfig, Balances, BiddedCollateralItem, Borrower, Collateral, Collection,
-            CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal,
-            ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
+            Proposal, ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
     utils::{
-        add_funds_to_exec_msg, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
+        add_funds_to_exec_msg, check_funds, get_collection_operator_approvals, get_transfer_msg,
+        unwrap_field, AuthType, FundsType,
     },
 };
 
@@ -947,7 +949,7 @@ pub fn try_place_bid(
                     token_id_list: token_id_list.clone(),
                     amount: asset_amount,
                     discount,
-                    is_offer: false,
+                    bid_type: BidType::LiquidationBid,
                 };
 
                 let bids = match x {
@@ -1155,7 +1157,7 @@ pub fn try_update_bid(
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,
                                         discount,
-                                        is_offer: false,
+                                        bid_type: BidType::LiquidationBid,
                                     }
                                 } else {
                                     z
@@ -1328,6 +1330,7 @@ pub fn try_liquidate(
 
     // accumulators
     let mut total_liquidation_value = Uint128::zero();
+    let mut total_internal_liquidation_value = Uint128::zero();
     let mut marketplace_bidded_collateral_item_list: Vec<BiddedCollateralItem> = vec![];
 
     // iterate over borrowers
@@ -1342,11 +1345,12 @@ pub fn try_liquidate(
             loan,
         } = BORROWERS.load(deps.storage, &borrower_address)?;
 
-        let current_liquidation_value =
+        let (current_liquidation_value, current_internal_liquidation_value) =
             update_liquidation_storages(deps.storage, &liquidation_set)?;
 
         // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;
+        total_internal_liquidation_value += current_internal_liquidation_value;
 
         update_borrowers_storages(
             deps.storage,
@@ -1360,7 +1364,7 @@ pub fn try_liquidate(
 
         // collect marketplace offers
         for bidded_collateral_item in liquidation_set {
-            if !bidded_collateral_item.is_offer {
+            if matches!(bidded_collateral_item.bid_type, BidType::LiquidationBid) {
                 continue;
             }
 
@@ -1391,7 +1395,7 @@ pub fn try_liquidate(
         rate_config.borrow_apr,
         rate_config.borrow_fee_rate,
         main_currency_pool_addition,
-        total_liquidation_value,
+        total_internal_liquidation_value,
     )?;
 
     // send messages to marketplace
@@ -1400,15 +1404,43 @@ pub fn try_liquidate(
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
     {
-        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: unwrap_field(address_config.marketplace, "marketplace")?.to_string(),
-            msg: to_json_binary(
-                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptBids {
+        let marketplace = unwrap_field(address_config.marketplace, "marketplace")?;
+
+        // check operator and add approvals if it's required
+        let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
+            .iter()
+            .map(|x| x.collection.to_string())
+            .collect();
+        collection_list.sort_unstable();
+        collection_list.dedup();
+
+        // use different adapters depending on chain id
+        let accept_bids_msg = match env.block.chain_id.split('-').collect::<Vec<&str>>()[0] {
+            CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
+                &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
                 },
             )?,
-            funds: vec![],
-        }));
+            CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(
+                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptOffers {
+                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                },
+            )?,
+            _ => Err(ContractError::ChainIdIsNotFound)?,
+        };
+
+        response = response
+            .add_messages(get_collection_operator_approvals(
+                deps.querier,
+                &collection_list,
+                env.contract.address,
+                &marketplace,
+            )?)
+            .add_message(WasmMsg::Execute {
+                contract_addr: marketplace.to_string(),
+                msg: accept_bids_msg,
+                funds: vec![],
+            });
     }
 
     Ok(response)

@@ -227,7 +227,10 @@ pub fn query_collateral_by_owner(
         .filter(|(_, collateral)| collateral.iter().any(|x| x.owner == owner))
         .map(|(address, collateral)| QueryCollateralsResponseItem {
             address,
-            collateral,
+            collateral: collateral
+                .into_iter()
+                .filter(|x| x.owner == owner)
+                .collect(),
         })
         .collect())
 }
@@ -507,25 +510,18 @@ pub fn query_ltv_list(
         .flatten()
         .map(|(borrower_address, borrower)| {
             // get collaterals owned by borrower
-            let collection_and_collateral_list: Vec<(Addr, Collateral)> = all_collaterals
-                .iter()
-                .filter(|(_collection, collaterals)| {
-                    collaterals
-                        .iter()
-                        .any(|collateral| collateral.owner == borrower_address)
-                })
-                .map(
-                    |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-                        // single collateral per collection
-                        let collateral = collaterals
-                            .iter()
-                            .find(|collateral| collateral.owner == borrower_address)
-                            .ok_or(ContractError::CollateralIsNotFound)?;
+            let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
 
-                        Ok((collection.to_owned(), collateral.to_owned()))
-                    },
-                )
-                .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+            for (collection, collaterals) in &all_collaterals {
+                // single collateral per collection
+                if let Some(collateral) = collaterals
+                    .iter()
+                    .find(|collateral| collateral.owner == borrower_address)
+                {
+                    collection_and_collateral_list
+                        .push((collection.to_owned(), collateral.to_owned()));
+                }
+            }
 
             let collateral_value = collection_and_collateral_list.iter().fold(
                 Ok(Uint128::zero()),
@@ -585,26 +581,19 @@ pub fn query_conditional_ltv(
         .unwrap_or_default();
 
     // get collaterals owned by borrower
-    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
+
+    for (collection, collaterals) in COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
-        .filter(|(_collection, collaterals)| {
-            collaterals
-                .iter()
-                .any(|collateral| collateral.owner == borrower_address)
-        })
-        .map(
-            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-                // single collateral per collection
-                let collateral = collaterals
-                    .into_iter()
-                    .find(|collateral| collateral.owner == borrower_address)
-                    .ok_or(ContractError::CollateralIsNotFound)?;
-
-                Ok((collection, collateral))
-            },
-        )
-        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+    {
+        if let Some(collateral) = collaterals
+            .iter()
+            .find(|collateral| collateral.owner == borrower_address)
+        {
+            collection_and_collateral_list.push((collection, collateral.to_owned()));
+        }
+    }
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -648,7 +637,7 @@ pub fn query_conditional_ltv(
     if collateral_value.is_zero()
         && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
     {
-        Err(ContractError::CollateralIsNotFound)?;
+        return Ok(Decimal::zero());
     }
 
     Ok(math::calc_conditional_ltv(
@@ -721,26 +710,20 @@ pub fn query_available_to_borrow(
         .unwrap_or_default();
 
     // get collaterals owned by borrower
-    let collection_and_collateral_list: Vec<(Addr, Collateral)> = COLLATERALS
+    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
+
+    for (collection, collaterals) in COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
         .flatten()
-        .filter(|(_collection, collaterals)| {
-            collaterals
-                .iter()
-                .any(|collateral| collateral.owner == borrower_address)
-        })
-        .map(
-            |(collection, collaterals)| -> StdResult<(Addr, Collateral)> {
-                // single collateral per collection
-                let collateral = collaterals
-                    .into_iter()
-                    .find(|collateral| collateral.owner == borrower_address)
-                    .ok_or(ContractError::CollateralIsNotFound)?;
-
-                Ok((collection, collateral))
-            },
-        )
-        .collect::<StdResult<Vec<(Addr, Collateral)>>>()?;
+    {
+        // single collateral per collection
+        if let Some(collateral) = collaterals
+            .iter()
+            .find(|collateral| collateral.owner == borrower_address)
+        {
+            collection_and_collateral_list.push((collection.to_owned(), collateral.to_owned()));
+        }
+    }
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -784,7 +767,7 @@ pub fn query_available_to_borrow(
     if collateral_value.is_zero()
         && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
     {
-        Err(ContractError::CollateralIsNotFound)?;
+        return Ok(Uint128::zero());
     }
 
     let ltv_max = math::calc_ltv_max(

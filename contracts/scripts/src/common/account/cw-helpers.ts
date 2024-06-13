@@ -1,18 +1,24 @@
+import { AdapterMarketplaceStargazeMsgComposer } from "../codegen/AdapterMarketplaceStargaze.message-composer";
+import { AdapterMarketplaceStargazeQueryClient } from "../codegen/AdapterMarketplaceStargaze.client";
+
+import { AdapterSchedulerCommonMsgComposer } from "../codegen/AdapterSchedulerCommon.message-composer";
+import { AdapterSchedulerCommonQueryClient } from "../codegen/AdapterSchedulerCommon.client";
+
+import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
+import { LendingPlatformQueryClient } from "../codegen/LendingPlatform.client";
+
+import { MinterMsgComposer } from "../codegen/Minter.message-composer";
+import { MinterQueryClient } from "../codegen/Minter.client";
+
+import { MinterKujiraMsgComposer } from "../codegen/MinterKujira.message-composer";
+import { MinterKujiraQueryClient } from "../codegen/MinterKujira.client";
+
+import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
+import { OracleQueryClient } from "../codegen/Oracle.client";
+
 import CONFIG_JSON from "../config/config.json";
 import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
-import { AdapterMarketplaceKujiraMsgComposer } from "../codegen/AdapterMarketplaceKujira.message-composer";
-import { AdapterMarketplaceKujiraQueryClient } from "../codegen/AdapterMarketplaceKujira.client";
-import { AdapterSchedulerKujiraMsgComposer } from "../codegen/AdapterSchedulerKujira.message-composer";
-import { AdapterSchedulerKujiraQueryClient } from "../codegen/AdapterSchedulerKujira.client";
-import { LendingPlatformMsgComposer } from "../codegen/LendingPlatform.message-composer";
-import { LendingPlatformQueryClient } from "../codegen/LendingPlatform.client";
-import { MinterMsgComposer } from "../codegen/Minter.message-composer";
-import { MinterQueryClient } from "../codegen/Minter.client";
-import { MinterKujiraMsgComposer } from "../codegen/MinterKujira.message-composer";
-import { MinterKujiraQueryClient } from "../codegen/MinterKujira.client";
-import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
-import { OracleQueryClient } from "../codegen/Oracle.client";
 import { getChainOptionById, getContractByWasm } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
 import {
@@ -40,7 +46,7 @@ import {
   OfflineDirectSigner,
   coin,
 } from "@cosmjs/proto-signing";
-import { ClockSource } from "../codegen/AdapterSchedulerKujira.types";
+import { ClockSource } from "../codegen/AdapterSchedulerCommon.types";
 import {
   InstantiateMarketingInfo,
   Logo,
@@ -149,6 +155,69 @@ function getRevokeCollectionMsg(
   return getSingleTokenExecMsg(collectionAddress, senderAddress, revokeAllMsg);
 }
 
+function getContracts(contracts: ContractInfo[]) {
+  let ADAPTER_MARKETPLACE_STARGAZE_CONTRACT: ContractInfo | undefined;
+  let ADAPTER_SCHEDULER_COMMON_CONTRACT: ContractInfo | undefined;
+  let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
+  let MINTER_CONTRACT: ContractInfo | undefined;
+  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
+  let ORACLE_CONTRACT: ContractInfo | undefined;
+
+  try {
+    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT = getContractByWasm(
+      contracts,
+      "adapter_marketplace_stargaze.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    ADAPTER_SCHEDULER_COMMON_CONTRACT = getContractByWasm(
+      contracts,
+      "adapter_scheduler_common.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    LENDING_PLATFORM_CONTRACT = getContractByWasm(
+      contracts,
+      "lending_platform.wasm"
+    );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_CONTRACT = getContractByWasm(contracts, "minter.wasm");
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MINTER_KUJIRA_CONTRACT = getContractByWasm(contracts, "minter_kujira.wasm");
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    ORACLE_CONTRACT = getContractByWasm(contracts, "oracle.wasm");
+  } catch (error) {
+    l(error);
+  }
+
+  return {
+    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
+    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    LENDING_PLATFORM_CONTRACT,
+    MINTER_CONTRACT,
+    MINTER_KUJIRA_CONTRACT,
+    ORACLE_CONTRACT,
+  };
+}
+
 async function getCwExecHelpers(
   chainId: string,
   rpc: string,
@@ -160,57 +229,14 @@ async function getCwExecHelpers(
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  let ADAPTER_MARKETPLACE_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
-  let MINTER_CONTRACT: ContractInfo | undefined;
-  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let ORACLE_CONTRACT: ContractInfo | undefined;
-
-  try {
-    ADAPTER_MARKETPLACE_KUJIRA_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "adapter_marketplace_kujira.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "adapter_scheduler_kujira.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    LENDING_PLATFORM_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "lending_platform.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    MINTER_KUJIRA_CONTRACT = getContractByWasm(CONTRACTS, "minter_kujira.wasm");
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
-  } catch (error) {
-    l(error);
-  }
+  const {
+    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
+    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    LENDING_PLATFORM_CONTRACT,
+    MINTER_CONTRACT,
+    MINTER_KUJIRA_CONTRACT,
+    ORACLE_CONTRACT,
+  } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc, owner, signer);
   if (!cwClient) throw new Error("cwClient is not found!");
@@ -218,19 +244,19 @@ async function getCwExecHelpers(
   const signingClient = cwClient.client as SigningCosmWasmClient;
   const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
 
-  const adapterMarketplaceKujiraMsgComposer =
-    new AdapterMarketplaceKujiraMsgComposer(
+  const adapterMarketplaceStargazeMsgComposer =
+    new AdapterMarketplaceStargazeMsgComposer(
       owner,
-      ADAPTER_MARKETPLACE_KUJIRA_CONTRACT
-        ? ADAPTER_MARKETPLACE_KUJIRA_CONTRACT.ADDRESS
+      ADAPTER_MARKETPLACE_STARGAZE_CONTRACT
+        ? ADAPTER_MARKETPLACE_STARGAZE_CONTRACT.ADDRESS
         : ""
     );
 
-  const adapterSchedulerKujiraMsgComposer =
-    new AdapterSchedulerKujiraMsgComposer(
+  const adapterSchedulerCommonMsgComposer =
+    new AdapterSchedulerCommonMsgComposer(
       owner,
-      ADAPTER_SCHEDULER_KUJIRA_CONTRACT
-        ? ADAPTER_SCHEDULER_KUJIRA_CONTRACT.ADDRESS
+      ADAPTER_SCHEDULER_COMMON_CONTRACT
+        ? ADAPTER_SCHEDULER_COMMON_CONTRACT.ADDRESS
         : ""
     );
 
@@ -279,46 +305,52 @@ async function getCwExecHelpers(
     );
   }
 
-  // adapter-marketplace-kujira
+  // adapter-marketplace-stargaze
 
-  async function cwAdapterMarketplaceKujiraAcceptAdminRole(gasPrice: string) {
+  async function cwAdapterMarketplaceStargazeAcceptAdminRole(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [adapterMarketplaceKujiraMsgComposer.acceptAdminRole()],
+      [adapterMarketplaceStargazeMsgComposer.acceptAdminRole()],
       gasPrice
     );
   }
 
-  async function cwAdapterMarketplaceKujiraUpdateConfig(
+  async function cwAdapterMarketplaceStargazeUpdateConfig(
     {
       admin,
       worker,
       lendingPlatform,
+      marketplace,
+      infinityPool,
     }: {
       admin?: string;
       worker?: string;
       lendingPlatform?: string;
+      marketplace?: string;
+      infinityPool?: string;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        adapterMarketplaceKujiraMsgComposer.updateConfig({
+        adapterMarketplaceStargazeMsgComposer.updateConfig({
           admin,
           worker,
           lendingPlatform,
+          marketplace,
+          infinityPool,
         }),
       ],
       gasPrice
     );
   }
 
-  async function cwAcceptBids(
+  async function cwAcceptOffers(
     biddedCollateralItemList: BiddedCollateralItem[],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        adapterMarketplaceKujiraMsgComposer.acceptBids({
+        adapterMarketplaceStargazeMsgComposer.acceptOffers({
           biddedCollateralItemList,
         }),
       ],
@@ -326,22 +358,26 @@ async function getCwExecHelpers(
     );
   }
 
-  // adapter-scheduler-kujira
+  // adapter-scheduler-common
 
-  async function cwAdapterSchedulerKujiraAcceptAdminRole(gasPrice: string) {
+  async function cwAdapterSchedulerCommonAcceptAdminRole(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [adapterSchedulerKujiraMsgComposer.acceptAdminRole()],
+      [adapterSchedulerCommonMsgComposer.acceptAdminRole()],
       gasPrice
     );
   }
 
-  async function cwAdapterSchedulerKujiraUpdateConfig(
+  async function cwAdapterSchedulerCommonUpdateConfig(
     {
+      admin,
+      worker,
       clockSource,
       lendingPlatform,
       minClockPeriod,
       offchainClock,
     }: {
+      admin?: string;
+      worker?: string;
       clockSource?: ClockSource;
       lendingPlatform?: string;
       minClockPeriod?: number;
@@ -351,7 +387,9 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        adapterSchedulerKujiraMsgComposer.updateConfig({
+        adapterSchedulerCommonMsgComposer.updateConfig({
+          admin,
+          worker,
           lendingPlatform,
           offchainClock,
           clockSource,
@@ -364,7 +402,7 @@ async function getCwExecHelpers(
 
   async function cwPush(targets: LiquidationItem[], gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [adapterSchedulerKujiraMsgComposer.push({ targets })],
+      [adapterSchedulerCommonMsgComposer.push({ targets })],
       gasPrice
     );
   }
@@ -968,17 +1006,20 @@ async function getCwExecHelpers(
 
   async function cwMinterUpdateConfig(
     {
-      cw20BaseCodeId,
+      admin,
       worker,
+      cw20BaseCodeId,
     }: {
-      cw20BaseCodeId?: number;
+      admin?: string;
       worker?: string;
+      cw20BaseCodeId?: number;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterMsgComposer.updateConfig({
+          admin,
           worker,
           cw20BaseCodeId,
         }),
@@ -1075,8 +1116,10 @@ async function getCwExecHelpers(
 
   async function cwMinterKujiraUpdateConfig(
     {
+      admin,
       worker,
     }: {
+      admin?: string;
       worker?: string;
     },
     gasPrice: string
@@ -1084,6 +1127,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         minterKujiraMsgComposer.updateConfig({
+          admin,
           worker,
         }),
       ],
@@ -1111,9 +1155,36 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwOracleUpdateConfig(scheduler: string, gasPrice: string) {
+  async function cwOracleUpdateConfig(
+    {
+      admin,
+      worker,
+      controller,
+      minPriceUpdatePeriod,
+    }: {
+      admin?: string;
+      worker?: string;
+      controller?: string[];
+      minPriceUpdatePeriod?: number;
+    },
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.updateConfig({ scheduler })],
+      [
+        oracleMsgComposer.updateConfig({
+          admin,
+          worker,
+          controller,
+          minPriceUpdatePeriod,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwSetPrices(data: RawPriceItem[], gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.setPrices({ data })],
       gasPrice
     );
   }
@@ -1125,20 +1196,33 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwRemovePrices(collections: string[], gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.removePrices({ collections })],
+      gasPrice
+    );
+  }
+
   return {
     utils: { cwRevoke },
     adapter: {
       marketplace: {
-        kujira: {
-          cwAcceptAdminRole: cwAdapterMarketplaceKujiraAcceptAdminRole,
-          cwUpdateConfig: cwAdapterMarketplaceKujiraUpdateConfig,
-          cwAcceptBids,
+        kujira: {},
+        stargaze: {
+          cwAcceptAdminRole: cwAdapterMarketplaceStargazeAcceptAdminRole,
+          cwUpdateConfig: cwAdapterMarketplaceStargazeUpdateConfig,
+          cwAcceptOffers,
         },
       },
       scheduler: {
         kujira: {
-          cwAcceptAdminRole: cwAdapterSchedulerKujiraAcceptAdminRole,
-          cwUpdateConfig: cwAdapterSchedulerKujiraUpdateConfig,
+          cwAcceptAdminRole: cwAdapterSchedulerCommonAcceptAdminRole,
+          cwUpdateConfig: cwAdapterSchedulerCommonUpdateConfig,
+          cwPush,
+        },
+        stargaze: {
+          cwAcceptAdminRole: cwAdapterSchedulerCommonAcceptAdminRole,
+          cwUpdateConfig: cwAdapterSchedulerCommonUpdateConfig,
           cwPush,
         },
       },
@@ -1170,32 +1254,36 @@ async function getCwExecHelpers(
       cwAcceptProposal,
     },
     minter: {
-      cwCreateNative,
-      cwCreateCw20,
-      cwMint,
-      cwBurn,
-      cwSetMetadataNative,
-      cwUpdateMarketingCw20,
-      cwUploadLogoCw20,
-      cwChangeAdminNative,
-      cwUpdateMinterCw20,
-      cwRegisterCurrency,
-      cwAcceptAdminRole: cwMinterAcceptAdminRole,
-      cwUpdateConfig: cwMinterUpdateConfig,
-    },
-    minterKujira: {
-      cwCreateNative: cwMinterKujiraCreateNative,
-      cwMint: cwMinterKujiraMint,
-      cwBurn: cwMinterKujiraBurn,
-      cwRegisterCurrency: cwMinterKujiraRegisterCurrency,
-      cwAcceptAdminRole: cwMinterKujiraAcceptAdminRole,
-      cwUpdateConfig: cwMinterKujiraUpdateConfig,
-      cwUpdateTokenOwner: cwMinterKujiraUpdateTokenOwner,
+      kujira: {
+        cwCreateNative: cwMinterKujiraCreateNative,
+        cwMint: cwMinterKujiraMint,
+        cwBurn: cwMinterKujiraBurn,
+        cwRegisterCurrency: cwMinterKujiraRegisterCurrency,
+        cwAcceptAdminRole: cwMinterKujiraAcceptAdminRole,
+        cwUpdateConfig: cwMinterKujiraUpdateConfig,
+        cwUpdateTokenOwner: cwMinterKujiraUpdateTokenOwner,
+      },
+      stargaze: {
+        cwCreateNative,
+        cwCreateCw20,
+        cwMint,
+        cwBurn,
+        cwSetMetadataNative,
+        cwUpdateMarketingCw20,
+        cwUploadLogoCw20,
+        cwChangeAdminNative,
+        cwUpdateMinterCw20,
+        cwRegisterCurrency,
+        cwAcceptAdminRole: cwMinterAcceptAdminRole,
+        cwUpdateConfig: cwMinterUpdateConfig,
+      },
     },
     oracle: {
       cwAcceptAdminRole: cwOracleAcceptAdminRole,
       cwUpdateConfig: cwOracleUpdateConfig,
+      cwSetPrices,
       cwUpdatePrices,
+      cwRemovePrices,
     },
   };
 }
@@ -1206,76 +1294,33 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  let ADAPTER_MARKETPLACE_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let ADAPTER_SCHEDULER_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
-  let MINTER_CONTRACT: ContractInfo | undefined;
-  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
-  let ORACLE_CONTRACT: ContractInfo | undefined;
-
-  try {
-    ADAPTER_MARKETPLACE_KUJIRA_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "adapter_marketplace_kujira.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    ADAPTER_SCHEDULER_KUJIRA_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "adapter_scheduler_kujira.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    LENDING_PLATFORM_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "lending_platform.wasm"
-    );
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    MINTER_CONTRACT = getContractByWasm(CONTRACTS, "minter.wasm");
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    MINTER_KUJIRA_CONTRACT = getContractByWasm(CONTRACTS, "minter_kujira.wasm");
-  } catch (error) {
-    l(error);
-  }
-
-  try {
-    ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
-  } catch (error) {
-    l(error);
-  }
+  const {
+    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
+    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    LENDING_PLATFORM_CONTRACT,
+    MINTER_CONTRACT,
+    MINTER_KUJIRA_CONTRACT,
+    ORACLE_CONTRACT,
+  } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc);
   if (!cwClient) throw new Error("cwClient is not found!");
 
   const cosmwasmQueryClient: CosmWasmClient = cwClient.client;
 
-  const adapterMarketplaceKujiraQueryClient =
-    new AdapterMarketplaceKujiraQueryClient(
+  const adapterMarketplaceStargazeQueryClient =
+    new AdapterMarketplaceStargazeQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_MARKETPLACE_KUJIRA_CONTRACT
-        ? ADAPTER_MARKETPLACE_KUJIRA_CONTRACT.ADDRESS
+      ADAPTER_MARKETPLACE_STARGAZE_CONTRACT
+        ? ADAPTER_MARKETPLACE_STARGAZE_CONTRACT.ADDRESS
         : ""
     );
 
-  const adapterSchedulerKujiraQueryClient =
-    new AdapterSchedulerKujiraQueryClient(
+  const adapterSchedulerCommonQueryClient =
+    new AdapterSchedulerCommonQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_SCHEDULER_KUJIRA_CONTRACT
-        ? ADAPTER_SCHEDULER_KUJIRA_CONTRACT.ADDRESS
+      ADAPTER_SCHEDULER_COMMON_CONTRACT
+        ? ADAPTER_SCHEDULER_COMMON_CONTRACT.ADDRESS
         : ""
     );
 
@@ -1381,68 +1426,33 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  // adapter-marketplace-kujira
+  // adapter-marketplace-stargaze
 
-  async function cwAdapterMarketplaceKujiraQueryConfig() {
-    const res = await adapterMarketplaceKujiraQueryClient.queryConfig();
+  async function cwAdapterMarketplaceStargazeQueryConfig() {
+    const res = await adapterMarketplaceStargazeQueryClient.queryConfig();
     return logAndReturn(res);
   }
 
-  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddressList(
-    limit: number = 10_000,
+  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList(
+    limit: number = 100,
     startAfter?: string
   ) {
     const res =
-      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByCollectionAddressList(
+      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddressList(
         { startAfter, limit }
       );
     return logAndReturn(res);
   }
 
-  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddress(
-    address: string
-  ) {
-    const res =
-      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByCollectionAddress(
-        {
-          address,
-        }
-      );
+  // adapter-scheduler-common
+
+  async function cwAdapterSchedulerCommonQueryConfig() {
+    const res = await adapterSchedulerCommonQueryClient.queryConfig();
     return logAndReturn(res);
   }
 
-  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddressList(
-    limit: number = 10_000,
-    startAfter?: string
-  ) {
-    const res =
-      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByLiquidatorAddressList(
-        { startAfter, limit }
-      );
-    return logAndReturn(res);
-  }
-
-  async function cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddress(
-    address: string
-  ) {
-    const res =
-      await adapterMarketplaceKujiraQueryClient.queryLiquidationBidsByLiquidatorAddress(
-        {
-          address,
-        }
-      );
-    return logAndReturn(res);
-  }
-
-  // adapter-scheduler-kujira
-
-  async function cwAdapterSchedulerKujiraQueryConfig() {
-    const res = await adapterSchedulerKujiraQueryClient.queryConfig();
-    return logAndReturn(res);
-  }
-
-  async function cwQueryLog() {
-    const res = await adapterSchedulerKujiraQueryClient.queryLog();
+  async function cwAdapterSchedulerCommonQueryLog() {
+    const res = await adapterSchedulerCommonQueryClient.queryLog();
     return logAndReturn(res);
   }
 
@@ -1473,10 +1483,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryUnbonderList(
-    limit: number = 10_000,
-    startAfter?: string
-  ) {
+  async function cwQueryUnbonderList(limit: number = 100, startAfter?: string) {
     const res = await lendingPlatformQueryClient.queryUnbonderList({
       startAfter,
       limit,
@@ -1489,10 +1496,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryBorrowerList(
-    limit: number = 10_000,
-    startAfter?: string
-  ) {
+  async function cwQueryBorrowerList(limit: number = 100, startAfter?: string) {
     const res = await lendingPlatformQueryClient.queryBorrowerList({
       startAfter,
       limit,
@@ -1506,7 +1510,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryLiquidatorList(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string
   ) {
     const res = await lendingPlatformQueryClient.queryLiquidatorList({
@@ -1522,7 +1526,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryCollateralList(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string
   ) {
     const res = await lendingPlatformQueryClient.queryCollateralList({
@@ -1547,7 +1551,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryLiquidationBidsByCollectionAddressList(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string
   ) {
     const res =
@@ -1566,7 +1570,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddressList(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string
   ) {
     const res =
@@ -1584,7 +1588,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryProposals(limit: number = 10_000, startAfter?: number) {
+  async function cwQueryProposals(limit: number = 100, startAfter?: number) {
     const res = await lendingPlatformQueryClient.queryProposals({
       startAfter,
       limit,
@@ -1593,7 +1597,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryCollectionList(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string
   ) {
     const res = await lendingPlatformQueryClient.queryCollectionList({
@@ -1623,7 +1627,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryLtvList(limit: number = 10_000, startAfter?: string) {
+  async function cwQueryLtvList(limit: number = 100, startAfter?: string) {
     const res = await lendingPlatformQueryClient.queryLtvList({
       startAfter,
       limit,
@@ -1678,6 +1682,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
+  async function cwMinterQueryTokenOwner(denom: string) {
+    const res = await minterQueryClient.queryTokenOwner({ denom });
+    return logAndReturn(res);
+  }
+
   // minter-kujira
 
   async function cwMinterKujiraQueryCurrenciesByCreator(creator: string) {
@@ -1705,7 +1714,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryPrices(
-    limit: number = 10_000,
+    limit: number = 100,
     startAfter?: string,
     collectionAddresses: string[] = []
   ) {
@@ -1726,6 +1735,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
+  async function cwOracleQueryLog() {
+    const res = await oracleQueryClient.queryLog();
+    return logAndReturn(res);
+  }
+
   return {
     utils: {
       cwQueryOperators,
@@ -1735,22 +1749,21 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     },
     adapter: {
       marketplace: {
-        kujira: {
-          cwQueryConfig: cwAdapterMarketplaceKujiraQueryConfig,
-          cwQueryLiquidationBidsByCollectionAddressList:
-            cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddressList,
-          cwQueryLiquidationBidsByCollectionAddress:
-            cwAdapterMarketplaceKujiraQueryLiquidationBidsByCollectionAddress,
-          cwQueryLiquidationBidsByLiquidatorAddressList:
-            cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddressList,
-          cwQueryLiquidationBidsByLiquidatorAddress:
-            cwAdapterMarketplaceKujiraQueryLiquidationBidsByLiquidatorAddress,
+        kujira: {},
+        stargaze: {
+          cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
+          cwQueryOffersByCollectionAddressList:
+            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList,
         },
       },
       scheduler: {
         kujira: {
-          cwQueryConfig: cwAdapterSchedulerKujiraQueryConfig,
-          cwQueryLog,
+          cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,
+          cwQueryLog: cwAdapterSchedulerCommonQueryLog,
+        },
+        stargaze: {
+          cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,
+          cwQueryLog: cwAdapterSchedulerCommonQueryLog,
         },
       },
     },
@@ -1785,18 +1798,22 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryAmounts,
     },
     minter: {
-      cwQueryCurrenciesByCreator,
-      cwQueryConfig: cwMinterQueryConfig,
-    },
-    minterKujira: {
-      cwQueryCurrenciesByCreator: cwMinterKujiraQueryCurrenciesByCreator,
-      cwQueryConfig: cwMinterKujiraQueryConfig,
-      cwQueryTokenOwner: cwMinterKujiraQueryTokenOwner,
+      kujira: {
+        cwQueryCurrenciesByCreator: cwMinterKujiraQueryCurrenciesByCreator,
+        cwQueryConfig: cwMinterKujiraQueryConfig,
+        cwQueryTokenOwner: cwMinterKujiraQueryTokenOwner,
+      },
+      stargaze: {
+        cwQueryCurrenciesByCreator,
+        cwQueryConfig: cwMinterQueryConfig,
+        cwQueryTokenOwner: cwMinterQueryTokenOwner,
+      },
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,
       cwQueryPrices,
       cwQueryBlockTime,
+      cwQueryLog: cwOracleQueryLog,
     },
   };
 }
