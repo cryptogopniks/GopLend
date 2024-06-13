@@ -25,14 +25,14 @@ export const ADDRESS = {
   KUJIRA: {
     ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
     WORKER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
-    LIQUIDATION_WORKER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
-    ORACLE_WORKER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
+    LIQUIDATION_CONTROLLER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
+    ORACLE_CONTROLLER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
   },
   STARGAZE: {
     ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
-    LIQUIDATION_WORKER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
-    ORACLE_WORKER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
+    ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
   },
 };
 
@@ -83,7 +83,6 @@ export const CHAIN_CONFIG: ChainConfig = {
               INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
                 worker: ADDRESS.KUJIRA.WORKER,
                 clock_source: "offchain",
-                min_clock_period: 1,
               }),
               MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
                 version: "1.0.0",
@@ -93,7 +92,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   offchain_clock: [
                     ADDRESS.KUJIRA.ADMIN,
                     ADDRESS.KUJIRA.WORKER,
-                    ADDRESS.KUJIRA.LIQUIDATION_WORKER,
+                    ADDRESS.KUJIRA.LIQUIDATION_CONTROLLER,
                   ],
                   lending_platform: $(
                     "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
@@ -166,7 +165,11 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
-                  scheduler: ADDRESS.KUJIRA.ORACLE_WORKER,
+                  controller: [
+                    ADDRESS.KUJIRA.ADMIN,
+                    ADDRESS.KUJIRA.WORKER,
+                    ADDRESS.KUJIRA.ORACLE_CONTROLLER,
+                  ],
                 },
               }),
               CODE: 3349,
@@ -220,7 +223,6 @@ export const CHAIN_CONFIG: ChainConfig = {
               INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.WORKER,
                 clock_source: "offchain",
-                min_clock_period: 1,
               }),
               MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
                 version: "1.0.0",
@@ -230,7 +232,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   offchain_clock: [
                     ADDRESS.STARGAZE.ADMIN,
                     ADDRESS.STARGAZE.WORKER,
-                    ADDRESS.STARGAZE.LIQUIDATION_WORKER,
+                    ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
                   ],
                   lending_platform: $(
                     "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
@@ -306,7 +308,11 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
-                  scheduler: ADDRESS.STARGAZE.ORACLE_WORKER,
+                  controller: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.ORACLE_CONTROLLER,
+                  ],
                 },
               }),
               CODE: 4254,
@@ -316,6 +322,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           ],
           IBC: [],
         },
+
         {
           TYPE: "main",
           DENOM: "ustars",
@@ -323,47 +330,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [
-            {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                main_currency: {
-                  token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  oracle: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  scheduler: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-          ],
+          CONTRACTS: [],
           IBC: [],
         },
 
@@ -406,7 +373,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
-                  scheduler: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                  controller: [ADDRESS.STARGAZE.ADMIN],
                 },
               }),
               CODE: 0,

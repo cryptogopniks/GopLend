@@ -5,7 +5,8 @@
 */
 
 export interface InstantiateMsg {
-  scheduler?: string | null;
+  controller?: string[] | null;
+  min_price_update_period?: number | null;
   worker?: string | null;
 }
 export type ExecuteMsg = {
@@ -13,12 +14,21 @@ export type ExecuteMsg = {
 } | {
   update_config: {
     admin?: string | null;
-    scheduler?: string | null;
+    controller?: string[] | null;
+    min_price_update_period?: number | null;
     worker?: string | null;
+  };
+} | {
+  set_prices: {
+    data: RawPriceItem[];
   };
 } | {
   update_prices: {
     data: RawPriceItem[];
+  };
+} | {
+  remove_prices: {
+    collections: string[];
   };
 };
 export type Uint128 = string;
@@ -53,6 +63,8 @@ export type QueryMsg = {
   };
 } | {
   query_block_time: {};
+} | {
+  query_log: {};
 };
 export interface MigrateMsg {
   version: string;
@@ -61,8 +73,15 @@ export type Uint64 = number;
 export type Addr = string;
 export interface Config {
   admin: Addr;
-  scheduler?: Addr | null;
+  controller?: Addr[] | null;
+  min_price_update_period: number;
   worker?: Addr | null;
+}
+export type ArrayOfLog = Log[];
+export interface Log {
+  block_time: number;
+  counter: number;
+  sender: Addr;
 }
 export type Token = {
   native: {

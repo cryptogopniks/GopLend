@@ -1159,16 +1159,32 @@ async function getCwExecHelpers(
     {
       admin,
       worker,
-      scheduler,
+      controller,
+      minPriceUpdatePeriod,
     }: {
       admin?: string;
       worker?: string;
-      scheduler?: string;
+      controller?: string[];
+      minPriceUpdatePeriod?: number;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.updateConfig({ admin, worker, scheduler })],
+      [
+        oracleMsgComposer.updateConfig({
+          admin,
+          worker,
+          controller,
+          minPriceUpdatePeriod,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwSetPrices(data: RawPriceItem[], gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.setPrices({ data })],
       gasPrice
     );
   }
@@ -1176,6 +1192,13 @@ async function getCwExecHelpers(
   async function cwUpdatePrices(data: RawPriceItem[], gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [oracleMsgComposer.updatePrices({ data })],
+      gasPrice
+    );
+  }
+
+  async function cwRemovePrices(collections: string[], gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [oracleMsgComposer.removePrices({ collections })],
       gasPrice
     );
   }
@@ -1258,7 +1281,9 @@ async function getCwExecHelpers(
     oracle: {
       cwAcceptAdminRole: cwOracleAcceptAdminRole,
       cwUpdateConfig: cwOracleUpdateConfig,
+      cwSetPrices,
       cwUpdatePrices,
+      cwRemovePrices,
     },
   };
 }
@@ -1426,7 +1451,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryLog() {
+  async function cwAdapterSchedulerCommonQueryLog() {
     const res = await adapterSchedulerCommonQueryClient.queryLog();
     return logAndReturn(res);
   }
@@ -1710,6 +1735,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
+  async function cwOracleQueryLog() {
+    const res = await oracleQueryClient.queryLog();
+    return logAndReturn(res);
+  }
+
   return {
     utils: {
       cwQueryOperators,
@@ -1729,11 +1759,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       scheduler: {
         kujira: {
           cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,
-          cwQueryLog,
+          cwQueryLog: cwAdapterSchedulerCommonQueryLog,
         },
         stargaze: {
           cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,
-          cwQueryLog,
+          cwQueryLog: cwAdapterSchedulerCommonQueryLog,
         },
       },
     },
@@ -1783,6 +1813,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryConfig: cwOracleQueryConfig,
       cwQueryPrices,
       cwQueryBlockTime,
+      cwQueryLog: cwOracleQueryLog,
     },
   };
 }
