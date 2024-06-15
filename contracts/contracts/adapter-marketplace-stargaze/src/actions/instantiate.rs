@@ -4,9 +4,10 @@ use cw2::set_contract_version;
 use goplend_base::{
     adapters::marketplace::stargaze::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME},
+        state::{CONFIG, CONTRACT_NAME, PRICE_IMPACT},
         types::Config,
     },
+    converters::str_to_dec,
     error::ContractError,
 };
 
@@ -44,6 +45,7 @@ pub fn try_instantiate(
                 .infinity_pool
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
+            price_impact: msg.price_impact.unwrap_or(str_to_dec(PRICE_IMPACT)),
         },
     )?;
 

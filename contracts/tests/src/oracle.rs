@@ -38,6 +38,13 @@ fn default() -> StdResult<()> {
                         ProjectCoin::Kuji.get_decimals(),
                     ),
                 ),
+                usd_price: Funds::new(
+                    Uint128::new(300),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                        ProjectCoin::Usk.get_decimals(),
+                    ),
+                ),
             },
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -46,6 +53,13 @@ fn default() -> StdResult<()> {
                     &Currency::new(
                         &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
                         ProjectToken::Atom.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(800),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                        ProjectCoin::Usk.get_decimals(),
                     ),
                 ),
             },
@@ -66,6 +80,13 @@ fn default() -> StdResult<()> {
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
+            usd_price: Funds::new(
+                Uint128::new(800),
+                &Currency::new(
+                    &Token::new_native(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
+                ),
+            ),
             price_update_date: block_time,
         },
         PriceItem {
@@ -75,6 +96,13 @@ fn default() -> StdResult<()> {
                 &Currency::new(
                     &Token::new_native(&ProjectCoin::Kuji.to_string()),
                     ProjectCoin::Kuji.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                Uint128::new(300),
+                &Currency::new(
+                    &Token::new_native(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
                 ),
             ),
             price_update_date: block_time,
@@ -101,6 +129,13 @@ fn unauthorized() -> StdResult<()> {
                             ProjectCoin::Kuji.get_decimals(),
                         ),
                     ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                            ProjectCoin::Usk.get_decimals(),
+                        ),
+                    ),
                 },
                 RawPriceItem {
                     collection_address: ProjectNft::Gopniks.to_string(),
@@ -109,6 +144,13 @@ fn unauthorized() -> StdResult<()> {
                         &Currency::new(
                             &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
                             ProjectToken::Atom.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(800),
+                        &Currency::new(
+                            &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                            ProjectCoin::Usk.get_decimals(),
                         ),
                     ),
                 },
@@ -138,6 +180,13 @@ fn duplicated_collections() -> StdResult<()> {
                             ProjectCoin::Kuji.get_decimals(),
                         ),
                     ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                            ProjectCoin::Usk.get_decimals(),
+                        ),
+                    ),
                 },
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
@@ -146,6 +195,13 @@ fn duplicated_collections() -> StdResult<()> {
                         &Currency::new(
                             &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
                             ProjectCoin::Kuji.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                            ProjectCoin::Usk.get_decimals(),
                         ),
                     ),
                 },
@@ -185,6 +241,13 @@ fn zeros_in_prices() -> StdResult<()> {
                     &Currency::new(
                         &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
                         ProjectCoin::Kuji.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(0),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
+                        ProjectCoin::Usk.get_decimals(),
                     ),
                 ),
             }],

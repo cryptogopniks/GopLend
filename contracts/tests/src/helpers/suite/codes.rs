@@ -1,4 +1,4 @@
-use cosmwasm_std::{coins, Addr, StdResult, Uint128};
+use cosmwasm_std::{coins, Addr, Decimal, StdResult, Uint128};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
 use serde::Serialize;
@@ -102,6 +102,7 @@ pub trait WithCodes {
         lending_platform: &Option<Addr>,
         marketplace: &Option<Addr>,
         infinity_pool: &Option<Addr>,
+        price_impact: &Option<Decimal>,
     ) -> Addr;
 
     fn instantiate_adapter_marketplace_kujira(
@@ -437,6 +438,7 @@ impl WithCodes for Project {
         lending_platform: &Option<Addr>,
         marketplace: &Option<Addr>,
         infinity_pool: &Option<Addr>,
+        price_impact: &Option<Decimal>,
     ) -> Addr {
         self.instantiate_contract(
             adapter_marketplace_stargaze_code_id,
@@ -446,6 +448,7 @@ impl WithCodes for Project {
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
                 infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
+                price_impact: price_impact.to_owned(),
             },
         )
     }

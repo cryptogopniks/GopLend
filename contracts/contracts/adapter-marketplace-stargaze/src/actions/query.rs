@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, Deps, Env, StdResult};
+use cosmwasm_std::{Decimal, Deps, Env, StdResult, Uint128};
 
 use sg_marketplace::{
     msg::{BidsResponse, CollectionBidsResponse, QueryMsg as MarketplaceQueryMsg},
@@ -10,6 +10,7 @@ use goplend_base::{
         state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
         types::Config,
     },
+    converters::u128_to_dec,
     lending_platform::{
         msg::{
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -27,6 +28,7 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_offers_by_collection_address_list(
     deps: Deps,
     env: Env,
+    price_ratio: Decimal,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
@@ -34,6 +36,7 @@ pub fn query_offers_by_collection_address_list(
     let Config {
         lending_platform,
         marketplace,
+        price_impact,
         ..
     } = CONFIG.load(deps.storage)?;
     let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
@@ -89,6 +92,7 @@ pub fn query_offers_by_collection_address_list(
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list: vec![token_id.to_string()],
+                usd_amount: Some(calc_usd_price(price_ratio, price, price_impact)),
                 amount: price,
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::TokenOffer,
@@ -113,6 +117,7 @@ pub fn query_offers_by_collection_address_list(
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list,
+                usd_amount: Some(calc_usd_price(price_ratio, price, price_impact)),
                 amount: price,
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::CollectionOffer,
@@ -126,4 +131,14 @@ pub fn query_offers_by_collection_address_list(
     }
 
     Ok(total_offers)
+}
+
+// imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
+// if we will assume the offer is 5 USDC we will lose some funds due to
+// swap fee, price impact, price ratio fluctuation
+// expecting 2 % losses we can accept 4.9 USDC offer
+//
+// usd_price = price * price_ratio * (1 - price_impact)
+fn calc_usd_price(price_ratio: Decimal, price: Uint128, price_impact: Decimal) -> Uint128 {
+    u128_to_dec(price) * price_ratio * (Decimal::one() - price_impact).to_uint_floor()
 }

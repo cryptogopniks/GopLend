@@ -1,4 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Decimal;
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -6,6 +7,7 @@ pub struct InstantiateMsg {
     pub lending_platform: Option<String>,
     pub marketplace: Option<String>,
     pub infinity_pool: Option<String>,
+    pub price_impact: Option<Decimal>,
 }
 
 #[cw_serde]
@@ -25,6 +27,7 @@ pub enum ExecuteMsg {
         lending_platform: Option<String>,
         marketplace: Option<String>,
         infinity_pool: Option<String>,
+        price_impact: Option<Decimal>,
     },
 
     // lending platform
@@ -41,6 +44,7 @@ pub enum QueryMsg {
 
     #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryOffersByCollectionAddressList {
+        price_ratio: Decimal, // required to get origin amount
         start_after: Option<String>,
         limit: Option<u32>,
     },

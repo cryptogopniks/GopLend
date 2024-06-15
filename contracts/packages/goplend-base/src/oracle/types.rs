@@ -7,12 +7,14 @@ use crate::assets::{Funds, Token, TokenUnverified};
 pub struct RawPriceItem {
     pub collection_address: String,
     pub price: Funds<TokenUnverified>,
+    pub usd_price: Funds<TokenUnverified>,
 }
 
 #[cw_serde]
 pub struct PriceItem {
     pub address: Addr,
     pub price: Funds<Token>,
+    pub usd_price: Funds<Token>,
     pub price_update_date: u64,
 }
 

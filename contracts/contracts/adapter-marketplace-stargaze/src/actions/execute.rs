@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
-    WasmMsg,
+    to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128, WasmMsg,
 };
 
 use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
@@ -68,6 +68,7 @@ pub fn try_update_config(
     lending_platform: Option<String>,
     marketplace: Option<String>,
     infinity_pool: Option<String>,
+    price_impact: Option<Decimal>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -110,6 +111,12 @@ pub fn try_update_config(
     if let Some(x) = infinity_pool {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.infinity_pool = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = price_impact {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.price_impact = x;
         is_config_updated = true;
     }
 

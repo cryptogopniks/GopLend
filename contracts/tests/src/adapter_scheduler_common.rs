@@ -63,6 +63,13 @@ fn push_multiple_clock_sources() -> StdResult<()> {
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
+            usd_price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
+                ),
+            ),
         }],
     )?;
 
@@ -155,6 +162,13 @@ fn push_multiple_clock_sources() -> StdResult<()> {
                     ProjectToken::Atom.get_decimals(),
                 ),
             ),
+            usd_price: Funds::new(
+                Uint128::new(700),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
+                ),
+            ),
         }],
     )?;
 
@@ -199,6 +213,13 @@ fn push_multiple_clock_sources() -> StdResult<()> {
                 &Currency::new(
                     &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
                     ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                Uint128::new(600),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
                 ),
             ),
         }],
@@ -270,6 +291,13 @@ fn log_zero_cross() -> StdResult<()> {
                 &Currency::new(
                     &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
                     ProjectToken::Atom.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                    ProjectCoin::Usk.get_decimals(),
                 ),
             ),
         }],
@@ -370,6 +398,13 @@ fn log_zero_cross() -> StdResult<()> {
                         ProjectToken::Atom.get_decimals(),
                     ),
                 ),
+                usd_price: Funds::new(
+                    Uint128::new(700),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                        ProjectCoin::Usk.get_decimals(),
+                    ),
+                ),
             }],
         )?;
 
@@ -399,6 +434,13 @@ fn log_zero_cross() -> StdResult<()> {
                     &Currency::new(
                         &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
                         ProjectToken::Atom.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
+                        ProjectCoin::Usk.get_decimals(),
                     ),
                 ),
             }],

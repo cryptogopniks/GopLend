@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdResult};
+use cosmwasm_std::{Addr, Decimal, StdResult};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
@@ -6,6 +6,7 @@ use goplend_base::{
         msg::{ExecuteMsg, QueryMsg},
         types::Config,
     },
+    converters::str_to_dec,
     error::parse_err,
 };
 
@@ -28,6 +29,7 @@ pub trait AdapterMarketplaceStargazeExtension {
         lending_platform: &Option<Addr>,
         marketplace: &Option<Addr>,
         infinity_pool: &Option<Addr>,
+        price_impact: &Option<Decimal>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_marketplace_stargaze_try_accept_offers(
@@ -40,6 +42,7 @@ pub trait AdapterMarketplaceStargazeExtension {
 
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
+        price_ratio: &str,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
@@ -70,6 +73,7 @@ impl AdapterMarketplaceStargazeExtension for Project {
         lending_platform: &Option<Addr>,
         marketplace: &Option<Addr>,
         infinity_pool: &Option<Addr>,
+        price_impact: &Option<Decimal>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -81,6 +85,7 @@ impl AdapterMarketplaceStargazeExtension for Project {
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                     marketplace: marketplace.as_ref().map(|x| x.to_string()),
                     infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
+                    price_impact: price_impact.to_owned(),
                 },
                 &[],
             )
@@ -116,12 +121,14 @@ impl AdapterMarketplaceStargazeExtension for Project {
     #[track_caller]
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
+        price_ratio: &str,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
             &QueryMsg::QueryOffersByCollectionAddressList {
+                price_ratio: str_to_dec(price_ratio),
                 start_after: start_after.as_ref().map(|x| x.to_string()),
                 limit: limit.to_owned(),
             },

@@ -6,7 +6,7 @@ use goplend_base::{
     error::ContractError,
     oracle::{
         state::{CONFIG, LOG, PRICE_AND_DATE_LIST, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{Config, RawPriceItem, TransferAdminState},
+        types::{Config, PriceItem, RawPriceItem, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
@@ -62,24 +62,42 @@ pub fn try_set_prices(
     for RawPriceItem {
         collection_address,
         price,
+        usd_price,
     } in data
     {
         if price.amount.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
-        let collection_address = deps.api.addr_validate(&collection_address)?;
+        let collection_address = &deps.api.addr_validate(&collection_address)?;
+
         let price_token = price.currency.token.verify(deps.api)?;
         let currency = Currency::new(&price_token, price.currency.decimals);
         let price = Funds::new(price.amount, &currency);
 
-        if let Ok((_funds, time)) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address) {
-            if time == block_time {
+        let usd_price_token = usd_price.currency.token.verify(deps.api)?;
+        let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
+        let usd_price = Funds::new(usd_price.amount, &usd_currency);
+
+        if let Ok(PriceItem {
+            price_update_date, ..
+        }) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+        {
+            if price_update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
             }
         }
 
-        PRICE_AND_DATE_LIST.save(deps.storage, &collection_address, &(price, block_time))?;
+        PRICE_AND_DATE_LIST.save(
+            deps.storage,
+            &collection_address,
+            &PriceItem {
+                address: collection_address.to_owned(),
+                price,
+                usd_price,
+                price_update_date: block_time,
+            },
+        )?;
     }
 
     Ok(Response::new().add_attributes(vec![("action", "try_set_prices")]))
@@ -134,24 +152,42 @@ pub fn try_update_prices(
     for RawPriceItem {
         collection_address,
         price,
+        usd_price,
     } in data
     {
         if price.amount.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
-        let collection_address = deps.api.addr_validate(&collection_address)?;
+        let collection_address = &deps.api.addr_validate(&collection_address)?;
+
         let price_token = price.currency.token.verify(deps.api)?;
         let currency = Currency::new(&price_token, price.currency.decimals);
         let price = Funds::new(price.amount, &currency);
 
-        if let Ok((_funds, time)) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address) {
-            if time == block_time {
+        let usd_price_token = usd_price.currency.token.verify(deps.api)?;
+        let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
+        let usd_price = Funds::new(usd_price.amount, &usd_currency);
+
+        if let Ok(PriceItem {
+            price_update_date, ..
+        }) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+        {
+            if price_update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
             }
         }
 
-        PRICE_AND_DATE_LIST.save(deps.storage, &collection_address, &(price, block_time))?;
+        PRICE_AND_DATE_LIST.save(
+            deps.storage,
+            &collection_address,
+            &PriceItem {
+                address: collection_address.to_owned(),
+                price,
+                usd_price,
+                price_update_date: block_time,
+            },
+        )?;
     }
 
     Ok(Response::new().add_attributes(vec![("action", "try_update_prices")]))

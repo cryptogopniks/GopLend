@@ -41,6 +41,7 @@ pub fn execute(
             lending_platform,
             marketplace,
             infinity_pool,
+            price_impact,
         } => e::try_update_config(
             deps,
             env,
@@ -50,6 +51,7 @@ pub fn execute(
             lending_platform,
             marketplace,
             infinity_pool,
+            price_impact,
         ),
 
         ExecuteMsg::AcceptOffers {
@@ -64,9 +66,17 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOffersByCollectionAddressList { start_after, limit } => to_json_binary(
-            &q::query_offers_by_collection_address_list(deps, env, start_after, limit)?,
-        ),
+        QueryMsg::QueryOffersByCollectionAddressList {
+            price_ratio,
+            start_after,
+            limit,
+        } => to_json_binary(&q::query_offers_by_collection_address_list(
+            deps,
+            env,
+            price_ratio,
+            start_after,
+            limit,
+        )?),
     }
 }
 

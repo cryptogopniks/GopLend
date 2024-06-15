@@ -25,13 +25,7 @@ pub fn query_prices(
             .iter()
             .map(|y| {
                 let address = deps.api.addr_validate(y)?;
-                let (price, date) = PRICE_AND_DATE_LIST.load(deps.storage, &address)?;
-
-                Ok(PriceItem {
-                    address,
-                    price,
-                    price_update_date: date,
-                })
+                PRICE_AND_DATE_LIST.load(deps.storage, &address)
             })
             .collect::<StdResult<Vec<PriceItem>>>();
     }
@@ -53,12 +47,8 @@ pub fn query_prices(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
-            let (address, (price, date)) = x.unwrap();
-            PriceItem {
-                address,
-                price,
-                price_update_date: date,
-            }
+            let (_address, price_item) = x.unwrap();
+            price_item
         })
         .collect())
 }

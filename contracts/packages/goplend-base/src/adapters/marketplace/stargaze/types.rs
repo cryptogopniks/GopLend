@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Decimal};
 
 #[cw_serde]
 pub struct Config {
@@ -8,6 +8,7 @@ pub struct Config {
     pub lending_platform: Option<Addr>,
     pub marketplace: Option<Addr>,
     pub infinity_pool: Option<Addr>,
+    pub price_impact: Decimal,
 }
 
 #[cw_serde]
