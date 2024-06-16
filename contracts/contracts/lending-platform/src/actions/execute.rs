@@ -34,7 +34,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        increase_platform_revenue, update_balances, update_borrowers_storages,
+        choose_price, increase_platform_revenue, update_balances, update_borrowers_storages,
         update_liquidation_storages, verify_proposal_status,
     },
     math,
@@ -362,22 +362,20 @@ pub fn try_deposit_collateral(
         }
 
         // get collection price
-        let oracle::types::PriceItem {
-            price,
-            price_update_date,
-            ..
-        } = prices
+        let price_item = prices
             .iter()
             .find(|x| x.address == collection_address)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > common_config.price_update_period {
+        if block_time - price_item.price_update_date > common_config.price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
         }
+
+        let price = choose_price(&common_config.main_currency, &price_item);
 
         // update collaterals
         COLLATERALS.update(
@@ -408,7 +406,7 @@ pub fn try_deposit_collateral(
                                     collateral.token_id_list.dedup();
 
                                     // update collateral value
-                                    collateral_value += price.amount
+                                    collateral_value += price
                                         * Uint128::new(collateral.token_id_list.len() as u128);
 
                                     collateral
@@ -422,8 +420,7 @@ pub fn try_deposit_collateral(
                     }
                     None => {
                         // update collateral value
-                        collateral_value +=
-                            price.amount * Uint128::new(token_id_list.len() as u128);
+                        collateral_value += price * Uint128::new(token_id_list.len() as u128);
 
                         vec![Collateral {
                             owner: sender_address.clone(),
@@ -547,22 +544,20 @@ pub fn try_withdraw_collateral(
         }
 
         // get collection price
-        let oracle::types::PriceItem {
-            price,
-            price_update_date,
-            ..
-        } = prices
+        let price_item = prices
             .iter()
             .find(|x| x.address == collection_address)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > common_config.price_update_period {
+        if block_time - price_item.price_update_date > common_config.price_update_period {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
         }
+
+        let price = choose_price(&common_config.main_currency, &price_item);
 
         // update collaterals
         let collaterals: Vec<Collateral> = COLLATERALS
@@ -576,7 +571,7 @@ pub fn try_withdraw_collateral(
 
                     // update collateral value
                     collateral_value +=
-                        price.amount * Uint128::new(collateral.token_id_list.len() as u128);
+                        price * Uint128::new(collateral.token_id_list.len() as u128);
 
                     collateral
                 } else {

@@ -16,7 +16,7 @@ use crate::helpers::{
     oracle::OracleExtension,
     suite::{
         core::{assert_error, Project},
-        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
+        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft},
     },
 };
 
@@ -34,15 +34,15 @@ fn default() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(300),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                        ProjectCoin::Kuji.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(300),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -51,15 +51,15 @@ fn default() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(800),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(800),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -76,15 +76,15 @@ fn default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(800),
                 &Currency::new(
-                    &Token::new_cw20(&ProjectToken::Atom.into()),
-                    ProjectToken::Atom.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(800),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: block_time,
@@ -94,15 +94,15 @@ fn default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(300),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(300),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: block_time,
@@ -125,15 +125,15 @@ fn unauthorized() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
                         ),
                     ),
                     usd_price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                            ProjectCoin::Usk.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -142,15 +142,15 @@ fn unauthorized() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(800),
                         &Currency::new(
-                            &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                            ProjectToken::Atom.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
                         ),
                     ),
                     usd_price: Funds::new(
                         Uint128::new(800),
                         &Currency::new(
-                            &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                            ProjectCoin::Usk.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -176,15 +176,15 @@ fn duplicated_collections() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
                         ),
                     ),
                     usd_price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                            ProjectCoin::Usk.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -193,15 +193,15 @@ fn duplicated_collections() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
                         ),
                     ),
                     usd_price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                            ProjectCoin::Usk.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -239,15 +239,15 @@ fn zeros_in_prices() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(0),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                        ProjectCoin::Kuji.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(0),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             }],

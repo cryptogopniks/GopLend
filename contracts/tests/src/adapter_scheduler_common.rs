@@ -59,15 +59,15 @@ fn push_multiple_clock_sources() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -145,7 +145,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -158,15 +158,15 @@ fn push_multiple_clock_sources() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(700),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(700),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -211,15 +211,15 @@ fn push_multiple_clock_sources() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(600),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(600),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -289,15 +289,15 @@ fn log_zero_cross() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -381,7 +381,7 @@ fn log_zero_cross() -> StdResult<()> {
             }],
             "0",
             LIQUIDATION_BID,
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         )?;
 
         project.wait(CLOCK_PERIOD);
@@ -394,15 +394,15 @@ fn log_zero_cross() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(700),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(700),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             }],
@@ -432,15 +432,15 @@ fn log_zero_cross() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             }],

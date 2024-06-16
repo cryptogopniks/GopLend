@@ -39,15 +39,15 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: 0,
@@ -57,15 +57,15 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: 1_000,
@@ -419,15 +419,15 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(200),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: 0,
@@ -437,15 +437,15 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(100),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
             price_update_date: 1_000,

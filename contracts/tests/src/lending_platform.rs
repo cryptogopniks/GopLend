@@ -208,15 +208,15 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -281,7 +281,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // check initial deposit apr and bgl price
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
@@ -307,15 +307,15 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -339,15 +339,15 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -377,15 +377,15 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -478,15 +478,15 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -551,7 +551,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
@@ -566,15 +566,15 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -584,7 +584,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     assert_that(&borrower.accumulated_loan.u128()).is_equal_to(250_000);
 
     // repay all
-    project.lending_platform_try_repay(ProjectAccount::Bob, 1_250_000, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, 1_250_000, ProjectCoin::Stars)?;
 
     // check loans
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
@@ -604,7 +604,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     assert_that(
         &revenue
             .iter()
-            .find(|x| x.currency.token == ProjectCoin::Kuji.into())
+            .find(|x| x.currency.token == ProjectCoin::Stars.into())
             .unwrap()
             .amount
             .u128(),
@@ -631,15 +631,15 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -648,15 +648,15 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -783,7 +783,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
@@ -812,12 +812,12 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     project.lending_platform_try_repay(
         ProjectAccount::Bob,
         (borrower_bob.accumulated_loan + borrower_bob.loan.amount).u128() / 2,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
     project.lending_platform_try_repay(
         ProjectAccount::John,
         (borrower_john.accumulated_loan + borrower_john.loan.amount).u128() / 2,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // check loans
@@ -857,7 +857,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     assert_that(
         &revenue
             .iter()
-            .find(|x| x.currency.token == ProjectCoin::Kuji.into())
+            .find(|x| x.currency.token == ProjectCoin::Stars.into())
             .unwrap()
             .amount
             .u128(),
@@ -888,15 +888,15 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -961,7 +961,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
@@ -969,7 +969,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -980,7 +980,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let stars_difference = stars_after - stars_before;
 
     assert_that(&stars_difference).is_equal_to(1_200_000);
@@ -988,7 +988,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
 
     // repay
-    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT / 10, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT / 10, ProjectCoin::Stars)?;
 
     let balances = project.lending_platform_query_balances()?;
 
@@ -1019,15 +1019,15 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1092,7 +1092,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
@@ -1100,7 +1100,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -1111,7 +1111,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let stars_difference = stars_after - stars_before;
 
     assert_that(&stars_difference).is_equal_to(1_200_000);
@@ -1119,7 +1119,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
 
     // repay
-    project.lending_platform_try_repay(ProjectAccount::Bob, 1_207_671, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, 1_207_671, ProjectCoin::Stars)?;
 
     let balances = project.lending_platform_query_balances()?;
 
@@ -1153,15 +1153,15 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1226,7 +1226,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
@@ -1234,7 +1234,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -1245,7 +1245,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let stars_difference = stars_after - stars_before;
 
     assert_that(&stars_difference).is_equal_to(1_200_000);
@@ -1253,7 +1253,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
 
     // repay
-    project.lending_platform_try_repay(ProjectAccount::Bob, 1_259_589, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, 1_259_589, ProjectCoin::Stars)?;
 
     let balances = project.lending_platform_query_balances()?;
 
@@ -1287,15 +1287,15 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1360,7 +1360,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // try exceed borrow limit
     let res = project
@@ -1417,15 +1417,15 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1500,7 +1500,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
     project.lending_platform_try_borrow(ProjectAccount::Bob, 40 * AMOUNT)?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     project.wait(DELAY);
 
@@ -1544,15 +1544,15 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1620,7 +1620,7 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
     //repay immediately
-    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
 
@@ -1651,15 +1651,15 @@ fn repay_withdraw_loop() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1721,7 +1721,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Stars)?;
 
     // borrow
     project.lending_platform_try_borrow(ProjectAccount::Bob, 40 * AMOUNT)?;
@@ -1732,7 +1732,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
         let (_, ltv) = project.lending_platform_query_ltv_list(&None, &Some(1))?[0];
         assert_that(&ltv.to_string().as_str()).is_equal_to("0.625");
 
-        project.lending_platform_try_repay(ProjectAccount::Bob, 10 * AMOUNT, ProjectCoin::Kuji)?;
+        project.lending_platform_try_repay(ProjectAccount::Bob, 10 * AMOUNT, ProjectCoin::Stars)?;
 
         let bgl_price_before =
             project.lending_platform_query_bgl_currency_to_main_currency_price()?;
@@ -1764,7 +1764,7 @@ fn deposit_improper_main_currency() -> StdResult<()> {
 
     // deposit improper token
     let res = project
-        .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Usk)
+        .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Usdc)
         .unwrap_err();
 
     assert_error(&res, ContractError::WrongAssetType);
@@ -1779,7 +1779,7 @@ fn deposit_zero() -> StdResult<()> {
     const DEPOSIT_AMOUNT: u128 = 0;
 
     let res = project
-        .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Kuji)
+        .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Stars)
         .unwrap_err();
 
     assert_error(&res, "Cannot transfer empty coins amount");
@@ -1798,17 +1798,17 @@ fn deposit_default() -> StdResult<()> {
 
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
 
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
         DEPOSIT_AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // check user balances
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
 
     let stars_difference = stars_before - stars_after;
@@ -1839,14 +1839,18 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
         DEPOSIT_AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // deposit doesn't change bgl token price
     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
 
-    project.lending_platform_try_deposit(ProjectAccount::Bob, DEPOSIT_AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(
+        ProjectAccount::Bob,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
 
     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
     assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
@@ -1866,15 +1870,15 @@ fn collection_address_duplication() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(800_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(800_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -1948,15 +1952,15 @@ fn collateral_value_limitations() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(800_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(800_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2063,14 +2067,14 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
 
     // deposit
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
         DEPOSIT_AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // check contract balances
@@ -2085,7 +2089,7 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
 
     // check user balances
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
 
     let stars_difference = stars_before - stars_after;
@@ -2120,10 +2124,10 @@ fn multiple_unbonding_positions() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
         DEPOSIT_AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 8, &bgl_token)?;
@@ -2136,12 +2140,12 @@ fn multiple_unbonding_positions() -> StdResult<()> {
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT / 8);
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Kuji)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
     assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT * 7 / 8);
 
     Ok(())
@@ -2161,15 +2165,15 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(800_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2267,15 +2271,15 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2340,7 +2344,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT / 2, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT / 2, ProjectCoin::Stars)?;
 
     // min_available_liquidity = 0.15 * reserve_deposited
     // 0.15 * 100_000_000_000 = 15_000_000_000
@@ -2383,7 +2387,7 @@ fn clear_unbonders_storage() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
         DEPOSIT_AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // unbond
@@ -2414,15 +2418,15 @@ fn clear_collaterals_storage() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2508,15 +2512,15 @@ fn clear_borrowers_storage() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2573,7 +2577,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
     let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
     assert_that(&borrowers.len()).is_equal_to(1);
 
-    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Stars)?;
 
     let borrowers = project.lending_platform_query_borrower_list(&None, &None)?;
     assert_that(&borrowers.is_empty()).is_equal_to(true);
@@ -2593,15 +2597,15 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(80_000_000_000),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2662,7 +2666,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         }],
         "0",
         800,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let liquidators = project.lending_platform_query_liquidator_list(&None, &None)?;
@@ -2705,15 +2709,15 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2786,7 +2790,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None)?;
@@ -2801,7 +2805,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -2841,15 +2845,15 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -2933,15 +2937,15 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3011,7 +3015,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3026,7 +3030,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3039,15 +3043,15 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3125,15 +3129,15 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3203,7 +3207,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3215,7 +3219,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3228,15 +3232,15 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3314,15 +3318,15 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3392,7 +3396,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3404,7 +3408,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3417,15 +3421,15 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3503,15 +3507,15 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3581,7 +3585,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3596,7 +3600,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3609,15 +3613,15 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3692,15 +3696,15 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3770,7 +3774,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3785,7 +3789,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3798,15 +3802,15 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3884,15 +3888,15 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -3962,7 +3966,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -3974,7 +3978,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -3987,15 +3991,15 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4073,15 +4077,15 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4151,7 +4155,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -4163,7 +4167,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -4176,15 +4180,15 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4268,15 +4272,15 @@ fn single_discount_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4347,7 +4351,7 @@ fn single_discount_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -4362,7 +4366,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -4375,15 +4379,15 @@ fn single_discount_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4507,15 +4511,15 @@ fn multiple_discount_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4585,7 +4589,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -4597,7 +4601,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         }],
         DISCOUNT_1,
         LIQUIDATION_BID / 2,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
     project.wait(10);
 
@@ -4609,7 +4613,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         }],
         DISCOUNT_0,
         LIQUIDATION_BID / 2,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
     project.wait(100);
 
@@ -4621,15 +4625,15 @@ fn multiple_discount_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -4775,15 +4779,15 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -4792,15 +4796,15 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -4912,7 +4916,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // place bid
@@ -4936,7 +4940,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         ],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
     project.wait(100);
 
@@ -4948,15 +4952,15 @@ fn multiple_collection_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5076,15 +5080,15 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5183,7 +5187,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // borrow
@@ -5201,7 +5205,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -5214,15 +5218,15 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5239,7 +5243,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let platform_revenue_before = project.lending_platform_query_platform_revenue()?;
     let stars_revenue_before = platform_revenue_before
         .iter()
-        .find(|x| x.currency.token == ProjectCoin::Kuji.into());
+        .find(|x| x.currency.token == ProjectCoin::Stars.into());
     let balances_before = project.lending_platform_query_balances()?;
 
     assert_that(&stars_revenue_before).is_equal_to(None);
@@ -5256,7 +5260,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let platform_revenue_after = project.lending_platform_query_platform_revenue()?;
     let stars_revenue_after = platform_revenue_after
         .iter()
-        .find(|x| x.currency.token == ProjectCoin::Kuji.into())
+        .find(|x| x.currency.token == ProjectCoin::Stars.into())
         .unwrap()
         .amount
         .u128();
@@ -5280,15 +5284,15 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5319,7 +5323,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -5332,15 +5336,15 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER_2),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5373,7 +5377,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let platform_revenue_after = project.lending_platform_query_platform_revenue()?;
     let stars_revenue_after = platform_revenue_after
         .iter()
-        .find(|x| x.currency.token == ProjectCoin::Kuji.into())
+        .find(|x| x.currency.token == ProjectCoin::Stars.into())
         .unwrap()
         .amount
         .u128();
@@ -5411,15 +5415,15 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5515,7 +5519,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // borrow
@@ -5530,7 +5534,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(100);
@@ -5554,15 +5558,15 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -5749,15 +5753,15 @@ fn big_numbers() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -5766,15 +5770,15 @@ fn big_numbers() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -5797,7 +5801,7 @@ fn big_numbers() -> StdResult<()> {
     project.lending_platform_try_deposit_reserve_liquidity(
         ProjectAccount::Admin,
         AMOUNT,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // list collection
@@ -5878,7 +5882,7 @@ fn big_numbers() -> StdResult<()> {
     )?;
 
     // deposit
-    project.lending_platform_try_deposit(ProjectAccount::Admin, AMOUNT, ProjectCoin::Kuji)?;
+    project.lending_platform_try_deposit(ProjectAccount::Admin, AMOUNT, ProjectCoin::Stars)?;
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Admin, AMOUNT / 2, &bgl_token)?;
@@ -5898,7 +5902,7 @@ fn big_numbers() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(DELAY);
@@ -5961,15 +5965,15 @@ fn big_numbers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6031,15 +6035,15 @@ fn place_bid_own_collateral() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6128,7 +6132,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             }],
             "0",
             LIQUIDATION_BID,
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         )
         .unwrap_err();
     assert_error(&res, ContractError::OwnCollateralBids);
@@ -6142,7 +6146,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             }],
             "0",
             LIQUIDATION_BID,
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         )
         .unwrap_err();
     assert_error(&res, ContractError::NftIsNotFound);
@@ -6155,7 +6159,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let bids = project
@@ -6199,15 +6203,15 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6275,7 +6279,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let bids = project
@@ -6294,7 +6298,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             bids[0].creation_date,
             LIQUIDATION_BID,
             "0",
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         )
         .unwrap_err();
     assert_error(&res, ContractError::NftIsNotFound);
@@ -6312,7 +6316,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             bids[0].creation_date,
             LIQUIDATION_BID,
             "0",
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         )
         .unwrap_err();
     assert_error(&res, ContractError::NftDuplication);
@@ -6326,7 +6330,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         bids[0].creation_date,
         LIQUIDATION_BID,
         "0",
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let bids = project
@@ -6347,7 +6351,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         bids[0].creation_date,
         LIQUIDATION_BID,
         "0",
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let bids = project
@@ -6371,15 +6375,15 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6420,7 +6424,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         bids[0].creation_date,
         LIQUIDATION_BID,
         "0",
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     let bids = project
@@ -6451,15 +6455,15 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6555,7 +6559,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // borrow
@@ -6578,15 +6582,15 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -6694,15 +6698,15 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -6711,15 +6715,15 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -6823,7 +6827,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         2 * AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // borrow
@@ -6839,7 +6843,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(2_700_000);
@@ -6975,15 +6979,15 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -7032,7 +7036,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // add collateral and borrow
@@ -7065,7 +7069,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         }],
         "0",
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(1);
@@ -7078,15 +7082,15 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],
@@ -7128,7 +7132,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         .collect::<Vec<_>>();
 
     let platform_balance =
-        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Kuji)?;
+        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Stars)?;
 
     let res = project.query_all_nft(ProjectAccount::John);
     let (_collection, token_info) = res
@@ -7180,15 +7184,15 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -7197,15 +7201,15 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
                 price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
                     ),
                 ),
                 usd_price: Funds::new(
                     Uint128::new(COLLECTION_PRICE_BEFORE),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                        ProjectCoin::Usk.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -7309,7 +7313,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     project.lending_platform_try_deposit(
         ProjectAccount::Admin,
         2 * AMOUNT_TO_BORROW,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     // borrow
@@ -7325,7 +7329,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         }],
         DISCOUNT,
         LIQUIDATION_BID,
-        ProjectCoin::Kuji,
+        ProjectCoin::Stars,
     )?;
 
     project.wait(2_600_000);
@@ -7338,15 +7342,15 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
             price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
-                    &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                    ProjectToken::Atom.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
             usd_price: Funds::new(
                 Uint128::new(COLLECTION_PRICE_BEFORE),
                 &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usk.to_string()),
-                    ProjectCoin::Usk.get_decimals(),
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
         }],

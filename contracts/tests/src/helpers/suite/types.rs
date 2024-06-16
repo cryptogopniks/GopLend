@@ -46,6 +46,10 @@ impl ProjectAccount {
 
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectCoin {
+    #[strum(serialize = "ustars")]
+    Stars,
+    #[strum(serialize = "uusdc")]
+    Usdc,
     #[strum(serialize = "ukuji")]
     Kuji,
     #[strum(serialize = "uusk")]
@@ -86,6 +90,8 @@ impl GetPrice for ProjectAsset {
 impl GetPrice for ProjectCoin {
     fn get_price(&self) -> Decimal {
         match self {
+            ProjectCoin::Stars => str_to_dec("0.01"),
+            ProjectCoin::Usdc => str_to_dec("1"),
             ProjectCoin::Kuji => str_to_dec("1.5"),
             ProjectCoin::Usk => str_to_dec("1"),
         }
@@ -118,6 +124,8 @@ impl GetDecimals for ProjectAsset {
 impl GetDecimals for ProjectCoin {
     fn get_decimals(&self) -> u8 {
         match self {
+            ProjectCoin::Stars => DEFAULT_DECIMALS,
+            ProjectCoin::Usdc => DEFAULT_DECIMALS,
             ProjectCoin::Kuji => DEFAULT_DECIMALS,
             ProjectCoin::Usk => DEFAULT_DECIMALS,
         }

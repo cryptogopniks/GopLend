@@ -15,10 +15,19 @@ use goplend_base::{
             CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
         },
     },
+    oracle::types::PriceItem,
     utils::{unwrap_field, AuthType},
 };
 
 use crate::math;
+
+pub fn choose_price(main_currency: &Currency<Token>, price_item: &PriceItem) -> Uint128 {
+    if main_currency == &price_item.price.currency {
+        price_item.price.amount
+    } else {
+        price_item.usd_price.amount
+    }
+}
 
 pub fn check_lockout(deps: Deps) -> StdResult<()> {
     if IS_LOCKED.load(deps.storage)? {

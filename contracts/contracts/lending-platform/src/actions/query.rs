@@ -526,24 +526,23 @@ pub fn query_ltv_list(
             let collateral_value = collection_and_collateral_list.iter().fold(
                 Ok(Uint128::zero()),
                 |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                    let oracle::types::PriceItem {
-                        price,
-                        price_update_date,
-                        ..
-                    } = prices
+                    let price_item = prices
                         .iter()
                         .find(|x| x.address == collection_address)
                         .ok_or(ContractError::PriceIsNotFound {
                             val: collection_address.to_string(),
                         })?;
 
-                    if block_time - price_update_date > common_config.price_update_period {
+                    if block_time - price_item.price_update_date > common_config.price_update_period
+                    {
                         Err(ContractError::OutdatedPrice {
                             val: collection_address.to_string(),
                         })?;
                     }
 
-                    Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+                    let price = helpers::choose_price(&common_config.main_currency, &price_item);
+
+                    Ok(acc? + price * Uint128::new(collateral.token_id_list.len() as u128))
                 },
             )?;
 
@@ -613,24 +612,22 @@ pub fn query_conditional_ltv(
     let collateral_value = collection_and_collateral_list.iter().fold(
         Ok(Uint128::zero()),
         |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let oracle::types::PriceItem {
-                price,
-                price_update_date,
-                ..
-            } = prices
+            let price_item = prices
                 .iter()
                 .find(|x| x.address == collection_address)
                 .ok_or(ContractError::PriceIsNotFound {
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_update_date > common_config.price_update_period {
+            if block_time - price_item.price_update_date > common_config.price_update_period {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;
             }
 
-            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+            let price = helpers::choose_price(&common_config.main_currency, &price_item);
+
+            Ok(acc? + price * Uint128::new(collateral.token_id_list.len() as u128))
         },
     )?;
 
@@ -743,24 +740,22 @@ pub fn query_available_to_borrow(
     let collateral_value = collection_and_collateral_list.iter().fold(
         Ok(Uint128::zero()),
         |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let oracle::types::PriceItem {
-                price,
-                price_update_date,
-                ..
-            } = prices
+            let price_item = prices
                 .iter()
                 .find(|x| x.address == collection_address)
                 .ok_or(ContractError::PriceIsNotFound {
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_update_date > common_config.price_update_period {
+            if block_time - price_item.price_update_date > common_config.price_update_period {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;
             }
 
-            Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+            let price = helpers::choose_price(&common_config.main_currency, &price_item);
+
+            Ok(acc? + price * Uint128::new(collateral.token_id_list.len() as u128))
         },
     )?;
 

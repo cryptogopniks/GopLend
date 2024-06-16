@@ -182,7 +182,7 @@ impl Project {
                 },
             ],
             4 * 700,
-            ProjectCoin::Kuji,
+            ProjectCoin::Stars,
         );
 
         // instantiate goplend contracts
@@ -201,8 +201,8 @@ impl Project {
             &None,
             &None,
             &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                ProjectCoin::Kuji.get_decimals(),
+                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                ProjectCoin::Stars.get_decimals(),
             ),
             &None,
             &None,
@@ -356,7 +356,7 @@ impl Project {
             .lending_platform_try_deposit_reserve_liquidity(
                 ProjectAccount::Admin,
                 INITIAL_LIQUIDITY,
-                ProjectCoin::Kuji,
+                ProjectCoin::Stars,
             )
             .unwrap();
 
