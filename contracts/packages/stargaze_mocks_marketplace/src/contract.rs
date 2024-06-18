@@ -9,7 +9,7 @@ use goplend_base::error::ContractError;
 
 use crate::{
     actions::{execute as e, instantiate::try_instantiate, query as q},
-    msg::InstantiateMsg,
+    msg::{InstantiateMsg, SudoMsg},
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -79,5 +79,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         _ => unimplemented!(),
+    }
+}
+
+/// Exposes all functions that can be called only by Cosmos SDK modules
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
+    match msg {
+        SudoMsg::SetBids { bids } => e::try_set_bids(deps, env, bids),
     }
 }

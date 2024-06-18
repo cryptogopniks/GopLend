@@ -6,9 +6,10 @@ pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
     pub lending_platform: Option<Addr>,
+    pub oracle: Option<Addr>,
     pub marketplace: Option<Addr>,
-    pub infinity_pool: Option<Addr>,
     pub price_impact: Decimal,
+    pub price_update_period: u64,
 }
 
 #[cw_serde]

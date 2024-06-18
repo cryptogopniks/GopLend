@@ -32,9 +32,10 @@ use crate::helpers::{
     },
     lending_platform::LendingPlatformExtension,
     oracle::OracleExtension,
+    stargaze_mocks_marketplace::StargazeMocksMarketplaceExtension,
     suite::{
         core::{assert_error, Project, INITIAL_LIQUIDITY},
-        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
+        types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
 
@@ -83,6 +84,7 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
             );
 
         let collateral_value_option = helpers::offchain::get_collateral_value(
+            &common_config.main_currency,
             &collection_and_collateral_list_by_borrower,
             &prices,
             block_time,
@@ -125,10 +127,15 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
                 .lending_platform_query_liquidation_bids_by_collection_address_list(&None, &None)?;
 
         if common_config.is_marketplace_interface_enabled {
+            let is_usd_price_required = common_config.main_currency.token
+                != Token::new_native(&ProjectCoin::Stars.to_string());
+
             let liquidation_bids_from_marketplace: Vec<
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
             > = project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-                "0.1", &None, &None,
+                is_usd_price_required,
+                &None,
+                &None,
             )?;
 
             liquidation_bids = [liquidation_bids, liquidation_bids_from_marketplace].concat();
@@ -140,6 +147,7 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
         )?;
 
         let bidded_collateral_list = math::match_collaterals_and_bids(
+            &common_config.main_currency,
             &collection_and_collateral_list_by_borrower,
             &collection_and_bid_list,
             &prices,
@@ -203,6 +211,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -302,6 +311,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     // borrow and check deposit apr and bgl price
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -334,6 +344,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -372,6 +383,7 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -473,6 +485,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -561,6 +574,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -625,6 +639,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -883,6 +898,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1014,6 +1030,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1148,6 +1165,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1282,6 +1300,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1412,6 +1431,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1539,6 +1559,7 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1646,6 +1667,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1865,6 +1887,7 @@ fn collection_address_duplication() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -1947,6 +1970,7 @@ fn collateral_value_limitations() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2160,6 +2184,7 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2266,6 +2291,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2413,6 +2439,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2507,6 +2534,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2592,6 +2620,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2704,6 +2733,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2840,6 +2870,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -2850,7 +2881,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -2906,7 +2937,6 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -2932,6 +2962,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3038,6 +3069,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3048,7 +3080,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -3098,7 +3130,6 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3124,6 +3155,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3227,6 +3259,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3237,7 +3270,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -3287,7 +3320,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec![],
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3313,6 +3345,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3416,6 +3449,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3426,7 +3460,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -3476,7 +3510,6 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec![],
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3502,6 +3535,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3608,6 +3642,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3618,7 +3653,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -3665,7 +3700,6 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec![],
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3691,6 +3725,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3797,6 +3832,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3807,7 +3843,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -3857,7 +3893,6 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3883,6 +3918,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3986,6 +4022,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -3996,7 +4033,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -4046,7 +4083,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec![],
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -4072,6 +4108,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4175,6 +4212,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4185,7 +4223,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -4235,7 +4273,6 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec![],
-                usd_amount: None,
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -4267,6 +4304,7 @@ fn single_discount_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4374,6 +4412,7 @@ fn single_discount_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4384,7 +4423,7 @@ fn single_discount_liquidation() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -4436,7 +4475,6 @@ fn single_discount_liquidation() -> StdResult<()> {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -4506,6 +4544,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4620,6 +4659,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4630,7 +4670,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -4683,7 +4723,6 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                     creation_date: 1571797419,
                     liquidator: ProjectAccount::Alice.into(),
                     token_id_list: vec![],
-                    usd_amount: None,
                     amount: Uint128::new(
                         LIQUIDATION_BID / 2
                             - (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -4698,7 +4737,6 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                     creation_date: 1571797429,
                     liquidator: ProjectAccount::Alice.into(),
                     token_id_list: vec![],
-                    usd_amount: None,
                     amount: Uint128::new(
                         LIQUIDATION_BID / 2
                             - (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -4773,6 +4811,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -4947,6 +4986,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -4957,7 +4997,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -5022,7 +5062,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -5040,7 +5079,6 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
                 token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
-                usd_amount: None,
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - 2 * (u128_to_dec(COLLECTION_PRICE_BEFORE)
@@ -5075,6 +5113,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -5213,6 +5252,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -5223,7 +5263,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -5279,6 +5319,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Pinjeons.to_string(),
             price: Funds::new(
@@ -5331,6 +5372,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Pinjeons.to_string(),
             price: Funds::new(
@@ -5341,7 +5383,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER_2),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -5410,6 +5452,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -5553,6 +5596,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -5563,7 +5607,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -5747,6 +5791,7 @@ fn big_numbers() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -5960,6 +6005,7 @@ fn big_numbers() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -5970,7 +6016,7 @@ fn big_numbers() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -6030,6 +6076,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -6198,6 +6245,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -6370,6 +6418,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -6380,7 +6429,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -6450,6 +6499,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -6577,6 +6627,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -6587,7 +6638,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -6604,14 +6655,14 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
 
     // check marketplace offers
-    let offers = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
-        [0]
-    .liquidation_bids
-    .iter()
-    .cloned()
-    .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
-    .collect::<Vec<_>>();
+    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        false, &None, &None,
+    )?[0]
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
+        .collect::<Vec<_>>();
     assert_that(&offers.len()).is_equal_to(2);
 
     // check balances
@@ -6643,14 +6694,14 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     let collateral_by_owner =
         project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
-    let offers = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
-        [0]
-    .liquidation_bids
-    .iter()
-    .cloned()
-    .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
-    .collect::<Vec<_>>();
+    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        false, &None, &None,
+    )?[0]
+        .liquidation_bids
+        .iter()
+        .cloned()
+        .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
+        .collect::<Vec<_>>();
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
@@ -6692,6 +6743,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -6859,7 +6911,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
 
     // check marketplace offers
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -6869,7 +6921,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -6911,7 +6963,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     let collateral_pingeons = project.lending_platform_query_collateral(ProjectNft::Pinjeons)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -6921,7 +6973,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -6974,6 +7026,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -7077,6 +7130,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -7087,7 +7141,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -7121,7 +7175,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     let collateral_bob = project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -7178,6 +7232,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
@@ -7337,6 +7392,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     // reduce prices to enforce liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Pinjeons.to_string(),
             price: Funds::new(
@@ -7347,7 +7403,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
                 ),
             ),
             usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
+                Uint128::new(COLLECTION_PRICE_AFTER),
                 &Currency::new(
                     &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
                     ProjectCoin::Usdc.get_decimals(),
@@ -7367,7 +7423,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
 
     // check marketplace offers
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -7377,7 +7433,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -7419,7 +7475,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     let collateral_pingeons = project.lending_platform_query_collateral(ProjectNft::Pinjeons)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -7429,7 +7485,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(false, &None, &None)?
         .into_iter()
         .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?
@@ -7466,6 +7522,317 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
     assert_that(&token_info.tokens.contains(&"1".to_string())).is_equal_to(true);
+
+    Ok(())
+}
+
+#[test]
+fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 80_000;
+    const COLLECTION_PRICE_AFTER: u128 = 70_000;
+    const AMOUNT_TO_BORROW: u128 = 57_000;
+
+    // set usdc offers
+    let offers = &[
+        stargaze_mocks_marketplace::state::Bid {
+            bidder: ProjectAccount::John.into(),
+            collection: ProjectNft::Gopniks.into(),
+            price: Uint128::new(COLLECTION_PRICE_AFTER),
+        },
+        stargaze_mocks_marketplace::state::Bid {
+            bidder: ProjectAccount::John.into(),
+            collection: ProjectNft::Pinjeons.into(),
+            price: Uint128::new(COLLECTION_PRICE_AFTER),
+        },
+        stargaze_mocks_marketplace::state::Bid {
+            bidder: ProjectAccount::Kate.into(),
+            collection: ProjectNft::Gopniks.into(),
+            price: Uint128::new(COLLECTION_PRICE_AFTER),
+        },
+        stargaze_mocks_marketplace::state::Bid {
+            bidder: ProjectAccount::Kate.into(),
+            collection: ProjectNft::Pinjeons.into(),
+            price: Uint128::new(COLLECTION_PRICE_AFTER),
+        },
+    ];
+
+    project.stargaze_mocks_marketplace_try_set_bids(offers)?;
+    project.mint_native(
+        project.get_stargaze_mocks_marketplace_address(),
+        4 * COLLECTION_PRICE_AFTER,
+        ProjectCoin::Usdc,
+    );
+
+    // set usdc as main currency
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &Some(Currency::new(
+            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+            ProjectCoin::Usdc.get_decimals(),
+        )),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_BEFORE),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                (u128_to_dec(COLLECTION_PRICE_BEFORE) * ProjectCoin::Stars.get_price())
+                    .to_uint_floor(),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // set collateral min value and enable marketplace interface
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+        &Some(true),
+    )?;
+
+    // list collection
+    let proposal_a: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    let proposal_b: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Pinjeons.to_string(),
+            collection: Collection {
+                name: ProjectNft::Pinjeons.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_a)?;
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal_b)?;
+
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        2,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Pinjeons,
+    );
+
+    // collateral value = collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        }],
+    )?;
+
+    // deposit
+    let amount_to_borrow = (u128_to_dec(AMOUNT_TO_BORROW) * ProjectCoin::Stars.get_price())
+        .to_uint_floor()
+        .u128();
+
+    project.lending_platform_try_deposit(
+        ProjectAccount::Admin,
+        amount_to_borrow,
+        ProjectCoin::Usdc,
+    )?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, amount_to_borrow)?;
+
+    project.wait(100);
+
+    // check ltv
+    let ltv_before =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 800 = 0.7125
+    assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
+
+    // reduce prices to trigger liquidation
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                (u128_to_dec(COLLECTION_PRICE_AFTER) * ProjectCoin::Stars.get_price())
+                    .to_uint_floor(),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // check ltv
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+
+    // 570 / 700 = 0.814286359806479669
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
+
+    // check marketplace offers
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(true, &None, &None)?
+        [0]
+    .liquidation_bids
+    .iter()
+    .cloned()
+    .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
+    .collect::<Vec<_>>();
+    assert_that(&offers.len()).is_equal_to(2);
+
+    // check balances
+    let balances = project.lending_platform_query_balances()?;
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(amount_to_borrow);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+
+    // process with liquidations
+    let borrowers = project
+        .lending_platform_query_borrower_list(&None, &None)?
+        .into_iter()
+        .map(|x| x.address.to_string())
+        .collect::<Vec<String>>();
+    let targets = get_targets(&project, &borrowers)?;
+
+    println!("{:#?}\n", targets);
+
+    // TODO: add dex adapter mock as the tx will fail due to
+    // attemption to send stars instead of usdc by marketplace mock
+    // temporary fix
+    project.mint_native(
+        project.get_stargaze_mocks_marketplace_address(),
+        4 * COLLECTION_PRICE_AFTER,
+        ProjectCoin::Stars,
+    );
+    project.mint_native(
+        project.get_adapter_marketplace_stargaze_address(),
+        4 * COLLECTION_PRICE_AFTER,
+        ProjectCoin::Usdc,
+    );
+
+    project.adapter_scheduler_common_try_push(
+        ProjectAccount::Scheduler,
+        ClockSource::Offchain,
+        &targets,
+    )?;
+
+    // // check results
+    // let ltv_after =
+    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    // let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
+
+    // let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    // let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
+    // let collateral_by_owner =
+    //     project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
+
+    // let offers = &project
+    //     .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
+    //     [0]
+    // .liquidation_bids
+    // .iter()
+    // .cloned()
+    // .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
+    // .collect::<Vec<_>>();
+
+    // // check balances
+    // let balances = project.lending_platform_query_balances()?;
+
+    // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    // // borrower was removed from storage
+    // assert_that(&ltv_list_after).is_equal_to(vec![]);
+    // // borrower was removed from storage
+    // assert_that(&borrower).is_equal_to(Borrower::default());
+
+    // // collateral is completely removed as it was sent to marketplace bidder
+    // assert_that(&collateral).is_equal_to(vec![]);
+    // assert_that(&collateral_by_owner).is_equal_to(vec![]);
+    // assert_that(&offers.len()).is_equal_to(1);
+
+    // // 570 + (700 - 570 - 0.05 * 700) = 665
+    // assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
+    // assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+
+    // let res = project.query_all_nft(ProjectAccount::John);
+    // let (_collection, token_info) = res
+    //     .iter()
+    //     .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
+    //     .ok_or(ContractError::CollectionIsNotFound)?;
+    // assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
 
     Ok(())
 }

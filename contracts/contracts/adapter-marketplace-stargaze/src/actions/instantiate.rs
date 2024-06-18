@@ -4,7 +4,7 @@ use cw2::set_contract_version;
 use goplend_base::{
     adapters::marketplace::stargaze::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME, PRICE_IMPACT},
+        state::{CONFIG, CONTRACT_NAME, PRICE_IMPACT, PRICE_UPDATE_PERIOD},
         types::Config,
     },
     converters::str_to_dec,
@@ -35,17 +35,14 @@ pub fn try_instantiate(
             lending_platform: msg
                 .lending_platform
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
+                .transpose()?,
+            oracle: msg.oracle.map(|x| deps.api.addr_validate(&x)).transpose()?,
             marketplace: msg
                 .marketplace
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
-            infinity_pool: msg
-                .infinity_pool
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
             price_impact: msg.price_impact.unwrap_or(str_to_dec(PRICE_IMPACT)),
+            price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
         },
     )?;
 

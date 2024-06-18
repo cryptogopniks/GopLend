@@ -49,7 +49,6 @@ pub struct LiquidationBid {
     pub creation_date: u64,
     pub liquidator: Addr,
     pub token_id_list: Vec<String>,
-    pub usd_amount: Option<Uint128>, // offer in stablecoins
     pub amount: Uint128,
     pub discount: Decimal,
     pub bid_type: BidType,

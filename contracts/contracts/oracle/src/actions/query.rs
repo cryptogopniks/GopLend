@@ -4,8 +4,11 @@ use cw_storage_plus::Bound;
 use goplend_base::{
     adapters::scheduler::common::types::Log,
     oracle::{
-        state::{CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST},
-        types::{Config, PriceItem},
+        state::{
+            CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
+            PRICE_RATIO,
+        },
+        types::{Config, PriceItem, PriceRatioItem},
     },
 };
 
@@ -51,6 +54,10 @@ pub fn query_prices(
             price_item
         })
         .collect())
+}
+
+pub fn query_price_ratio(deps: Deps, _env: Env) -> StdResult<PriceRatioItem> {
+    PRICE_RATIO.load(deps.storage)
 }
 
 pub fn query_block_time(_deps: Deps, env: Env) -> StdResult<u64> {

@@ -3,10 +3,11 @@ use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
     adapters::scheduler::common::types::Log,
+    converters::str_to_dec,
     error::parse_err,
     oracle::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{Config, PriceItem, RawPriceItem},
+        types::{Config, PriceItem, PriceRatioItem, RawPriceItem},
     },
 };
 
@@ -30,12 +31,14 @@ pub trait OracleExtension {
     fn oracle_try_set_prices(
         &mut self,
         sender: ProjectAccount,
+        price_ratio: &str,
         data: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
+        price_ratio: &str,
         data: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
@@ -53,6 +56,8 @@ pub trait OracleExtension {
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<PriceItem>>;
+
+    fn oracle_query_price_ratio(&self) -> StdResult<PriceRatioItem>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
 
@@ -102,6 +107,7 @@ impl OracleExtension for Project {
     fn oracle_try_set_prices(
         &mut self,
         sender: ProjectAccount,
+        price_ratio: &str,
         data: &[RawPriceItem],
     ) -> StdResult<AppResponse> {
         self.app
@@ -109,6 +115,7 @@ impl OracleExtension for Project {
                 sender.into(),
                 self.get_oracle_address(),
                 &ExecuteMsg::SetPrices {
+                    price_ratio: str_to_dec(price_ratio),
                     data: data.to_owned(),
                 },
                 &[],
@@ -120,6 +127,7 @@ impl OracleExtension for Project {
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
+        price_ratio: &str,
         data: &[RawPriceItem],
     ) -> StdResult<AppResponse> {
         self.app
@@ -127,6 +135,7 @@ impl OracleExtension for Project {
                 sender.into(),
                 self.get_oracle_address(),
                 &ExecuteMsg::UpdatePrices {
+                    price_ratio: str_to_dec(price_ratio),
                     data: data.to_owned(),
                 },
                 &[],
@@ -178,6 +187,13 @@ impl OracleExtension for Project {
                 limit: limit.to_owned(),
             },
         )
+    }
+
+    #[track_caller]
+    fn oracle_query_price_ratio(&self) -> StdResult<PriceRatioItem> {
+        self.app
+            .wrap()
+            .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryPriceRatio {})
     }
 
     #[track_caller]

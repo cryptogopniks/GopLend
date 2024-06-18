@@ -21,7 +21,7 @@ use crate::{
         oracle::OracleExtension,
         suite::{
             core::{assert_error, Project},
-            types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
+            types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },
     lending_platform::get_targets,
@@ -54,6 +54,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -153,6 +154,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -206,6 +208,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -284,6 +287,7 @@ fn log_zero_cross() -> StdResult<()> {
     // push prices to oracle
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
             price: Funds::new(
@@ -389,6 +393,7 @@ fn log_zero_cross() -> StdResult<()> {
         // push prices to oracle
         project.oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 price: Funds::new(
@@ -427,6 +432,7 @@ fn log_zero_cross() -> StdResult<()> {
         // push prices to oracle
         project.oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 price: Funds::new(

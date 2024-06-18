@@ -46,6 +46,9 @@ pub enum ContractError {
     #[error("Chain ID is not found!")]
     ChainIdIsNotFound,
 
+    #[error("Collection {val:?} price data is outdated!")]
+    OutdatedPrice { val: String },
+
     // adapter-scheduler
     #[error("Scheduler is executed too early!")]
     EarlyExecution,
@@ -71,9 +74,6 @@ pub enum ContractError {
 
     #[error("Max bid amount is exceeded!")]
     ExceededBidAmount,
-
-    #[error("Collection {val:?} price data is outdated!")]
-    OutdatedPrice { val: String },
 
     #[error("Collection {val:?} price data is not found!")]
     PriceIsNotFound { val: String },

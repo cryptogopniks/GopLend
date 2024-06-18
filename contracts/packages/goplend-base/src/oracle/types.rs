@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Decimal};
 
 use crate::assets::{Funds, Token, TokenUnverified};
 
@@ -16,6 +16,12 @@ pub struct PriceItem {
     pub price: Funds<Token>,
     pub usd_price: Funds<Token>,
     pub price_update_date: u64,
+}
+
+#[cw_serde]
+pub struct PriceRatioItem {
+    pub value: Decimal,
+    pub update_date: u64,
 }
 
 #[cw_serde]

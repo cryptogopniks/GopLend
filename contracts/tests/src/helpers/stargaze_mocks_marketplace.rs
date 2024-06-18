@@ -6,6 +6,7 @@ use sg_marketplace::msg::{
 };
 
 use goplend_base::error::parse_err;
+use stargaze_mocks_marketplace::{msg::SudoMsg, state::Bid};
 
 use crate::helpers::suite::{
     core::Project,
@@ -30,6 +31,8 @@ pub trait StargazeMocksMarketplaceExtension {
         bidder: ProjectAccount,
         finder: &Option<&str>,
     ) -> StdResult<AppResponse>;
+
+    fn stargaze_mocks_marketplace_try_set_bids(&mut self, bids: &[Bid]) -> StdResult<AppResponse>;
 
     fn stargaze_mocks_marketplace_collection_bids_sorted_by_price(
         &self,
@@ -91,6 +94,18 @@ impl StargazeMocksMarketplaceExtension for Project {
                     finder: finder.as_ref().map(|x| x.to_string()),
                 },
                 &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn stargaze_mocks_marketplace_try_set_bids(&mut self, bids: &[Bid]) -> StdResult<AppResponse> {
+        self.app
+            .wasm_sudo(
+                self.get_stargaze_mocks_marketplace_address(),
+                &SudoMsg::SetBids {
+                    bids: bids.to_owned(),
+                },
             )
             .map_err(parse_err)
     }

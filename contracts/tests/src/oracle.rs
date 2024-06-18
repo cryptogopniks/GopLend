@@ -16,7 +16,7 @@ use crate::helpers::{
     oracle::OracleExtension,
     suite::{
         core::{assert_error, Project},
-        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft},
+        types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft},
     },
 };
 
@@ -28,6 +28,7 @@ fn default() -> StdResult<()> {
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
@@ -119,6 +120,7 @@ fn unauthorized() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Admin,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
@@ -170,6 +172,7 @@ fn duplicated_collections() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
@@ -219,7 +222,11 @@ fn empty_raw_price_item_vec() -> StdResult<()> {
     let mut project = Project::new();
 
     let res = project
-        .oracle_try_update_prices(ProjectAccount::Scheduler, &[])
+        .oracle_try_update_prices(
+            ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
+            &[],
+        )
         .unwrap_err();
 
     assert_error(&res, ContractError::EmptyRawPriceItemVector);
@@ -234,6 +241,7 @@ fn zeros_in_prices() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
                 price: Funds::new(

@@ -1,4 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Decimal;
 
 use crate::oracle::types::RawPriceItem;
 
@@ -29,10 +30,14 @@ pub enum ExecuteMsg {
 
     // controller
     SetPrices {
+        // price_ratio must be decreased offchain due to price_impact
+        price_ratio: Decimal,
         data: Vec<RawPriceItem>,
     },
 
     UpdatePrices {
+        // price_ratio must be decreased offchain due to price_impact
+        price_ratio: Decimal,
         data: Vec<RawPriceItem>,
     },
 
@@ -53,6 +58,9 @@ pub enum QueryMsg {
         start_after: Option<String>,
         limit: Option<u32>,
     },
+
+    #[returns(crate::oracle::types::PriceRatioItem)]
+    QueryPriceRatio {},
 
     #[returns(u64)]
     QueryBlockTime {},

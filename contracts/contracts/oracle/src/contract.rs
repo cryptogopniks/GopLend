@@ -33,9 +33,13 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetPrices { data } => e::try_set_prices(deps, env, info, data),
+        ExecuteMsg::SetPrices { price_ratio, data } => {
+            e::try_set_prices(deps, env, info, price_ratio, data)
+        }
 
-        ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
+        ExecuteMsg::UpdatePrices { price_ratio, data } => {
+            e::try_update_prices(deps, env, info, price_ratio, data)
+        }
 
         ExecuteMsg::RemovePrices { collections } => {
             e::try_remove_prices(deps, env, info, collections)
@@ -77,6 +81,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             start_after,
             limit,
         )?),
+
+        QueryMsg::QueryPriceRatio {} => to_json_binary(&q::query_price_ratio(deps, env)?),
 
         QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
 

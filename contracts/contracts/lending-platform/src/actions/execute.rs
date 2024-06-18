@@ -942,7 +942,6 @@ pub fn try_place_bid(
                     creation_date: block_time,
                     liquidator: sender_address.clone(),
                     token_id_list: token_id_list.clone(),
-                    usd_amount: None,
                     amount: asset_amount,
                     discount,
                     bid_type: BidType::LiquidationBid,
@@ -1151,7 +1150,6 @@ pub fn try_update_bid(
                                         creation_date: block_time, // decrease changed bid priority
                                         liquidator: sender_address.clone(),
                                         token_id_list: token_id_list.clone(),
-                                        usd_amount: None,
                                         amount: bid_amount,
                                         discount,
                                         bid_type: BidType::LiquidationBid,

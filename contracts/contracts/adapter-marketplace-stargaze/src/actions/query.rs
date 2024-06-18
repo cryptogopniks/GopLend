@@ -11,6 +11,7 @@ use goplend_base::{
         types::Config,
     },
     converters::u128_to_dec,
+    error::ContractError,
     lending_platform::{
         msg::{
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -18,6 +19,7 @@ use goplend_base::{
         },
         types::{BidType, Collateral, LiquidationBid},
     },
+    oracle::types::PriceRatioItem,
     utils::unwrap_field,
 };
 
@@ -28,19 +30,40 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_offers_by_collection_address_list(
     deps: Deps,
     env: Env,
-    price_ratio: Decimal,
+    is_usd_price_required: bool,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
     let block_time = env.block.time.seconds();
     let Config {
         lending_platform,
+        oracle,
         marketplace,
         price_impact,
+        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
     let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
+
+    // TODO: remove price_impact
+    let (price_ratio, _price_impact) = if is_usd_price_required {
+        let PriceRatioItem { value, update_date } = deps.querier.query_wasm_smart(
+            oracle,
+            &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+        )?;
+
+        if block_time - update_date > price_update_period {
+            Err(ContractError::OutdatedPrice {
+                val: update_date.to_string(),
+            })?;
+        }
+
+        (value, price_impact)
+    } else {
+        (Decimal::one(), Decimal::zero())
+    };
 
     let collection_list: Vec<QueryCollectionsResponseItem> = deps.querier.query_wasm_smart(
         lending_platform,
@@ -92,8 +115,7 @@ pub fn query_offers_by_collection_address_list(
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list: vec![token_id.to_string()],
-                usd_amount: Some(calc_usd_price(price_ratio, price, price_impact)),
-                amount: price,
+                amount: calc_price(price, price_ratio),
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::TokenOffer,
             })
@@ -117,8 +139,7 @@ pub fn query_offers_by_collection_address_list(
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list,
-                usd_amount: Some(calc_usd_price(price_ratio, price, price_impact)),
-                amount: price,
+                amount: calc_price(price, price_ratio),
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::CollectionOffer,
             })
@@ -138,7 +159,9 @@ pub fn query_offers_by_collection_address_list(
 // swap fee, price impact, price ratio fluctuation
 // expecting 2 % losses we can accept 4.9 USDC offer
 //
-// usd_price = price * price_ratio * (1 - price_impact)
-fn calc_usd_price(price_ratio: Decimal, price: Uint128, price_impact: Decimal) -> Uint128 {
-    u128_to_dec(price) * price_ratio * (Decimal::one() - price_impact).to_uint_floor()
+// price = base_price * price_ratio * (1 - price_impact)
+// as price_impact comes with price_ratio
+// price = base_price * price_ratio
+fn calc_price(base_price: Uint128, price_ratio: Decimal) -> Uint128 {
+    (u128_to_dec(base_price) * price_ratio).to_uint_floor()
 }

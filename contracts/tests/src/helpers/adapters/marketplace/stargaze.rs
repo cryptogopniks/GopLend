@@ -6,7 +6,6 @@ use goplend_base::{
         msg::{ExecuteMsg, QueryMsg},
         types::Config,
     },
-    converters::str_to_dec,
     error::parse_err,
 };
 
@@ -27,9 +26,10 @@ pub trait AdapterMarketplaceStargazeExtension {
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
         price_impact: &Option<Decimal>,
+        price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_marketplace_stargaze_try_accept_offers(
@@ -42,7 +42,7 @@ pub trait AdapterMarketplaceStargazeExtension {
 
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
-        price_ratio: &str,
+        is_usd_price_required: bool,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
@@ -71,9 +71,10 @@ impl AdapterMarketplaceStargazeExtension for Project {
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
         price_impact: &Option<Decimal>,
+        price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -83,9 +84,10 @@ impl AdapterMarketplaceStargazeExtension for Project {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
                     lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                    oracle: oracle.as_ref().map(|x| x.to_string()),
                     marketplace: marketplace.as_ref().map(|x| x.to_string()),
-                    infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
                     price_impact: price_impact.to_owned(),
+                    price_update_period: price_update_period.to_owned(),
                 },
                 &[],
             )
@@ -121,14 +123,14 @@ impl AdapterMarketplaceStargazeExtension for Project {
     #[track_caller]
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
-        price_ratio: &str,
+        is_usd_price_required: bool,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
             &QueryMsg::QueryOffersByCollectionAddressList {
-                price_ratio: str_to_dec(price_ratio),
+                is_usd_price_required,
                 start_after: start_after.as_ref().map(|x| x.to_string()),
                 limit: limit.to_owned(),
             },

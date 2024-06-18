@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::{coin, to_json_binary, Addr, Coin, Empty, StdResult, Timestamp, Uint128};
-use cw_multi_test::{App, AppResponse, Executor};
+use cosmwasm_std::{coin, coins, to_json_binary, Addr, Coin, Empty, StdResult, Timestamp, Uint128};
+use cw_multi_test::{App, AppResponse, BankSudo, Executor, SudoMsg};
 
 use serde::Serialize;
 use stargaze_mocks_marketplace::state::Bid;
@@ -230,6 +230,7 @@ impl Project {
                 &None,
                 &None,
                 &None,
+                &None,
             );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
             adapter_marketplace_kujira_code_id,
@@ -336,6 +337,7 @@ impl Project {
                 &None,
                 &None,
                 &Some(project.get_lending_platform_address()),
+                &Some(project.get_oracle_address()),
                 &Some(project.get_stargaze_mocks_marketplace_address()),
                 &None,
                 &None,
@@ -465,6 +467,15 @@ impl Project {
         self.app.update_block(|block| {
             block.chain_id = chain_id.to_string();
         });
+    }
+
+    pub fn mint_native(&mut self, recipient: impl ToString, amount: u128, asset: ProjectCoin) {
+        self.app
+            .sudo(SudoMsg::Bank(BankSudo::Mint {
+                to_address: recipient.to_string(),
+                amount: coins(amount, asset.to_string()),
+            }))
+            .unwrap();
     }
 
     pub fn increase_allowances(
@@ -597,7 +608,7 @@ impl Project {
         }
     }
 
-    pub fn query_all_balances(&self, account: ProjectAccount) -> StdResult<Vec<Funds<Token>>> {
+    pub fn query_all_balances(&self, account: impl ToString) -> StdResult<Vec<Funds<Token>>> {
         let mut funds_list: Vec<Funds<Token>> = vec![];
 
         for Coin { denom, amount } in self.app.wrap().query_all_balances(account.to_string())? {

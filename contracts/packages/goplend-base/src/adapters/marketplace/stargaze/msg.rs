@@ -6,8 +6,9 @@ pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub lending_platform: Option<String>,
     pub marketplace: Option<String>,
-    pub infinity_pool: Option<String>,
+    pub oracle: Option<String>,
     pub price_impact: Option<Decimal>,
+    pub price_update_period: Option<u64>,
 }
 
 #[cw_serde]
@@ -25,9 +26,10 @@ pub enum ExecuteMsg {
         admin: Option<String>,
         worker: Option<String>,
         lending_platform: Option<String>,
+        oracle: Option<String>,
         marketplace: Option<String>,
-        infinity_pool: Option<String>,
         price_impact: Option<Decimal>,
+        price_update_period: Option<u64>,
     },
 
     // lending platform
@@ -44,7 +46,7 @@ pub enum QueryMsg {
 
     #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryOffersByCollectionAddressList {
-        price_ratio: Decimal, // required to get origin amount
+        is_usd_price_required: bool,
         start_after: Option<String>,
         limit: Option<u32>,
     },

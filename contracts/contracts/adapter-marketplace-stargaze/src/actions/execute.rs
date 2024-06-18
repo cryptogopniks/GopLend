@@ -66,9 +66,10 @@ pub fn try_update_config(
     admin: Option<String>,
     worker: Option<String>,
     lending_platform: Option<String>,
+    oracle: Option<String>,
     marketplace: Option<String>,
-    infinity_pool: Option<String>,
     price_impact: Option<Decimal>,
+    price_update_period: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -102,21 +103,27 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
+    if let Some(x) = oracle {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.oracle = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
     if let Some(x) = marketplace {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
-    if let Some(x) = infinity_pool {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.infinity_pool = Some(deps.api.addr_validate(&x)?);
-        is_config_updated = true;
-    }
-
     if let Some(x) = price_impact {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.price_impact = x;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = price_update_period {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.price_update_period = x;
         is_config_updated = true;
     }
 

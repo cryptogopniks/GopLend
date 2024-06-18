@@ -100,9 +100,10 @@ pub trait WithCodes {
         adapter_marketplace_stargaze_code_id: u64,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
         price_impact: &Option<Decimal>,
+        price_update_period: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_adapter_marketplace_kujira(
@@ -140,11 +141,14 @@ impl WithCodes for Project {
     }
 
     fn store_stargaze_mocks_marketplace_code(&mut self) -> u64 {
-        self.app.store_code(Box::new(ContractWrapper::new(
-            stargaze_mocks_marketplace::contract::execute,
-            stargaze_mocks_marketplace::contract::instantiate,
-            stargaze_mocks_marketplace::contract::query,
-        )))
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                stargaze_mocks_marketplace::contract::execute,
+                stargaze_mocks_marketplace::contract::instantiate,
+                stargaze_mocks_marketplace::contract::query,
+            )
+            .with_sudo(stargaze_mocks_marketplace::contract::sudo),
+        ))
     }
 
     // store contracts
@@ -436,9 +440,10 @@ impl WithCodes for Project {
         adapter_marketplace_stargaze_code_id: u64,
         worker: &Option<ProjectAccount>,
         lending_platform: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
         price_impact: &Option<Decimal>,
+        price_update_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             adapter_marketplace_stargaze_code_id,
@@ -446,9 +451,10 @@ impl WithCodes for Project {
             &goplend_base::adapters::marketplace::stargaze::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                oracle: oracle.as_ref().map(|x| x.to_string()),
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
-                infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
                 price_impact: price_impact.to_owned(),
+                price_update_period: price_update_period.to_owned(),
             },
         )
     }

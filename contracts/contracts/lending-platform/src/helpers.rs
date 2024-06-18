@@ -442,6 +442,7 @@ pub mod offchain {
     use cosmwasm_std::{Addr, QuerierWrapper, StdResult, Uint128};
 
     use goplend_base::{
+        assets::{Currency, Token},
         error::ContractError,
         lending_platform::{
             msg::{
@@ -452,6 +453,8 @@ pub mod offchain {
         },
         oracle::{self, types::PriceItem},
     };
+
+    use super::choose_price;
 
     pub fn get_borrowers(
         querier_wrapper: &QuerierWrapper,
@@ -534,6 +537,7 @@ pub mod offchain {
     }
 
     pub fn get_collateral_value(
+        main_currency: &Currency<Token>,
         collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
         prices: &[PriceItem],
         block_time: u64,
@@ -544,22 +548,20 @@ pub mod offchain {
         let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
             Ok(Uint128::zero()),
             |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                let oracle::types::PriceItem {
-                    price,
-                    price_update_date,
-                    ..
-                } = prices
+                let price_item = prices
                     .iter()
                     .find(|x| x.address == collection_address)
                     .ok_or(ContractError::PriceIsNotFound {
                         val: collection_address.to_string(),
                     })?;
 
-                if block_time - price_update_date > price_update_period {
+                if block_time - price_item.price_update_date > price_update_period {
                     is_price_outdated = true;
                 }
 
-                Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+                let price = choose_price(&main_currency, &price_item);
+
+                Ok(acc? + price * Uint128::new(collateral.token_id_list.len() as u128))
             },
         )?;
 

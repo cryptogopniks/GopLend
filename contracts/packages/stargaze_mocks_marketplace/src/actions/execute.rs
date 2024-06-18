@@ -6,7 +6,7 @@ use goplend_base::{
 };
 use sg_marketplace::state::TokenId;
 
-use crate::state::{COLLECTION_OFFERS, TOKEN};
+use crate::state::{Bid, COLLECTION_OFFERS, TOKEN};
 
 #[allow(clippy::too_many_arguments)]
 pub fn accept_collection_bid(
@@ -52,4 +52,10 @@ pub fn accept_collection_bid(
     Ok(Response::new()
         .add_messages(msg_list)
         .add_attributes(vec![("action", "accept_collection_bid")]))
+}
+
+pub fn try_set_bids(deps: DepsMut, _env: Env, bids: Vec<Bid>) -> Result<Response, ContractError> {
+    COLLECTION_OFFERS.save(deps.storage, &bids)?;
+
+    Ok(Response::new().add_attributes(vec![("action", "try_set_bids")]))
 }

@@ -6,7 +6,7 @@ use crate::{
     oracle::types::{Config, TransferAdminState},
 };
 
-use super::types::PriceItem;
+use super::types::{PriceItem, PriceRatioItem};
 
 pub const CONTRACT_NAME: &str = "goplend-oracle";
 
@@ -18,6 +18,7 @@ pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;
 
 pub const TRANSFER_ADMIN_TIMEOUT: u64 = 7 * 24 * 3600;
 
+pub const PRICE_RATIO: Item<PriceRatioItem> = Item::new("price ratio");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer admin state");
 

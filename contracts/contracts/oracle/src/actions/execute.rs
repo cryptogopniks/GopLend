@@ -1,12 +1,15 @@
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use goplend_base::{
     adapters::scheduler::common::types::Log,
     assets::{Currency, Funds},
     error::ContractError,
     oracle::{
-        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{Config, PriceItem, RawPriceItem, TransferAdminState},
+        state::{
+            CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO, TRANSFER_ADMIN_STATE,
+            TRANSFER_ADMIN_TIMEOUT,
+        },
+        types::{Config, PriceItem, PriceRatioItem, RawPriceItem, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
@@ -16,6 +19,7 @@ pub fn try_set_prices(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
+    price_ratio: Decimal,
     data: Vec<RawPriceItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -100,6 +104,14 @@ pub fn try_set_prices(
         )?;
     }
 
+    PRICE_RATIO.save(
+        deps.storage,
+        &PriceRatioItem {
+            value: price_ratio,
+            update_date: block_time,
+        },
+    )?;
+
     Ok(Response::new().add_attributes(vec![("action", "try_set_prices")]))
 }
 
@@ -108,6 +120,7 @@ pub fn try_update_prices(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
+    price_ratio: Decimal,
     data: Vec<RawPriceItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -189,6 +202,14 @@ pub fn try_update_prices(
             },
         )?;
     }
+
+    PRICE_RATIO.save(
+        deps.storage,
+        &PriceRatioItem {
+            value: price_ratio,
+            update_date: block_time,
+        },
+    )?;
 
     Ok(Response::new().add_attributes(vec![("action", "try_update_prices")]))
 }
