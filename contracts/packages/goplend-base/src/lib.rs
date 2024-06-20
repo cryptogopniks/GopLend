@@ -50,6 +50,14 @@ pub mod adapters {
             pub mod types;
         }
     }
+
+    pub mod dex {
+        pub mod stargaze {
+            pub mod msg;
+            pub mod state;
+            pub mod types;
+        }
+    }
 }
 
 pub mod assets;
