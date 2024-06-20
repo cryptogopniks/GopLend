@@ -1,5 +1,6 @@
 import { ChainConfig } from "../../common/interfaces";
 import { $, toJson } from "./config-utils";
+import * as AdapterDexStargazeTypes from "../codegen/AdapterDexStargaze.types";
 import * as AdapterMarketplaceStargazeTypes from "../codegen/AdapterMarketplaceStargaze.types";
 // import * as AdapterMarketplaceKujiraTypes from "../codegen/AdapterMarketplaceKujira.types";
 // import * as AdapterSchedulerStargazeTypes from "../codegen/AdapterSchedulerStargaze.types";
@@ -9,9 +10,10 @@ import * as MinterTypes from "../codegen/Minter.types";
 import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 
-export type NetworkName = "KUJIRA" | "STARGAZE";
+export type NetworkName = "KUJIRA" | "STARGAZE" | "NEUTRON";
 
 export type Wasm =
+  | "adapter_dex_stargaze.wasm"
   | "adapter_marketplace_stargaze.wasm"
   // | "adapter_marketplace_kujira.wasm"
   // | "adapter_scheduler_stargaze.wasm"
@@ -33,6 +35,10 @@ export const ADDRESS = {
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
     ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+  },
+  NEUTRON: {
+    ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
+    WORKER: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
   },
 };
 
@@ -374,6 +380,63 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
                   controller: [ADDRESS.STARGAZE.ADMIN],
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
+    {
+      NAME: "neutron",
+      PREFIX: "neutron",
+      OPTIONS: [
+        {
+          TYPE: "main",
+          DENOM: "untrn",
+          CHAIN_ID: "neutron-1",
+          RPC_LIST: ["https://rpc-neutron.cosmos-spaces.cloud:443"],
+          GAS_PRICE_AMOUNT: 0.99,
+          STORE_CODE_GAS_MULTIPLIER: 10,
+          CONTRACTS: [
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.NEUTRON.WORKER,
+                adapter_marketplace: ADDRESS.NEUTRON.ADMIN,
+                recover_address: ADDRESS.NEUTRON.WORKER,
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.NEUTRON.WORKER,
+              }),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: [ADDRESS.NEUTRON.ADMIN],
                 },
               }),
               CODE: 0,

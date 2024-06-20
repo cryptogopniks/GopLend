@@ -1,3 +1,6 @@
+import { AdapterDexStargazeMsgComposer } from "../codegen/AdapterDexStargaze.message-composer";
+import { AdapterDexStargazeQueryClient } from "../codegen/AdapterDexStargaze.client";
+
 import { AdapterMarketplaceStargazeMsgComposer } from "../codegen/AdapterMarketplaceStargaze.message-composer";
 import { AdapterMarketplaceStargazeQueryClient } from "../codegen/AdapterMarketplaceStargaze.client";
 
@@ -68,6 +71,7 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
 } from "../interfaces";
+import { Route } from "../codegen/AdapterDexStargaze.types";
 
 function addSingleTokenToComposerObj(
   obj: MsgExecuteContractEncodeObject,
@@ -156,6 +160,7 @@ function getRevokeCollectionMsg(
 }
 
 function getContracts(contracts: ContractInfo[]) {
+  let ADAPTER_DEX_STARGAZE_CONTRACT: ContractInfo | undefined;
   let ADAPTER_MARKETPLACE_STARGAZE_CONTRACT: ContractInfo | undefined;
   let ADAPTER_SCHEDULER_COMMON_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
@@ -164,9 +169,9 @@ function getContracts(contracts: ContractInfo[]) {
   let ORACLE_CONTRACT: ContractInfo | undefined;
 
   try {
-    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT = getContractByWasm(
+    ADAPTER_DEX_STARGAZE_CONTRACT = getContractByWasm(
       contracts,
-      "adapter_marketplace_stargaze.wasm"
+      "adapter_dex_stargaze.wasm"
     );
   } catch (error) {
     l(error);
@@ -209,6 +214,7 @@ function getContracts(contracts: ContractInfo[]) {
   }
 
   return {
+    ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
     LENDING_PLATFORM_CONTRACT,
@@ -230,6 +236,7 @@ async function getCwExecHelpers(
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
   const {
+    ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
     LENDING_PLATFORM_CONTRACT,
@@ -243,6 +250,11 @@ async function getCwExecHelpers(
 
   const signingClient = cwClient.client as SigningCosmWasmClient;
   const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
+
+  const adapterDexStargazeMsgComposer = new AdapterDexStargazeMsgComposer(
+    owner,
+    ADAPTER_DEX_STARGAZE_CONTRACT ? ADAPTER_DEX_STARGAZE_CONTRACT.ADDRESS : ""
+  );
 
   const adapterMarketplaceStargazeMsgComposer =
     new AdapterMarketplaceStargazeMsgComposer(
@@ -301,6 +313,70 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [getRevokeCollectionMsg(collectionAddress, senderAddress, operator)],
+      gasPrice
+    );
+  }
+
+  // adapter-dex-stargaze
+
+  async function cwAdapterDexStargazeAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [adapterDexStargazeMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
+  async function cwAdapterDexStargazeUpdateConfig(
+    {
+      admin,
+      worker,
+      lendingPlatform,
+      adapterMarketplace,
+      recoverAddress,
+      maxPriceImpact,
+    }: {
+      admin?: string;
+      worker?: string;
+      lendingPlatform?: string;
+      adapterMarketplace?: string;
+      recoverAddress?: string;
+      maxPriceImpact?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        adapterDexStargazeMsgComposer.updateConfig({
+          admin,
+          worker,
+          lendingPlatform,
+          adapterMarketplace,
+          recoverAddress,
+          maxPriceImpact: maxPriceImpact?.toString(),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwSwap(
+    amount: number,
+    token: TokenUnverified,
+    route: Route,
+    priceRatio: number,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          adapterDexStargazeMsgComposer.swap({
+            route,
+            priceRatio: priceRatio.toString(),
+          }),
+          amount,
+          token
+        ),
+      ],
       gasPrice
     );
   }
@@ -1206,6 +1282,14 @@ async function getCwExecHelpers(
   return {
     utils: { cwRevoke },
     adapter: {
+      dex: {
+        kujira: {},
+        stargaze: {
+          cwAcceptAdminRole: cwAdapterDexStargazeAcceptAdminRole,
+          cwUpdateConfig: cwAdapterDexStargazeUpdateConfig,
+          cwSwap,
+        },
+      },
       marketplace: {
         kujira: {},
         stargaze: {
@@ -1295,6 +1379,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
   const {
+    ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
     LENDING_PLATFORM_CONTRACT,
@@ -1307,6 +1392,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   if (!cwClient) throw new Error("cwClient is not found!");
 
   const cosmwasmQueryClient: CosmWasmClient = cwClient.client;
+
+  const adapterDexStargazeQueryClient = new AdapterDexStargazeQueryClient(
+    cosmwasmQueryClient,
+    ADAPTER_DEX_STARGAZE_CONTRACT ? ADAPTER_DEX_STARGAZE_CONTRACT.ADDRESS : ""
+  );
 
   const adapterMarketplaceStargazeQueryClient =
     new AdapterMarketplaceStargazeQueryClient(
@@ -1423,6 +1513,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryOwnerOfMsg
     );
+    return logAndReturn(res);
+  }
+
+  // adapter-dex-stargaze
+
+  async function cwAdapterDexStargazeQueryConfig() {
+    const res = await adapterDexStargazeQueryClient.queryConfig();
     return logAndReturn(res);
   }
 
@@ -1748,6 +1845,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryNftOwner,
     },
     adapter: {
+      dex: {
+        kujira: {},
+        stargaze: {
+          cwQueryConfig: cwAdapterDexStargazeQueryConfig,
+        },
+      },
       marketplace: {
         kujira: {},
         stargaze: {
