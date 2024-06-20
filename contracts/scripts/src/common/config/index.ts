@@ -321,9 +321,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 4254,
+              CODE: 4266,
               ADDRESS:
-                "stars1pt64zuz7skmt8vghnr72mcsyywy0uy67lquwq6lew2ax496wl7ks86fv64",
+                "stars1zk74zn3cpfw5342au5gu3jjvmv6xl4aaerm4qggsk7wduhmdr4lqsykh79",
             },
           ],
           IBC: [],
@@ -401,7 +401,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           CHAIN_ID: "neutron-1",
           RPC_LIST: ["https://rpc-neutron.cosmos-spaces.cloud:443"],
           GAS_PRICE_AMOUNT: 0.99,
-          STORE_CODE_GAS_MULTIPLIER: 10,
+          STORE_CODE_GAS_MULTIPLIER: 20,
           CONTRACTS: [
             {
               WASM: "adapter_dex_stargaze.wasm",
@@ -421,8 +421,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 1471,
+              ADDRESS:
+                "neutron1q9sa4tslf4vcam5he3x6amtqn90rfdax85qfyptt3z5ulq0g0s9qcvvp6w",
             },
 
             {
@@ -439,8 +440,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   controller: [ADDRESS.NEUTRON.ADMIN],
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 1472,
+              ADDRESS:
+                "neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv",
             },
           ],
           IBC: [],

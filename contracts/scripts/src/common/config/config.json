@@ -159,6 +159,43 @@
           "IBC": []
         }
       ]
+    },
+    {
+      "NAME": "neutron",
+      "PREFIX": "neutron",
+      "OPTIONS": [
+        {
+          "TYPE": "main",
+          "DENOM": "untrn",
+          "CHAIN_ID": "neutron-1",
+          "RPC_LIST": [
+            "https://rpc-neutron.cosmos-spaces.cloud:443"
+          ],
+          "GAS_PRICE_AMOUNT": 0.99,
+          "STORE_CODE_GAS_MULTIPLIER": 20,
+          "CONTRACTS": [
+            {
+              "WASM": "adapter_dex_stargaze.wasm",
+              "LABEL": "adapter_dex",
+              "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"adapter_marketplace\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"recover_address\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"lending_platform\":\"neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv\"}}",
+              "CODE": 1471,
+              "ADDRESS": "neutron1q9sa4tslf4vcam5he3x6amtqn90rfdax85qfyptt3z5ulq0g0s9qcvvp6w"
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"]}}",
+              "CODE": 1472,
+              "ADDRESS": "neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv"
+            }
+          ],
+          "IBC": []
+        }
+      ]
     }
   ]
 }
