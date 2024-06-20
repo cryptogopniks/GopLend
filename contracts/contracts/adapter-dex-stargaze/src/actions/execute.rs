@@ -8,9 +8,13 @@ use cosmwasm_std::{
 use goplend_base::{
     adapters::dex::stargaze::{
         state::{
-            CHANNEL_NOBLE_STARGAZE, CHANNEL_OSMOSIS_NOBLE, CHANNEL_STARGAZE_OSMOSIS, CONFIG,
-            CONTRACT_OSMOSIS_SKIP_ENTRY_POINT, DENOM_OSMOSIS_OSMO, DENOM_OSMOSIS_STARS,
-            DENOM_OSMOSIS_USDC, IBC_TIMEOUT, MAX_PRICE_IMPACT, POOL_OSMOSIS_OSMO_USDC,
+            CHANNEL_NEUTRON_NOBLE, CHANNEL_NEUTRON_OSMOSIS, CHANNEL_NOBLE_NEUTRON,
+            CHANNEL_NOBLE_STARGAZE, CHANNEL_OSMOSIS_NOBLE, CHANNEL_STARGAZE_NEUTRON,
+            CHANNEL_STARGAZE_OSMOSIS, CONFIG, CONTRACT_NEUTRON_SKIP_ENTRY_POINT,
+            CONTRACT_OSMOSIS_SKIP_ENTRY_POINT, DENOM_NEUTRON_NTRN, DENOM_NEUTRON_STARS,
+            DENOM_NEUTRON_USDC, DENOM_OSMOSIS_NTRN, DENOM_OSMOSIS_OSMO, DENOM_OSMOSIS_STARS,
+            DENOM_OSMOSIS_USDC, IBC_TIMEOUT, MAX_PRICE_IMPACT, POOL_NEUTRON_NTRN_USDC,
+            POOL_NEUTRON_STARS_NTRN, POOL_OSMOSIS_NTRN_OSMO, POOL_OSMOSIS_OSMO_USDC,
             POOL_OSMOSIS_STARS_OSMO, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
         types::{Config, Route, TransferAdminState},
@@ -190,7 +194,46 @@ pub fn try_swap(
                 &ibc_swap_memo,
             )
         }
-        _ => unimplemented!(),
+        Route::Neutron => {
+            let ibc_swap_memo = get_neutron_ibc_swap_memo(
+                asset_amount,
+                price_ratio,
+                max_price_impact,
+                timeout_timestamp_ns,
+                lending_platform,
+                recover_address,
+            );
+
+            get_ibc_swap_msg(
+                CHANNEL_STARGAZE_NEUTRON,
+                denom_in,
+                asset_amount,
+                &sender_address,
+                CONTRACT_NEUTRON_SKIP_ENTRY_POINT,
+                timeout_timestamp_ns,
+                &ibc_swap_memo,
+            )
+        }
+        Route::Test => {
+            let ibc_swap_memo = get_test_ibc_swap_memo(
+                asset_amount,
+                price_ratio,
+                max_price_impact,
+                timeout_timestamp_ns,
+                lending_platform,
+                recover_address,
+            );
+
+            get_ibc_swap_msg(
+                CHANNEL_NEUTRON_OSMOSIS,
+                denom_in,
+                asset_amount,
+                &sender_address,
+                CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
+                timeout_timestamp_ns,
+                &ibc_swap_memo,
+            )
+        }
     };
 
     Ok(Response::new()
@@ -250,36 +293,100 @@ fn get_osmosis_ibc_swap_memo(
             .to_uint_floor()
             .u128();
 
-    let recipient_noble = get_addr_by_prefix(&recipient.to_string(), "noble");
-    let recover_address_osmosis = get_addr_by_prefix(&recover_address.to_string(), "osmosis");
+    let recipient = &recipient.to_string();
+    let recover_address = &recover_address.to_string();
+    let recipient_noble = get_addr_by_prefix(recipient, "noble");
+    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
 
     format!(
-        "{{\"wasm\":{{\"contract\":\"{}\",\"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":{{\"swap_venue_name\":\"osmosis-poolmanager\",\"operations\":[{{\"pool\":\"{}\",\"denom_in\":\"{}\",\"denom_out\":\"{}\"}},{{\"pool\":\"{}\",\"denom_in\":\"{}\",\"denom_out\":\"{}\"}}]}}}},\"min_asset\":{{\"native\":{{\"denom\":\"{}\",\"amount\":\"{}\"}}}},\"timeout_timestamp\":{},\"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\"{}\",\"receiver\":\"{}\",\"memo\":\"{{\\\"forward\\\":{{\\\"channel\\\":\\\"{}\\\",\\\"port\\\":\\\"transfer\\\",\\\"receiver\\\":\\\"{}\\\",\\\"retries\\\":2,\\\"timeout\\\":{}}}}}\",\"recover_address\":\"{}\"}}}}}},\"affiliates\":[]}}}}}}}}",
-        CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
+        "{{\"wasm\":{{\"contract\":\"{CONTRACT_OSMOSIS_SKIP_ENTRY_POINT}\",\
+        \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
+        {{\"swap_venue_name\":\"osmosis-poolmanager\",\"operations\":[{{\"pool\":\
+        \"{POOL_OSMOSIS_STARS_OSMO}\",\"denom_in\":\"{DENOM_OSMOSIS_STARS}\",\
+        \"denom_out\":\"{DENOM_OSMOSIS_OSMO}\"}},{{\"pool\":\"{POOL_OSMOSIS_OSMO_USDC}\",\
+        \"denom_in\":\"{DENOM_OSMOSIS_OSMO}\",\"denom_out\":\"{DENOM_OSMOSIS_USDC}\"}}]}}}},\
+        \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_OSMOSIS_USDC}\",\
+        \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
+        \"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\
+        \"{CHANNEL_OSMOSIS_NOBLE}\",\"receiver\":\"{recipient_noble}\",\"memo\":\"{{\\\"forward\\\":\
+        {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_STARGAZE}\\\",\\\"port\\\":\\\"transfer\\\",\
+        \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
+        {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_osmosis}\"}}}}}},\
+        \"affiliates\":[]}}}}}}}}"
+    )
+}
 
-        // pool in
-        POOL_OSMOSIS_STARS_OSMO,
-        DENOM_OSMOSIS_STARS,
-        DENOM_OSMOSIS_OSMO,
+fn get_neutron_ibc_swap_memo(
+    token_in_amount: Uint128,
+    price_ratio: Decimal,
+    max_price_impact: Decimal,
+    timeout_timestamp_ns: u64,
+    recipient: &Addr,
+    recover_address: &Addr,
+) -> String {
+    // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
+    let min_token_out_amount =
+        (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
+            .to_uint_floor()
+            .u128();
 
-        // pool out
-        POOL_OSMOSIS_OSMO_USDC,
-        DENOM_OSMOSIS_OSMO,
-        DENOM_OSMOSIS_USDC,
+    let recipient = &recipient.to_string();
+    let recover_address = &recover_address.to_string();
+    let recipient_noble = get_addr_by_prefix(recipient, "noble");
+    let recover_address_neutron = get_addr_by_prefix(recover_address, "neutron");
 
-        // min token out amount
-        DENOM_OSMOSIS_USDC,
-        min_token_out_amount,
-        timeout_timestamp_ns,
+    format!(
+        "{{\"wasm\":{{\"contract\":\"{CONTRACT_NEUTRON_SKIP_ENTRY_POINT}\",\
+        \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
+        {{\"swap_venue_name\":\"neutron-astroport\",\"operations\":[{{\"pool\":\
+        \"{POOL_NEUTRON_STARS_NTRN}\",\"denom_in\":\"{DENOM_NEUTRON_STARS}\",\
+        \"denom_out\":\"{DENOM_NEUTRON_NTRN}\"}},{{\"pool\":\"{POOL_NEUTRON_NTRN_USDC}\",\
+        \"denom_in\":\"{DENOM_NEUTRON_NTRN}\",\"denom_out\":\"{DENOM_NEUTRON_USDC}\"}}]}}}},\
+        \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_NEUTRON_USDC}\",\
+        \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
+        \"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\
+        \"{CHANNEL_NEUTRON_NOBLE}\",\"receiver\":\"{recipient_noble}\",\"memo\":\"{{\\\"forward\\\":\
+        {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_STARGAZE}\\\",\\\"port\\\":\\\"transfer\\\",\
+        \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
+        {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_neutron}\"}}}}}},\
+        \"affiliates\":[]}}}}}}}}"
+    )
+}
 
-        CHANNEL_OSMOSIS_NOBLE,
-        recipient_noble,
+fn get_test_ibc_swap_memo(
+    token_in_amount: Uint128,
+    price_ratio: Decimal,
+    max_price_impact: Decimal,
+    timeout_timestamp_ns: u64,
+    recipient: &Addr,
+    recover_address: &Addr,
+) -> String {
+    // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
+    let min_token_out_amount =
+        (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
+            .to_uint_floor()
+            .u128();
 
-        CHANNEL_NOBLE_STARGAZE,
-        recipient.to_string(),
+    let recipient = &recipient.to_string();
+    let recover_address = &recover_address.to_string();
+    let recipient_noble = get_addr_by_prefix(recipient, "noble");
+    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
 
-        timeout_timestamp_ns,
-        recover_address_osmosis.to_string()
+    format!(
+        "{{\"wasm\":{{\"contract\":\"{CONTRACT_OSMOSIS_SKIP_ENTRY_POINT}\",\
+        \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
+        {{\"swap_venue_name\":\"osmosis-poolmanager\",\"operations\":[{{\"pool\":\
+        \"{POOL_OSMOSIS_NTRN_OSMO}\",\"denom_in\":\"{DENOM_OSMOSIS_NTRN}\",\
+        \"denom_out\":\"{DENOM_OSMOSIS_OSMO}\"}},{{\"pool\":\"{POOL_OSMOSIS_OSMO_USDC}\",\
+        \"denom_in\":\"{DENOM_OSMOSIS_OSMO}\",\"denom_out\":\"{DENOM_OSMOSIS_USDC}\"}}]}}}},\
+        \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_OSMOSIS_USDC}\",\
+        \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
+        \"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\
+        \"{CHANNEL_OSMOSIS_NOBLE}\",\"receiver\":\"{recipient_noble}\",\"memo\":\"{{\\\"forward\\\":\
+        {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_NEUTRON}\\\",\\\"port\\\":\\\"transfer\\\",\
+        \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
+        {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_osmosis}\"}}}}}},\
+        \"affiliates\":[]}}}}}}}}"
     )
 }
 

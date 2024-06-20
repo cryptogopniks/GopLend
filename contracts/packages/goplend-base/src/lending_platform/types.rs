@@ -84,6 +84,9 @@ impl PartialOrd for BidType {
     }
 }
 
+// TODO: use token_id_list: Vec<TokenItem>, where TokenItem { id: String, creation_date: u64 }
+// to enable holding snapshots functionality
+// add query functions as well
 #[cw_serde]
 pub struct Collateral {
     pub owner: Addr,
