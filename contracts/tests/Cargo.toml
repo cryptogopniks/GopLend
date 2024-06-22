@@ -33,6 +33,7 @@ speculoos = { workspace = true }
 
 goplend-base = { workspace = true }
 stargaze-mocks-marketplace = { workspace = true }
+adapter-dex-stargaze-mocks = { workspace = true }
 
 lending-platform = { workspace = true }
 oracle = { workspace = true }

@@ -19,6 +19,7 @@ use goplend_base::{
 
 use crate::helpers::{
     adapters::{
+        dex::stargaze_mocks::AdapterDexStargazeMocksExtension,
         marketplace::{
             kujira::AdapterMarketplaceKujiraExtension,
             stargaze::AdapterMarketplaceStargazeExtension,
@@ -48,6 +49,7 @@ pub struct Project {
     cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
     stargaze_mocks_marketplace_code_id: u64,
+    adapter_dex_stargaze_mocks_code_id: u64,
 
     // contract code id
     lending_platform_code_id: u64,
@@ -61,6 +63,7 @@ pub struct Project {
     gopniks_address: Addr,
     pinjeons_address: Addr,
     stargaze_mocks_marketplace_address: Addr,
+    adapter_dex_stargaze_mocks_address: Addr,
 
     // contract address
     lending_platform_address: Addr,
@@ -83,6 +86,7 @@ impl Project {
             cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
             stargaze_mocks_marketplace_code_id: 0,
+            adapter_dex_stargaze_mocks_code_id: 0,
 
             lending_platform_code_id: 0,
             oracle_code_id: 0,
@@ -94,6 +98,7 @@ impl Project {
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
             stargaze_mocks_marketplace_address: Addr::unchecked(""),
+            adapter_dex_stargaze_mocks_address: Addr::unchecked(""),
 
             lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
@@ -114,6 +119,7 @@ impl Project {
         let cw20_base_code_id = project.store_cw20_base_code();
         let cw721_base_code_id = project.store_cw721_base_code();
         let stargaze_mocks_marketplace_code_id = project.store_stargaze_mocks_marketplace_code();
+        let adapter_dex_stargaze_mocks_code_id = project.store_adapter_dex_stargaze_mocks_code();
 
         // contracts
         let lending_platform_code_id = project.store_lending_platform_code();
@@ -185,6 +191,17 @@ impl Project {
             ProjectCoin::Stars,
         );
 
+        let adapter_dex_stargaze_mocks_address = project.instantiate_adapter_dex_stargaze_mocks(
+            adapter_dex_stargaze_mocks_code_id,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &ProjectAccount::Admin.get_initial_funds_amount() / 10,
+            &[ProjectCoin::Usdc, ProjectCoin::Usk],
+        );
+
         // instantiate goplend contracts
 
         let lending_platform_address = project.instantiate_lending_platform(
@@ -241,6 +258,7 @@ impl Project {
         project = Self {
             cw20_base_code_id,
             stargaze_mocks_marketplace_code_id,
+            adapter_dex_stargaze_mocks_code_id,
 
             lending_platform_code_id,
             oracle_code_id,
@@ -252,6 +270,7 @@ impl Project {
             gopniks_address,
             pinjeons_address,
             stargaze_mocks_marketplace_address,
+            adapter_dex_stargaze_mocks_address,
 
             lending_platform_address,
             oracle_address,
@@ -320,6 +339,18 @@ impl Project {
             .unwrap();
 
         project
+            .adapter_dex_stargaze_mocks_try_update_config(
+                ProjectAccount::Admin,
+                &None,
+                &None,
+                &Some(project.get_lending_platform_address()),
+                &Some(project.get_adapter_marketplace_stargaze_address()),
+                &None,
+                &None,
+            )
+            .unwrap();
+
+        project
             .adapter_scheduler_common_try_update_config(
                 ProjectAccount::Admin,
                 &None,
@@ -374,6 +405,10 @@ impl Project {
         self.stargaze_mocks_marketplace_code_id
     }
 
+    pub fn get_adapter_dex_stargaze_mocks_code_id(&self) -> u64 {
+        self.adapter_dex_stargaze_mocks_code_id
+    }
+
     pub fn get_lending_platform_code_id(&self) -> u64 {
         self.lending_platform_code_id
     }
@@ -409,6 +444,10 @@ impl Project {
 
     pub fn get_stargaze_mocks_marketplace_address(&self) -> Addr {
         self.stargaze_mocks_marketplace_address.clone()
+    }
+
+    pub fn get_adapter_dex_stargaze_mocks_address(&self) -> Addr {
+        self.adapter_dex_stargaze_mocks_address.clone()
     }
 
     // contract address getters

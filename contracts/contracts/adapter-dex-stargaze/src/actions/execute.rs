@@ -416,8 +416,8 @@ fn get_test_2_ibc_swap_memo(
     price_ratio: Decimal,
     max_price_impact: Decimal,
     timeout_timestamp_ns: u64,
-    recipient: &Addr,
-    recover_address: &Addr,
+    _recipient: &Addr,
+    _recover_address: &Addr,
 ) -> String {
     // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
     let min_token_out_amount =
@@ -425,10 +425,10 @@ fn get_test_2_ibc_swap_memo(
             .to_uint_floor()
             .u128();
 
-    let recipient = &recipient.to_string();
-    let recover_address = &recover_address.to_string();
-    let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+    // let recipient = &recipient.to_string();
+    // let recover_address = &recover_address.to_string();
+    // let recipient_noble = get_addr_by_prefix(recipient, "noble");
+    // let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
 
     // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
     // 5149 ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4

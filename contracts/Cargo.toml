@@ -42,6 +42,7 @@ bech32 = "0.11.0"
 
 goplend-base = { path = "./packages/goplend-base" }
 stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }
+adapter-dex-stargaze-mocks = { path = "./packages/adapter-dex-stargaze-mocks" }
 
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }

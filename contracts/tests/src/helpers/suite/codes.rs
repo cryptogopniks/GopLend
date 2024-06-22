@@ -1,4 +1,4 @@
-use cosmwasm_std::{coins, Addr, Decimal, StdResult, Uint128};
+use cosmwasm_std::{coin, coins, Addr, Coin, Decimal, StdResult, Uint128};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
 use serde::Serialize;
@@ -21,6 +21,7 @@ pub trait WithCodes {
     fn store_cw20_base_code(&mut self) -> u64;
     fn store_cw721_base_code(&mut self) -> u64;
     fn store_stargaze_mocks_marketplace_code(&mut self) -> u64;
+    fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64;
 
     // store contracts
     fn store_lending_platform_code(&mut self) -> u64;
@@ -40,6 +41,17 @@ pub trait WithCodes {
         bids: &[stargaze_mocks_marketplace::state::Bid],
         amount: u128,
         denom: ProjectCoin,
+    ) -> Addr;
+    fn instantiate_adapter_dex_stargaze_mocks(
+        &mut self,
+        adapter_dex_stargaze_mocks_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
+        recover_address: &Option<Addr>,
+        max_price_impact: &Option<&str>,
+        amount: u128,
+        denom_list: &[ProjectCoin],
     ) -> Addr;
 
     // instantiate contracts
@@ -149,6 +161,14 @@ impl WithCodes for Project {
             )
             .with_sudo(stargaze_mocks_marketplace::contract::sudo),
         ))
+    }
+
+    fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(ContractWrapper::new(
+            adapter_dex_stargaze_mocks::contract::execute,
+            adapter_dex_stargaze_mocks::contract::instantiate,
+            adapter_dex_stargaze_mocks::contract::query,
+        )))
     }
 
     // store contracts
@@ -302,8 +322,6 @@ impl WithCodes for Project {
         amount: u128,
         denom: ProjectCoin,
     ) -> Addr {
-        self.increase_contract_counter(1);
-
         self.app
             .instantiate_contract(
                 stargaze_mocks_marketplace_code_id,
@@ -312,6 +330,38 @@ impl WithCodes for Project {
                     bids: bids.to_owned(),
                 },
                 &coins(amount, denom.to_string()),
+                "stargaze_mocks_marketplace",
+                Some(ProjectAccount::Admin.to_string()),
+            )
+            .unwrap()
+    }
+
+    fn instantiate_adapter_dex_stargaze_mocks(
+        &mut self,
+        adapter_dex_stargaze_mocks_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
+        recover_address: &Option<Addr>,
+        max_price_impact: &Option<&str>,
+        amount: u128,
+        denom_list: &[ProjectCoin],
+    ) -> Addr {
+        self.app
+            .instantiate_contract(
+                adapter_dex_stargaze_mocks_code_id,
+                ProjectAccount::Admin.into(),
+                &goplend_base::adapters::dex::stargaze::msg::InstantiateMsg {
+                    worker: worker.as_ref().map(|x| x.to_string()),
+                    lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                    adapter_marketplace: adapter_marketplace.as_ref().map(|x| x.to_string()),
+                    recover_address: recover_address.as_ref().map(|x| x.to_string()),
+                    max_price_impact: max_price_impact.as_ref().map(|x| str_to_dec(x)),
+                },
+                &denom_list
+                    .into_iter()
+                    .map(|x| coin(amount, x.to_string()))
+                    .collect::<Vec<Coin>>(),
                 "stargaze_mocks_marketplace",
                 Some(ProjectAccount::Admin.to_string()),
             )

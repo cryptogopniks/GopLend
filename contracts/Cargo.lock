@@ -18,6 +18,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "adapter-dex-stargaze-mocks"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "semver",
+ "serde",
+]
+
+[[package]]
 name = "adapter-marketplace-kujira"
 version = "1.0.0"
 dependencies = [
@@ -1548,6 +1561,7 @@ dependencies = [
 name = "tests"
 version = "1.0.0"
 dependencies = [
+ "adapter-dex-stargaze-mocks",
  "adapter-marketplace-kujira",
  "adapter-marketplace-stargaze",
  "adapter-scheduler-common",
