@@ -1,7 +1,8 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use crate::{
-    adapters::scheduler::common::types::ClockSource, lending_platform::types::LiquidationItem,
+    adapters::{dex::stargaze::types::Route, scheduler::common::types::ClockSource},
+    lending_platform::types::LiquidationItem,
 };
 
 #[cw_serde]
@@ -36,6 +37,7 @@ pub enum ExecuteMsg {
     // scheduler
     Push {
         targets: Vec<LiquidationItem>,
+        route: Route,
     },
 }
 

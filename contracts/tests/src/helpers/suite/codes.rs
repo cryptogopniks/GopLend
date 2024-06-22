@@ -114,6 +114,8 @@ pub trait WithCodes {
         lending_platform: &Option<Addr>,
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
+        dex: &Option<Addr>,
+        main_currency: &Currency<TokenUnverified>,
         price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> Addr;
@@ -492,6 +494,8 @@ impl WithCodes for Project {
         lending_platform: &Option<Addr>,
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
+        dex: &Option<Addr>,
+        main_currency: &Currency<TokenUnverified>,
         price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> Addr {
@@ -503,6 +507,8 @@ impl WithCodes for Project {
                 lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                dex: dex.as_ref().map(|x| x.to_string()),
+                main_currency: main_currency.to_owned(),
                 price_impact: price_impact.to_owned(),
                 price_update_period: price_update_period.to_owned(),
             },

@@ -247,6 +247,11 @@ impl Project {
                 &None,
                 &None,
                 &None,
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+                &None,
                 &None,
             );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
@@ -370,6 +375,8 @@ impl Project {
                 &Some(project.get_lending_platform_address()),
                 &Some(project.get_oracle_address()),
                 &Some(project.get_stargaze_mocks_marketplace_address()),
+                &Some(project.get_adapter_dex_stargaze_mocks_address()),
+                &None,
                 &None,
                 &None,
             )

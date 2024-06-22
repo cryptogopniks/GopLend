@@ -33,7 +33,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Push { targets } => e::try_push(deps, env, info, targets),
+        ExecuteMsg::Push { targets, route } => e::try_push(deps, env, info, targets, route),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 

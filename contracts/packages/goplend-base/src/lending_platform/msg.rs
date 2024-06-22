@@ -4,6 +4,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 
 use crate::{
+    adapters::dex::stargaze::types::Route,
     assets::{Currency, Token, TokenUnverified},
     lending_platform::types::{
         Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
@@ -88,6 +89,7 @@ pub enum ExecuteMsg {
     // scheduler
     Liquidate {
         targets: Vec<LiquidationItem>,
+        route: Route,
     },
 
     // any

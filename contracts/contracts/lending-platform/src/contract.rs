@@ -134,7 +134,9 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
+        ExecuteMsg::Liquidate { targets, route } => {
+            e::try_liquidate(deps, env, info, targets, route)
+        }
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 

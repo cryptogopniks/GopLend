@@ -1,6 +1,6 @@
 use cw_multi_test::Executor;
 use goplend_base::{
-    adapters::scheduler::common::types::ClockSource,
+    adapters::{dex::stargaze::types::Route, scheduler::common::types::ClockSource},
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
@@ -2857,6 +2857,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
+            &Route::Empty,
         )
         .unwrap_err();
 
@@ -2902,6 +2903,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -3101,6 +3103,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -3291,6 +3294,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -3481,6 +3485,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -3674,6 +3679,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -3864,6 +3870,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -4054,6 +4061,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -4244,6 +4252,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -4444,6 +4453,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -4691,6 +4701,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -5018,6 +5029,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv_after =
@@ -5295,6 +5307,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let platform_revenue_after = project.lending_platform_query_platform_revenue()?;
@@ -5414,6 +5427,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let platform_revenue_after = project.lending_platform_query_platform_revenue()?;
@@ -5639,6 +5653,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     // check results
@@ -6037,6 +6052,7 @@ fn big_numbers() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let _res = project.lending_platform_query_platform_revenue()?;
@@ -6450,6 +6466,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let bids = project
@@ -6682,6 +6699,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     // check results
@@ -6951,6 +6969,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     // check results
@@ -7166,6 +7185,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let ltv = project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
@@ -7463,6 +7483,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     // check results
@@ -7788,6 +7809,7 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     // // check results

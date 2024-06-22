@@ -254,6 +254,7 @@ pub fn try_swap(
                 &ibc_swap_memo,
             )
         }
+        _ => unimplemented!(),
     };
 
     Ok(Response::new()

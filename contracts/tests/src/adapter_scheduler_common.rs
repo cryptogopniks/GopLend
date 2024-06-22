@@ -4,9 +4,12 @@ use speculoos::assert_that;
 use cosmwasm_std::{StdResult, Uint128};
 
 use goplend_base::{
-    adapters::scheduler::common::{
-        msg::MigrateMsg,
-        types::{ClockSource, Log},
+    adapters::{
+        dex::stargaze::types::Route,
+        scheduler::common::{
+            msg::MigrateMsg,
+            types::{ClockSource, Log},
+        },
     },
     assets::{Currency, Funds, TokenUnverified},
     error::ContractError,
@@ -187,6 +190,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
+            &Route::Empty,
         )
         .unwrap_err();
 
@@ -195,11 +199,17 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         ProjectAccount::Alice,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     project.wait(DELAY);
     let res = project
-        .adapter_scheduler_common_try_push(ProjectAccount::Bob, ClockSource::Offchain, &[])
+        .adapter_scheduler_common_try_push(
+            ProjectAccount::Bob,
+            ClockSource::Offchain,
+            &[],
+            &Route::Empty,
+        )
         .unwrap_err();
     assert_error(&res, ContractError::EarlyExecution);
 
@@ -240,6 +250,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         ProjectAccount::Bob,
         ClockSource::Offchain,
         &targets,
+        &Route::Empty,
     )?;
 
     let log = project.adapter_scheduler_common_query_log()?;
@@ -425,6 +436,7 @@ fn log_zero_cross() -> StdResult<()> {
             ProjectAccount::Scheduler,
             ClockSource::Offchain,
             &targets,
+            &Route::Empty,
         )?;
 
         project.wait(1);

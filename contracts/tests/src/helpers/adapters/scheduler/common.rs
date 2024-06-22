@@ -2,9 +2,12 @@ use cosmwasm_std::{Addr, StdResult};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    adapters::scheduler::common::{
-        msg::{ExecuteMsg, QueryMsg},
-        types::{ClockSource, Config, Log},
+    adapters::{
+        dex::stargaze::types::Route,
+        scheduler::common::{
+            msg::{ExecuteMsg, QueryMsg},
+            types::{ClockSource, Config, Log},
+        },
     },
     error::parse_err,
     lending_platform::types::LiquidationItem,
@@ -35,6 +38,7 @@ pub trait AdapterSchedulerCommonExtension {
         sender: ProjectAccount,
         clock_source: ClockSource,
         targets: &[LiquidationItem],
+        route: &Route,
     ) -> StdResult<AppResponse>;
 
     fn adapter_scheduler_common_query_config(&self) -> StdResult<Config>;
@@ -94,6 +98,7 @@ impl AdapterSchedulerCommonExtension for Project {
         sender: ProjectAccount,
         clock_source: ClockSource,
         targets: &[LiquidationItem],
+        route: &Route,
     ) -> StdResult<AppResponse> {
         match clock_source {
             ClockSource::Offchain => self
@@ -103,6 +108,7 @@ impl AdapterSchedulerCommonExtension for Project {
                     self.get_adapter_scheduler_common_address(),
                     &ExecuteMsg::Push {
                         targets: targets.to_owned(),
+                        route: route.to_owned(),
                     },
                     &[],
                 )

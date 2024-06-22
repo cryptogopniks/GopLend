@@ -1,20 +1,22 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-    Uint128, WasmMsg,
+    coins, to_json_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
+    StdResult, Uint128, WasmMsg,
 };
 
 use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
 
 use goplend_base::{
-    adapters::marketplace::stargaze::{
-        state::{CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{Config, TransferAdminState},
+    adapters::{
+        dex::stargaze::types::Route,
+        marketplace::stargaze::{
+            state::{CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+            types::{Config, TransferAdminState},
+        },
     },
+    assets::{Currency, TokenUnverified},
     error::ContractError,
-    lending_platform::{
-        msg::QueryMsg as LendingPlatformQueryMsg,
-        types::{BidType, BiddedCollateralItem, CommonConfig},
-    },
+    lending_platform::types::{BidType, BiddedCollateralItem, CommonConfig},
+    oracle::types::PriceRatioItem,
     utils::{
         check_funds, get_collection_operator_approvals, get_transfer_msg, unwrap_field, AuthType,
         FundsType,
@@ -68,6 +70,8 @@ pub fn try_update_config(
     lending_platform: Option<String>,
     oracle: Option<String>,
     marketplace: Option<String>,
+    dex: Option<String>,
+    main_currency: Option<Currency<TokenUnverified>>,
     price_impact: Option<Decimal>,
     price_update_period: Option<u64>,
 ) -> Result<Response, ContractError> {
@@ -115,6 +119,18 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
+    if let Some(x) = dex {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.dex = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = main_currency {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
+        is_config_updated = true;
+    }
+
     if let Some(x) = price_impact {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.price_impact = x;
@@ -142,6 +158,7 @@ pub fn try_accept_offers(
     env: Env,
     info: MessageInfo,
     bidded_collateral_item_list: Vec<BiddedCollateralItem>,
+    route: Route,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(
@@ -152,12 +169,15 @@ pub fn try_accept_offers(
         },
     )?;
 
+    let block_time = env.block.time.seconds();
     let Config {
-        lending_platform,
         marketplace,
+        oracle,
+        dex,
+        main_currency,
+        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
-    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
     // check operator and add approvals if it's required
@@ -230,17 +250,51 @@ pub fn try_accept_offers(
         msg_list.push(msg);
     }
 
-    // send liquidated value to platform
-    let CommonConfig { main_currency, .. } = deps.querier.query_wasm_smart(
-        lending_platform,
-        &LendingPlatformQueryMsg::QueryCommonConfig {},
-    )?;
+    match route {
+        Route::Empty => {
+            // send liquidated value to platform
+            msg_list.push(get_transfer_msg(
+                &sender_address,
+                liquidated_value,
+                &main_currency.token,
+            )?);
+        }
+        _ => {
+            let oracle = &unwrap_field(oracle, "oracle")?;
+            let dex = &unwrap_field(dex, "dex")?;
 
-    msg_list.push(get_transfer_msg(
-        &sender_address,
-        liquidated_value,
-        &main_currency.token,
-    )?);
+            // query price ratio
+            let PriceRatioItem {
+                value: price_ratio,
+                update_date: price_update_date,
+            } = deps.querier.query_wasm_smart(
+                oracle,
+                &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+            )?;
+
+            if block_time - price_update_date > price_update_period {
+                Err(ContractError::OutdatedPrice {
+                    val: price_ratio.to_string(),
+                })?;
+            }
+
+            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: dex.to_string(),
+                msg: to_json_binary(
+                    &goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::Swap {
+                        route,
+                        price_ratio,
+                    },
+                )?,
+                funds: coins(
+                    liquidated_value.u128(),
+                    main_currency.token.try_get_native()?,
+                ),
+            });
+
+            msg_list.push(msg);
+        }
+    }
 
     Ok(Response::new()
         .add_messages(msg_list)

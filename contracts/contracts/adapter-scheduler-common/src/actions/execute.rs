@@ -3,9 +3,12 @@ use cosmwasm_std::{
 };
 
 use goplend_base::{
-    adapters::scheduler::common::{
-        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{ClockSource, Config, Log, TransferAdminState},
+    adapters::{
+        dex::stargaze::types::Route,
+        scheduler::common::{
+            state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+            types::{ClockSource, Config, Log, TransferAdminState},
+        },
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
@@ -18,6 +21,7 @@ pub fn try_push(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
+    route: Route,
 ) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
     let sender = info.sender;
@@ -62,10 +66,11 @@ pub fn try_push(
         },
     )?;
 
+    // TODO: add lending platform selector
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
         msg: to_json_binary(
-            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets },
+            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets, route },
         )?,
         funds: vec![],
     });

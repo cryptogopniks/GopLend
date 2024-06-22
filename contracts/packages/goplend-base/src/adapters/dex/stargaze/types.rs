@@ -3,6 +3,7 @@ use cosmwasm_std::{Addr, Decimal};
 
 #[cw_serde]
 pub enum Route {
+    Empty,
     Neutron,
     Osmosis,
     Test,

@@ -39,8 +39,10 @@ pub fn execute(
             admin,
             worker,
             lending_platform,
-            marketplace,
             oracle,
+            marketplace,
+            dex,
+            main_currency,
             price_impact,
             price_update_period,
         } => e::try_update_config(
@@ -52,13 +54,16 @@ pub fn execute(
             lending_platform,
             oracle,
             marketplace,
+            dex,
+            main_currency,
             price_impact,
             price_update_period,
         ),
 
         ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
-        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),
+            route,
+        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list, route),
     }
 }
 

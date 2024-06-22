@@ -7,6 +7,7 @@ use goplend_base::{
         state::{CONFIG, CONTRACT_NAME, PRICE_IMPACT, PRICE_UPDATE_PERIOD},
         types::Config,
     },
+    assets::Currency,
     converters::str_to_dec,
     error::ContractError,
 };
@@ -22,6 +23,10 @@ pub fn try_instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     let sender = &info.sender;
+    let main_currency = Currency::new(
+        &msg.main_currency.token.verify(deps.api)?,
+        msg.main_currency.decimals,
+    );
 
     CONFIG.save(
         deps.storage,
@@ -41,6 +46,8 @@ pub fn try_instantiate(
                 .marketplace
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
+            dex: msg.dex.map(|x| deps.api.addr_validate(&x)).transpose()?,
+            main_currency,
             price_impact: msg.price_impact.unwrap_or(str_to_dec(PRICE_IMPACT)),
             price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
         },

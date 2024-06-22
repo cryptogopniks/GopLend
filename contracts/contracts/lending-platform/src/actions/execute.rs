@@ -6,6 +6,7 @@ use cosmwasm_std::{
 use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
+    adapters::dex::stargaze::types::Route,
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::u128_to_dec,
     error::ContractError,
@@ -1301,6 +1302,7 @@ pub fn try_liquidate(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
+    route: Route,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1414,6 +1416,7 @@ pub fn try_liquidate(
             CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
                 &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                    route,
                 },
             )?,
             CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(

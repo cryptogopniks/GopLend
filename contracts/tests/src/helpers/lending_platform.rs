@@ -2,6 +2,7 @@ use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
+    adapters::dex::stargaze::types::Route,
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
@@ -98,6 +99,7 @@ pub trait LendingPlatformExtension {
         &mut self,
         sender: &Addr,
         targets: &[LiquidationItem],
+        route: &Route,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_accept_admin_role(
@@ -470,6 +472,7 @@ impl LendingPlatformExtension for Project {
         &mut self,
         sender: &Addr,
         targets: &[LiquidationItem],
+        route: &Route,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -477,6 +480,7 @@ impl LendingPlatformExtension for Project {
                 self.get_lending_platform_address(),
                 &ExecuteMsg::Liquidate {
                     targets: targets.to_owned(),
+                    route: route.to_owned(),
                 },
                 &[],
             )
