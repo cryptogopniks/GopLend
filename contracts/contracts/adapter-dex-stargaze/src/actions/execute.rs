@@ -234,6 +234,26 @@ pub fn try_swap(
                 &ibc_swap_memo,
             )
         }
+        Route::Test2 => {
+            let ibc_swap_memo = get_test_2_ibc_swap_memo(
+                asset_amount,
+                price_ratio,
+                max_price_impact,
+                timeout_timestamp_ns,
+                lending_platform,
+                recover_address,
+            );
+
+            get_ibc_swap_msg(
+                CHANNEL_NEUTRON_OSMOSIS,
+                denom_in,
+                asset_amount,
+                &sender_address,
+                CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
+                timeout_timestamp_ns,
+                &ibc_swap_memo,
+            )
+        }
     };
 
     Ok(Response::new()
@@ -386,6 +406,44 @@ fn get_test_ibc_swap_memo(
         {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_NEUTRON}\\\",\\\"port\\\":\\\"transfer\\\",\
         \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
         {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_osmosis}\"}}}}}},\
+        \"affiliates\":[]}}}}}}}}"
+    )
+}
+
+// swap and send on osmosis contract address
+fn get_test_2_ibc_swap_memo(
+    token_in_amount: Uint128,
+    price_ratio: Decimal,
+    max_price_impact: Decimal,
+    timeout_timestamp_ns: u64,
+    recipient: &Addr,
+    recover_address: &Addr,
+) -> String {
+    // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
+    let min_token_out_amount =
+        (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
+            .to_uint_floor()
+            .u128();
+
+    let recipient = &recipient.to_string();
+    let recover_address = &recover_address.to_string();
+    let recipient_noble = get_addr_by_prefix(recipient, "noble");
+    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+
+    // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
+    // 5149 ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4
+    const RECIPIENT: &str = "osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw";
+
+    format!(
+        "{{\"wasm\":{{\"contract\":\"{CONTRACT_OSMOSIS_SKIP_ENTRY_POINT}\",\
+        \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
+        {{\"swap_venue_name\":\"osmosis-poolmanager\",\"operations\":[{{\"pool\":\
+        \"{POOL_OSMOSIS_NTRN_OSMO}\",\"denom_in\":\"{DENOM_OSMOSIS_NTRN}\",\
+        \"denom_out\":\"{DENOM_OSMOSIS_OSMO}\"}},{{\"pool\":\"{POOL_OSMOSIS_OSMO_USDC}\",\
+        \"denom_in\":\"{DENOM_OSMOSIS_OSMO}\",\"denom_out\":\"{DENOM_OSMOSIS_USDC}\"}}]}}}},\
+        \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_OSMOSIS_USDC}\",\
+        \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
+        \"post_swap_action\":{{\"transfer\":{{\"to_address\":\"{RECIPIENT}\"}}}},\
         \"affiliates\":[]}}}}}}}}"
     )
 }

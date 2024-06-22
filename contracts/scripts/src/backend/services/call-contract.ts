@@ -42,11 +42,11 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-    const LENDING_PLATFORM_CONTRACT = getContractByWasm(
-      CONTRACTS,
-      "lending_platform.wasm"
-    );
-    const ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
+    // const LENDING_PLATFORM_CONTRACT = getContractByWasm(
+    //   CONTRACTS,
+    //   "lending_platform.wasm"
+    // );
+    // const ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const testWallets = await getWallets(TYPE);
     const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
@@ -64,6 +64,15 @@ async function main() {
     const { sgMultiSend } = sgExecHelpers;
 
     const name = NAME as "kujira" | "stargaze";
+
+    await h.adapter.dex.stargaze.cwSwap(
+      10_000,
+      { native: { denom: "untrn" } },
+      "test2",
+      0.51,
+      gasPrice
+    );
+    return;
 
     // await adapter.marketplace.stargaze.cwQueryConfig();
     // await adapter.scheduler[name].cwQueryConfig();

@@ -26,7 +26,7 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ukuji\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=harpoon-4]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj\",\"minter\":\"kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs\",\"scheduler\":\"kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7\"}}",
               "CODE": 3350,
@@ -90,7 +90,7 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=elgafar-1]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1zk74zn3cpfw5342au5gu3jjvmv6xl4aaerm4qggsk7wduhmdr4lqsykh79\",\"minter\":\"stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz\",\"scheduler\":\"stars1w24jypy6vd2zj9lptcatmxlfr8mqn2kv58juhts03p0dat0t5yjq8hyxad\",\"marketplace\":\"stars1rynz7ykmgk2x97mghg8tseutzcsj0cr0eqce68zf5u2h5z2h6hsqwqyj26\"}}",
               "CODE": 4252,
@@ -140,7 +140,7 @@
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-0]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"worker\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
               "CODE": 0,
@@ -180,8 +180,8 @@
               "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"adapter_marketplace\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"recover_address\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform\":\"neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv\"}}",
-              "CODE": 1471,
-              "ADDRESS": "neutron1q9sa4tslf4vcam5he3x6amtqn90rfdax85qfyptt3z5ulq0g0s9qcvvp6w"
+              "CODE": 1474,
+              "ADDRESS": "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt"
             },
             {
               "WASM": "oracle.wasm",

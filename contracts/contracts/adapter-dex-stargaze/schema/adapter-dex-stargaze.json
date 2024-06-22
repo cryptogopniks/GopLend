@@ -158,7 +158,8 @@
         "enum": [
           "neutron",
           "osmosis",
-          "test"
+          "test",
+          "test2"
         ]
       }
     }

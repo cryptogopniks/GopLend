@@ -6,6 +6,7 @@ pub enum Route {
     Neutron,
     Osmosis,
     Test,
+    Test2,
 }
 
 #[cw_serde]

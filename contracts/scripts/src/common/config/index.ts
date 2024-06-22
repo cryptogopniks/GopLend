@@ -421,9 +421,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 1471,
+              CODE: 1474,
               ADDRESS:
-                "neutron1q9sa4tslf4vcam5he3x6amtqn90rfdax85qfyptt3z5ulq0g0s9qcvvp6w",
+                "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt",
             },
 
             {
