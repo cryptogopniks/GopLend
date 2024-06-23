@@ -6,6 +6,7 @@ use cosmwasm_std::{StdResult, Uint128};
 use goplend_base::{
     adapters::{
         dex::stargaze::types::Route,
+        marketplace::stargaze::types::PlatformType,
         scheduler::common::{
             msg::MigrateMsg,
             types::{ClockSource, Log},
@@ -43,6 +44,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
 
     project.adapter_scheduler_common_try_update_config(
         ProjectAccount::Admin,
+        &None,
         &None,
         &None,
         &None,
@@ -84,7 +86,6 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
-        &None,
         &None,
         &None,
     )?;
@@ -177,7 +178,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         .into_iter()
         .map(|x| x.address.to_string())
         .collect::<Vec<String>>();
-    let targets = get_targets(&project, &borrowers)?;
+    let targets = get_targets(&project, PlatformType::Main, &borrowers)?;
 
     project
         .adapter_scheduler_common_try_push(
@@ -238,7 +239,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         .into_iter()
         .map(|x| x.address.to_string())
         .collect::<Vec<String>>();
-    let targets = get_targets(&project, &borrowers)?;
+    let targets = get_targets(&project, PlatformType::Main, &borrowers)?;
 
     project.adapter_scheduler_common_try_push(
         ProjectAccount::Bob,
@@ -286,6 +287,7 @@ fn log_zero_cross() -> StdResult<()> {
         &None,
         &None,
         &None,
+        &None,
         &Some(CLOCK_PERIOD),
     )?;
 
@@ -319,7 +321,6 @@ fn log_zero_cross() -> StdResult<()> {
         &None,
         &None,
         &Some(1),
-        &None,
         &None,
         &None,
     )?;
@@ -424,7 +425,7 @@ fn log_zero_cross() -> StdResult<()> {
             .into_iter()
             .map(|x| x.address.to_string())
             .collect::<Vec<String>>();
-        let targets = get_targets(&project, &borrowers)?;
+        let targets = get_targets(&project, PlatformType::Main, &borrowers)?;
 
         project.adapter_scheduler_common_try_push(
             ProjectAccount::Scheduler,

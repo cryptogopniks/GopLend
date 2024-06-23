@@ -25,7 +25,8 @@ pub trait OracleExtension {
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
         controller: &Option<Vec<ProjectAccount>>,
-        min_price_update_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
+        max_price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_set_prices(
@@ -84,7 +85,8 @@ impl OracleExtension for Project {
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
         controller: &Option<Vec<ProjectAccount>>,
-        min_price_update_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
+        max_price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -96,7 +98,8 @@ impl OracleExtension for Project {
                     controller: controller
                         .as_ref()
                         .map(|x| x.iter().map(|y| y.to_string()).collect()),
-                    min_price_update_period: min_price_update_period.to_owned(),
+                    execution_cooldown: execution_cooldown.to_owned(),
+                    max_price_update_period: max_price_update_period.to_owned(),
                 },
                 &[],
             )

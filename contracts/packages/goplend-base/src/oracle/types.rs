@@ -10,18 +10,22 @@ pub struct RawPriceItem {
     pub usd_price: Funds<TokenUnverified>,
 }
 
+// NFT price
 #[cw_serde]
 pub struct PriceItem {
     pub address: Addr,
     pub price: Funds<Token>,
     pub usd_price: Funds<Token>,
-    pub price_update_date: u64,
+    pub update_date: u64,
+    pub is_outdated: bool,
 }
 
+// Main currency price
 #[cw_serde]
 pub struct PriceRatioItem {
-    pub value: Decimal,
+    pub value: Decimal, // price impact must be included
     pub update_date: u64,
+    pub is_outdated: bool,
 }
 
 #[cw_serde]
@@ -29,7 +33,8 @@ pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
     pub controller: Option<Vec<Addr>>,
-    pub min_price_update_period: u64,
+    pub execution_cooldown: u64,
+    pub max_price_update_period: u64,
 }
 
 #[cw_serde]

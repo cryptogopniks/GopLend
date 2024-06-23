@@ -7,7 +7,7 @@ use goplend_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
-        state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
+        state::{BLOCK_TIME_OFFSET, MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
         types::{BiddedCollateralItem, Collateral, LiquidationBid},
     },
     oracle::types::PriceItem,
@@ -15,8 +15,8 @@ use goplend_base::{
 
 use crate::helpers::choose_price;
 
-pub fn calc_block_time_ceiled(block_time: u64, price_update_period: u64) -> u64 {
-    price_update_period * (block_time / price_update_period + 1)
+pub fn calc_shifted_block_time(block_time: u64) -> u64 {
+    block_time + BLOCK_TIME_OFFSET
 }
 
 // expected_rewards = borrow_apr * total_borrowed_amount *

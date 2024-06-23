@@ -8,7 +8,7 @@ use sg_marketplace::{
 use goplend_base::{
     adapters::marketplace::stargaze::{
         state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
-        types::Config,
+        types::{Config, PlatformType},
     },
     converters::u128_to_dec,
     error::ContractError,
@@ -30,41 +30,48 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_offers_by_collection_address_list(
     deps: Deps,
     env: Env,
-    is_usd_price_required: bool,
+    platform_type: PlatformType,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
     let block_time = env.block.time.seconds();
     let Config {
-        lending_platform,
+        lending_platform_main,
+        lending_platform_stable,
         oracle,
         marketplace,
-        price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
-    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
     let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
-    let price_ratio = if is_usd_price_required {
-        let PriceRatioItem { value, update_date } = deps.querier.query_wasm_smart(
-            oracle,
-            &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
-        )?;
+    let lending_platform = match platform_type {
+        PlatformType::Main => unwrap_field(lending_platform_main, "lending_platform_main")?,
+        PlatformType::Stable => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
+    };
 
-        if block_time - update_date > price_update_period {
-            Err(ContractError::OutdatedPrice {
-                val: update_date.to_string(),
-            })?;
+    let price_ratio = match platform_type {
+        PlatformType::Main => Decimal::one(),
+        PlatformType::Stable => {
+            let PriceRatioItem {
+                value, is_outdated, ..
+            } = deps.querier.query_wasm_smart(
+                oracle,
+                &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+            )?;
+
+            if is_outdated {
+                Err(ContractError::OutdatedPrice {
+                    val: value.to_string(),
+                })?;
+            }
+
+            value
         }
-
-        value
-    } else {
-        Decimal::one()
     };
 
     let collection_list: Vec<QueryCollectionsResponseItem> = deps.querier.query_wasm_smart(
-        lending_platform,
+        &lending_platform,
         &LendingPlatformQueryMsg::QueryCollectionList { start_after, limit },
     )?;
 
@@ -121,7 +128,7 @@ pub fn query_offers_by_collection_address_list(
 
         for CollectionBid { price, bidder, .. } in collection_bids {
             let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
-                lending_platform,
+                &lending_platform,
                 &LendingPlatformQueryMsg::QueryCollateral {
                     collection_address: collection_address.to_string(),
                 },

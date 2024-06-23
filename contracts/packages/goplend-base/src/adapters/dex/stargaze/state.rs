@@ -54,7 +54,6 @@ pub const CHANNEL_NOBLE_STARGAZE: &str = "channel-11";
 pub const IBC_TIMEOUT: u64 = 10 * 60;
 
 pub const MAX_PRICE_IMPACT: &str = "0.05";
-// pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
 
 pub const PAGINATION_MAX_LIMIT: u32 = 100;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 10;

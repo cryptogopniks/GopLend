@@ -229,13 +229,13 @@ impl Project {
             &None,
             &None,
             &None,
-            &None,
         );
-        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None);
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None, &None);
         let minter_address =
             project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
         let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
             adapter_scheduler_common_code_id,
+            &None,
             &None,
             &None,
             &None,
@@ -250,10 +250,7 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
+                &None,
                 &None,
             );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
@@ -297,6 +294,7 @@ impl Project {
                 &Some(ProjectAccount::Owner),
                 &Some(vec![ProjectAccount::Scheduler]),
                 &Some(0),
+                &None,
             )
             .unwrap();
 
@@ -341,7 +339,6 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &None,
             )
             .unwrap();
 
@@ -363,6 +360,7 @@ impl Project {
                 &None,
                 &None,
                 &Some(project.get_lending_platform_address()),
+                &None,
                 &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
                 &Some(0),
@@ -375,10 +373,10 @@ impl Project {
                 &None,
                 &None,
                 &Some(project.get_lending_platform_address()),
+                &None,
                 &Some(project.get_oracle_address()),
                 &Some(project.get_stargaze_mocks_marketplace_address()),
                 &Some(project.get_adapter_dex_stargaze_mocks_address()),
-                &None,
                 &None,
             )
             .unwrap();

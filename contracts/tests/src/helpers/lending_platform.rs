@@ -115,8 +115,8 @@ pub trait LendingPlatformExtension {
         worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
-        scheduler: &Option<Addr>,
-        marketplace: &Option<Addr>,
+        adapter_scheduler: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
     ) -> StdResult<AppResponse>;
 
     #[allow(clippy::too_many_arguments)]
@@ -140,7 +140,6 @@ pub trait LendingPlatformExtension {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse>;
 
@@ -510,8 +509,8 @@ impl LendingPlatformExtension for Project {
         worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
-        scheduler: &Option<Addr>,
-        marketplace: &Option<Addr>,
+        adapter_scheduler: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -522,8 +521,8 @@ impl LendingPlatformExtension for Project {
                     worker: worker.as_ref().map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
                     minter: minter.as_ref().map(|x| x.to_string()),
-                    scheduler: scheduler.as_ref().map(|x| x.to_string()),
-                    marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                    adapter_scheduler: adapter_scheduler.as_ref().map(|x| x.to_string()),
+                    adapter_marketplace: adapter_marketplace.as_ref().map(|x| x.to_string()),
                 },
                 &[],
             )
@@ -567,7 +566,6 @@ impl LendingPlatformExtension for Project {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -582,7 +580,6 @@ impl LendingPlatformExtension for Project {
                     borrowers_reserve_fraction_ratio: borrowers_reserve_fraction_ratio
                         .as_ref()
                         .map(|x| str_to_dec(x)),
-                    price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
                     is_marketplace_interface_enabled: is_marketplace_interface_enabled.to_owned(),
                 },
                 &[],

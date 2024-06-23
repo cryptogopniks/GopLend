@@ -23,7 +23,7 @@ pub trait AdapterDexStargazeMocksExtension {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         adapter_marketplace: &Option<Addr>,
         recover_address: &Option<Addr>,
         max_price_impact: &Option<&str>,
@@ -61,7 +61,7 @@ impl AdapterDexStargazeMocksExtension for Project {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         adapter_marketplace: &Option<Addr>,
         recover_address: &Option<Addr>,
         max_price_impact: &Option<&str>,
@@ -73,7 +73,9 @@ impl AdapterDexStargazeMocksExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
-                    lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                    lending_platform_stable: lending_platform_stable
+                        .as_ref()
+                        .map(|x| x.to_string()),
                     adapter_marketplace: adapter_marketplace.as_ref().map(|x| x.to_string()),
                     recover_address: recover_address.as_ref().map(|x| x.to_string()),
                     max_price_impact: max_price_impact.as_ref().map(|x| str_to_dec(x)),

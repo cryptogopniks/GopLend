@@ -6,10 +6,9 @@ use goplend_base::{
         dex::stargaze::types::Route,
         marketplace::stargaze::{
             msg::{ExecuteMsg, QueryMsg},
-            types::Config,
+            types::{Config, MarketplaceVersion, PlatformType},
         },
     },
-    assets::{Currency, TokenUnverified},
     error::parse_err,
 };
 
@@ -29,12 +28,12 @@ pub trait AdapterMarketplaceStargazeExtension {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        dex: &Option<Addr>,
-        main_currency: &Option<Currency<TokenUnverified>>,
-        price_update_period: &Option<u64>,
+        adapter_dex: &Option<Addr>,
+        marketplace_version: &Option<MarketplaceVersion>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_marketplace_stargaze_try_accept_offers(
@@ -48,7 +47,7 @@ pub trait AdapterMarketplaceStargazeExtension {
 
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
-        is_usd_price_required: bool,
+        platform_type: PlatformType,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
@@ -76,12 +75,12 @@ impl AdapterMarketplaceStargazeExtension for Project {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        dex: &Option<Addr>,
-        main_currency: &Option<Currency<TokenUnverified>>,
-        price_update_period: &Option<u64>,
+        adapter_dex: &Option<Addr>,
+        marketplace_version: &Option<MarketplaceVersion>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -90,12 +89,14 @@ impl AdapterMarketplaceStargazeExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
-                    lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                    lending_platform_main: lending_platform_main.as_ref().map(|x| x.to_string()),
+                    lending_platform_stable: lending_platform_stable
+                        .as_ref()
+                        .map(|x| x.to_string()),
                     oracle: oracle.as_ref().map(|x| x.to_string()),
                     marketplace: marketplace.as_ref().map(|x| x.to_string()),
-                    dex: dex.as_ref().map(|x| x.to_string()),
-                    main_currency: main_currency.to_owned(),
-                    price_update_period: price_update_period.to_owned(),
+                    adapter_dex: adapter_dex.as_ref().map(|x| x.to_string()),
+                    marketplace_version: marketplace_version.to_owned(),
                 },
                 &[],
             )
@@ -133,14 +134,14 @@ impl AdapterMarketplaceStargazeExtension for Project {
     #[track_caller]
     fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
         &self,
-        is_usd_price_required: bool,
+        platform_type: PlatformType,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
             &QueryMsg::QueryOffersByCollectionAddressList {
-                is_usd_price_required,
+                platform_type,
                 start_after: start_after.as_ref().map(|x| x.to_string()),
                 limit: limit.to_owned(),
             },

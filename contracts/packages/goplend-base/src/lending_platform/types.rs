@@ -203,8 +203,8 @@ pub struct AddressConfig {
     pub worker: Option<Addr>,
     pub oracle: Option<Addr>,
     pub minter: Option<Addr>,
-    pub scheduler: Option<Addr>,
-    pub marketplace: Option<Addr>,
+    pub adapter_scheduler: Option<Addr>,
+    pub adapter_marketplace: Option<Addr>,
 }
 
 #[cw_serde]
@@ -224,7 +224,6 @@ pub struct CommonConfig {
     pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
     pub borrowers_reserve_fraction_ratio: Decimal,
-    pub price_update_period: u64,
     pub is_marketplace_interface_enabled: bool,
 }
 

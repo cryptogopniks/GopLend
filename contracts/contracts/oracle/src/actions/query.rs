@@ -18,11 +18,17 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 
 pub fn query_prices(
     deps: Deps,
-    _env: Env,
+    env: Env,
     collection_addresses: Option<Vec<String>>,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<PriceItem>> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        max_price_update_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
     if let Some(x) = collection_addresses {
         return x
             .iter()
@@ -50,14 +56,24 @@ pub fn query_prices(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
-            let (_address, price_item) = x.unwrap();
+            let (_address, mut price_item) = x.unwrap();
+            price_item.is_outdated = block_time > price_item.update_date + max_price_update_period;
+
             price_item
         })
         .collect())
 }
 
-pub fn query_price_ratio(deps: Deps, _env: Env) -> StdResult<PriceRatioItem> {
-    PRICE_RATIO.load(deps.storage)
+pub fn query_price_ratio(deps: Deps, env: Env) -> StdResult<PriceRatioItem> {
+    let block_time = env.block.time.seconds();
+    let Config {
+        max_price_update_period,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let mut price_ratio = PRICE_RATIO.load(deps.storage)?;
+    price_ratio.is_outdated = block_time > price_ratio.update_date + max_price_update_period;
+
+    Ok(price_ratio)
 }
 
 pub fn query_block_time(_deps: Deps, env: Env) -> StdResult<u64> {

@@ -544,8 +544,6 @@ pub mod offchain {
         main_currency: &Currency<Token>,
         collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
         prices: &[PriceItem],
-        block_time: u64,
-        price_update_period: u64,
     ) -> StdResult<Option<Uint128>> {
         let mut is_price_outdated = false;
 
@@ -559,7 +557,7 @@ pub mod offchain {
                         val: collection_address.to_string(),
                     })?;
 
-                if block_time - price_item.price_update_date > price_update_period {
+                if price_item.is_outdated {
                     is_price_outdated = true;
                 }
 

@@ -6,7 +6,9 @@ use goplend_base::{
     error::ContractError,
     oracle::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME, LOG, LOG_COUNTER, MIN_PRICE_UPDATE_PERIOD},
+        state::{
+            CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER, MAX_PRICE_UPDATE_PERIOD,
+        },
         types::Config,
     },
 };
@@ -43,9 +45,10 @@ pub fn try_instantiate(
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
             controller,
-            min_price_update_period: msg
-                .min_price_update_period
-                .unwrap_or(MIN_PRICE_UPDATE_PERIOD),
+            execution_cooldown: msg.execution_cooldown.unwrap_or(EXECUTION_COOLDOWN),
+            max_price_update_period: msg
+                .max_price_update_period
+                .unwrap_or(MAX_PRICE_UPDATE_PERIOD),
         },
     )?;
 

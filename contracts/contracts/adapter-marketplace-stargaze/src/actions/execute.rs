@@ -10,13 +10,12 @@ use goplend_base::{
         dex::stargaze::types::Route,
         marketplace::stargaze::{
             state::{CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-            types::{Config, TransferAdminState},
+            types::{Config, MarketplaceVersion, TransferAdminState},
         },
     },
-    assets::{Currency, TokenUnverified},
     converters::u128_to_dec,
     error::ContractError,
-    lending_platform::types::{BidType, BiddedCollateralItem},
+    lending_platform::types::{BidType, BiddedCollateralItem, CommonConfig},
     oracle::types::PriceRatioItem,
     utils::{
         check_funds, get_collection_operator_approvals, get_transfer_msg, unwrap_field, AuthType,
@@ -68,12 +67,12 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    lending_platform: Option<String>,
+    lending_platform_main: Option<String>,
+    lending_platform_stable: Option<String>,
     oracle: Option<String>,
     marketplace: Option<String>,
-    dex: Option<String>,
-    main_currency: Option<Currency<TokenUnverified>>,
-    price_update_period: Option<u64>,
+    adapter_dex: Option<String>,
+    marketplace_version: Option<MarketplaceVersion>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -101,9 +100,15 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = lending_platform {
+    if let Some(x) = lending_platform_main {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.lending_platform = Some(deps.api.addr_validate(&x)?);
+        config.lending_platform_main = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = lending_platform_stable {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -119,21 +124,15 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = dex {
+    if let Some(x) = adapter_dex {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.dex = Some(deps.api.addr_validate(&x)?);
+        config.adapter_dex = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
-    if let Some(x) = main_currency {
+    if let Some(x) = marketplace_version {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
-        is_config_updated = true;
-    }
-
-    if let Some(x) = price_update_period {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.price_update_period = x;
+        config.marketplace_version = x;
         is_config_updated = true;
     }
 
@@ -147,6 +146,7 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
+// TODO: support different marketplace versions
 pub fn try_accept_offers(
     deps: DepsMut,
     env: Env,
@@ -155,24 +155,23 @@ pub fn try_accept_offers(
     route: Route,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let Config {
+        lending_platform_main,
+        lending_platform_stable,
+        marketplace,
+        oracle,
+        adapter_dex,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let marketplace = &unwrap_field(marketplace, "marketplace")?;
+
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: vec![CONFIG.load(deps.storage)?.lending_platform],
+            allowlist: vec![lending_platform_main.clone(), lending_platform_stable],
         },
     )?;
-
-    let block_time = env.block.time.seconds();
-    let Config {
-        marketplace,
-        oracle,
-        dex,
-        main_currency,
-        price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
     // check operator and add approvals if it's required
     let mut collection_list: Vec<String> = bidded_collateral_item_list
@@ -250,6 +249,12 @@ pub fn try_accept_offers(
         msg_list.push(msg);
     }
 
+    // query main currency
+    let CommonConfig { main_currency, .. } = deps.querier.query_wasm_smart(
+        unwrap_field(lending_platform_main, "lending_platform_main")?,
+        &goplend_base::lending_platform::msg::QueryMsg::QueryCommonConfig {},
+    )?;
+
     match route {
         Route::Empty => {
             // send liquidated value to platform
@@ -261,18 +266,19 @@ pub fn try_accept_offers(
         }
         _ => {
             let oracle = &unwrap_field(oracle, "oracle")?;
-            let dex = &unwrap_field(dex, "dex")?;
+            let adapter_dex = &unwrap_field(adapter_dex, "adapter_dex")?;
 
             // query price ratio
             let PriceRatioItem {
                 value: price_ratio,
-                update_date: price_update_date,
+                is_outdated,
+                ..
             } = deps.querier.query_wasm_smart(
                 oracle,
                 &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
             )?;
 
-            if block_time - price_update_date > price_update_period {
+            if is_outdated {
                 Err(ContractError::OutdatedPrice {
                     val: price_ratio.to_string(),
                 })?;
@@ -282,7 +288,7 @@ pub fn try_accept_offers(
                 (u128_to_dec(liquidated_value) / price_ratio).to_uint_floor();
 
             let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: dex.to_string(),
+                contract_addr: adapter_dex.to_string(),
                 msg: to_json_binary(
                     &goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::Swap {
                         route,

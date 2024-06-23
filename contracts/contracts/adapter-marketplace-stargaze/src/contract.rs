@@ -38,24 +38,24 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
             oracle,
             marketplace,
-            dex,
-            main_currency,
-            price_update_period,
+            adapter_dex,
+            marketplace_version,
         } => e::try_update_config(
             deps,
             env,
             info,
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
             oracle,
             marketplace,
-            dex,
-            main_currency,
-            price_update_period,
+            adapter_dex,
+            marketplace_version,
         ),
 
         ExecuteMsg::AcceptOffers {
@@ -72,13 +72,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
         QueryMsg::QueryOffersByCollectionAddressList {
-            is_usd_price_required,
+            platform_type,
             start_after,
             limit,
         } => to_json_binary(&q::query_offers_by_collection_address_list(
             deps,
             env,
-            is_usd_price_required,
+            platform_type,
             start_after,
             limit,
         )?),

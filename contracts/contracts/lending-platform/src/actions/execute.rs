@@ -370,7 +370,7 @@ pub fn try_deposit_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_item.price_update_date > common_config.price_update_period {
+        if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -504,7 +504,6 @@ pub fn try_withdraw_collateral(
     }
 
     // query collection prices
-    let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
@@ -565,7 +564,7 @@ pub fn try_withdraw_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_item.price_update_date > common_config.price_update_period {
+        if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
@@ -1332,13 +1331,13 @@ pub fn try_liquidate(
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let scheduler = unwrap_field(address_config.scheduler, "scheduler")?;
+    let adapter_scheduler = unwrap_field(address_config.adapter_scheduler, "adapter_scheduler")?;
 
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: vec![Some(scheduler)],
+            allowlist: vec![Some(adapter_scheduler)],
         },
     )?;
 
@@ -1422,7 +1421,8 @@ pub fn try_liquidate(
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
     {
-        let marketplace = unwrap_field(address_config.marketplace, "marketplace")?;
+        let adapter_marketplace =
+            unwrap_field(address_config.adapter_marketplace, "adapter_marketplace")?;
 
         // check operator and add approvals if it's required
         let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
@@ -1453,10 +1453,10 @@ pub fn try_liquidate(
                 deps.querier,
                 &collection_list,
                 env.contract.address,
-                &marketplace,
+                &adapter_marketplace,
             )?)
             .add_message(WasmMsg::Execute {
-                contract_addr: marketplace.to_string(),
+                contract_addr: adapter_marketplace.to_string(),
                 msg: accept_bids_msg,
                 funds: vec![],
             });
@@ -1511,8 +1511,8 @@ pub fn try_update_address_config(
     worker: Option<String>,
     oracle: Option<String>,
     minter: Option<String>,
-    scheduler: Option<String>,
-    marketplace: Option<String>,
+    adapter_scheduler: Option<String>,
+    adapter_marketplace: Option<String>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1555,15 +1555,15 @@ pub fn try_update_address_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = scheduler {
+    if let Some(x) = adapter_scheduler {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.scheduler = Some(deps.api.addr_validate(&x)?);
+        config.adapter_scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
-    if let Some(x) = marketplace {
+    if let Some(x) = adapter_marketplace {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.marketplace = Some(deps.api.addr_validate(&x)?);
+        config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -1652,7 +1652,6 @@ pub fn try_update_common_config(
     unbonding_period: Option<u64>,
     collateral_min_value: Option<Uint128>,
     borrowers_reserve_fraction_ratio: Option<Decimal>,
-    price_update_period: Option<u64>,
     is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
@@ -1700,12 +1699,6 @@ pub fn try_update_common_config(
     if let Some(x) = borrowers_reserve_fraction_ratio {
         check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.borrowers_reserve_fraction_ratio = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = price_update_period {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.price_update_period = x;
         is_config_updated = true;
     }
 

@@ -4,10 +4,9 @@ use cw2::set_contract_version;
 use goplend_base::{
     adapters::marketplace::stargaze::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME, PRICE_UPDATE_PERIOD},
-        types::Config,
+        state::{CONFIG, CONTRACT_NAME},
+        types::{Config, MarketplaceVersion},
     },
-    assets::Currency,
     error::ContractError,
 };
 
@@ -22,10 +21,6 @@ pub fn try_instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     let sender = &info.sender;
-    let main_currency = Currency::new(
-        &msg.main_currency.token.verify(deps.api)?,
-        msg.main_currency.decimals,
-    );
 
     CONFIG.save(
         deps.storage,
@@ -36,8 +31,12 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            lending_platform: msg
-                .lending_platform
+            lending_platform_main: msg
+                .lending_platform_main
+                .map(|x| deps.api.addr_validate(&x))
+                .transpose()?,
+            lending_platform_stable: msg
+                .lending_platform_stable
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
             oracle: msg.oracle.map(|x| deps.api.addr_validate(&x)).transpose()?,
@@ -45,9 +44,11 @@ pub fn try_instantiate(
                 .marketplace
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
-            dex: msg.dex.map(|x| deps.api.addr_validate(&x)).transpose()?,
-            main_currency,
-            price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
+            adapter_dex: msg
+                .adapter_dex
+                .map(|x| deps.api.addr_validate(&x))
+                .transpose()?,
+            marketplace_version: msg.marketplace_version.unwrap_or(MarketplaceVersion::V1),
         },
     )?;
 

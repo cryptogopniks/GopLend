@@ -10,7 +10,8 @@ use super::types::{PriceItem, PriceRatioItem};
 
 pub const CONTRACT_NAME: &str = "goplend-oracle";
 
-pub const MIN_PRICE_UPDATE_PERIOD: u64 = 4;
+pub const EXECUTION_COOLDOWN: u64 = 4;
+pub const MAX_PRICE_UPDATE_PERIOD: u64 = 30;
 pub const LOG_COUNTER: u8 = 0;
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;

@@ -40,20 +40,22 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
             offchain_clock,
             clock_source,
-            min_clock_period,
+            execution_cooldown,
         } => e::try_update_config(
             deps,
             env,
             info,
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
             offchain_clock,
             clock_source,
-            min_clock_period,
+            execution_cooldown,
         ),
     }
 }

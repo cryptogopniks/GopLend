@@ -38,7 +38,7 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform,
+            lending_platform_stable,
             adapter_marketplace,
             recover_address,
             max_price_impact,
@@ -48,7 +48,7 @@ pub fn execute(
             info,
             admin,
             worker,
-            lending_platform,
+            lending_platform_stable,
             adapter_marketplace,
             recover_address,
             max_price_impact,

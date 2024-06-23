@@ -14,7 +14,7 @@ use goplend_base::{
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
             LIQUIDATION_BIDS, LIQUIDATORS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
-            PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSALS, RATE_CONFIG, UNBONDERS,
+            PLATFORM_REVENUE, PROPOSALS, RATE_CONFIG, UNBONDERS,
         },
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig,
@@ -88,8 +88,7 @@ pub fn query_borrower_list(
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryBorrowersResponseItem>> {
-    let block_time_ceiled =
-        math::calc_block_time_ceiled(env.block.time.seconds(), PRICE_UPDATE_PERIOD);
+    let shifted_block_time = math::calc_shifted_block_time(env.block.time.seconds());
     let RateConfig { borrow_apr, .. } = RATE_CONFIG.load(deps.storage)?;
 
     let limit = limit
@@ -115,7 +114,7 @@ pub fn query_borrower_list(
                 borrow_apr,
                 borrower.accumulated_loan,
                 borrower.loan.amount,
-                block_time_ceiled,
+                shifted_block_time,
                 borrower.loan.creation_date,
             );
 
@@ -125,6 +124,7 @@ pub fn query_borrower_list(
 }
 
 pub fn query_borrower(deps: Deps, env: Env, address: String) -> StdResult<Borrower> {
+    let shifted_block_time = math::calc_shifted_block_time(env.block.time.seconds());
     let mut borrower = BORROWERS
         .load(deps.storage, &deps.api.addr_validate(&address)?)
         .unwrap_or_default();
@@ -133,7 +133,7 @@ pub fn query_borrower(deps: Deps, env: Env, address: String) -> StdResult<Borrow
         RATE_CONFIG.load(deps.storage)?.borrow_apr,
         borrower.accumulated_loan,
         borrower.loan.amount,
-        math::calc_block_time_ceiled(env.block.time.seconds(), PRICE_UPDATE_PERIOD),
+        shifted_block_time,
         borrower.loan.creation_date,
     );
 
@@ -533,8 +533,7 @@ pub fn query_ltv_list(
                             val: collection_address.to_string(),
                         })?;
 
-                    if block_time - price_item.price_update_date > common_config.price_update_period
-                    {
+                    if price_item.is_outdated {
                         Err(ContractError::OutdatedPrice {
                             val: collection_address.to_string(),
                         })?;
@@ -619,7 +618,7 @@ pub fn query_conditional_ltv(
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_item.price_update_date > common_config.price_update_period {
+            if price_item.is_outdated {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;
@@ -747,7 +746,7 @@ pub fn query_available_to_borrow(
                     val: collection_address.to_string(),
                 })?;
 
-            if block_time - price_item.price_update_date > common_config.price_update_period {
+            if price_item.is_outdated {
                 Err(ContractError::OutdatedPrice {
                     val: collection_address.to_string(),
                 })?;

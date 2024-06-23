@@ -88,7 +88,8 @@ fn default() -> StdResult<()> {
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: block_time,
+            update_date: block_time,
+            is_outdated: false,
         },
         PriceItem {
             address: ProjectNft::Pinjeons.into(),
@@ -106,7 +107,8 @@ fn default() -> StdResult<()> {
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: block_time,
+            update_date: block_time,
+            is_outdated: false,
         },
     ]);
 

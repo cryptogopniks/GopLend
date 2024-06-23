@@ -27,10 +27,11 @@ pub trait AdapterSchedulerCommonExtension {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
-        min_clock_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_scheduler_common_try_push(
@@ -68,10 +69,11 @@ impl AdapterSchedulerCommonExtension for Project {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<ClockSource>,
-        min_clock_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -80,12 +82,15 @@ impl AdapterSchedulerCommonExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
-                    lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                    lending_platform_main: lending_platform_main.as_ref().map(|x| x.to_string()),
+                    lending_platform_stable: lending_platform_stable
+                        .as_ref()
+                        .map(|x| x.to_string()),
                     offchain_clock: offchain_clock
                         .as_ref()
                         .map(|x| x.iter().map(|y| y.to_string()).collect()),
                     clock_source: clock_source.to_owned(),
-                    min_clock_period: min_clock_period.to_owned(),
+                    execution_cooldown: execution_cooldown.to_owned(),
                 },
                 &[],
             )

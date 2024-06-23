@@ -26,7 +26,7 @@ pub fn try_set_prices(
     let block_time = env.block.time.seconds();
     let Config {
         controller,
-        min_price_update_period,
+        execution_cooldown,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -45,7 +45,7 @@ pub fn try_set_prices(
     } = unwrap_field(LOG.back(deps.storage)?, "log")?;
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
-    if block_time < block_time_prev + min_price_update_period {
+    if block_time < block_time_prev + execution_cooldown {
         Err(ContractError::EarlyExecution)?;
     }
 
@@ -83,11 +83,10 @@ pub fn try_set_prices(
         let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
         let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
-        if let Ok(PriceItem {
-            price_update_date, ..
-        }) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+        if let Ok(PriceItem { update_date, .. }) =
+            PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
         {
-            if price_update_date == block_time {
+            if update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
             }
         }
@@ -99,7 +98,8 @@ pub fn try_set_prices(
                 address: collection_address.to_owned(),
                 price,
                 usd_price,
-                price_update_date: block_time,
+                update_date: block_time,
+                is_outdated: false,
             },
         )?;
     }
@@ -109,6 +109,7 @@ pub fn try_set_prices(
         &PriceRatioItem {
             value: price_ratio,
             update_date: block_time,
+            is_outdated: false,
         },
     )?;
 
@@ -127,7 +128,7 @@ pub fn try_update_prices(
     let block_time = env.block.time.seconds();
     let Config {
         controller,
-        min_price_update_period,
+        execution_cooldown,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -146,7 +147,7 @@ pub fn try_update_prices(
     } = unwrap_field(LOG.back(deps.storage)?, "log")?;
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
-    if block_time < block_time_prev + min_price_update_period {
+    if block_time < block_time_prev + execution_cooldown {
         Err(ContractError::EarlyExecution)?;
     }
 
@@ -182,11 +183,10 @@ pub fn try_update_prices(
         let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
         let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
-        if let Ok(PriceItem {
-            price_update_date, ..
-        }) = PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+        if let Ok(PriceItem { update_date, .. }) =
+            PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
         {
-            if price_update_date == block_time {
+            if update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
             }
         }
@@ -198,7 +198,8 @@ pub fn try_update_prices(
                 address: collection_address.to_owned(),
                 price,
                 usd_price,
-                price_update_date: block_time,
+                update_date: block_time,
+                is_outdated: false,
             },
         )?;
     }
@@ -208,6 +209,7 @@ pub fn try_update_prices(
         &PriceRatioItem {
             value: price_ratio,
             update_date: block_time,
+            is_outdated: false,
         },
     )?;
 
@@ -280,7 +282,8 @@ pub fn try_update_config(
     admin: Option<String>,
     worker: Option<String>,
     controller: Option<Vec<String>>,
-    min_price_update_period: Option<u64>,
+    execution_cooldown: Option<u64>,
+    max_price_update_period: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -318,9 +321,15 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = min_price_update_period {
+    if let Some(x) = execution_cooldown {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.min_price_update_period = x;
+        config.execution_cooldown = x;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = max_price_update_period {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.max_price_update_period = x;
         is_config_updated = true;
     }
 

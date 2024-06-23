@@ -68,7 +68,7 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    lending_platform: Option<String>,
+    lending_platform_stable: Option<String>,
     adapter_marketplace: Option<String>,
     recover_address: Option<String>,
     max_price_impact: Option<Decimal>,
@@ -99,9 +99,9 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = lending_platform {
+    if let Some(x) = lending_platform_stable {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.lending_platform = Some(deps.api.addr_validate(&x)?);
+        config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -149,7 +149,7 @@ pub fn try_swap(
         },
     )?;
     let Config {
-        lending_platform,
+        lending_platform_stable,
         adapter_marketplace,
         recover_address,
         ..
@@ -162,7 +162,8 @@ pub fn try_swap(
         },
     )?;
 
-    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
+    let lending_platform_stable =
+        &unwrap_field(lending_platform_stable, "lending_platform_stable")?;
     let recover_address = &unwrap_field(recover_address, "recover_address")?;
 
     if asset_amount.is_zero() {
@@ -180,7 +181,7 @@ pub fn try_swap(
                 price_ratio,
                 max_price_impact,
                 timeout_timestamp_ns,
-                lending_platform,
+                lending_platform_stable,
                 recover_address,
             );
 
@@ -200,7 +201,7 @@ pub fn try_swap(
                 price_ratio,
                 max_price_impact,
                 timeout_timestamp_ns,
-                lending_platform,
+                lending_platform_stable,
                 recover_address,
             );
 
@@ -220,7 +221,7 @@ pub fn try_swap(
                 price_ratio,
                 max_price_impact,
                 timeout_timestamp_ns,
-                lending_platform,
+                lending_platform_stable,
                 recover_address,
             );
 
@@ -240,7 +241,7 @@ pub fn try_swap(
                 price_ratio,
                 max_price_impact,
                 timeout_timestamp_ns,
-                lending_platform,
+                lending_platform_stable,
                 recover_address,
             );
 

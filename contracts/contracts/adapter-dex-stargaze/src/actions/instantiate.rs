@@ -32,8 +32,8 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            lending_platform: msg
-                .lending_platform
+            lending_platform_stable: msg
+                .lending_platform_stable
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
             adapter_marketplace: msg

@@ -1,18 +1,28 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 
-use crate::assets::{Currency, Token};
+#[cw_serde]
+pub enum PlatformType {
+    Main,
+    Stable,
+}
+
+#[cw_serde]
+pub enum MarketplaceVersion {
+    V1,
+    V2,
+}
 
 #[cw_serde]
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub lending_platform: Option<Addr>,
+    pub lending_platform_main: Option<Addr>,
+    pub lending_platform_stable: Option<Addr>,
     pub oracle: Option<Addr>,
     pub marketplace: Option<Addr>,
-    pub dex: Option<Addr>,
-    pub main_currency: Currency<Token>,
-    pub price_update_period: u64,
+    pub adapter_dex: Option<Addr>,
+    pub marketplace_version: MarketplaceVersion,
 }
 
 #[cw_serde]

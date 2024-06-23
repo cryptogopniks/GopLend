@@ -11,7 +11,7 @@ use goplend_base::{
             ADDRESS_CONFIG, BALANCES, BID_MIN_RATE, BORROWERS_RESERVE_FRACTION_RATIO, BORROW_APR,
             BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, COMMON_CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
             DISCOUNT_MIN_RATE, IS_LOCKED, IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
-            PLATFORM_REVENUE, PRICE_UPDATE_PERIOD, PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
+            PLATFORM_REVENUE, PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
         },
         types::{AddressConfig, Balances, CommonConfig, RateConfig},
     },
@@ -53,12 +53,12 @@ pub fn try_instantiate(
                 .unwrap_or(Some(sender.to_owned())),
             oracle: msg.oracle.map(|x| deps.api.addr_validate(&x)).transpose()?,
             minter: msg.minter.map(|x| deps.api.addr_validate(&x)).transpose()?,
-            scheduler: msg
-                .scheduler
+            adapter_scheduler: msg
+                .adapter_scheduler
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
-            marketplace: msg
-                .marketplace
+            adapter_marketplace: msg
+                .adapter_marketplace
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
         },
@@ -94,7 +94,6 @@ pub fn try_instantiate(
             borrowers_reserve_fraction_ratio: msg
                 .borrowers_reserve_fraction_ratio
                 .unwrap_or(str_to_dec(BORROWERS_RESERVE_FRACTION_RATIO)),
-            price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
             is_marketplace_interface_enabled: msg
                 .is_marketplace_interface_enabled
                 .unwrap_or(IS_MARKETPLACE_INTERFACE_ENABLED),

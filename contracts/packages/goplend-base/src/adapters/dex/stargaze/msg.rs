@@ -6,7 +6,7 @@ use crate::adapters::dex::stargaze::types::Route;
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub lending_platform: Option<String>,
+    pub lending_platform_stable: Option<String>,
     pub adapter_marketplace: Option<String>,
     pub recover_address: Option<String>,
     pub max_price_impact: Option<Decimal>,
@@ -26,7 +26,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        lending_platform: Option<String>,
+        lending_platform_stable: Option<String>,
         adapter_marketplace: Option<String>,
         recover_address: Option<String>,
         max_price_impact: Option<Decimal>,
@@ -35,7 +35,7 @@ pub enum ExecuteMsg {
     // adapter-marketplace
     Swap {
         route: Route,
-        price_ratio: Decimal,
+        price_ratio: Decimal, // price impact must be included
     },
 }
 

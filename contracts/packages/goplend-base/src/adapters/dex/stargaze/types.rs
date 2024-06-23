@@ -14,7 +14,7 @@ pub enum Route {
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub lending_platform: Option<Addr>,
+    pub lending_platform_stable: Option<Addr>,
     pub adapter_marketplace: Option<Addr>,
     pub recover_address: Option<Addr>,
     pub max_price_impact: Decimal,

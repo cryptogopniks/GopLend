@@ -4,8 +4,6 @@ use crate::adapters::marketplace::stargaze::types::{Config, TransferAdminState};
 
 pub const CONTRACT_NAME: &str = "goplend-adapter-marketplace-stargaze";
 
-pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
-
 pub const PAGINATION_MAX_LIMIT: u32 = 100;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 10;
 

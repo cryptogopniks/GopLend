@@ -51,7 +51,8 @@ pub fn execute(
             admin,
             worker,
             controller,
-            min_price_update_period,
+            execution_cooldown,
+            max_price_update_period,
         } => e::try_update_config(
             deps,
             env,
@@ -59,7 +60,8 @@ pub fn execute(
             admin,
             worker,
             controller,
-            min_price_update_period,
+            execution_cooldown,
+            max_price_update_period,
         ),
     }
 }

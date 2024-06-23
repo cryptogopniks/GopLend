@@ -7,7 +7,8 @@ use crate::oracle::types::RawPriceItem;
 pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub controller: Option<Vec<String>>,
-    pub min_price_update_period: Option<u64>,
+    pub execution_cooldown: Option<u64>,
+    pub max_price_update_period: Option<u64>,
 }
 
 #[cw_serde]
@@ -25,7 +26,8 @@ pub enum ExecuteMsg {
         admin: Option<String>,
         worker: Option<String>,
         controller: Option<Vec<String>>,
-        min_price_update_period: Option<u64>,
+        execution_cooldown: Option<u64>,
+        max_price_update_period: Option<u64>,
     },
 
     // controller

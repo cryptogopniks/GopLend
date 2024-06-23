@@ -38,8 +38,9 @@ pub const COLLATERAL_MIN_VALUE: u128 = 500_000_000;
 
 pub const BORROWERS_RESERVE_FRACTION_RATIO: &str = "0.6";
 
-pub const PRICE_UPDATE_PERIOD: u64 = 5 * 60; // in seconds
 pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
+
+pub const BLOCK_TIME_OFFSET: u64 = 60;
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;

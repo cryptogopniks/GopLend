@@ -49,7 +49,8 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: 0,
+            update_date: 0,
+            is_outdated: false,
         },
         PriceItem {
             address: ProjectNft::Pinjeons.into(),
@@ -67,7 +68,8 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: 1_000,
+            update_date: 1_000,
+            is_outdated: false,
         },
     ];
 
@@ -423,7 +425,8 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: 0,
+            update_date: 0,
+            is_outdated: false,
         },
         PriceItem {
             address: ProjectNft::Pinjeons.into(),
@@ -441,7 +444,8 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                     ProjectCoin::Usdc.get_decimals(),
                 ),
             ),
-            price_update_date: 1_000,
+            update_date: 1_000,
+            is_outdated: false,
         },
     ];
 
