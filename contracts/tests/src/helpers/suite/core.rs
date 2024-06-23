@@ -252,7 +252,6 @@ impl Project {
                     ProjectCoin::Stars.get_decimals(),
                 ),
                 &None,
-                &None,
             );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
             adapter_marketplace_kujira_code_id,
@@ -376,7 +375,6 @@ impl Project {
                 &Some(project.get_oracle_address()),
                 &Some(project.get_stargaze_mocks_marketplace_address()),
                 &Some(project.get_adapter_dex_stargaze_mocks_address()),
-                &None,
                 &None,
                 &None,
             )

@@ -7612,7 +7612,6 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
                 ProjectCoin::Stars.get_decimals(),
             )),
             &None,
-            &None,
         )
         .unwrap();
 

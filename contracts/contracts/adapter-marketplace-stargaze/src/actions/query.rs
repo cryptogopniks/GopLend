@@ -39,7 +39,6 @@ pub fn query_offers_by_collection_address_list(
         lending_platform,
         oracle,
         marketplace,
-        price_impact,
         price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
@@ -47,8 +46,7 @@ pub fn query_offers_by_collection_address_list(
     let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
-    // TODO: remove price_impact
-    let (price_ratio, _price_impact) = if is_usd_price_required {
+    let price_ratio = if is_usd_price_required {
         let PriceRatioItem { value, update_date } = deps.querier.query_wasm_smart(
             oracle,
             &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
@@ -60,9 +58,9 @@ pub fn query_offers_by_collection_address_list(
             })?;
         }
 
-        (value, price_impact)
+        value
     } else {
-        (Decimal::one(), Decimal::zero())
+        Decimal::one()
     };
 
     let collection_list: Vec<QueryCollectionsResponseItem> = deps.querier.query_wasm_smart(

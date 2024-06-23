@@ -43,7 +43,6 @@ pub fn execute(
             marketplace,
             dex,
             main_currency,
-            price_impact,
             price_update_period,
         } => e::try_update_config(
             deps,
@@ -56,7 +55,6 @@ pub fn execute(
             marketplace,
             dex,
             main_currency,
-            price_impact,
             price_update_period,
         ),
 

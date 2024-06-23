@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Decimal, StdResult};
+use cosmwasm_std::{Addr, StdResult};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
@@ -34,7 +34,6 @@ pub trait AdapterMarketplaceStargazeExtension {
         marketplace: &Option<Addr>,
         dex: &Option<Addr>,
         main_currency: &Option<Currency<TokenUnverified>>,
-        price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse>;
 
@@ -82,7 +81,6 @@ impl AdapterMarketplaceStargazeExtension for Project {
         marketplace: &Option<Addr>,
         dex: &Option<Addr>,
         main_currency: &Option<Currency<TokenUnverified>>,
-        price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -97,7 +95,6 @@ impl AdapterMarketplaceStargazeExtension for Project {
                     marketplace: marketplace.as_ref().map(|x| x.to_string()),
                     dex: dex.as_ref().map(|x| x.to_string()),
                     main_currency: main_currency.to_owned(),
-                    price_impact: price_impact.to_owned(),
                     price_update_period: price_update_period.to_owned(),
                 },
                 &[],

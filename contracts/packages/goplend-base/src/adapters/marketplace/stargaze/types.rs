@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Decimal};
+use cosmwasm_std::Addr;
 
 use crate::assets::{Currency, Token};
 
@@ -12,7 +12,6 @@ pub struct Config {
     pub marketplace: Option<Addr>,
     pub dex: Option<Addr>,
     pub main_currency: Currency<Token>,
-    pub price_impact: Decimal,
     pub price_update_period: u64,
 }
 

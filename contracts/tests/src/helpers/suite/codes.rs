@@ -1,4 +1,4 @@
-use cosmwasm_std::{coin, coins, Addr, Coin, Decimal, StdResult, Uint128};
+use cosmwasm_std::{coin, coins, Addr, Coin, StdResult, Uint128};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
 use serde::Serialize;
@@ -116,7 +116,6 @@ pub trait WithCodes {
         marketplace: &Option<Addr>,
         dex: &Option<Addr>,
         main_currency: &Currency<TokenUnverified>,
-        price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> Addr;
 
@@ -496,7 +495,6 @@ impl WithCodes for Project {
         marketplace: &Option<Addr>,
         dex: &Option<Addr>,
         main_currency: &Currency<TokenUnverified>,
-        price_impact: &Option<Decimal>,
         price_update_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
@@ -509,7 +507,6 @@ impl WithCodes for Project {
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
                 dex: dex.as_ref().map(|x| x.to_string()),
                 main_currency: main_currency.to_owned(),
-                price_impact: price_impact.to_owned(),
                 price_update_period: price_update_period.to_owned(),
             },
         )

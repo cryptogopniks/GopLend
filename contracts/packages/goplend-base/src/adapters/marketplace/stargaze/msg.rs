@@ -1,5 +1,4 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Decimal;
 
 use crate::{
     adapters::dex::stargaze::types::Route,
@@ -15,7 +14,6 @@ pub struct InstantiateMsg {
     pub marketplace: Option<String>,
     pub dex: Option<String>,
     pub main_currency: Currency<TokenUnverified>,
-    pub price_impact: Option<Decimal>,
     pub price_update_period: Option<u64>,
 }
 
@@ -38,7 +36,6 @@ pub enum ExecuteMsg {
         marketplace: Option<String>,
         dex: Option<String>,
         main_currency: Option<Currency<TokenUnverified>>,
-        price_impact: Option<Decimal>,
         price_update_period: Option<u64>,
     },
 

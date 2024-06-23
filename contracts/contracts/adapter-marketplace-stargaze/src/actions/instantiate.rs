@@ -4,11 +4,10 @@ use cw2::set_contract_version;
 use goplend_base::{
     adapters::marketplace::stargaze::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME, PRICE_IMPACT, PRICE_UPDATE_PERIOD},
+        state::{CONFIG, CONTRACT_NAME, PRICE_UPDATE_PERIOD},
         types::Config,
     },
     assets::Currency,
-    converters::str_to_dec,
     error::ContractError,
 };
 
@@ -48,7 +47,6 @@ pub fn try_instantiate(
                 .transpose()?,
             dex: msg.dex.map(|x| deps.api.addr_validate(&x)).transpose()?,
             main_currency,
-            price_impact: msg.price_impact.unwrap_or(str_to_dec(PRICE_IMPACT)),
             price_update_period: msg.price_update_period.unwrap_or(PRICE_UPDATE_PERIOD),
         },
     )?;
