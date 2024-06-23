@@ -12,7 +12,7 @@ use goplend_base::{
         },
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, TokenItem, Vault,
         },
     },
     oracle::types::PriceItem,
@@ -232,6 +232,7 @@ pub fn increase_platform_revenue(
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
+    block_time: u64,
 ) -> StdResult<(Uint128, Uint128)> {
     // bids + offers
     let mut current_liquidation_value = Uint128::zero();
@@ -240,7 +241,7 @@ pub fn update_liquidation_storages(
 
     for BiddedCollateralItem {
         collection,
-        token_id,
+        token_item,
         owner,
         liquidator,
         liquidation_price,
@@ -255,7 +256,7 @@ pub fn update_liquidation_storages(
         if matches!(bid_type, BidType::LiquidationBid) && collaterals_by_liquidator.is_none() {
             collaterals.push(Collateral {
                 owner: liquidator.to_owned(),
-                token_id_list: vec![],
+                token_item_list: vec![],
             });
         }
 
@@ -263,14 +264,17 @@ pub fn update_liquidation_storages(
             .into_iter()
             .map(|mut x| {
                 if x.owner == owner {
-                    x.token_id_list.retain(|id| id != token_id);
+                    x.token_item_list.retain(|item| item.id != token_item.id);
                 } else if x.owner == liquidator {
-                    x.token_id_list.push(token_id.to_string());
+                    x.token_item_list.push(TokenItem {
+                        id: token_item.id.clone(),
+                        creation_date: block_time,
+                    });
                 }
 
                 x
             })
-            .filter(|x| !x.token_id_list.is_empty())
+            .filter(|x| !x.token_item_list.is_empty())
             .collect();
 
         COLLATERALS.save(storage, collection, &collaterals)?;
@@ -287,9 +291,9 @@ pub fn update_liquidation_storages(
             .load(storage, collection)?
             .into_iter()
             .map(|mut bid| {
-                if bid.token_id_list.contains(token_id) {
+                if bid.token_id_list.contains(&token_item.id) {
                     bid.amount -= liquidation_price;
-                    bid.token_id_list.retain(|id| id != token_id);
+                    bid.token_id_list.retain(|id| id != &token_item.id);
                 }
 
                 bid
@@ -561,7 +565,7 @@ pub mod offchain {
 
                 let price = choose_price(&main_currency, &price_item);
 
-                Ok(acc? + price * Uint128::new(collateral.token_id_list.len() as u128))
+                Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
             },
         )?;
 
@@ -591,7 +595,7 @@ pub mod offchain {
                             && bid
                                 .token_id_list
                                 .iter()
-                                .any(|y| collateral.token_id_list.contains(y))
+                                .any(|y| collateral.token_item_list.iter().any(|z| &z.id == y))
                     },
                 ) {
                     collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));

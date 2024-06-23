@@ -10,7 +10,10 @@ use strum::IntoEnumIterator;
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
-    lending_platform::state::{BGL_CURRENCY_DECIMALS, CHAIN_ID_STARGAZE_MAIN},
+    lending_platform::{
+        state::{BGL_CURRENCY_DECIMALS, CHAIN_ID_STARGAZE_MAIN},
+        types::TokenItem,
+    },
     minter::{
         state::{CW20_NAME, CW20_SYMBOL},
         types::QueryCurrenciesFromCreatorResponse,
@@ -818,5 +821,26 @@ pub fn add_token_to_exec_msg<T: Serialize + std::fmt::Debug>(
                 .execute_contract(sender.into(), address.to_owned(), &wasm_msg, &[])
                 .map_err(parse_err)
         }
+    }
+}
+
+pub fn to_string_vec(str_vec: &[&str]) -> Vec<String> {
+    str_vec.into_iter().map(|x| x.to_string()).collect()
+}
+
+pub fn to_token_item_list(str_vec: &[&str], date: u64) -> Vec<TokenItem> {
+    str_vec
+        .into_iter()
+        .map(|x| TokenItem {
+            id: x.to_string(),
+            creation_date: date,
+        })
+        .collect()
+}
+
+pub fn to_token_item(id: &str) -> TokenItem {
+    TokenItem {
+        id: id.to_string(),
+        creation_date: 0,
     }
 }

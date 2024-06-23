@@ -21,7 +21,7 @@ use goplend_base::{
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
             Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
-            Proposal, ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
+            Proposal, ProposalStatus, ProposalType, TokenItem, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -392,7 +392,7 @@ pub fn try_deposit_collateral(
                         if current_collateral.is_none() {
                             collaterals.push(Collateral {
                                 owner: sender_address.to_owned(),
-                                token_id_list: vec![],
+                                token_item_list: vec![],
                             });
                         }
 
@@ -400,15 +400,22 @@ pub fn try_deposit_collateral(
                             .into_iter()
                             .map(|mut collateral| {
                                 if collateral.owner == sender_address {
-                                    collateral.token_id_list =
-                                        vec![collateral.token_id_list, token_id_list.clone()]
-                                            .concat();
-                                    collateral.token_id_list.sort_unstable();
-                                    collateral.token_id_list.dedup();
+                                    for token_id in &token_id_list {
+                                        if collateral
+                                            .token_item_list
+                                            .iter()
+                                            .all(|x| &x.id != token_id)
+                                        {
+                                            collateral.token_item_list.push(TokenItem {
+                                                id: token_id.to_string(),
+                                                creation_date: block_time,
+                                            });
+                                        }
+                                    }
 
                                     // update collateral value
                                     collateral_value += price
-                                        * Uint128::new(collateral.token_id_list.len() as u128);
+                                        * Uint128::new(collateral.token_item_list.len() as u128);
 
                                     collateral
                                 } else {
@@ -425,7 +432,13 @@ pub fn try_deposit_collateral(
 
                         vec![Collateral {
                             owner: sender_address.clone(),
-                            token_id_list,
+                            token_item_list: token_id_list
+                                .into_iter()
+                                .map(|id| TokenItem {
+                                    id,
+                                    creation_date: block_time,
+                                })
+                                .collect(),
                         }]
                     }
                 };
@@ -567,19 +580,19 @@ pub fn try_withdraw_collateral(
             .map(|mut collateral| {
                 if collateral.owner == sender_address {
                     collateral
-                        .token_id_list
-                        .retain(|id| !token_id_list.contains(id));
+                        .token_item_list
+                        .retain(|item| !token_id_list.contains(&item.id));
 
                     // update collateral value
                     collateral_value +=
-                        price * Uint128::new(collateral.token_id_list.len() as u128);
+                        price * Uint128::new(collateral.token_item_list.len() as u128);
 
                     collateral
                 } else {
                     collateral
                 }
             })
-            .filter(|collateral| !collateral.token_id_list.is_empty())
+            .filter(|collateral| !collateral.token_item_list.is_empty())
             .collect();
 
         if collaterals.is_empty() {
@@ -917,14 +930,18 @@ pub fn try_place_bid(
                 // doesn't allow to place bids on own collateral
                 if cur.owner == sender_address
                     && cur
-                        .token_id_list
+                        .token_item_list
                         .iter()
-                        .any(|id| token_id_list.contains(id))
+                        .any(|item| token_id_list.contains(&item.id))
                 {
                     Err(ContractError::OwnCollateralBids)?;
                 }
 
-                Ok(vec![acc?, cur.token_id_list].concat())
+                Ok(vec![
+                    acc?,
+                    cur.token_item_list.into_iter().map(|x| x.id).collect(),
+                ]
+                .concat())
             })?;
 
         if token_id_list
@@ -1110,14 +1127,18 @@ pub fn try_update_bid(
                 // doesn't allow to place bids on own collateral
                 if cur.owner == sender_address
                     && cur
-                        .token_id_list
+                        .token_item_list
                         .iter()
-                        .any(|id| token_id_list.contains(id))
+                        .any(|item| token_id_list.contains(&item.id))
                 {
                     Err(ContractError::OwnCollateralBids)?;
                 }
 
-                Ok(vec![acc?, cur.token_id_list].concat())
+                Ok(vec![
+                    acc?,
+                    cur.token_item_list.into_iter().map(|x| x.id).collect(),
+                ]
+                .concat())
             })?;
 
         if !token_id_list
@@ -1343,7 +1364,7 @@ pub fn try_liquidate(
         } = BORROWERS.load(deps.storage, &borrower_address)?;
 
         let (current_liquidation_value, current_internal_liquidation_value) =
-            update_liquidation_storages(deps.storage, &liquidation_set)?;
+            update_liquidation_storages(deps.storage, &liquidation_set, block_time)?;
 
         // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;

@@ -193,7 +193,7 @@ pub fn try_accept_offers(
 
     for BiddedCollateralItem {
         collection,
-        token_id,
+        token_item,
         liquidator,
         liquidation_price,
         bid_type,
@@ -207,7 +207,7 @@ pub fn try_accept_offers(
             contract_addr: collection.to_string(),
             msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
                 recipient: env.contract.address.to_string(),
-                token_id: token_id.to_string(),
+                token_id: token_item.id.to_string(),
             })?,
             funds: vec![],
         });
@@ -218,17 +218,23 @@ pub fn try_accept_offers(
         let accept_offer_msg = match bid_type {
             BidType::CollectionOffer => MarketplaceExecuteMsg::AcceptCollectionBid {
                 collection: collection.to_string(),
-                token_id: token_id.parse().map_err(|_| ContractError::CustomError {
-                    val: format!("{} token_id parsing error", token_id),
-                })?,
+                token_id: token_item
+                    .id
+                    .parse()
+                    .map_err(|_| ContractError::CustomError {
+                        val: format!("{} token_id parsing error", token_item.id),
+                    })?,
                 bidder: liquidator.to_string(),
                 finder: None,
             },
             BidType::TokenOffer => MarketplaceExecuteMsg::AcceptBid {
                 collection: collection.to_string(),
-                token_id: token_id.parse().map_err(|_| ContractError::CustomError {
-                    val: format!("{} token_id parsing error", token_id),
-                })?,
+                token_id: token_item
+                    .id
+                    .parse()
+                    .map_err(|_| ContractError::CustomError {
+                        val: format!("{} token_id parsing error", token_item.id),
+                    })?,
                 bidder: liquidator.to_string(),
                 finder: None,
             },

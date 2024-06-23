@@ -8,11 +8,10 @@ use goplend_base::{
 use lending_platform::math;
 use speculoos::assert_that;
 
-use crate::helpers::suite::types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft};
-
-fn to_string_vec(str_vec: Vec<&str>) -> Vec<String> {
-    str_vec.into_iter().map(|x| x.to_string()).collect()
-}
+use crate::helpers::suite::{
+    core::{to_string_vec, to_token_item, to_token_item_list},
+    types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft},
+};
 
 #[test]
 fn match_collaterals_and_bids_default() -> StdResult<()> {
@@ -21,14 +20,14 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             ProjectNft::Gopniks.into(),
             Collateral {
                 owner: ProjectAccount::Owner.into(),
-                token_id_list: to_string_vec(vec!["1", "7", "4"]),
+                token_item_list: to_token_item_list(&["1", "7", "4"], 0),
             },
         ),
         (
             ProjectNft::Pinjeons.into(),
             Collateral {
                 owner: ProjectAccount::Owner.into(),
-                token_id_list: to_string_vec(vec!["1", "8", "2", "5"]),
+                token_item_list: to_token_item_list(&["1", "8", "2", "5"], 0),
             },
         ),
     ];
@@ -72,7 +71,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
     ];
 
-    let collection_and_bid_list: Vec<(Addr, LiquidationBid)> = vec![
+    let collection_and_bid_list: &[(Addr, LiquidationBid)] = &[
         // gopnics
         // too small
         (
@@ -80,7 +79,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 100,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["1"]),
+                token_id_list: to_string_vec(&["1"]),
                 amount: Uint128::new(75),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
@@ -92,7 +91,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 100,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["42"]),
+                token_id_list: to_string_vec(&["42"]),
                 amount: Uint128::new(750),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
@@ -104,7 +103,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["1", "4"]),
+                token_id_list: to_string_vec(&["1", "4"]),
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -115,7 +114,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["1", "4"]),
+                token_id_list: to_string_vec(&["1", "4"]),
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
@@ -127,7 +126,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["7"]),
+                token_id_list: to_string_vec(&["7"]),
                 amount: Uint128::new(900),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
@@ -139,7 +138,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["2"]),
+                token_id_list: to_string_vec(&["2"]),
                 amount: Uint128::new(150),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -150,7 +149,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["2"]),
+                token_id_list: to_string_vec(&["2"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -161,7 +160,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["5"]),
+                token_id_list: to_string_vec(&["5"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
@@ -172,7 +171,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["1", "8", "42"]),
+                token_id_list: to_string_vec(&["1", "8", "42"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
@@ -183,7 +182,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["8", "42"]),
+                token_id_list: to_string_vec(&["8", "42"]),
                 amount: Uint128::new(225),
                 discount: str_to_dec("0.2"),
                 bid_type: BidType::LiquidationBid,
@@ -204,7 +203,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
     assert_that(&collaterals_and_bids).is_equal_to(vec![
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
-            token_id: "1".to_string(),
+            token_item: to_token_item("1"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
@@ -215,7 +214,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
-            token_id: "7".to_string(),
+            token_item: to_token_item("7"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
@@ -226,7 +225,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
-            token_id: "4".to_string(),
+            token_item: to_token_item("4"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -237,7 +236,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "1".to_string(),
+            token_item: to_token_item("1"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
@@ -248,7 +247,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "8".to_string(),
+            token_item: to_token_item("8"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -259,7 +258,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "2".to_string(),
+            token_item: to_token_item("2"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -270,7 +269,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "5".to_string(),
+            token_item: to_token_item("5"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -300,7 +299,7 @@ fn calc_liquidation_sets_default() {
     .into_iter()
     .map(|(price, discount)| BiddedCollateralItem {
         collection: Addr::unchecked("collection"),
-        token_id: "42".to_string(),
+        token_item: to_token_item("42"),
         owner: Addr::unchecked("bob"),
         liquidator: Addr::unchecked("alice"),
         bid_creation_date: 0,
@@ -354,7 +353,7 @@ fn calc_liquidation_sets_default() {
     assert_that(&liquidation_set).is_equal_to(vec![
         BiddedCollateralItem {
             collection: Addr::unchecked("collection"),
-            token_id: "42".to_string(),
+            token_item: to_token_item("42"),
             owner: Addr::unchecked("bob"),
             liquidator: Addr::unchecked("alice"),
             bid_creation_date: 0,
@@ -365,7 +364,7 @@ fn calc_liquidation_sets_default() {
         },
         BiddedCollateralItem {
             collection: Addr::unchecked("collection"),
-            token_id: "42".to_string(),
+            token_item: to_token_item("42"),
             owner: Addr::unchecked("bob"),
             liquidator: Addr::unchecked("alice"),
             bid_creation_date: 0,
@@ -376,7 +375,7 @@ fn calc_liquidation_sets_default() {
         },
         BiddedCollateralItem {
             collection: Addr::unchecked("collection"),
-            token_id: "42".to_string(),
+            token_item: to_token_item("42"),
             owner: Addr::unchecked("bob"),
             liquidator: Addr::unchecked("alice"),
             bid_creation_date: 0,
@@ -395,14 +394,14 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             ProjectNft::Gopniks.into(),
             Collateral {
                 owner: ProjectAccount::Owner.into(),
-                token_id_list: to_string_vec(vec!["1", "7", "4"]),
+                token_item_list: to_token_item_list(&["1", "7", "4"], 0),
             },
         ),
         (
             ProjectNft::Pinjeons.into(),
             Collateral {
                 owner: ProjectAccount::Owner.into(),
-                token_id_list: to_string_vec(vec!["1", "8", "2", "5"]),
+                token_item_list: to_token_item_list(&["1", "8", "2", "5"], 0),
             },
         ),
     ];
@@ -454,7 +453,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 100,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["1"]),
+                token_id_list: to_string_vec(&["1"]),
                 amount: Uint128::new(75),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
@@ -466,7 +465,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 100,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["42"]),
+                token_id_list: to_string_vec(&["42"]),
                 amount: Uint128::new(750),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
@@ -478,7 +477,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["1", "4"]),
+                token_id_list: to_string_vec(&["1", "4"]),
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -489,7 +488,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["1", "4"]),
+                token_id_list: to_string_vec(&["1", "4"]),
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
@@ -501,7 +500,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["7"]),
+                token_id_list: to_string_vec(&["7"]),
                 amount: Uint128::new(900),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
@@ -513,7 +512,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["2"]),
+                token_id_list: to_string_vec(&["2"]),
                 amount: Uint128::new(150),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -524,7 +523,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["2"]),
+                token_id_list: to_string_vec(&["2"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
@@ -535,7 +534,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["5"]),
+                token_id_list: to_string_vec(&["5"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
@@ -546,7 +545,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Bob.into(),
-                token_id_list: to_string_vec(vec!["1", "8", "42"]),
+                token_id_list: to_string_vec(&["1", "8", "42"]),
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
@@ -557,7 +556,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             LiquidationBid {
                 creation_date: 500,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: to_string_vec(vec!["8", "42"]),
+                token_id_list: to_string_vec(&["8", "42"]),
                 amount: Uint128::new(225),
                 discount: str_to_dec("0.2"),
                 bid_type: BidType::LiquidationBid,
@@ -611,7 +610,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
     assert_that(&liquidation_set).is_equal_to(vec![
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
-            token_id: "1".to_string(),
+            token_item: to_token_item("1"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Bob.into(),
             bid_creation_date: 500,
@@ -622,7 +621,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         },
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
-            token_id: "4".to_string(),
+            token_item: to_token_item("4"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -633,7 +632,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "5".to_string(),
+            token_item: to_token_item("5"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,
@@ -644,7 +643,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
-            token_id: "8".to_string(),
+            token_item: to_token_item("8"),
             owner: ProjectAccount::Owner.into(),
             liquidator: ProjectAccount::Alice.into(),
             bid_creation_date: 500,

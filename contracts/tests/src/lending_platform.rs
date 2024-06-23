@@ -34,7 +34,7 @@ use crate::helpers::{
     oracle::OracleExtension,
     stargaze_mocks_marketplace::StargazeMocksMarketplaceExtension,
     suite::{
-        core::{assert_error, Project, INITIAL_LIQUIDITY},
+        core::{assert_error, to_string_vec, to_token_item_list, Project, INITIAL_LIQUIDITY},
         types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
     },
 };
@@ -282,10 +282,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -454,10 +451,7 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -556,10 +550,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -763,17 +754,11 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
         &[
             CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4", "5", "6"]
-                    .into_iter()
-                    .map(|x| x.to_string())
-                    .collect(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
             },
             CollectionInfo {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                token_id_list: vec!["4", "5", "6"]
-                    .into_iter()
-                    .map(|x| x.to_string())
-                    .collect(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
             },
         ],
     )?;
@@ -969,10 +954,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1101,10 +1083,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1236,10 +1215,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1371,10 +1347,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1502,10 +1475,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1630,10 +1600,7 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -1738,7 +1705,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
     )?;
 
@@ -1948,11 +1915,11 @@ fn collection_address_duplication() -> StdResult<()> {
             &[
                 CollectionInfo {
                     collection_address: ProjectNft::Gopniks.to_string(),
-                    token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                    token_id_list: to_string_vec(&["4", "5"]),
                 },
                 CollectionInfo {
                     collection_address: ProjectNft::Gopniks.to_string(),
-                    token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                    token_id_list: to_string_vec(&["6"]),
                 },
             ],
         )
@@ -2042,7 +2009,7 @@ fn collateral_value_limitations() -> StdResult<()> {
             ProjectAccount::Bob,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["4"]),
             }],
         )
         .unwrap_err();
@@ -2053,7 +2020,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
     )?;
 
@@ -2062,7 +2029,7 @@ fn collateral_value_limitations() -> StdResult<()> {
             ProjectAccount::Bob,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["4"]),
             }],
         )
         .unwrap_err();
@@ -2073,7 +2040,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
     )?;
 
@@ -2255,10 +2222,7 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2362,10 +2326,7 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2498,10 +2459,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2512,10 +2470,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2593,10 +2548,7 @@ fn clear_borrowers_storage() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2679,10 +2631,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2691,7 +2640,7 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["5", "6"]),
         }],
         "0",
         800,
@@ -2800,14 +2749,12 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -2831,7 +2778,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -2923,11 +2870,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["5", "6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4"], date + 100),
             },
         ],
     }];
@@ -2936,9 +2883,9 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
             collection_address: ProjectNft::Gopniks.into(),
             liquidation_bids: vec![LiquidationBid {
-                creation_date: 1571797419,
+                creation_date: date,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["5"]),
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3031,14 +2978,12 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -3056,10 +3001,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -3117,11 +3059,11 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["5", "6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4"], date + 100),
             },
         ],
     }];
@@ -3132,7 +3074,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["5", "6"]),
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3225,14 +3167,12 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -3250,7 +3190,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -3308,11 +3248,11 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["5", "6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4"], date + 100),
             },
         ],
     }];
@@ -3416,14 +3356,12 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -3441,7 +3379,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -3499,11 +3437,11 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["5", "6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4"], date + 100),
             },
         ],
     }];
@@ -3607,14 +3545,12 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -3632,10 +3568,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -3692,10 +3625,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         address: ProjectNft::Gopniks.into(),
         collateral: vec![Collateral {
             owner: ProjectAccount::Alice.into(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_item_list: to_token_item_list(&["4", "5", "6"], date + 100),
         }],
     }];
 
@@ -3798,14 +3728,12 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -3823,10 +3751,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -3884,11 +3809,11 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4", "5"], date + 100),
             },
         ],
     }];
@@ -3899,7 +3824,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["6"]),
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
@@ -3992,14 +3917,12 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -4017,7 +3940,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -4075,11 +3998,11 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4", "5"], date + 100),
             },
         ],
     }];
@@ -4183,14 +4106,12 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -4208,7 +4129,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -4266,11 +4187,11 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4", "5"], date + 100),
             },
         ],
     }];
@@ -4380,14 +4301,12 @@ fn single_discount_liquidation() -> StdResult<()> {
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -4406,10 +4325,7 @@ fn single_discount_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -4469,11 +4385,11 @@ fn single_discount_liquidation() -> StdResult<()> {
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["4", "5"], date + 100),
             },
         ],
     }];
@@ -4484,7 +4400,7 @@ fn single_discount_liquidation() -> StdResult<()> {
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["6"]),
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - 2 * (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -4621,14 +4537,12 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -4646,7 +4560,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         DISCOUNT_1,
         LIQUIDATION_BID / 2,
@@ -4658,7 +4572,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["5"]),
         }],
         DISCOUNT_0,
         LIQUIDATION_BID / 2,
@@ -4717,11 +4631,11 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         collateral: vec![
             Collateral {
                 owner: ProjectAccount::Bob.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["6"], date),
             },
             Collateral {
                 owner: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5", "4"].into_iter().map(|x| x.to_string()).collect(),
+                token_item_list: to_token_item_list(&["5", "4"], date + 110),
             },
         ],
     }];
@@ -4939,26 +4853,16 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     );
 
     // collateral value = 3 * collection_price
-    project.lending_platform_try_deposit_collateral(
-        ProjectAccount::Bob,
-        &[CollectionInfo {
-            collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
-        }],
-    )?;
-    project.lending_platform_try_deposit_collateral(
-        ProjectAccount::Bob,
-        &[CollectionInfo {
-            collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
-        }],
-    )?;
+    let date = project.get_block_time();
+    for collection in [ProjectNft::Gopniks, ProjectNft::Pinjeons] {
+        project.lending_platform_try_deposit_collateral(
+            ProjectAccount::Bob,
+            &[CollectionInfo {
+                collection_address: collection.to_string(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
+            }],
+        )?;
+    }
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
 
@@ -4975,17 +4879,11 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         &[
             CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4", "5", "6"]
-                    .into_iter()
-                    .map(|x| x.to_string())
-                    .collect(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
             },
             CollectionInfo {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                token_id_list: vec!["4", "5", "6"]
-                    .into_iter()
-                    .map(|x| x.to_string())
-                    .collect(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
             },
         ],
         DISCOUNT,
@@ -5044,11 +4942,11 @@ fn multiple_collection_liquidation() -> StdResult<()> {
             collateral: vec![
                 Collateral {
                     owner: ProjectAccount::Bob.into(),
-                    token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                    token_item_list: to_token_item_list(&["5", "6"], date),
                 },
                 Collateral {
                     owner: ProjectAccount::Alice.into(),
-                    token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                    token_item_list: to_token_item_list(&["4"], date + 100),
                 },
             ],
         },
@@ -5057,11 +4955,11 @@ fn multiple_collection_liquidation() -> StdResult<()> {
             collateral: vec![
                 Collateral {
                     owner: ProjectAccount::Bob.into(),
-                    token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                    token_item_list: to_token_item_list(&["6"], date),
                 },
                 Collateral {
                     owner: ProjectAccount::Alice.into(),
-                    token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+                    token_item_list: to_token_item_list(&["4", "5"], date + 100),
                 },
             ],
         },
@@ -5073,7 +4971,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["5", "6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["5", "6"]),
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - (u128_to_dec(COLLECTION_PRICE_AFTER)
@@ -5090,7 +4988,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
             liquidation_bids: vec![LiquidationBid {
                 creation_date: 1571797419,
                 liquidator: ProjectAccount::Alice.into(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["6"]),
                 amount: Uint128::new(
                     LIQUIDATION_BID
                         - 2 * (u128_to_dec(COLLECTION_PRICE_BEFORE)
@@ -5227,10 +5125,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -5249,10 +5144,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -5356,10 +5248,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -5370,10 +5259,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -5564,11 +5450,12 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
     )?;
 
@@ -5587,7 +5474,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -5677,7 +5564,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
 
     assert_that(&collateral).is_equal_to(vec![Collateral {
         owner: ProjectAccount::Alice.into(),
-        token_id_list: vec!["4".to_string()],
+        token_item_list: to_token_item_list(&["4"], date + 100),
     }]);
 
     assert_that(&collateral_by_owner).is_equal_to(vec![]);
@@ -5934,10 +5821,7 @@ fn big_numbers() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -5955,10 +5839,7 @@ fn big_numbers() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -6167,7 +6048,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
     )?;
 
@@ -6182,7 +6063,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["5"]),
         }],
     )?;
 
@@ -6191,7 +6072,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             ProjectAccount::Alice,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["5"]),
             }],
             "0",
             LIQUIDATION_BID,
@@ -6205,7 +6086,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             ProjectAccount::Alice,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["6"]),
             }],
             "0",
             LIQUIDATION_BID,
@@ -6218,7 +6099,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -6331,7 +6212,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
     )?;
 
@@ -6339,7 +6220,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -6354,10 +6235,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             ProjectAccount::Alice,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4", "5", "6"]
-                    .into_iter()
-                    .map(|x| x.to_string())
-                    .collect(),
+                token_id_list: to_string_vec(&["4", "5", "6"]),
             }],
             bids[0].creation_date,
             LIQUIDATION_BID,
@@ -6389,7 +6267,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
         bids[0].creation_date,
         LIQUIDATION_BID,
@@ -6399,18 +6277,13 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(
-        vec!["4", "5"]
-            .into_iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>(),
-    );
+    assert_that(&bids[0].token_id_list).is_equal_to(to_string_vec(&["4", "5"]));
 
     project.lending_platform_try_update_bid(
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["5"]),
         }],
         bids[0].creation_date,
         LIQUIDATION_BID,
@@ -6477,7 +6350,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["6"]),
         }],
     )?;
 
@@ -6485,7 +6358,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["6"]),
         }],
         bids[0].creation_date,
         LIQUIDATION_BID,
@@ -6618,7 +6491,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
     )?;
 
@@ -6878,18 +6751,19 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     );
 
     // collateral value = collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["1"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["1"]),
         }],
     )?;
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
     )?;
 
@@ -6909,7 +6783,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Kate,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -7011,7 +6885,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
     // collateral is completely removed as it was sent to marketplace bidder
     assert_that(&collateral_pingeons).is_equal_to(vec![Collateral {
         owner: ProjectAccount::Kate.into(),
-        token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        token_item_list: to_token_item_list(&["4"], date + 2_700_000),
     }]);
     assert_that(&collateral_gopniks).is_equal_to(vec![]);
 
@@ -7119,14 +6993,12 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     );
 
     // collateral value = 3 * collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -7137,7 +7009,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -7220,7 +7092,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         address: ProjectNft::Gopniks.into(),
         collateral: vec![Collateral {
             owner: ProjectAccount::Alice.into(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_item_list: to_token_item_list(&["4"], date + 1),
         }],
     }]);
 
@@ -7228,7 +7100,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         address: ProjectNft::Gopniks.into(),
         collateral: vec![Collateral {
             owner: ProjectAccount::Bob.into(),
-            token_id_list: vec!["6"].into_iter().map(|x| x.to_string()).collect(),
+            token_item_list: to_token_item_list(&["6"], date),
         }],
     }]);
 
@@ -7369,18 +7241,19 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     );
 
     // collateral value = collection_price
+    let date = project.get_block_time();
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["1"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["1"]),
         }],
     )?;
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4", "5"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4", "5"]),
         }],
     )?;
 
@@ -7400,7 +7273,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         ProjectAccount::Kate,
         &[CollectionInfo {
             collection_address: ProjectNft::Pinjeons.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
         DISCOUNT,
         LIQUIDATION_BID,
@@ -7525,7 +7398,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     // collateral is completely removed as it was sent to marketplace bidder
     assert_that(&collateral_pingeons).is_equal_to(vec![Collateral {
         owner: ProjectAccount::Kate.into(),
-        token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+        token_item_list: to_token_item_list(&["4"], date + 2_600_000),
     }]);
     assert_that(&collateral_gopniks).is_equal_to(vec![]);
 
@@ -7709,7 +7582,7 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+            token_id_list: to_string_vec(&["4"]),
         }],
     )?;
 

@@ -23,7 +23,7 @@ use crate::{
         lending_platform::LendingPlatformExtension,
         oracle::OracleExtension,
         suite::{
-            core::{assert_error, Project},
+            core::{assert_error, to_string_vec, Project},
             types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },
@@ -128,10 +128,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         ProjectAccount::Bob,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
@@ -142,10 +139,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         ProjectAccount::Alice,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
-            token_id_list: vec!["4", "5", "6"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
         "0",
         LIQUIDATION_BID,
@@ -370,7 +364,7 @@ fn log_zero_cross() -> StdResult<()> {
             ProjectAccount::Bob,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["4"]),
             }],
         )?;
 
@@ -392,7 +386,7 @@ fn log_zero_cross() -> StdResult<()> {
             ProjectAccount::Alice,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4"].into_iter().map(|x| x.to_string()).collect(),
+                token_id_list: to_string_vec(&["4"]),
             }],
             "0",
             LIQUIDATION_BID,
@@ -468,7 +462,7 @@ fn log_zero_cross() -> StdResult<()> {
             ProjectAccount::Alice,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                token_id_list: vec!["4".to_string()],
+                token_id_list: to_string_vec(&["4"]),
             }],
         )?;
 
@@ -476,7 +470,7 @@ fn log_zero_cross() -> StdResult<()> {
             ProjectAccount::Alice,
             ProjectAccount::Bob,
             ProjectNft::Gopniks,
-            "4".to_string(),
+            "4",
         );
     }
 

@@ -306,14 +306,14 @@ pub fn match_collaterals_and_bids(
 
         let price = choose_price(&main_currency, &price_item);
 
-        for token_id in collateral.token_id_list.clone() {
+        for token_item in collateral.token_item_list.clone() {
             for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
                 let discounted_price = calc_discounted_price(price, bid.discount);
 
-                if bid.token_id_list.contains(&token_id) && bid.amount >= discounted_price {
+                if bid.token_id_list.contains(&token_item.id) && bid.amount >= discounted_price {
                     bidded_collateral_list.push(BiddedCollateralItem {
                         collection: collateral_collection.clone(),
-                        token_id: token_id.clone(),
+                        token_item: token_item.clone(),
                         owner: collateral.owner.clone(),
                         liquidator: bid.liquidator.clone(),
                         bid_creation_date: bid.creation_date,
