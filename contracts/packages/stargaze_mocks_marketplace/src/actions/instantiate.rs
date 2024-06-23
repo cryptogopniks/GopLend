@@ -35,7 +35,7 @@ pub fn try_instantiate(
         .iter()
         .fold(Uint128::zero(), |acc, cur| acc + cur.price);
 
-    if asset_amount != bids_sum {
+    if asset_amount < bids_sum {
         Err(ContractError::CustomError {
             val: "wrong bids sum".to_string(),
         })?;

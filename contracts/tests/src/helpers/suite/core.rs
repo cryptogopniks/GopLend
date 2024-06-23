@@ -187,7 +187,7 @@ impl Project {
                     price: Uint128::new(700),
                 },
             ],
-            4 * 700,
+            ProjectAccount::Admin.get_initial_funds_amount() / 10,
             ProjectCoin::Stars,
         );
 

@@ -7580,13 +7580,9 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
     ];
 
     project.stargaze_mocks_marketplace_try_set_bids(offers)?;
-    project.mint_native(
-        project.get_stargaze_mocks_marketplace_address(),
-        4 * COLLECTION_PRICE_AFTER,
-        ProjectCoin::Usdc,
-    );
 
     // set usdc as main currency
+    // set collateral min value and enable marketplace interface
     project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
         &Some(Currency::new(
@@ -7595,11 +7591,30 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         )),
         &None,
         &None,
+        &Some(1),
         &None,
         &None,
-        &None,
-        &None,
+        &Some(true),
     )?;
+
+    // set stars as main currency
+    project
+        .adapter_marketplace_stargaze_try_update_config(
+            ProjectAccount::Admin,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &Some(Currency::new(
+                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                ProjectCoin::Stars.get_decimals(),
+            )),
+            &None,
+            &None,
+        )
+        .unwrap();
 
     // push prices to oracle
     project.oracle_try_update_prices(
@@ -7623,18 +7638,6 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
                 ),
             ),
         }],
-    )?;
-
-    // set collateral min value and enable marketplace interface
-    project.lending_platform_try_update_common_config(
-        ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &Some(1),
-        &None,
-        &None,
-        &Some(true),
     )?;
 
     // list collection
@@ -7778,6 +7781,8 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
+    let platform_balance_before =
+        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Usdc)?;
     assert_that(&balances.regular.main_pool.u128()).is_equal_to(amount_to_borrow);
     assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
 
@@ -7789,72 +7794,59 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, &borrowers)?;
 
-    println!("{:#?}\n", targets);
-
-    // TODO: add dex adapter mock as the tx will fail due to
-    // attemption to send stars instead of usdc by marketplace mock
-    // temporary fix
-    project.mint_native(
-        project.get_stargaze_mocks_marketplace_address(),
-        4 * COLLECTION_PRICE_AFTER,
-        ProjectCoin::Stars,
-    );
-    project.mint_native(
-        project.get_adapter_marketplace_stargaze_address(),
-        4 * COLLECTION_PRICE_AFTER,
-        ProjectCoin::Usdc,
-    );
-
     project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
         &targets,
-        &Route::Empty,
+        &Route::Neutron,
     )?;
 
-    // // check results
-    // let ltv_after =
-    //     project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
-    // let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
+    // check results
+    let ltv_after =
+        project.lending_platform_query_conditional_ltv(ProjectAccount::Bob, &None, &None)?;
+    let ltv_list_after = project.lending_platform_query_ltv_list(&None, &None)?;
 
-    // let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
-    // let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
-    // let collateral_by_owner =
-    //     project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
+    let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
+    let collateral = project.lending_platform_query_collateral(ProjectNft::Gopniks)?;
+    let collateral_by_owner =
+        project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
-    // let offers = &project
-    //     .adapter_marketplace_stargaze_query_offers_by_collection_address_list("1", &None, &None)?
-    //     [0]
-    // .liquidation_bids
-    // .iter()
-    // .cloned()
-    // .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
-    // .collect::<Vec<_>>();
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(true, &None, &None)?
+        [0]
+    .liquidation_bids
+    .iter()
+    .cloned()
+    .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
+    .collect::<Vec<_>>();
 
-    // // check balances
-    // let balances = project.lending_platform_query_balances()?;
+    // check balances
+    let balances = project.lending_platform_query_balances()?;
+    let platform_balance_after =
+        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Usdc)?;
 
-    // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
-    // // borrower was removed from storage
-    // assert_that(&ltv_list_after).is_equal_to(vec![]);
-    // // borrower was removed from storage
-    // assert_that(&borrower).is_equal_to(Borrower::default());
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    // borrower was removed from storage
+    assert_that(&ltv_list_after).is_equal_to(vec![]);
+    // borrower was removed from storage
+    assert_that(&borrower).is_equal_to(Borrower::default());
 
-    // // collateral is completely removed as it was sent to marketplace bidder
-    // assert_that(&collateral).is_equal_to(vec![]);
-    // assert_that(&collateral_by_owner).is_equal_to(vec![]);
-    // assert_that(&offers.len()).is_equal_to(1);
+    // collateral is completely removed as it was sent to marketplace bidder
+    assert_that(&collateral).is_equal_to(vec![]);
+    assert_that(&collateral_by_owner).is_equal_to(vec![]);
+    assert_that(&offers.len()).is_equal_to(1);
 
-    // // 570 + (700 - 570 - 0.05 * 700) = 665
-    // assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
-    // assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+    // 570 + (700 - 570 - 0.05 * 700) = 665
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+    assert_that(&(platform_balance_after - platform_balance_before)).is_equal_to(665);
 
-    // let res = project.query_all_nft(ProjectAccount::John);
-    // let (_collection, token_info) = res
-    //     .iter()
-    //     .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
-    //     .ok_or(ContractError::CollectionIsNotFound)?;
-    // assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
+    let res = project.query_all_nft(ProjectAccount::John);
+    let (_collection, token_info) = res
+        .iter()
+        .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?;
+    assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
 
     Ok(())
 }

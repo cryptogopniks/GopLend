@@ -14,8 +14,9 @@ use goplend_base::{
         },
     },
     assets::{Currency, TokenUnverified},
+    converters::u128_to_dec,
     error::ContractError,
-    lending_platform::types::{BidType, BiddedCollateralItem, CommonConfig},
+    lending_platform::types::{BidType, BiddedCollateralItem},
     oracle::types::PriceRatioItem,
     utils::{
         check_funds, get_collection_operator_approvals, get_transfer_msg, unwrap_field, AuthType,
@@ -278,6 +279,9 @@ pub fn try_accept_offers(
                 })?;
             }
 
+            let liquidated_value_in_main_currency =
+                (u128_to_dec(liquidated_value) / price_ratio).to_uint_floor();
+
             let msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: dex.to_string(),
                 msg: to_json_binary(
@@ -287,7 +291,7 @@ pub fn try_accept_offers(
                     },
                 )?,
                 funds: coins(
-                    liquidated_value.u128(),
+                    liquidated_value_in_main_currency.u128(),
                     main_currency.token.try_get_native()?,
                 ),
             });
