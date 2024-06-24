@@ -4,6 +4,7 @@ use cw_multi_test::{AppResponse, Executor};
 use cw20_base::msg::InstantiateMarketingInfo;
 
 use goplend_base::{
+    adapters::marketplace::stargaze::types::PlatformType,
     assets::{Currency, Token},
     error::parse_err,
     minter::{
@@ -50,6 +51,7 @@ pub trait MinterExtension {
     fn minter_try_burn(
         &mut self,
         sender: ProjectAccount,
+        platform_type: PlatformType,
         token: &Token,
         amount: u128,
     ) -> StdResult<AppResponse>;
@@ -191,10 +193,15 @@ impl MinterExtension for Project {
     fn minter_try_burn(
         &mut self,
         sender: ProjectAccount,
+        platform_type: PlatformType,
         token: &Token,
         amount: u128,
     ) -> StdResult<AppResponse> {
-        let contract_address = &self.get_lending_platform_address();
+        let contract_address = &match platform_type {
+            PlatformType::Main => self.get_lending_platform_main_address(),
+            PlatformType::Stable => self.get_lending_platform_stable_address(),
+        };
+
         let msg = &ExecuteMsg::Burn {};
 
         add_token_to_exec_msg(self, sender, contract_address, msg, amount, token)

@@ -82,6 +82,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
+        PlatformType::Main,
         &None,
         &None,
         &None,
@@ -109,9 +110,14 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         },
     };
 
-    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal,
+    )?;
     project.lending_platform_try_accept_proposal(
         ProjectAccount::Owner,
+        PlatformType::Main,
         1,
         100,
         ProjectToken::Atom,
@@ -120,24 +126,30 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     // add collateral and borrow
     project.increase_allowances_nft(
         ProjectAccount::Bob,
-        project.get_lending_platform_address(),
+        project.get_lending_platform_main_address(),
         ProjectNft::Gopniks,
     );
 
     // collateral value = 3 * collection_price
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
+        PlatformType::Main,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
             token_id_list: to_string_vec(&["4", "5", "6"]),
         }],
     )?;
 
-    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+    project.lending_platform_try_borrow(
+        ProjectAccount::Bob,
+        PlatformType::Main,
+        AMOUNT_TO_BORROW,
+    )?;
 
     // place bid
     project.lending_platform_try_place_bid(
         ProjectAccount::Alice,
+        PlatformType::Main,
         &[CollectionInfo {
             collection_address: ProjectNft::Gopniks.to_string(),
             token_id_list: to_string_vec(&["4", "5", "6"]),
@@ -174,7 +186,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
 
     // process without liquidations
     let borrowers = project
-        .lending_platform_query_borrower_list(&None, &None)?
+        .lending_platform_query_borrower_list(PlatformType::Main, &None, &None)?
         .into_iter()
         .map(|x| x.address.to_string())
         .collect::<Vec<String>>();
@@ -235,7 +247,7 @@ fn push_multiple_clock_sources() -> StdResult<()> {
 
     // process without liquidations
     let borrowers = project
-        .lending_platform_query_borrower_list(&None, &None)?
+        .lending_platform_query_borrower_list(PlatformType::Main, &None, &None)?
         .into_iter()
         .map(|x| x.address.to_string())
         .collect::<Vec<String>>();
@@ -317,6 +329,7 @@ fn log_zero_cross() -> StdResult<()> {
     // set collateral min value
     project.lending_platform_try_update_common_config(
         ProjectAccount::Admin,
+        PlatformType::Main,
         &None,
         &None,
         &None,
@@ -344,9 +357,14 @@ fn log_zero_cross() -> StdResult<()> {
         },
     };
 
-    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal,
+    )?;
     project.lending_platform_try_accept_proposal(
         ProjectAccount::Owner,
+        PlatformType::Main,
         1,
         100,
         ProjectToken::Atom,
@@ -355,7 +373,7 @@ fn log_zero_cross() -> StdResult<()> {
     // add collateral and borrow
     project.increase_allowances_nft(
         ProjectAccount::Bob,
-        project.get_lending_platform_address(),
+        project.get_lending_platform_main_address(),
         ProjectNft::Gopniks,
     );
 
@@ -363,21 +381,29 @@ fn log_zero_cross() -> StdResult<()> {
         // collateral value = 3 * collection_price
         project.lending_platform_try_deposit_collateral(
             ProjectAccount::Bob,
+            PlatformType::Main,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 token_id_list: to_string_vec(&["4"]),
             }],
         )?;
 
-        project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
+        project.lending_platform_try_borrow(
+            ProjectAccount::Bob,
+            PlatformType::Main,
+            AMOUNT_TO_BORROW,
+        )?;
 
         // place or update bid
-        let bids = project
-            .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
+        let bids = project.lending_platform_query_liquidation_bids_by_collection_address(
+            PlatformType::Main,
+            ProjectNft::Gopniks,
+        )?;
 
         if !bids.is_empty() {
             project.lending_platform_try_remove_bid(
                 ProjectAccount::Alice,
+                PlatformType::Main,
                 &[ProjectNft::Gopniks.to_string()],
                 bids[0].creation_date,
             )?;
@@ -385,6 +411,7 @@ fn log_zero_cross() -> StdResult<()> {
 
         project.lending_platform_try_place_bid(
             ProjectAccount::Alice,
+            PlatformType::Main,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 token_id_list: to_string_vec(&["4"]),
@@ -421,7 +448,7 @@ fn log_zero_cross() -> StdResult<()> {
 
         // process without liquidations
         let borrowers = project
-            .lending_platform_query_borrower_list(&None, &None)?
+            .lending_platform_query_borrower_list(PlatformType::Main, &None, &None)?
             .into_iter()
             .map(|x| x.address.to_string())
             .collect::<Vec<String>>();
@@ -461,6 +488,7 @@ fn log_zero_cross() -> StdResult<()> {
 
         project.lending_platform_try_withdraw_collateral(
             ProjectAccount::Alice,
+            PlatformType::Main,
             &[CollectionInfo {
                 collection_address: ProjectNft::Gopniks.to_string(),
                 token_id_list: to_string_vec(&["4"]),
