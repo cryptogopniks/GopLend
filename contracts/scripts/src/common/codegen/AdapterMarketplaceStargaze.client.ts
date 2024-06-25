@@ -6,15 +6,17 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
+import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
   queryOffersByCollectionAddressList: ({
     limit,
+    platformType,
     startAfter
   }: {
     limit?: number;
+    platformType: PlatformType;
     startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
 }
@@ -34,14 +36,17 @@ export class AdapterMarketplaceStargazeQueryClient implements AdapterMarketplace
   };
   queryOffersByCollectionAddressList = async ({
     limit,
+    platformType,
     startAfter
   }: {
     limit?: number;
+    platformType: PlatformType;
     startAfter?: string;
   }): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_offers_by_collection_address_list: {
         limit,
+        platform_type: platformType,
         start_after: startAfter
       }
     });
@@ -52,22 +57,30 @@ export interface AdapterMarketplaceStargazeInterface extends AdapterMarketplaceS
   sender: string;
   acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
+    adapterDex,
     admin,
-    infinityPool,
-    lendingPlatform,
+    lendingPlatformMain,
+    lendingPlatformStable,
     marketplace,
+    marketplaceVersion,
+    oracle,
     worker
   }: {
+    adapterDex?: string;
     admin?: string;
-    infinityPool?: string;
-    lendingPlatform?: string;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     marketplace?: string;
+    marketplaceVersion?: MarketplaceVersion;
+    oracle?: string;
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   acceptOffers: ({
-    biddedCollateralItemList
+    biddedCollateralItemList,
+    route
   }: {
     biddedCollateralItemList: BiddedCollateralItem[];
+    route: Route;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class AdapterMarketplaceStargazeClient extends AdapterMarketplaceStargazeQueryClient implements AdapterMarketplaceStargazeInterface {
@@ -89,36 +102,48 @@ export class AdapterMarketplaceStargazeClient extends AdapterMarketplaceStargaze
     }, fee, memo, _funds);
   };
   updateConfig = async ({
+    adapterDex,
     admin,
-    infinityPool,
-    lendingPlatform,
+    lendingPlatformMain,
+    lendingPlatformStable,
     marketplace,
+    marketplaceVersion,
+    oracle,
     worker
   }: {
+    adapterDex?: string;
     admin?: string;
-    infinityPool?: string;
-    lendingPlatform?: string;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     marketplace?: string;
+    marketplaceVersion?: MarketplaceVersion;
+    oracle?: string;
     worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
+        adapter_dex: adapterDex,
         admin,
-        infinity_pool: infinityPool,
-        lending_platform: lendingPlatform,
+        lending_platform_main: lendingPlatformMain,
+        lending_platform_stable: lendingPlatformStable,
         marketplace,
+        marketplace_version: marketplaceVersion,
+        oracle,
         worker
       }
     }, fee, memo, _funds);
   };
   acceptOffers = async ({
-    biddedCollateralItemList
+    biddedCollateralItemList,
+    route
   }: {
     biddedCollateralItemList: BiddedCollateralItem[];
+    route: Route;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       accept_offers: {
-        bidded_collateral_item_list: biddedCollateralItemList
+        bidded_collateral_item_list: biddedCollateralItemList,
+        route
       }
     }, fee, memo, _funds);
   };

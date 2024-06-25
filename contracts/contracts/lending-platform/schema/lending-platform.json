@@ -10,6 +10,18 @@
       "main_currency"
     ],
     "properties": {
+      "adapter_marketplace": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "adapter_scheduler": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
       "bgl_currency": {
         "anyOf": [
           {
@@ -109,12 +121,6 @@
       "main_currency": {
         "$ref": "#/definitions/Currency_for_TokenUnverified"
       },
-      "marketplace": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
       "minter": {
         "type": [
           "string",
@@ -122,20 +128,6 @@
         ]
       },
       "oracle": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "price_update_period": {
-        "type": [
-          "integer",
-          "null"
-        ],
-        "format": "uint64",
-        "minimum": 0.0
-      },
-      "scheduler": {
         "type": [
           "string",
           "null"
@@ -474,9 +466,13 @@
           "liquidate": {
             "type": "object",
             "required": [
+              "route",
               "targets"
             ],
             "properties": {
+              "route": {
+                "$ref": "#/definitions/Route"
+              },
               "targets": {
                 "type": "array",
                 "items": {
@@ -511,13 +507,19 @@
           "update_address_config": {
             "type": "object",
             "properties": {
-              "admin": {
+              "adapter_marketplace": {
                 "type": [
                   "string",
                   "null"
                 ]
               },
-              "marketplace": {
+              "adapter_scheduler": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "admin": {
                 "type": [
                   "string",
                   "null"
@@ -530,12 +532,6 @@
                 ]
               },
               "oracle": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "scheduler": {
                 "type": [
                   "string",
                   "null"
@@ -682,14 +678,6 @@
                     "type": "null"
                   }
                 ]
-              },
-              "price_update_period": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint64",
-                "minimum": 0.0
               },
               "unbonding_period": {
                 "type": [
@@ -904,7 +892,7 @@
           "liquidation_price",
           "liquidator",
           "owner",
-          "token_id"
+          "token_item"
         ],
         "properties": {
           "bid_creation_date": {
@@ -933,8 +921,8 @@
           "owner": {
             "$ref": "#/definitions/Addr"
           },
-          "token_id": {
-            "type": "string"
+          "token_item": {
+            "$ref": "#/definitions/TokenItem"
           }
         },
         "additionalProperties": false
@@ -1146,6 +1134,34 @@
           },
           "proposal_type": {
             "$ref": "#/definitions/ProposalType_for_String"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Route": {
+        "type": "string",
+        "enum": [
+          "empty",
+          "neutron",
+          "osmosis",
+          "test",
+          "test2"
+        ]
+      },
+      "TokenItem": {
+        "type": "object",
+        "required": [
+          "creation_date",
+          "id"
+        ],
+        "properties": {
+          "creation_date": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "id": {
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -1874,10 +1890,7 @@
         "admin"
       ],
       "properties": {
-        "admin": {
-          "$ref": "#/definitions/Addr"
-        },
-        "marketplace": {
+        "adapter_marketplace": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -1886,6 +1899,19 @@
               "type": "null"
             }
           ]
+        },
+        "adapter_scheduler": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "admin": {
+          "$ref": "#/definitions/Addr"
         },
         "minter": {
           "anyOf": [
@@ -1898,16 +1924,6 @@
           ]
         },
         "oracle": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Addr"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "scheduler": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -2291,17 +2307,35 @@
           "type": "object",
           "required": [
             "owner",
-            "token_id_list"
+            "token_item_list"
           ],
           "properties": {
             "owner": {
               "$ref": "#/definitions/Addr"
             },
-            "token_id_list": {
+            "token_item_list": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/TokenItem"
               }
+            }
+          },
+          "additionalProperties": false
+        },
+        "TokenItem": {
+          "type": "object",
+          "required": [
+            "creation_date",
+            "id"
+          ],
+          "properties": {
+            "creation_date": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "id": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -2324,16 +2358,16 @@
           "type": "object",
           "required": [
             "owner",
-            "token_id_list"
+            "token_item_list"
           ],
           "properties": {
             "owner": {
               "$ref": "#/definitions/Addr"
             },
-            "token_id_list": {
+            "token_item_list": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/TokenItem"
               }
             }
           },
@@ -2354,6 +2388,24 @@
               "items": {
                 "$ref": "#/definitions/Collateral"
               }
+            }
+          },
+          "additionalProperties": false
+        },
+        "TokenItem": {
+          "type": "object",
+          "required": [
+            "creation_date",
+            "id"
+          ],
+          "properties": {
+            "creation_date": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "id": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -2376,16 +2428,16 @@
           "type": "object",
           "required": [
             "owner",
-            "token_id_list"
+            "token_item_list"
           ],
           "properties": {
             "owner": {
               "$ref": "#/definitions/Addr"
             },
-            "token_id_list": {
+            "token_item_list": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/TokenItem"
               }
             }
           },
@@ -2406,6 +2458,24 @@
               "items": {
                 "$ref": "#/definitions/Collateral"
               }
+            }
+          },
+          "additionalProperties": false
+        },
+        "TokenItem": {
+          "type": "object",
+          "required": [
+            "creation_date",
+            "id"
+          ],
+          "properties": {
+            "creation_date": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "id": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -2491,7 +2561,6 @@
         "collateral_min_value",
         "is_marketplace_interface_enabled",
         "main_currency",
-        "price_update_period",
         "unbonding_period"
       ],
       "properties": {
@@ -2516,11 +2585,6 @@
         },
         "main_currency": {
           "$ref": "#/definitions/Currency_for_Token"
-        },
-        "price_update_period": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
         },
         "unbonding_period": {
           "type": "integer",

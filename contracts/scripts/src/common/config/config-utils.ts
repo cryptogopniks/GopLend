@@ -248,6 +248,13 @@ function getContractByWasm(contracts: ContractInfo[], wasm: Wasm) {
   return contract;
 }
 
+function getContractByLabel(contracts: ContractInfo[], label: string) {
+  const contract = contracts.find((x) => x.LABEL === label);
+  if (!contract) throw new Error(`${label} is not found!`);
+
+  return contract;
+}
+
 export {
   $,
   toJson,
@@ -257,4 +264,5 @@ export {
   getContract,
   getChainOptionById,
   getContractByWasm,
+  getContractByLabel,
 };

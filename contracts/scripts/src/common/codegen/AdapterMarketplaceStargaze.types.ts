@@ -4,31 +4,40 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
+export type MarketplaceVersion = "v1" | "v2";
 export interface InstantiateMsg {
-  infinity_pool?: string | null;
-  lending_platform?: string | null;
+  adapter_dex?: string | null;
+  lending_platform_main?: string | null;
+  lending_platform_stable?: string | null;
   marketplace?: string | null;
+  marketplace_version?: MarketplaceVersion | null;
+  oracle?: string | null;
   worker?: string | null;
 }
 export type ExecuteMsg = {
   accept_admin_role: {};
 } | {
   update_config: {
+    adapter_dex?: string | null;
     admin?: string | null;
-    infinity_pool?: string | null;
-    lending_platform?: string | null;
+    lending_platform_main?: string | null;
+    lending_platform_stable?: string | null;
     marketplace?: string | null;
+    marketplace_version?: MarketplaceVersion | null;
+    oracle?: string | null;
     worker?: string | null;
   };
 } | {
   accept_offers: {
     bidded_collateral_item_list: BiddedCollateralItem[];
+    route: Route;
   };
 };
 export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Uint128 = string;
 export type Addr = string;
+export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2";
 export interface BiddedCollateralItem {
   bid_creation_date: number;
   bid_discount: Decimal;
@@ -38,24 +47,33 @@ export interface BiddedCollateralItem {
   liquidation_price: Uint128;
   liquidator: Addr;
   owner: Addr;
-  token_id: string;
+  token_item: TokenItem;
+}
+export interface TokenItem {
+  creation_date: number;
+  id: string;
 }
 export type QueryMsg = {
   query_config: {};
 } | {
   query_offers_by_collection_address_list: {
     limit?: number | null;
+    platform_type: PlatformType;
     start_after?: string | null;
   };
 };
+export type PlatformType = "main" | "stable";
 export interface MigrateMsg {
   version: string;
 }
 export interface Config {
+  adapter_dex?: Addr | null;
   admin: Addr;
-  infinity_pool?: Addr | null;
-  lending_platform?: Addr | null;
+  lending_platform_main?: Addr | null;
+  lending_platform_stable?: Addr | null;
   marketplace?: Addr | null;
+  marketplace_version: MarketplaceVersion;
+  oracle?: Addr | null;
   worker?: Addr | null;
 }
 export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];

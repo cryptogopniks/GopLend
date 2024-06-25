@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, ArrayOfLog, Log, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
+import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, Decimal, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, ArrayOfLog, Log, PriceRatioItem, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
 export interface OracleMsg {
   contractAddress: string;
   sender: string;
@@ -16,23 +16,29 @@ export interface OracleMsg {
   updateConfig: ({
     admin,
     controller,
-    minPriceUpdatePeriod,
+    executionCooldown,
+    maxPriceUpdatePeriod,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    minPriceUpdatePeriod?: number;
+    executionCooldown?: number;
+    maxPriceUpdatePeriod?: number;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   setPrices: ({
-    data
+    data,
+    priceRatio
   }: {
     data: RawPriceItem[];
+    priceRatio: Decimal;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updatePrices: ({
-    data
+    data,
+    priceRatio
   }: {
     data: RawPriceItem[];
+    priceRatio: Decimal;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   removePrices: ({
     collections
@@ -68,12 +74,14 @@ export class OracleMsgComposer implements OracleMsg {
   updateConfig = ({
     admin,
     controller,
-    minPriceUpdatePeriod,
+    executionCooldown,
+    maxPriceUpdatePeriod,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    minPriceUpdatePeriod?: number;
+    executionCooldown?: number;
+    maxPriceUpdatePeriod?: number;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -85,7 +93,8 @@ export class OracleMsgComposer implements OracleMsg {
           update_config: {
             admin,
             controller,
-            min_price_update_period: minPriceUpdatePeriod,
+            execution_cooldown: executionCooldown,
+            max_price_update_period: maxPriceUpdatePeriod,
             worker
           }
         })),
@@ -94,9 +103,11 @@ export class OracleMsgComposer implements OracleMsg {
     };
   };
   setPrices = ({
-    data
+    data,
+    priceRatio
   }: {
     data: RawPriceItem[];
+    priceRatio: Decimal;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -105,7 +116,8 @@ export class OracleMsgComposer implements OracleMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           set_prices: {
-            data
+            data,
+            price_ratio: priceRatio
           }
         })),
         funds: _funds
@@ -113,9 +125,11 @@ export class OracleMsgComposer implements OracleMsg {
     };
   };
   updatePrices = ({
-    data
+    data,
+    priceRatio
   }: {
     data: RawPriceItem[];
+    priceRatio: Decimal;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -124,7 +138,8 @@ export class OracleMsgComposer implements OracleMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_prices: {
-            data
+            data,
+            price_ratio: priceRatio
           }
         })),
         funds: _funds

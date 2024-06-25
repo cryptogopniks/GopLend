@@ -7,8 +7,9 @@
 export type ClockSource = "onchain" | "offchain";
 export interface InstantiateMsg {
   clock_source?: ClockSource | null;
-  lending_platform?: string | null;
-  min_clock_period?: number | null;
+  execution_cooldown?: number | null;
+  lending_platform_main?: string | null;
+  lending_platform_stable?: string | null;
   offchain_clock?: string[] | null;
   worker?: string | null;
 }
@@ -18,16 +19,19 @@ export type ExecuteMsg = {
   update_config: {
     admin?: string | null;
     clock_source?: ClockSource | null;
-    lending_platform?: string | null;
-    min_clock_period?: number | null;
+    execution_cooldown?: number | null;
+    lending_platform_main?: string | null;
+    lending_platform_stable?: string | null;
     offchain_clock?: string[] | null;
     worker?: string | null;
   };
 } | {
   push: {
+    route: Route;
     targets: LiquidationItem[];
   };
 };
+export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2";
 export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Uint128 = string;
@@ -45,7 +49,11 @@ export interface BiddedCollateralItem {
   liquidation_price: Uint128;
   liquidator: Addr;
   owner: Addr;
-  token_id: string;
+  token_item: TokenItem;
+}
+export interface TokenItem {
+  creation_date: number;
+  id: string;
 }
 export type QueryMsg = {
   query_config: {};
@@ -58,8 +66,9 @@ export interface MigrateMsg {
 export interface Config {
   admin: Addr;
   clock_source: ClockSource;
-  lending_platform?: Addr | null;
-  min_clock_period: number;
+  execution_cooldown: number;
+  lending_platform_main?: Addr | null;
+  lending_platform_stable?: Addr | null;
   offchain_clock?: Addr[] | null;
   worker?: Addr | null;
 }

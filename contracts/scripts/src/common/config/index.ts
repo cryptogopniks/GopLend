@@ -23,6 +23,15 @@ export type Wasm =
   | "minter_kujira.wasm"
   | "oracle.wasm";
 
+export type Label =
+  | "adapter_dex"
+  | "adapter_marketplace"
+  | "adapter_scheduler"
+  | "lending_platform_main"
+  | "lending_platform_stable"
+  | "minter"
+  | "oracle";
+
 export const ADDRESS = {
   KUJIRA: {
     ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
@@ -35,10 +44,19 @@ export const ADDRESS = {
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
     ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    MARKETPLACE:
+      "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
   },
   NEUTRON: {
     ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
     WORKER: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
+  },
+};
+
+// TODO: update
+const DENOM = {
+  STARGAZE: {
+    USDC: "uusdc",
   },
 };
 
@@ -100,8 +118,11 @@ export const CHAIN_CONFIG: ChainConfig = {
                     ADDRESS.KUJIRA.WORKER,
                     ADDRESS.KUJIRA.LIQUIDATION_CONTROLLER,
                   ],
-                  lending_platform: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
                   ),
                 },
               }),
@@ -112,7 +133,7 @@ export const CHAIN_CONFIG: ChainConfig = {
 
             {
               WASM: "lending_platform.wasm",
-              LABEL: "lending_platform",
+              LABEL: "lending_platform_main",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 worker: ADDRESS.KUJIRA.WORKER,
                 main_currency: {
@@ -128,13 +149,16 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
                   oracle: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=oracle]|ADDRESS"
                   ),
                   minter: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=minter_kujira.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=minter]|ADDRESS"
                   ),
-                  scheduler: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=adapter_scheduler_common.wasm]|ADDRESS"
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
                   ),
                 },
               }),
@@ -201,26 +225,51 @@ export const CHAIN_CONFIG: ChainConfig = {
           STORE_CODE_GAS_MULTIPLIER: 22,
           CONTRACTS: [
             {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                recover_address: ADDRESS.STARGAZE.ADMIN,
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
               WASM: "adapter_marketplace_stargaze.wasm",
               LABEL: "adapter_marketplace",
               INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.WORKER,
-                marketplace:
-                  "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
               }),
               MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<AdapterMarketplaceStargazeTypes.ExecuteMsg>({
                 update_config: {
-                  lending_platform: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
                   ),
                 },
               }),
-              CODE: 4250,
-              ADDRESS:
-                "stars1rynz7ykmgk2x97mghg8tseutzcsj0cr0eqce68zf5u2h5z2h6hsqwqyj26",
+              CODE: 0,
+              ADDRESS: "",
             },
 
             {
@@ -240,19 +289,21 @@ export const CHAIN_CONFIG: ChainConfig = {
                     ADDRESS.STARGAZE.WORKER,
                     ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
                   ],
-                  lending_platform: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
                   ),
                 },
               }),
-              CODE: 4251,
-              ADDRESS:
-                "stars1w24jypy6vd2zj9lptcatmxlfr8mqn2kv58juhts03p0dat0t5yjq8hyxad",
+              CODE: 0,
+              ADDRESS: "",
             },
 
             {
               WASM: "lending_platform.wasm",
-              LABEL: "lending_platform",
+              LABEL: "lending_platform_main",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.WORKER,
                 main_currency: {
@@ -268,22 +319,56 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
                   oracle: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
                   ),
                   minter: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=minter.wasm]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
                   ),
-                  scheduler: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=adapter_scheduler_common.wasm]|ADDRESS"
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
                   ),
-                  marketplace: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=adapter_marketplace_stargaze.wasm]|ADDRESS"
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
                   ),
                 },
               }),
-              CODE: 4252,
-              ADDRESS:
-                "stars1c4umfkz395g77lp7wmy0zrvg880kv2tn33yk93k67wc8az39hc5sceww5c",
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_stable",
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.USDC },
+                  },
+                  decimals: 6,
+                },
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
             },
 
             {
@@ -298,9 +383,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                   worker: ADDRESS.STARGAZE.WORKER,
                 },
               }),
-              CODE: 4253,
-              ADDRESS:
-                "stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz",
+              CODE: 0,
+              ADDRESS: "",
             },
 
             {
@@ -321,9 +405,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 4266,
-              ADDRESS:
-                "stars1zk74zn3cpfw5342au5gu3jjvmv6xl4aaerm4qggsk7wduhmdr4lqsykh79",
+              CODE: 0,
+              ADDRESS: "",
             },
           ],
           IBC: [],
@@ -350,7 +433,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           CONTRACTS: [
             {
               WASM: "lending_platform.wasm",
-              LABEL: "lending_platform",
+              LABEL: "lending_platform_main",
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 main_currency: {
                   token: {
@@ -416,8 +499,8 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
                 update_config: {
-                  lending_platform: $(
-                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[WASM=oracle.wasm]|ADDRESS"
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
                   ),
                 },
               }),

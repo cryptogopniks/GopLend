@@ -13,7 +13,7 @@
           "null"
         ]
       },
-      "lending_platform": {
+      "lending_platform_stable": {
         "type": [
           "string",
           "null"
@@ -88,7 +88,7 @@
                   "null"
                 ]
               },
-              "lending_platform": {
+              "lending_platform_stable": {
                 "type": [
                   "string",
                   "null"
@@ -156,6 +156,7 @@
       "Route": {
         "type": "string",
         "enum": [
+          "empty",
           "neutron",
           "osmosis",
           "test",
@@ -221,7 +222,7 @@
         "admin": {
           "$ref": "#/definitions/Addr"
         },
-        "lending_platform": {
+        "lending_platform_stable": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"

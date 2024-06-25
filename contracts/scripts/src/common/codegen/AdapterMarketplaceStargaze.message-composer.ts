@@ -8,28 +8,36 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
+import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeMsg {
   contractAddress: string;
   sender: string;
   acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
+    adapterDex,
     admin,
-    infinityPool,
-    lendingPlatform,
+    lendingPlatformMain,
+    lendingPlatformStable,
     marketplace,
+    marketplaceVersion,
+    oracle,
     worker
   }: {
+    adapterDex?: string;
     admin?: string;
-    infinityPool?: string;
-    lendingPlatform?: string;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     marketplace?: string;
+    marketplaceVersion?: MarketplaceVersion;
+    oracle?: string;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   acceptOffers: ({
-    biddedCollateralItemList
+    biddedCollateralItemList,
+    route
   }: {
     biddedCollateralItemList: BiddedCollateralItem[];
+    route: Route;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplaceStargazeMsg {
@@ -56,16 +64,22 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
     };
   };
   updateConfig = ({
+    adapterDex,
     admin,
-    infinityPool,
-    lendingPlatform,
+    lendingPlatformMain,
+    lendingPlatformStable,
     marketplace,
+    marketplaceVersion,
+    oracle,
     worker
   }: {
+    adapterDex?: string;
     admin?: string;
-    infinityPool?: string;
-    lendingPlatform?: string;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     marketplace?: string;
+    marketplaceVersion?: MarketplaceVersion;
+    oracle?: string;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -75,10 +89,13 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_config: {
+            adapter_dex: adapterDex,
             admin,
-            infinity_pool: infinityPool,
-            lending_platform: lendingPlatform,
+            lending_platform_main: lendingPlatformMain,
+            lending_platform_stable: lendingPlatformStable,
             marketplace,
+            marketplace_version: marketplaceVersion,
+            oracle,
             worker
           }
         })),
@@ -87,9 +104,11 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
     };
   };
   acceptOffers = ({
-    biddedCollateralItemList
+    biddedCollateralItemList,
+    route
   }: {
     biddedCollateralItemList: BiddedCollateralItem[];
+    route: Route;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -98,7 +117,8 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           accept_offers: {
-            bidded_collateral_item_list: biddedCollateralItemList
+            bidded_collateral_item_list: biddedCollateralItemList,
+            route
           }
         })),
         funds: _funds

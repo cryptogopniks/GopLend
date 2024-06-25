@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, BidType, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, RegularBalances, Vault, ReserveBalances, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
+import { TokenUnverified, Decimal, Uint128, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Binary, Route, BidType, Addr, ProposalStatus, ProposalTypeForString, Cw20ReceiveMsg, CollectionInfoForString, LiquidationItem, BiddedCollateralItem, TokenItem, ProposalForStringAndTokenUnverified, FundsForTokenUnverified, CollectionForString, QueryMsg, MigrateMsg, AddressConfig, QueryAmountsResponse, Balances, RegularBalances, Vault, ReserveBalances, Borrower, ArrayOfQueryBorrowersResponseItem, QueryBorrowersResponseItem, ArrayOfCollateral, Collateral, ArrayOfQueryCollateralsResponseItem, QueryCollateralsResponseItem, CollectionForAddr, ArrayOfQueryCollectionsResponseItem, QueryCollectionsResponseItem, Token, CommonConfig, CurrencyForToken, ArrayOfLiquidationBid, LiquidationBid, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidationBidsByLiquidatorAddressListResponseItem, Liquidator, ArrayOfQueryLiquidatorsResponseItem, QueryLiquidatorsResponseItem, ArrayOfTupleOfAddrAndDecimal, ArrayOfFundsForToken, FundsForToken, ProposalTypeForAddr, ArrayOfQueryProposalsResponseItem, QueryProposalsResponseItem, ProposalForAddrAndToken, RateConfig, Unbonder, ArrayOfQueryUnbondersResponseItem, QueryUnbondersResponseItem } from "./LendingPlatform.types";
 export interface LendingPlatformMsg {
   contractAddress: string;
   sender: string;
@@ -66,24 +66,26 @@ export interface LendingPlatformMsg {
     creationDate: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   liquidate: ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateAddressConfig: ({
+    adapterMarketplace,
+    adapterScheduler,
     admin,
-    marketplace,
     minter,
     oracle,
-    scheduler,
     worker
   }: {
+    adapterMarketplace?: string;
+    adapterScheduler?: string;
     admin?: string;
-    marketplace?: string;
     minter?: string;
     oracle?: string;
-    scheduler?: string;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateRateConfig: ({
@@ -107,7 +109,6 @@ export interface LendingPlatformMsg {
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -115,7 +116,6 @@ export interface LendingPlatformMsg {
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   depositReserveLiquidity: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
@@ -387,8 +387,10 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     };
   };
   liquidate = ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -398,6 +400,7 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           liquidate: {
+            route,
             targets
           }
         })),
@@ -419,18 +422,18 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     };
   };
   updateAddressConfig = ({
+    adapterMarketplace,
+    adapterScheduler,
     admin,
-    marketplace,
     minter,
     oracle,
-    scheduler,
     worker
   }: {
+    adapterMarketplace?: string;
+    adapterScheduler?: string;
     admin?: string;
-    marketplace?: string;
     minter?: string;
     oracle?: string;
-    scheduler?: string;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -440,11 +443,11 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_address_config: {
+            adapter_marketplace: adapterMarketplace,
+            adapter_scheduler: adapterScheduler,
             admin,
-            marketplace,
             minter,
             oracle,
-            scheduler,
             worker
           }
         })),
@@ -492,7 +495,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     collateralMinValue,
     isMarketplaceInterfaceEnabled,
     mainCurrency,
-    priceUpdatePeriod,
     unbondingPeriod
   }: {
     bglCurrency?: CurrencyForTokenUnverified;
@@ -500,7 +502,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     collateralMinValue?: Uint128;
     isMarketplaceInterfaceEnabled?: boolean;
     mainCurrency?: CurrencyForTokenUnverified;
-    priceUpdatePeriod?: number;
     unbondingPeriod?: number;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -515,7 +516,6 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
             collateral_min_value: collateralMinValue,
             is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
             main_currency: mainCurrency,
-            price_update_period: priceUpdatePeriod,
             unbonding_period: unbondingPeriod
           }
         })),

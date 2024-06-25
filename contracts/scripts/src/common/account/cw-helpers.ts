@@ -22,8 +22,13 @@ import { OracleQueryClient } from "../codegen/Oracle.client";
 import CONFIG_JSON from "../config/config.json";
 import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
-import { getChainOptionById, getContractByWasm } from "../config/config-utils";
+import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
+import { Route } from "../codegen/AdapterDexStargaze.types";
+import {
+  MarketplaceVersion,
+  PlatformType,
+} from "../codegen/AdapterMarketplaceStargaze.types";
 import {
   getCwClient,
   signAndBroadcastWrapper,
@@ -71,7 +76,6 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
 } from "../interfaces";
-import { Route } from "../codegen/AdapterDexStargaze.types";
 
 function addSingleTokenToComposerObj(
   obj: MsgExecuteContractEncodeObject,
@@ -163,52 +167,62 @@ function getContracts(contracts: ContractInfo[]) {
   let ADAPTER_DEX_STARGAZE_CONTRACT: ContractInfo | undefined;
   let ADAPTER_MARKETPLACE_STARGAZE_CONTRACT: ContractInfo | undefined;
   let ADAPTER_SCHEDULER_COMMON_CONTRACT: ContractInfo | undefined;
-  let LENDING_PLATFORM_CONTRACT: ContractInfo | undefined;
+  let LENDING_PLATFORM_MAIN_CONTRACT: ContractInfo | undefined;
+  let LENDING_PLATFORM_STABLE_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
   let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
 
   try {
-    ADAPTER_DEX_STARGAZE_CONTRACT = getContractByWasm(
+    ADAPTER_DEX_STARGAZE_CONTRACT = getContractByLabel(
       contracts,
-      "adapter_dex_stargaze.wasm"
+      "adapter_dex_stargaze"
     );
   } catch (error) {
     l(error);
   }
 
   try {
-    ADAPTER_SCHEDULER_COMMON_CONTRACT = getContractByWasm(
+    ADAPTER_SCHEDULER_COMMON_CONTRACT = getContractByLabel(
       contracts,
-      "adapter_scheduler_common.wasm"
+      "adapter_scheduler_common"
     );
   } catch (error) {
     l(error);
   }
 
   try {
-    LENDING_PLATFORM_CONTRACT = getContractByWasm(
+    LENDING_PLATFORM_MAIN_CONTRACT = getContractByLabel(
       contracts,
-      "lending_platform.wasm"
+      "lending_platform_main"
     );
   } catch (error) {
     l(error);
   }
 
   try {
-    MINTER_CONTRACT = getContractByWasm(contracts, "minter.wasm");
+    LENDING_PLATFORM_STABLE_CONTRACT = getContractByLabel(
+      contracts,
+      "lending_platform_stable"
+    );
   } catch (error) {
     l(error);
   }
 
   try {
-    MINTER_KUJIRA_CONTRACT = getContractByWasm(contracts, "minter_kujira.wasm");
+    MINTER_CONTRACT = getContractByLabel(contracts, "minter");
   } catch (error) {
     l(error);
   }
 
   try {
-    ORACLE_CONTRACT = getContractByWasm(contracts, "oracle.wasm");
+    MINTER_KUJIRA_CONTRACT = getContractByLabel(contracts, "minter_kujira");
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    ORACLE_CONTRACT = getContractByLabel(contracts, "oracle");
   } catch (error) {
     l(error);
   }
@@ -217,7 +231,8 @@ function getContracts(contracts: ContractInfo[]) {
     ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
-    LENDING_PLATFORM_CONTRACT,
+    LENDING_PLATFORM_MAIN_CONTRACT,
+    LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
@@ -239,7 +254,8 @@ async function getCwExecHelpers(
     ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
-    LENDING_PLATFORM_CONTRACT,
+    LENDING_PLATFORM_MAIN_CONTRACT,
+    LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
@@ -272,9 +288,16 @@ async function getCwExecHelpers(
         : ""
     );
 
-  const lendingPlatformMsgComposer = new LendingPlatformMsgComposer(
+  const lendingPlatformMainMsgComposer = new LendingPlatformMsgComposer(
     owner,
-    LENDING_PLATFORM_CONTRACT ? LENDING_PLATFORM_CONTRACT.ADDRESS : ""
+    LENDING_PLATFORM_MAIN_CONTRACT ? LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS : ""
+  );
+
+  const lendingPlatformStableMsgComposer = new LendingPlatformMsgComposer(
+    owner,
+    LENDING_PLATFORM_STABLE_CONTRACT
+      ? LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS
+      : ""
   );
 
   const minterMsgComposer = new MinterMsgComposer(
@@ -291,6 +314,12 @@ async function getCwExecHelpers(
     owner,
     ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
   );
+
+  const getPlatformComposer = (platformType: PlatformType) => {
+    return platformType === "main"
+      ? lendingPlatformMainMsgComposer
+      : lendingPlatformStableMsgComposer;
+  };
 
   async function _msgWrapperWithGasPrice(
     msgs: MsgExecuteContractEncodeObject[],
@@ -330,14 +359,14 @@ async function getCwExecHelpers(
     {
       admin,
       worker,
-      lendingPlatform,
+      lendingPlatformStable,
       adapterMarketplace,
       recoverAddress,
       maxPriceImpact,
     }: {
       admin?: string;
       worker?: string;
-      lendingPlatform?: string;
+      lendingPlatformStable?: string;
       adapterMarketplace?: string;
       recoverAddress?: string;
       maxPriceImpact?: number;
@@ -349,7 +378,7 @@ async function getCwExecHelpers(
         adapterDexStargazeMsgComposer.updateConfig({
           admin,
           worker,
-          lendingPlatform,
+          lendingPlatformStable,
           adapterMarketplace,
           recoverAddress,
           maxPriceImpact: maxPriceImpact?.toString(),
@@ -394,15 +423,21 @@ async function getCwExecHelpers(
     {
       admin,
       worker,
-      lendingPlatform,
+      lendingPlatformMain,
+      lendingPlatformStable,
+      oracle,
       marketplace,
-      infinityPool,
+      adapterDex,
+      marketplaceVersion,
     }: {
       admin?: string;
       worker?: string;
-      lendingPlatform?: string;
+      lendingPlatformMain?: string;
+      lendingPlatformStable?: string;
+      oracle?: string;
       marketplace?: string;
-      infinityPool?: string;
+      adapterDex?: string;
+      marketplaceVersion?: MarketplaceVersion;
     },
     gasPrice: string
   ) {
@@ -411,9 +446,12 @@ async function getCwExecHelpers(
         adapterMarketplaceStargazeMsgComposer.updateConfig({
           admin,
           worker,
-          lendingPlatform,
+          lendingPlatformMain,
+          lendingPlatformStable,
+          oracle,
           marketplace,
-          infinityPool,
+          adapterDex,
+          marketplaceVersion,
         }),
       ],
       gasPrice
@@ -421,6 +459,7 @@ async function getCwExecHelpers(
   }
 
   async function cwAcceptOffers(
+    route: Route,
     biddedCollateralItemList: BiddedCollateralItem[],
     gasPrice: string
   ) {
@@ -428,6 +467,7 @@ async function getCwExecHelpers(
       [
         adapterMarketplaceStargazeMsgComposer.acceptOffers({
           biddedCollateralItemList,
+          route,
         }),
       ],
       gasPrice
@@ -448,15 +488,17 @@ async function getCwExecHelpers(
       admin,
       worker,
       clockSource,
-      lendingPlatform,
-      minClockPeriod,
+      lendingPlatformMain,
+      lendingPlatformStable,
+      executionCooldown,
       offchainClock,
     }: {
       admin?: string;
       worker?: string;
       clockSource?: ClockSource;
-      lendingPlatform?: string;
-      minClockPeriod?: number;
+      lendingPlatformMain?: string;
+      lendingPlatformStable?: string;
+      executionCooldown?: number;
       offchainClock?: string[];
     },
     gasPrice: string
@@ -466,19 +508,24 @@ async function getCwExecHelpers(
         adapterSchedulerCommonMsgComposer.updateConfig({
           admin,
           worker,
-          lendingPlatform,
+          lendingPlatformMain,
+          lendingPlatformStable,
           offchainClock,
           clockSource,
-          minClockPeriod,
+          executionCooldown,
         }),
       ],
       gasPrice
     );
   }
 
-  async function cwPush(targets: LiquidationItem[], gasPrice: string) {
+  async function cwPush(
+    route: Route,
+    targets: LiquidationItem[],
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [adapterSchedulerCommonMsgComposer.push({ targets })],
+      [adapterSchedulerCommonMsgComposer.push({ targets, route })],
       gasPrice
     );
   }
@@ -486,6 +533,7 @@ async function getCwExecHelpers(
   // lending-platform
 
   async function cwDeposit(
+    platformType: PlatformType,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -493,7 +541,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.deposit(),
+          getPlatformComposer(platformType).deposit(),
           amount,
           token
         ),
@@ -503,6 +551,7 @@ async function getCwExecHelpers(
   }
 
   async function cwUnbond(
+    platformType: PlatformType,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -510,7 +559,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.unbond(),
+          getPlatformComposer(platformType).unbond(),
           amount,
           token
         ),
@@ -519,25 +568,27 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwWithdraw(gasPrice: string) {
+  async function cwWithdraw(platformType: PlatformType, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.withdraw()],
+      [getPlatformComposer(platformType).withdraw()],
       gasPrice
     );
   }
 
   async function cwWithdrawCollateral(
+    platformType: PlatformType,
     collections: CollectionInfoForString[],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.withdrawCollateral({ collections })],
+      [getPlatformComposer(platformType).withdrawCollateral({ collections })],
       gasPrice,
       1.05
     );
   }
 
   async function cwApproveAndDepositCollateral(
+    platformType: PlatformType,
     senderAddress: string,
     operator: string,
     collections: CollectionInfoForString[],
@@ -567,19 +618,26 @@ async function getCwExecHelpers(
       }
     }
 
-    msgList.push(lendingPlatformMsgComposer.depositCollateral({ collections }));
+    msgList.push(
+      getPlatformComposer(platformType).depositCollateral({ collections })
+    );
 
     return await _msgWrapperWithGasPrice(msgList, gasPrice);
   }
 
-  async function cwBorrow(amount: number, gasPrice: string) {
+  async function cwBorrow(
+    platformType: PlatformType,
+    amount: number,
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.borrow({ amount: `${amount}` })],
+      [getPlatformComposer(platformType).borrow({ amount: `${amount}` })],
       gasPrice
     );
   }
 
   async function cwRepay(
+    platformType: PlatformType,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -587,7 +645,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.repay(),
+          getPlatformComposer(platformType).repay(),
           amount,
           token
         ),
@@ -597,6 +655,7 @@ async function getCwExecHelpers(
   }
 
   async function cwPlaceBid(
+    platformType: PlatformType,
     collections: CollectionInfoForString[],
     discount: number,
     amount: number,
@@ -606,7 +665,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.placeBid({
+          getPlatformComposer(platformType).placeBid({
             collections,
             discount: discount.toString(),
           }),
@@ -619,13 +678,14 @@ async function getCwExecHelpers(
   }
 
   async function cwRemoveBid(
+    platformType: PlatformType,
     collectionAddresses: string[],
     creationDate: number,
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        lendingPlatformMsgComposer.removeBid({
+        getPlatformComposer(platformType).removeBid({
           collectionAddresses,
           creationDate,
         }),
@@ -635,6 +695,7 @@ async function getCwExecHelpers(
   }
 
   async function cwUpdateBid(
+    platformType: PlatformType,
     collections: CollectionInfoForString[],
     creationDate: number,
     amount: number,
@@ -646,6 +707,11 @@ async function getCwExecHelpers(
     const queryBidsMsg: LendingPlatformQueryMsg = {
       query_liquidation_bids_by_liquidator_address: { address: owner },
     };
+
+    const LENDING_PLATFORM_CONTRACT =
+      platformType === "main"
+        ? LENDING_PLATFORM_MAIN_CONTRACT
+        : LENDING_PLATFORM_STABLE_CONTRACT;
 
     const bids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem =
       await signingClient.queryContractSmart(
@@ -675,7 +741,7 @@ async function getCwExecHelpers(
       }
     }
 
-    const msgObj = lendingPlatformMsgComposer.updateBid({
+    const msgObj = getPlatformComposer(platformType).updateBid({
       collections,
       creationDate,
       amount: amount.toString(),
@@ -692,44 +758,56 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice([msgObj], gasPrice);
   }
 
-  async function cwLiquidate(targets: LiquidationItem[], gasPrice: string) {
+  async function cwLiquidate(
+    platformType: PlatformType,
+    route: Route,
+    targets: LiquidationItem[],
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.liquidate({ targets })],
+      [getPlatformComposer(platformType).liquidate({ targets, route })],
       gasPrice
     );
   }
 
-  async function cwLendingPlatformAcceptAdminRole(gasPrice: string) {
+  async function cwLendingPlatformAcceptAdminRole(
+    platformType: PlatformType,
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.acceptAdminRole()],
+      [getPlatformComposer(platformType).acceptAdminRole()],
       gasPrice
     );
   }
 
   async function cwLendingPlatformUpdateAddressConfig(
+    platformType: PlatformType,
     {
-      marketplace,
+      admin,
+      worker,
       minter,
       oracle,
-      worker,
-      scheduler,
+      adapterMarketplace,
+      adapterScheduler,
     }: {
-      marketplace?: string;
+      admin?: string;
+      worker?: string;
       minter?: string;
       oracle?: string;
-      worker?: string;
-      scheduler?: string;
+      adapterMarketplace?: string;
+      adapterScheduler?: string;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        lendingPlatformMsgComposer.updateAddressConfig({
-          marketplace,
+        getPlatformComposer(platformType).updateAddressConfig({
+          admin,
+          worker,
           minter,
           oracle,
-          worker,
-          scheduler,
+          adapterMarketplace,
+          adapterScheduler,
         }),
       ],
       gasPrice
@@ -737,6 +815,7 @@ async function getCwExecHelpers(
   }
 
   async function cwLendingPlatformUpdateRateConfig(
+    platformType: PlatformType,
     {
       bidMinRate,
       borrowApr,
@@ -756,7 +835,7 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        lendingPlatformMsgComposer.updateRateConfig({
+        getPlatformComposer(platformType).updateRateConfig({
           bidMinRate: bidMinRate?.toString(),
           borrowApr: borrowApr?.toString(),
           borrowFeeRate: borrowFeeRate?.toString(),
@@ -770,13 +849,13 @@ async function getCwExecHelpers(
   }
 
   async function cwLendingPlatformUpdateCommonConfig(
+    platformType: PlatformType,
     {
       bglCurrency,
       collateralMinValue,
       isMarketplaceInterfaceEnabled,
       mainCurrency,
       borrowersReserveFractionRatio,
-      priceUpdatePeriod,
       unbondingPeriod,
     }: {
       bglCurrency?: CurrencyForTokenUnverified;
@@ -784,21 +863,19 @@ async function getCwExecHelpers(
       isMarketplaceInterfaceEnabled?: boolean;
       mainCurrency?: CurrencyForTokenUnverified;
       borrowersReserveFractionRatio?: number;
-      priceUpdatePeriod?: number;
       unbondingPeriod?: number;
     },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        lendingPlatformMsgComposer.updateCommonConfig({
+        getPlatformComposer(platformType).updateCommonConfig({
           bglCurrency,
           collateralMinValue: collateralMinValue?.toString(),
           isMarketplaceInterfaceEnabled,
           mainCurrency,
           borrowersReserveFractionRatio:
             borrowersReserveFractionRatio?.toString(),
-          priceUpdatePeriod,
           unbondingPeriod,
         }),
       ],
@@ -807,6 +884,7 @@ async function getCwExecHelpers(
   }
 
   async function cwDepositReserveLiquidity(
+    platformType: PlatformType,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -814,7 +892,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.depositReserveLiquidity(),
+          getPlatformComposer(platformType).depositReserveLiquidity(),
           amount,
           token
         ),
@@ -824,6 +902,7 @@ async function getCwExecHelpers(
   }
 
   async function cwReinforceBglToken(
+    platformType: PlatformType,
     amount: number,
     token: TokenUnverified,
     gasPrice: string
@@ -831,7 +910,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.reinforceBglToken(),
+          getPlatformComposer(platformType).reinforceBglToken(),
           amount,
           token
         ),
@@ -840,27 +919,28 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwLock(gasPrice: string) {
+  async function cwLock(platformType: PlatformType, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.lock()],
+      [getPlatformComposer(platformType).lock()],
       gasPrice
     );
   }
 
-  async function cwUnlock(gasPrice: string) {
+  async function cwUnlock(platformType: PlatformType, gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.unlock()],
+      [getPlatformComposer(platformType).unlock()],
       gasPrice
     );
   }
 
   async function cwDistributeFunds(
+    platformType: PlatformType,
     addressAndWeightList: [string, number][],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
-        lendingPlatformMsgComposer.distributeFunds({
+        getPlatformComposer(platformType).distributeFunds({
           addressAndWeightList: addressAndWeightList.map(
             ([address, weight]) => [address, weight.toString()]
           ),
@@ -870,31 +950,41 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwRemoveCollection(address: string, gasPrice: string) {
+  async function cwRemoveCollection(
+    platformType: PlatformType,
+    address: string,
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.removeCollection({ address })],
+      [getPlatformComposer(platformType).removeCollection({ address })],
       gasPrice
     );
   }
 
   async function cwCreateProposal(
+    platformType: PlatformType,
     proposal: ProposalForStringAndTokenUnverified,
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.createProposal({ proposal })],
+      [getPlatformComposer(platformType).createProposal({ proposal })],
       gasPrice
     );
   }
 
-  async function cwRejectProposal(id: number, gasPrice: string) {
+  async function cwRejectProposal(
+    platformType: PlatformType,
+    id: number,
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.rejectProposal({ id })],
+      [getPlatformComposer(platformType).rejectProposal({ id })],
       gasPrice
     );
   }
 
   async function cwAcceptProposal(
+    platformType: PlatformType,
     id: number,
     amount: number,
     token: TokenUnverified,
@@ -903,7 +993,7 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          lendingPlatformMsgComposer.acceptProposal({ id }),
+          getPlatformComposer(platformType).acceptProposal({ id }),
           amount,
           token
         ),
@@ -1236,12 +1326,14 @@ async function getCwExecHelpers(
       admin,
       worker,
       controller,
-      minPriceUpdatePeriod,
+      maxPriceUpdatePeriod,
+      executionCooldown,
     }: {
       admin?: string;
       worker?: string;
       controller?: string[];
-      minPriceUpdatePeriod?: number;
+      maxPriceUpdatePeriod?: number;
+      executionCooldown?: number;
     },
     gasPrice: string
   ) {
@@ -1251,23 +1343,42 @@ async function getCwExecHelpers(
           admin,
           worker,
           controller,
-          minPriceUpdatePeriod,
+          maxPriceUpdatePeriod,
+          executionCooldown,
         }),
       ],
       gasPrice
     );
   }
 
-  async function cwSetPrices(data: RawPriceItem[], gasPrice: string) {
+  async function cwSetPrices(
+    priceRatio: number,
+    data: RawPriceItem[],
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.setPrices({ data })],
+      [
+        oracleMsgComposer.setPrices({
+          data,
+          priceRatio: priceRatio.toString(),
+        }),
+      ],
       gasPrice
     );
   }
 
-  async function cwUpdatePrices(data: RawPriceItem[], gasPrice: string) {
+  async function cwUpdatePrices(
+    priceRatio: number,
+    data: RawPriceItem[],
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.updatePrices({ data })],
+      [
+        oracleMsgComposer.updatePrices({
+          data,
+          priceRatio: priceRatio.toString(),
+        }),
+      ],
       gasPrice
     );
   }
@@ -1382,7 +1493,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     ADAPTER_DEX_STARGAZE_CONTRACT,
     ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
     ADAPTER_SCHEDULER_COMMON_CONTRACT,
-    LENDING_PLATFORM_CONTRACT,
+    LENDING_PLATFORM_MAIN_CONTRACT,
+    LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
@@ -1414,9 +1526,16 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         : ""
     );
 
-  const lendingPlatformQueryClient = new LendingPlatformQueryClient(
+  const lendingPlatformMainQueryClient = new LendingPlatformQueryClient(
     cosmwasmQueryClient,
-    LENDING_PLATFORM_CONTRACT ? LENDING_PLATFORM_CONTRACT.ADDRESS : ""
+    LENDING_PLATFORM_MAIN_CONTRACT ? LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS : ""
+  );
+
+  const lendingPlatformStableQueryClient = new LendingPlatformQueryClient(
+    cosmwasmQueryClient,
+    LENDING_PLATFORM_STABLE_CONTRACT
+      ? LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS
+      : ""
   );
 
   const minterQueryClient = new MinterQueryClient(
@@ -1433,6 +1552,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     cosmwasmQueryClient,
     ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
   );
+
+  const getPlatformQueryClient = (platformType: PlatformType) => {
+    return platformType === "main"
+      ? lendingPlatformMainQueryClient
+      : lendingPlatformStableQueryClient;
+  };
 
   // utils
 
@@ -1531,12 +1656,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
     const res =
       await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddressList(
-        { startAfter, limit }
+        { platformType, startAfter, limit }
       );
     return logAndReturn(res);
   }
@@ -1555,138 +1681,183 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   // lending-platform
 
-  async function cwLendingPlatformQueryAddressConfig() {
-    const res = await lendingPlatformQueryClient.queryAddressConfig();
+  async function cwLendingPlatformQueryAddressConfig(
+    platformType: PlatformType
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryAddressConfig();
     return logAndReturn(res);
   }
 
-  async function cwLendingPlatformQueryRateConfig() {
-    const res = await lendingPlatformQueryClient.queryRateConfig();
+  async function cwLendingPlatformQueryRateConfig(platformType: PlatformType) {
+    const res = await getPlatformQueryClient(platformType).queryRateConfig();
     return logAndReturn(res);
   }
 
-  async function cwLendingPlatformQueryCommonConfig() {
-    const res = await lendingPlatformQueryClient.queryCommonConfig();
+  async function cwLendingPlatformQueryCommonConfig(
+    platformType: PlatformType
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryCommonConfig();
     return logAndReturn(res);
   }
 
-  async function cwQueryPlatformRevenue() {
-    const res = await lendingPlatformQueryClient.queryPlatformRevenue();
+  async function cwQueryPlatformRevenue(platformType: PlatformType) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryPlatformRevenue();
     return logAndReturn(res);
   }
 
-  async function cwQueryBalances() {
-    const res = await lendingPlatformQueryClient.queryBalances();
+  async function cwQueryBalances(platformType: PlatformType) {
+    const res = await getPlatformQueryClient(platformType).queryBalances();
     return logAndReturn(res);
   }
 
-  async function cwQueryUnbonderList(limit: number = 100, startAfter?: string) {
-    const res = await lendingPlatformQueryClient.queryUnbonderList({
+  async function cwQueryUnbonderList(
+    platformType: PlatformType,
+    limit: number = 100,
+    startAfter?: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryUnbonderList({
       startAfter,
       limit,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryUnbonder(address: string) {
-    const res = await lendingPlatformQueryClient.queryUnbonder({ address });
+  async function cwQueryUnbonder(platformType: PlatformType, address: string) {
+    const res = await getPlatformQueryClient(platformType).queryUnbonder({
+      address,
+    });
     return logAndReturn(res);
   }
 
-  async function cwQueryBorrowerList(limit: number = 100, startAfter?: string) {
-    const res = await lendingPlatformQueryClient.queryBorrowerList({
+  async function cwQueryBorrowerList(
+    platformType: PlatformType,
+    limit: number = 100,
+    startAfter?: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryBorrowerList({
       startAfter,
       limit,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryBorrower(address: string) {
-    const res = await lendingPlatformQueryClient.queryBorrower({ address });
+  async function cwQueryBorrower(platformType: PlatformType, address: string) {
+    const res = await getPlatformQueryClient(platformType).queryBorrower({
+      address,
+    });
     return logAndReturn(res);
   }
 
   async function cwQueryLiquidatorList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
-    const res = await lendingPlatformQueryClient.queryLiquidatorList({
+    const res = await getPlatformQueryClient(platformType).queryLiquidatorList({
       startAfter,
       limit,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryLiquidator(address: string) {
-    const res = await lendingPlatformQueryClient.queryLiquidator({ address });
+  async function cwQueryLiquidator(
+    platformType: PlatformType,
+    address: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryLiquidator({
+      address,
+    });
     return logAndReturn(res);
   }
 
   async function cwQueryCollateralList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
-    const res = await lendingPlatformQueryClient.queryCollateralList({
+    const res = await getPlatformQueryClient(platformType).queryCollateralList({
       startAfter,
       limit,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryCollateral(collectionAddress: string) {
-    const res = await lendingPlatformQueryClient.queryCollateral({
+  async function cwQueryCollateral(
+    platformType: PlatformType,
+    collectionAddress: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryCollateral({
       collectionAddress,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryCollateralByOwner(owner: string) {
-    const res = await lendingPlatformQueryClient.queryCollateralByOwner({
+  async function cwQueryCollateralByOwner(
+    platformType: PlatformType,
+    owner: string
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryCollateralByOwner({
       owner,
     });
     return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddressList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
-    const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddressList(
-        { startAfter, limit }
-      );
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryLiquidationBidsByCollectionAddressList({ startAfter, limit });
     return logAndReturn(res);
   }
 
-  async function cwQueryLiquidationBidsByCollectionAddress(address: string) {
-    const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByCollectionAddress({
-        address,
-      });
+  async function cwQueryLiquidationBidsByCollectionAddress(
+    platformType: PlatformType,
+    address: string
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryLiquidationBidsByCollectionAddress({
+      address,
+    });
     return logAndReturn(res);
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddressList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
-    const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddressList(
-        { startAfter, limit }
-      );
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryLiquidationBidsByLiquidatorAddressList({ startAfter, limit });
     return logAndReturn(res);
   }
 
-  async function cwQueryLiquidationBidsByLiquidatorAddress(address: string) {
-    const res =
-      await lendingPlatformQueryClient.queryLiquidationBidsByLiquidatorAddress({
-        address,
-      });
+  async function cwQueryLiquidationBidsByLiquidatorAddress(
+    platformType: PlatformType,
+    address: string
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryLiquidationBidsByLiquidatorAddress({
+      address,
+    });
     return logAndReturn(res);
   }
 
-  async function cwQueryProposals(limit: number = 100, startAfter?: number) {
-    const res = await lendingPlatformQueryClient.queryProposals({
+  async function cwQueryProposals(
+    platformType: PlatformType,
+    limit: number = 100,
+    startAfter?: number
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryProposals({
       startAfter,
       limit,
     });
@@ -1694,38 +1865,54 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryCollectionList(
+    platformType: PlatformType,
     limit: number = 100,
     startAfter?: string
   ) {
-    const res = await lendingPlatformQueryClient.queryCollectionList({
+    const res = await getPlatformQueryClient(platformType).queryCollectionList({
       startAfter,
       limit,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryCollection(address: string) {
-    const res = await lendingPlatformQueryClient.queryCollection({
+  async function cwQueryCollection(
+    platformType: PlatformType,
+    address: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryCollection({
       address,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryBglCurrencyToMainCurrencyPrice() {
-    const res =
-      await lendingPlatformQueryClient.queryBglCurrencyToMainCurrencyPrice();
+  async function cwQueryBglCurrencyToMainCurrencyPrice(
+    platformType: PlatformType
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryBglCurrencyToMainCurrencyPrice();
     return logAndReturn(res);
   }
 
-  async function cwQueryConditionalDepositApr(amountToDeposit: number) {
-    const res = await lendingPlatformQueryClient.queryConditionalDepositApr({
+  async function cwQueryConditionalDepositApr(
+    platformType: PlatformType,
+    amountToDeposit: number
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryConditionalDepositApr({
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryLtvList(limit: number = 100, startAfter?: string) {
-    const res = await lendingPlatformQueryClient.queryLtvList({
+  async function cwQueryLtvList(
+    platformType: PlatformType,
+    limit: number = 100,
+    startAfter?: string
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryLtvList({
       startAfter,
       limit,
     });
@@ -1733,11 +1920,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwQueryConditionalLtv(
+    platformType: PlatformType,
     borrower: string,
     amountToDeposit: number = 0,
     amountToBorrow: number = 0
   ) {
-    const res = await lendingPlatformQueryClient.queryConditionalLtv({
+    const res = await getPlatformQueryClient(platformType).queryConditionalLtv({
       borrower,
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
       amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
@@ -1745,25 +1933,31 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryTotalAvailableToBorrowLiquidity() {
-    const res =
-      await lendingPlatformQueryClient.queryTotalAvailableToBorrowLiquidity();
+  async function cwQueryTotalAvailableToBorrowLiquidity(
+    platformType: PlatformType
+  ) {
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryTotalAvailableToBorrowLiquidity();
     return logAndReturn(res);
   }
 
   async function cwQueryAvailableToBorrow(
+    platformType: PlatformType,
     borrower: string,
     targetLtv?: number
   ) {
-    const res = await lendingPlatformQueryClient.queryAvailableToBorrow({
+    const res = await getPlatformQueryClient(
+      platformType
+    ).queryAvailableToBorrow({
       borrower,
       targetLtv: targetLtv ? targetLtv.toString() : undefined,
     });
     return logAndReturn(res);
   }
 
-  async function cwQueryAmounts() {
-    const res = await lendingPlatformQueryClient.queryAmounts();
+  async function cwQueryAmounts(platformType: PlatformType) {
+    const res = await getPlatformQueryClient(platformType).queryAmounts();
     return logAndReturn(res);
   }
 

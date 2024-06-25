@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerStargaze.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerStargaze.types";
 export interface AdapterSchedulerStargazeReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;

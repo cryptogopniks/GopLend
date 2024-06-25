@@ -1,6 +1,6 @@
 import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
-import { NetworkName, Wasm } from "../config";
+import { Label, NetworkName, Wasm } from "../config";
 
 import {
   CurrencyForTokenUnverified,
@@ -147,7 +147,7 @@ type ChainType = "main" | "test" | "local";
 
 interface ContractInfo {
   WASM: Wasm;
-  LABEL: string;
+  LABEL: Label;
   INIT_MSG: string;
   MIGRATE_MSG: string;
   UPDATE_MSG: string;

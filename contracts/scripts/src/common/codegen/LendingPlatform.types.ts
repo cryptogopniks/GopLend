@@ -16,6 +16,8 @@ export type TokenUnverified = {
 export type Decimal = string;
 export type Uint128 = string;
 export interface InstantiateMsg {
+  adapter_marketplace?: string | null;
+  adapter_scheduler?: string | null;
   bgl_currency?: CurrencyForTokenUnverified | null;
   bid_min_rate?: Decimal | null;
   borrow_apr?: Decimal | null;
@@ -27,11 +29,8 @@ export interface InstantiateMsg {
   is_marketplace_interface_enabled?: boolean | null;
   liquidation_fee_rate?: Decimal | null;
   main_currency: CurrencyForTokenUnverified;
-  marketplace?: string | null;
   minter?: string | null;
   oracle?: string | null;
-  price_update_period?: number | null;
-  scheduler?: string | null;
   unbonding_period?: number | null;
   worker?: string | null;
 }
@@ -80,17 +79,18 @@ export type ExecuteMsg = {
   };
 } | {
   liquidate: {
+    route: Route;
     targets: LiquidationItem[];
   };
 } | {
   accept_admin_role: {};
 } | {
   update_address_config: {
+    adapter_marketplace?: string | null;
+    adapter_scheduler?: string | null;
     admin?: string | null;
-    marketplace?: string | null;
     minter?: string | null;
     oracle?: string | null;
-    scheduler?: string | null;
     worker?: string | null;
   };
 } | {
@@ -109,7 +109,6 @@ export type ExecuteMsg = {
     collateral_min_value?: Uint128 | null;
     is_marketplace_interface_enabled?: boolean | null;
     main_currency?: CurrencyForTokenUnverified | null;
-    price_update_period?: number | null;
     unbonding_period?: number | null;
   };
 } | {
@@ -142,6 +141,7 @@ export type ExecuteMsg = {
   };
 };
 export type Binary = string;
+export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2";
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Addr = string;
 export type ProposalStatus = "active" | "accepted" | "rejected";
@@ -179,7 +179,11 @@ export interface BiddedCollateralItem {
   liquidation_price: Uint128;
   liquidator: Addr;
   owner: Addr;
-  token_id: string;
+  token_item: TokenItem;
+}
+export interface TokenItem {
+  creation_date: number;
+  id: string;
 }
 export interface ProposalForStringAndTokenUnverified {
   listing_price: FundsForTokenUnverified;
@@ -307,11 +311,11 @@ export interface MigrateMsg {
   version: string;
 }
 export interface AddressConfig {
+  adapter_marketplace?: Addr | null;
+  adapter_scheduler?: Addr | null;
   admin: Addr;
-  marketplace?: Addr | null;
   minter?: Addr | null;
   oracle?: Addr | null;
-  scheduler?: Addr | null;
   worker?: Addr | null;
 }
 export interface QueryAmountsResponse {
@@ -358,7 +362,7 @@ export interface QueryBorrowersResponseItem {
 export type ArrayOfCollateral = Collateral[];
 export interface Collateral {
   owner: Addr;
-  token_id_list: string[];
+  token_item_list: TokenItem[];
 }
 export type ArrayOfQueryCollateralsResponseItem = QueryCollateralsResponseItem[];
 export interface QueryCollateralsResponseItem {
@@ -389,7 +393,6 @@ export interface CommonConfig {
   collateral_min_value: Uint128;
   is_marketplace_interface_enabled: boolean;
   main_currency: CurrencyForToken;
-  price_update_period: number;
   unbonding_period: number;
 }
 export interface CurrencyForToken {

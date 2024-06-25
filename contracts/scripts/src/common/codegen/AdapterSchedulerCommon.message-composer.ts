@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerCommon.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Route, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerCommon.types";
 export interface AdapterSchedulerCommonMsg {
   contractAddress: string;
   sender: string;
@@ -16,21 +16,25 @@ export interface AdapterSchedulerCommonMsg {
   updateConfig: ({
     admin,
     clockSource,
-    lendingPlatform,
-    minClockPeriod,
+    executionCooldown,
+    lendingPlatformMain,
+    lendingPlatformStable,
     offchainClock,
     worker
   }: {
     admin?: string;
     clockSource?: ClockSource;
-    lendingPlatform?: string;
-    minClockPeriod?: number;
+    executionCooldown?: number;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     offchainClock?: string[];
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   push: ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
@@ -60,15 +64,17 @@ export class AdapterSchedulerCommonMsgComposer implements AdapterSchedulerCommon
   updateConfig = ({
     admin,
     clockSource,
-    lendingPlatform,
-    minClockPeriod,
+    executionCooldown,
+    lendingPlatformMain,
+    lendingPlatformStable,
     offchainClock,
     worker
   }: {
     admin?: string;
     clockSource?: ClockSource;
-    lendingPlatform?: string;
-    minClockPeriod?: number;
+    executionCooldown?: number;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     offchainClock?: string[];
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -81,8 +87,9 @@ export class AdapterSchedulerCommonMsgComposer implements AdapterSchedulerCommon
           update_config: {
             admin,
             clock_source: clockSource,
-            lending_platform: lendingPlatform,
-            min_clock_period: minClockPeriod,
+            execution_cooldown: executionCooldown,
+            lending_platform_main: lendingPlatformMain,
+            lending_platform_stable: lendingPlatformStable,
             offchain_clock: offchainClock,
             worker
           }
@@ -92,8 +99,10 @@ export class AdapterSchedulerCommonMsgComposer implements AdapterSchedulerCommon
     };
   };
   push = ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -103,6 +112,7 @@ export class AdapterSchedulerCommonMsgComposer implements AdapterSchedulerCommon
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           push: {
+            route,
             targets
           }
         })),

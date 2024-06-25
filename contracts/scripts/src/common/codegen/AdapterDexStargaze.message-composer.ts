@@ -16,14 +16,14 @@ export interface AdapterDexStargazeMsg {
   updateConfig: ({
     adapterMarketplace,
     admin,
-    lendingPlatform,
+    lendingPlatformStable,
     maxPriceImpact,
     recoverAddress,
     worker
   }: {
     adapterMarketplace?: string;
     admin?: string;
-    lendingPlatform?: string;
+    lendingPlatformStable?: string;
     maxPriceImpact?: Decimal;
     recoverAddress?: string;
     worker?: string;
@@ -62,14 +62,14 @@ export class AdapterDexStargazeMsgComposer implements AdapterDexStargazeMsg {
   updateConfig = ({
     adapterMarketplace,
     admin,
-    lendingPlatform,
+    lendingPlatformStable,
     maxPriceImpact,
     recoverAddress,
     worker
   }: {
     adapterMarketplace?: string;
     admin?: string;
-    lendingPlatform?: string;
+    lendingPlatformStable?: string;
     maxPriceImpact?: Decimal;
     recoverAddress?: string;
     worker?: string;
@@ -83,7 +83,7 @@ export class AdapterDexStargazeMsgComposer implements AdapterDexStargazeMsg {
           update_config: {
             adapter_marketplace: adapterMarketplace,
             admin,
-            lending_platform: lendingPlatform,
+            lending_platform_stable: lendingPlatformStable,
             max_price_impact: maxPriceImpact,
             recover_address: recoverAddress,
             worker

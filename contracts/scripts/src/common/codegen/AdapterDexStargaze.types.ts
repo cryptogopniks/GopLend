@@ -7,7 +7,7 @@
 export type Decimal = string;
 export interface InstantiateMsg {
   adapter_marketplace?: string | null;
-  lending_platform?: string | null;
+  lending_platform_stable?: string | null;
   max_price_impact?: Decimal | null;
   recover_address?: string | null;
   worker?: string | null;
@@ -18,7 +18,7 @@ export type ExecuteMsg = {
   update_config: {
     adapter_marketplace?: string | null;
     admin?: string | null;
-    lending_platform?: string | null;
+    lending_platform_stable?: string | null;
     max_price_impact?: Decimal | null;
     recover_address?: string | null;
     worker?: string | null;
@@ -29,7 +29,7 @@ export type ExecuteMsg = {
     route: Route;
   };
 };
-export type Route = "neutron" | "osmosis" | "test" | "test2";
+export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2";
 export type QueryMsg = {
   query_config: {};
 };
@@ -40,7 +40,7 @@ export type Addr = string;
 export interface Config {
   adapter_marketplace?: Addr | null;
   admin: Addr;
-  lending_platform?: Addr | null;
+  lending_platform_stable?: Addr | null;
   max_price_impact: Decimal;
   recover_address?: Addr | null;
   worker?: Addr | null;

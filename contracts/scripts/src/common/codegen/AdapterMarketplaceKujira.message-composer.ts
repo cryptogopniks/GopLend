@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceKujira.types";
+import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceKujira.types";
 export interface AdapterMarketplaceKujiraMsg {
   contractAddress: string;
   sender: string;

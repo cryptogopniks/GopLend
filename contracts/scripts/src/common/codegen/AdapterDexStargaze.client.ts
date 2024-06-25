@@ -32,14 +32,14 @@ export interface AdapterDexStargazeInterface extends AdapterDexStargazeReadOnlyI
   updateConfig: ({
     adapterMarketplace,
     admin,
-    lendingPlatform,
+    lendingPlatformStable,
     maxPriceImpact,
     recoverAddress,
     worker
   }: {
     adapterMarketplace?: string;
     admin?: string;
-    lendingPlatform?: string;
+    lendingPlatformStable?: string;
     maxPriceImpact?: Decimal;
     recoverAddress?: string;
     worker?: string;
@@ -73,14 +73,14 @@ export class AdapterDexStargazeClient extends AdapterDexStargazeQueryClient impl
   updateConfig = async ({
     adapterMarketplace,
     admin,
-    lendingPlatform,
+    lendingPlatformStable,
     maxPriceImpact,
     recoverAddress,
     worker
   }: {
     adapterMarketplace?: string;
     admin?: string;
-    lendingPlatform?: string;
+    lendingPlatformStable?: string;
     maxPriceImpact?: Decimal;
     recoverAddress?: string;
     worker?: string;
@@ -89,7 +89,7 @@ export class AdapterDexStargazeClient extends AdapterDexStargazeQueryClient impl
       update_config: {
         adapter_marketplace: adapterMarketplace,
         admin,
-        lending_platform: lendingPlatform,
+        lending_platform_stable: lendingPlatformStable,
         max_price_impact: maxPriceImpact,
         recover_address: recoverAddress,
         worker
