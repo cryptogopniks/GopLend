@@ -12,13 +12,22 @@ use goplend_base::{
         },
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, Vault,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, TokenItem, Vault,
         },
     },
+    oracle::types::PriceItem,
     utils::{unwrap_field, AuthType},
 };
 
 use crate::math;
+
+pub fn choose_price(main_currency: &Currency<Token>, price_item: &PriceItem) -> Uint128 {
+    if main_currency == &price_item.price.currency {
+        price_item.price.amount
+    } else {
+        price_item.usd_price.amount
+    }
+}
 
 pub fn check_lockout(deps: Deps) -> StdResult<()> {
     if IS_LOCKED.load(deps.storage)? {
@@ -223,6 +232,7 @@ pub fn increase_platform_revenue(
 pub fn update_liquidation_storages(
     storage: &mut dyn Storage,
     liquidation_set: &Vec<BiddedCollateralItem>,
+    block_time: u64,
 ) -> StdResult<(Uint128, Uint128)> {
     // bids + offers
     let mut current_liquidation_value = Uint128::zero();
@@ -231,7 +241,7 @@ pub fn update_liquidation_storages(
 
     for BiddedCollateralItem {
         collection,
-        token_id,
+        token_item,
         owner,
         liquidator,
         liquidation_price,
@@ -246,7 +256,7 @@ pub fn update_liquidation_storages(
         if matches!(bid_type, BidType::LiquidationBid) && collaterals_by_liquidator.is_none() {
             collaterals.push(Collateral {
                 owner: liquidator.to_owned(),
-                token_id_list: vec![],
+                token_item_list: vec![],
             });
         }
 
@@ -254,14 +264,17 @@ pub fn update_liquidation_storages(
             .into_iter()
             .map(|mut x| {
                 if x.owner == owner {
-                    x.token_id_list.retain(|id| id != token_id);
+                    x.token_item_list.retain(|item| item.id != token_item.id);
                 } else if x.owner == liquidator {
-                    x.token_id_list.push(token_id.to_string());
+                    x.token_item_list.push(TokenItem {
+                        id: token_item.id.clone(),
+                        creation_date: block_time,
+                    });
                 }
 
                 x
             })
-            .filter(|x| !x.token_id_list.is_empty())
+            .filter(|x| !x.token_item_list.is_empty())
             .collect();
 
         COLLATERALS.save(storage, collection, &collaterals)?;
@@ -278,9 +291,9 @@ pub fn update_liquidation_storages(
             .load(storage, collection)?
             .into_iter()
             .map(|mut bid| {
-                if bid.token_id_list.contains(token_id) {
+                if bid.token_id_list.contains(&token_item.id) {
                     bid.amount -= liquidation_price;
-                    bid.token_id_list.retain(|id| id != token_id);
+                    bid.token_id_list.retain(|id| id != &token_item.id);
                 }
 
                 bid
@@ -433,6 +446,7 @@ pub mod offchain {
     use cosmwasm_std::{Addr, QuerierWrapper, StdResult, Uint128};
 
     use goplend_base::{
+        assets::{Currency, Token},
         error::ContractError,
         lending_platform::{
             msg::{
@@ -443,6 +457,8 @@ pub mod offchain {
         },
         oracle::{self, types::PriceItem},
     };
+
+    use super::choose_price;
 
     pub fn get_borrowers(
         querier_wrapper: &QuerierWrapper,
@@ -525,32 +541,29 @@ pub mod offchain {
     }
 
     pub fn get_collateral_value(
+        main_currency: &Currency<Token>,
         collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
         prices: &[PriceItem],
-        block_time: u64,
-        price_update_period: u64,
     ) -> StdResult<Option<Uint128>> {
         let mut is_price_outdated = false;
 
         let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
             Ok(Uint128::zero()),
             |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                let oracle::types::PriceItem {
-                    price,
-                    price_update_date,
-                    ..
-                } = prices
+                let price_item = prices
                     .iter()
                     .find(|x| x.address == collection_address)
                     .ok_or(ContractError::PriceIsNotFound {
                         val: collection_address.to_string(),
                     })?;
 
-                if block_time - price_update_date > price_update_period {
+                if price_item.is_outdated {
                     is_price_outdated = true;
                 }
 
-                Ok(acc? + price.amount * Uint128::new(collateral.token_id_list.len() as u128))
+                let price = choose_price(&main_currency, &price_item);
+
+                Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
             },
         )?;
 
@@ -580,7 +593,7 @@ pub mod offchain {
                             && bid
                                 .token_id_list
                                 .iter()
-                                .any(|y| collateral.token_id_list.contains(y))
+                                .any(|y| collateral.token_item_list.iter().any(|z| &z.id == y))
                     },
                 ) {
                     collection_and_bid_list.push((collection_address.to_owned(), bid.to_owned()));

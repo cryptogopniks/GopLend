@@ -134,7 +134,9 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
+        ExecuteMsg::Liquidate { targets, route } => {
+            e::try_liquidate(deps, env, info, targets, route)
+        }
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
@@ -143,8 +145,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            scheduler,
-            marketplace,
+            adapter_scheduler,
+            adapter_marketplace,
         } => e::try_update_address_config(
             deps,
             env,
@@ -153,8 +155,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            scheduler,
-            marketplace,
+            adapter_scheduler,
+            adapter_marketplace,
         ),
 
         ExecuteMsg::UpdateRateConfig {
@@ -182,7 +184,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            price_update_period,
             is_marketplace_interface_enabled,
         } => e::try_update_common_config(
             deps,
@@ -193,7 +194,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            price_update_period,
             is_marketplace_interface_enabled,
         ),
 

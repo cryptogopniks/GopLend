@@ -87,7 +87,13 @@ impl PartialOrd for BidType {
 #[cw_serde]
 pub struct Collateral {
     pub owner: Addr,
-    pub token_id_list: Vec<String>,
+    pub token_item_list: Vec<TokenItem>,
+}
+
+#[cw_serde]
+pub struct TokenItem {
+    pub id: String,
+    pub creation_date: u64, // enables holding snapshots functionality
 }
 
 #[cw_serde]
@@ -99,7 +105,7 @@ pub struct LiquidationItem {
 #[cw_serde]
 pub struct BiddedCollateralItem {
     pub collection: Addr,
-    pub token_id: String,
+    pub token_item: TokenItem,
     pub owner: Addr,
     pub liquidator: Addr,
     pub bid_creation_date: u64,
@@ -197,8 +203,8 @@ pub struct AddressConfig {
     pub worker: Option<Addr>,
     pub oracle: Option<Addr>,
     pub minter: Option<Addr>,
-    pub scheduler: Option<Addr>,
-    pub marketplace: Option<Addr>,
+    pub adapter_scheduler: Option<Addr>,
+    pub adapter_marketplace: Option<Addr>,
 }
 
 #[cw_serde]
@@ -218,7 +224,6 @@ pub struct CommonConfig {
     pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
     pub borrowers_reserve_fraction_ratio: Decimal,
-    pub price_update_period: u64,
     pub is_marketplace_interface_enabled: bool,
 }
 

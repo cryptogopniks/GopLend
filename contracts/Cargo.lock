@@ -3,6 +3,34 @@
 version = 3
 
 [[package]]
+name = "adapter-dex-stargaze"
+version = "1.0.0"
+dependencies = [
+ "anybuf",
+ "bech32 0.11.0",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "semver",
+ "serde",
+]
+
+[[package]]
+name = "adapter-dex-stargaze-mocks"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "semver",
+ "serde",
+]
+
+[[package]]
 name = "adapter-marketplace-kujira"
 version = "1.0.0"
 dependencies = [
@@ -68,6 +96,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anybuf"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb5f1dee23caf80904249463cc4493b6789c2250f88c8f8d9160de5c6099bfe7"
+
+[[package]]
 name = "anyhow"
 version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -102,6 +136,12 @@ name = "bech32"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d86b93f97252c47b41663388e6d155714a9d0c398b99f1005cbc5f978b29f445"
+
+[[package]]
+name = "bech32"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d965446196e3b7decd44aa7ee49e31d630118f90ef12f97900f262eb915c951d"
 
 [[package]]
 name = "block-buffer"
@@ -214,7 +254,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712fe58f39d55c812f7b2c84e097cdede3a39d520f89b6dc3153837e31741927"
 dependencies = [
  "base64",
- "bech32",
+ "bech32 0.9.1",
  "bnum",
  "cosmwasm-crypto",
  "cosmwasm-derive",
@@ -1521,6 +1561,7 @@ dependencies = [
 name = "tests"
 version = "1.0.0"
 dependencies = [
+ "adapter-dex-stargaze-mocks",
  "adapter-marketplace-kujira",
  "adapter-marketplace-stargaze",
  "adapter-scheduler-common",

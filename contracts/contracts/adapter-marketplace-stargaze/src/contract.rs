@@ -38,23 +38,30 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
+            oracle,
             marketplace,
-            infinity_pool,
+            adapter_dex,
+            marketplace_version,
         } => e::try_update_config(
             deps,
             env,
             info,
             admin,
             worker,
-            lending_platform,
+            lending_platform_main,
+            lending_platform_stable,
+            oracle,
             marketplace,
-            infinity_pool,
+            adapter_dex,
+            marketplace_version,
         ),
 
         ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
-        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),
+            route,
+        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list, route),
     }
 }
 
@@ -64,9 +71,17 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOffersByCollectionAddressList { start_after, limit } => to_json_binary(
-            &q::query_offers_by_collection_address_list(deps, env, start_after, limit)?,
-        ),
+        QueryMsg::QueryOffersByCollectionAddressList {
+            platform_type,
+            start_after,
+            limit,
+        } => to_json_binary(&q::query_offers_by_collection_address_list(
+            deps,
+            env,
+            platform_type,
+            start_after,
+            limit,
+        )?),
     }
 }
 

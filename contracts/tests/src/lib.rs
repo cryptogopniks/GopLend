@@ -20,6 +20,10 @@ pub mod helpers {
     }
 
     pub mod adapters {
+        pub mod dex {
+            pub mod stargaze_mocks;
+        }
+
         pub mod scheduler {
             pub mod common;
             pub mod stargaze;

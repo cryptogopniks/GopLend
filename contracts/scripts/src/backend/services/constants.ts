@@ -17,7 +17,12 @@ export const TOKEN = {
   KUJI: "ukuji",
   BGL_KUJI:
     "factory/kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs/bglKUJI",
+  USK: "",
+  BGL_USK: "",
+
   STARS: "ustars",
   BGL_STARS:
     "factory/stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz/bglSTARS",
+  USDC: "",
+  BGL_USDC: "",
 };

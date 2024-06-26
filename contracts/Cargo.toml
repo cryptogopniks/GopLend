@@ -20,7 +20,7 @@ overflow-checks = true
 
 [workspace.dependencies]
 cosmwasm-schema = "1.5.0"
-cosmwasm-std = "1.5.4"
+cosmwasm-std = { version = "1.5.4", features = ["stargate"] }
 cw-storage-plus = "1.1.0"
 cw2 = "1.1.0"
 cw20 = "1.0.1"
@@ -29,6 +29,7 @@ cw721 = "0.18.0"
 cw721-base = { version = "0.18.0", features = ["library"] }
 kujira = "1.0.1"
 osmosis-std = "0.20.1"
+anybuf = "0.5.0"
 serde = "1.0.163"
 strum = "0.24.1"
 strum_macros = "0.24.3"
@@ -37,9 +38,11 @@ anyhow = "1.0.71"
 cw-multi-test = "0.17.0"
 speculoos = "0.11.0"
 semver = "1.0.20"
+bech32 = "0.11.0"
 
 goplend-base = { path = "./packages/goplend-base" }
 stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }
+adapter-dex-stargaze-mocks = { path = "./packages/adapter-dex-stargaze-mocks" }
 
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }
@@ -49,6 +52,7 @@ adapter-scheduler-common = { path = "./contracts/adapter-scheduler-common" }
 adapter-scheduler-stargaze = { path = "./contracts/adapter-scheduler-stargaze" }
 adapter-marketplace-kujira = { path = "./contracts/adapter-marketplace-kujira" }
 adapter-marketplace-stargaze = { path = "./contracts/adapter-marketplace-stargaze" }
+adapter-dex-stargaze = { path = "./contracts/adapter-dex-stargaze" }
 
 sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", version = "1.4.0", features = ["library"] }
 # stargaze-marketplace-v2 = "0.1.0"

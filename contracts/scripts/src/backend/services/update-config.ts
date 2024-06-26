@@ -77,7 +77,7 @@ async function main() {
       contractConfigAndUpdateMsgList.map((x) => x[1]),
       ""
     );
-    const gasWantedSim = Math.ceil(1.2 * gasSimulated);
+    const gasWantedSim = Math.ceil(1.3 * gasSimulated);
 
     const tx = await signingClient.signAndBroadcast(
       owner,

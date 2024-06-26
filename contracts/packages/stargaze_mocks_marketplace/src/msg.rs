@@ -6,3 +6,8 @@ use crate::state::Bid;
 pub struct InstantiateMsg {
     pub bids: Vec<Bid>,
 }
+
+#[cw_serde]
+pub enum SudoMsg {
+    SetBids { bids: Vec<Bid> },
+}

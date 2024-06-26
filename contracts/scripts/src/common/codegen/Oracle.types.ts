@@ -6,7 +6,8 @@
 
 export interface InstantiateMsg {
   controller?: string[] | null;
-  min_price_update_period?: number | null;
+  execution_cooldown?: number | null;
+  max_price_update_period?: number | null;
   worker?: string | null;
 }
 export type ExecuteMsg = {
@@ -15,16 +16,19 @@ export type ExecuteMsg = {
   update_config: {
     admin?: string | null;
     controller?: string[] | null;
-    min_price_update_period?: number | null;
+    execution_cooldown?: number | null;
+    max_price_update_period?: number | null;
     worker?: string | null;
   };
 } | {
   set_prices: {
     data: RawPriceItem[];
+    price_ratio: Decimal;
   };
 } | {
   update_prices: {
     data: RawPriceItem[];
+    price_ratio: Decimal;
   };
 } | {
   remove_prices: {
@@ -41,9 +45,11 @@ export type TokenUnverified = {
     address: string;
   };
 };
+export type Decimal = string;
 export interface RawPriceItem {
   collection_address: string;
   price: FundsForTokenUnverified;
+  usd_price: FundsForTokenUnverified;
 }
 export interface FundsForTokenUnverified {
   amount: Uint128;
@@ -62,6 +68,8 @@ export type QueryMsg = {
     start_after?: string | null;
   };
 } | {
+  query_price_ratio: {};
+} | {
   query_block_time: {};
 } | {
   query_log: {};
@@ -74,7 +82,8 @@ export type Addr = string;
 export interface Config {
   admin: Addr;
   controller?: Addr[] | null;
-  min_price_update_period: number;
+  execution_cooldown: number;
+  max_price_update_period: number;
   worker?: Addr | null;
 }
 export type ArrayOfLog = Log[];
@@ -82,6 +91,11 @@ export interface Log {
   block_time: number;
   counter: number;
   sender: Addr;
+}
+export interface PriceRatioItem {
+  is_outdated: boolean;
+  update_date: number;
+  value: Decimal;
 }
 export type Token = {
   native: {
@@ -95,8 +109,10 @@ export type Token = {
 export type ArrayOfPriceItem = PriceItem[];
 export interface PriceItem {
   address: Addr;
+  is_outdated: boolean;
   price: FundsForToken;
-  price_update_date: number;
+  update_date: number;
+  usd_price: FundsForToken;
 }
 export interface FundsForToken {
   amount: Uint128;

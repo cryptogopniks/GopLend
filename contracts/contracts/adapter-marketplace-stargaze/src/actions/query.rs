@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, Deps, Env, StdResult};
+use cosmwasm_std::{Decimal, Deps, Env, StdResult, Uint128};
 
 use sg_marketplace::{
     msg::{BidsResponse, CollectionBidsResponse, QueryMsg as MarketplaceQueryMsg},
@@ -8,8 +8,10 @@ use sg_marketplace::{
 use goplend_base::{
     adapters::marketplace::stargaze::{
         state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
-        types::Config,
+        types::{Config, PlatformType},
     },
+    converters::u128_to_dec,
+    error::ContractError,
     lending_platform::{
         msg::{
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -17,6 +19,7 @@ use goplend_base::{
         },
         types::{BidType, Collateral, LiquidationBid},
     },
+    oracle::types::PriceRatioItem,
     utils::unwrap_field,
 };
 
@@ -27,20 +30,48 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_offers_by_collection_address_list(
     deps: Deps,
     env: Env,
+    platform_type: PlatformType,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
     let block_time = env.block.time.seconds();
     let Config {
-        lending_platform,
+        lending_platform_main,
+        lending_platform_stable,
+        oracle,
         marketplace,
         ..
     } = CONFIG.load(deps.storage)?;
-    let lending_platform = &unwrap_field(lending_platform, "lending_platform")?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
+    let lending_platform = match platform_type {
+        PlatformType::Main => unwrap_field(lending_platform_main, "lending_platform_main")?,
+        PlatformType::Stable => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
+    };
+
+    let price_ratio = match platform_type {
+        PlatformType::Main => Decimal::one(),
+        PlatformType::Stable => {
+            let PriceRatioItem {
+                value, is_outdated, ..
+            } = deps.querier.query_wasm_smart(
+                oracle,
+                &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+            )?;
+
+            if is_outdated {
+                Err(ContractError::OutdatedPrice {
+                    val: value.to_string(),
+                })?;
+            }
+
+            value
+        }
+    };
+
     let collection_list: Vec<QueryCollectionsResponseItem> = deps.querier.query_wasm_smart(
-        lending_platform,
+        &lending_platform,
         &LendingPlatformQueryMsg::QueryCollectionList { start_after, limit },
     )?;
 
@@ -89,7 +120,7 @@ pub fn query_offers_by_collection_address_list(
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list: vec![token_id.to_string()],
-                amount: price,
+                amount: calc_price(price, price_ratio),
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::TokenOffer,
             })
@@ -97,7 +128,7 @@ pub fn query_offers_by_collection_address_list(
 
         for CollectionBid { price, bidder, .. } in collection_bids {
             let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
-                lending_platform,
+                &lending_platform,
                 &LendingPlatformQueryMsg::QueryCollateral {
                     collection_address: collection_address.to_string(),
                 },
@@ -106,14 +137,19 @@ pub fn query_offers_by_collection_address_list(
             // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
             let token_id_list = collateral
                 .into_iter()
-                .flat_map(|x| x.token_id_list)
+                .flat_map(|x| {
+                    x.token_item_list
+                        .into_iter()
+                        .map(|x| x.id)
+                        .collect::<Vec<String>>()
+                })
                 .collect();
 
             offers.push(LiquidationBid {
                 creation_date: block_time,
                 liquidator: bidder,
                 token_id_list,
-                amount: price,
+                amount: calc_price(price, price_ratio),
                 discount: Decimal::zero(), // TODO: order_info.finders_fee_bps?
                 bid_type: BidType::CollectionOffer,
             })
@@ -126,4 +162,16 @@ pub fn query_offers_by_collection_address_list(
     }
 
     Ok(total_offers)
+}
+
+// imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
+// if we will assume the offer is 5 USDC we will lose some funds due to
+// swap fee, price impact, price ratio fluctuation
+// expecting 2 % losses we can accept 4.9 USDC offer
+//
+// price = base_price * price_ratio * (1 - price_impact)
+// as price_impact comes with price_ratio
+// price = base_price * price_ratio
+fn calc_price(base_price: Uint128, price_ratio: Decimal) -> Uint128 {
+    (u128_to_dec(base_price) * price_ratio).to_uint_floor()
 }

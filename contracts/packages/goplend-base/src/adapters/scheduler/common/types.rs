@@ -11,10 +11,11 @@ pub enum ClockSource {
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub lending_platform: Option<Addr>,
+    pub lending_platform_main: Option<Addr>,
+    pub lending_platform_stable: Option<Addr>,
     pub offchain_clock: Option<Vec<Addr>>,
     pub clock_source: ClockSource,
-    pub min_clock_period: u64,
+    pub execution_cooldown: u64,
 }
 
 #[cw_serde]

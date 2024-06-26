@@ -17,19 +17,25 @@
           }
         ]
       },
-      "lending_platform": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "min_clock_period": {
+      "execution_cooldown": {
         "type": [
           "integer",
           "null"
         ],
         "format": "uint64",
         "minimum": 0.0
+      },
+      "lending_platform_main": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "lending_platform_stable": {
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "offchain_clock": {
         "type": [
@@ -100,19 +106,25 @@
                   }
                 ]
               },
-              "lending_platform": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "min_clock_period": {
+              "execution_cooldown": {
                 "type": [
                   "integer",
                   "null"
                 ],
                 "format": "uint64",
                 "minimum": 0.0
+              },
+              "lending_platform_main": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lending_platform_stable": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "offchain_clock": {
                 "type": [
@@ -144,9 +156,13 @@
           "push": {
             "type": "object",
             "required": [
+              "route",
               "targets"
             ],
             "properties": {
+              "route": {
+                "$ref": "#/definitions/Route"
+              },
               "targets": {
                 "type": "array",
                 "items": {
@@ -184,7 +200,7 @@
           "liquidation_price",
           "liquidator",
           "owner",
-          "token_id"
+          "token_item"
         ],
         "properties": {
           "bid_creation_date": {
@@ -213,8 +229,8 @@
           "owner": {
             "$ref": "#/definitions/Addr"
           },
-          "token_id": {
-            "type": "string"
+          "token_item": {
+            "$ref": "#/definitions/TokenItem"
           }
         },
         "additionalProperties": false
@@ -245,6 +261,34 @@
             "items": {
               "$ref": "#/definitions/BiddedCollateralItem"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Route": {
+        "type": "string",
+        "enum": [
+          "empty",
+          "neutron",
+          "osmosis",
+          "test",
+          "test2"
+        ]
+      },
+      "TokenItem": {
+        "type": "object",
+        "required": [
+          "creation_date",
+          "id"
+        ],
+        "properties": {
+          "creation_date": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "id": {
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -310,7 +354,7 @@
       "required": [
         "admin",
         "clock_source",
-        "min_clock_period"
+        "execution_cooldown"
       ],
       "properties": {
         "admin": {
@@ -319,7 +363,12 @@
         "clock_source": {
           "$ref": "#/definitions/ClockSource"
         },
-        "lending_platform": {
+        "execution_cooldown": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "lending_platform_main": {
           "anyOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -329,10 +378,15 @@
             }
           ]
         },
-        "min_clock_period": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
+        "lending_platform_stable": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "offchain_clock": {
           "type": [

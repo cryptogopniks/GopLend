@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerStargaze.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerStargaze.types";
 export interface AdapterSchedulerStargazeMsg {
   contractAddress: string;
   sender: string;

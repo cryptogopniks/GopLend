@@ -4,6 +4,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 
 use crate::{
+    adapters::dex::stargaze::types::Route,
     assets::{Currency, Token, TokenUnverified},
     lending_platform::types::{
         Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
@@ -16,8 +17,8 @@ pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub oracle: Option<String>,
     pub minter: Option<String>,
-    pub scheduler: Option<String>,
-    pub marketplace: Option<String>,
+    pub adapter_scheduler: Option<String>,
+    pub adapter_marketplace: Option<String>,
 
     pub borrow_apr: Option<Decimal>,
     pub borrow_fee_rate: Option<Decimal>,
@@ -31,7 +32,6 @@ pub struct InstantiateMsg {
     pub unbonding_period: Option<u64>,
     pub collateral_min_value: Option<Uint128>,
     pub borrowers_reserve_fraction_ratio: Option<Decimal>,
-    pub price_update_period: Option<u64>,
     pub is_marketplace_interface_enabled: Option<bool>,
 }
 
@@ -88,6 +88,7 @@ pub enum ExecuteMsg {
     // scheduler
     Liquidate {
         targets: Vec<LiquidationItem>,
+        route: Route,
     },
 
     // any
@@ -99,8 +100,8 @@ pub enum ExecuteMsg {
         worker: Option<String>,
         oracle: Option<String>,
         minter: Option<String>,
-        scheduler: Option<String>,
-        marketplace: Option<String>,
+        adapter_scheduler: Option<String>,
+        adapter_marketplace: Option<String>,
     },
 
     UpdateRateConfig {
@@ -118,7 +119,6 @@ pub enum ExecuteMsg {
         unbonding_period: Option<u64>,
         collateral_min_value: Option<Uint128>,
         borrowers_reserve_fraction_ratio: Option<Decimal>,
-        price_update_period: Option<u64>,
         is_marketplace_interface_enabled: Option<bool>,
     },
 

@@ -40,7 +40,11 @@ export interface BiddedCollateralItem {
   liquidation_price: Uint128;
   liquidator: Addr;
   owner: Addr;
-  token_id: string;
+  token_item: TokenItem;
+}
+export interface TokenItem {
+  creation_date: number;
+  id: string;
 }
 export type QueryMsg = {
   query_config: {};

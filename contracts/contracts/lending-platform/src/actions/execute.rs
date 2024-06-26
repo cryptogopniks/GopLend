@@ -6,6 +6,7 @@ use cosmwasm_std::{
 use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
+    adapters::dex::stargaze::types::Route,
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::u128_to_dec,
     error::ContractError,
@@ -20,7 +21,7 @@ use goplend_base::{
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
             Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
-            Proposal, ProposalStatus, ProposalType, TransferAdminState, Unbonder, Vault,
+            Proposal, ProposalStatus, ProposalType, TokenItem, TransferAdminState, Unbonder, Vault,
         },
     },
     minter, oracle,
@@ -34,7 +35,7 @@ use crate::{
     actions::query,
     helpers::{
         accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        increase_platform_revenue, update_balances, update_borrowers_storages,
+        choose_price, increase_platform_revenue, update_balances, update_borrowers_storages,
         update_liquidation_storages, verify_proposal_status,
     },
     math,
@@ -362,22 +363,20 @@ pub fn try_deposit_collateral(
         }
 
         // get collection price
-        let oracle::types::PriceItem {
-            price,
-            price_update_date,
-            ..
-        } = prices
+        let price_item = prices
             .iter()
             .find(|x| x.address == collection_address)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > common_config.price_update_period {
+        if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
         }
+
+        let price = choose_price(&common_config.main_currency, &price_item);
 
         // update collaterals
         COLLATERALS.update(
@@ -393,7 +392,7 @@ pub fn try_deposit_collateral(
                         if current_collateral.is_none() {
                             collaterals.push(Collateral {
                                 owner: sender_address.to_owned(),
-                                token_id_list: vec![],
+                                token_item_list: vec![],
                             });
                         }
 
@@ -401,15 +400,22 @@ pub fn try_deposit_collateral(
                             .into_iter()
                             .map(|mut collateral| {
                                 if collateral.owner == sender_address {
-                                    collateral.token_id_list =
-                                        vec![collateral.token_id_list, token_id_list.clone()]
-                                            .concat();
-                                    collateral.token_id_list.sort_unstable();
-                                    collateral.token_id_list.dedup();
+                                    for token_id in &token_id_list {
+                                        if collateral
+                                            .token_item_list
+                                            .iter()
+                                            .all(|x| &x.id != token_id)
+                                        {
+                                            collateral.token_item_list.push(TokenItem {
+                                                id: token_id.to_string(),
+                                                creation_date: block_time,
+                                            });
+                                        }
+                                    }
 
                                     // update collateral value
-                                    collateral_value += price.amount
-                                        * Uint128::new(collateral.token_id_list.len() as u128);
+                                    collateral_value += price
+                                        * Uint128::new(collateral.token_item_list.len() as u128);
 
                                     collateral
                                 } else {
@@ -422,12 +428,17 @@ pub fn try_deposit_collateral(
                     }
                     None => {
                         // update collateral value
-                        collateral_value +=
-                            price.amount * Uint128::new(token_id_list.len() as u128);
+                        collateral_value += price * Uint128::new(token_id_list.len() as u128);
 
                         vec![Collateral {
                             owner: sender_address.clone(),
-                            token_id_list,
+                            token_item_list: token_id_list
+                                .into_iter()
+                                .map(|id| TokenItem {
+                                    id,
+                                    creation_date: block_time,
+                                })
+                                .collect(),
                         }]
                     }
                 };
@@ -493,7 +504,6 @@ pub fn try_withdraw_collateral(
     }
 
     // query collection prices
-    let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
@@ -547,22 +557,20 @@ pub fn try_withdraw_collateral(
         }
 
         // get collection price
-        let oracle::types::PriceItem {
-            price,
-            price_update_date,
-            ..
-        } = prices
+        let price_item = prices
             .iter()
             .find(|x| x.address == collection_address)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collection_address.to_string(),
             })?;
 
-        if block_time - price_update_date > common_config.price_update_period {
+        if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),
             })?;
         }
+
+        let price = choose_price(&common_config.main_currency, &price_item);
 
         // update collaterals
         let collaterals: Vec<Collateral> = COLLATERALS
@@ -571,19 +579,19 @@ pub fn try_withdraw_collateral(
             .map(|mut collateral| {
                 if collateral.owner == sender_address {
                     collateral
-                        .token_id_list
-                        .retain(|id| !token_id_list.contains(id));
+                        .token_item_list
+                        .retain(|item| !token_id_list.contains(&item.id));
 
                     // update collateral value
                     collateral_value +=
-                        price.amount * Uint128::new(collateral.token_id_list.len() as u128);
+                        price * Uint128::new(collateral.token_item_list.len() as u128);
 
                     collateral
                 } else {
                     collateral
                 }
             })
-            .filter(|collateral| !collateral.token_id_list.is_empty())
+            .filter(|collateral| !collateral.token_item_list.is_empty())
             .collect();
 
         if collaterals.is_empty() {
@@ -921,14 +929,18 @@ pub fn try_place_bid(
                 // doesn't allow to place bids on own collateral
                 if cur.owner == sender_address
                     && cur
-                        .token_id_list
+                        .token_item_list
                         .iter()
-                        .any(|id| token_id_list.contains(id))
+                        .any(|item| token_id_list.contains(&item.id))
                 {
                     Err(ContractError::OwnCollateralBids)?;
                 }
 
-                Ok(vec![acc?, cur.token_id_list].concat())
+                Ok(vec![
+                    acc?,
+                    cur.token_item_list.into_iter().map(|x| x.id).collect(),
+                ]
+                .concat())
             })?;
 
         if token_id_list
@@ -1114,14 +1126,18 @@ pub fn try_update_bid(
                 // doesn't allow to place bids on own collateral
                 if cur.owner == sender_address
                     && cur
-                        .token_id_list
+                        .token_item_list
                         .iter()
-                        .any(|id| token_id_list.contains(id))
+                        .any(|item| token_id_list.contains(&item.id))
                 {
                     Err(ContractError::OwnCollateralBids)?;
                 }
 
-                Ok(vec![acc?, cur.token_id_list].concat())
+                Ok(vec![
+                    acc?,
+                    cur.token_item_list.into_iter().map(|x| x.id).collect(),
+                ]
+                .concat())
             })?;
 
         if !token_id_list
@@ -1306,6 +1322,7 @@ pub fn try_liquidate(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
+    route: Route,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1314,13 +1331,13 @@ pub fn try_liquidate(
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let scheduler = unwrap_field(address_config.scheduler, "scheduler")?;
+    let adapter_scheduler = unwrap_field(address_config.adapter_scheduler, "adapter_scheduler")?;
 
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: vec![Some(scheduler)],
+            allowlist: vec![Some(adapter_scheduler)],
         },
     )?;
 
@@ -1346,7 +1363,7 @@ pub fn try_liquidate(
         } = BORROWERS.load(deps.storage, &borrower_address)?;
 
         let (current_liquidation_value, current_internal_liquidation_value) =
-            update_liquidation_storages(deps.storage, &liquidation_set)?;
+            update_liquidation_storages(deps.storage, &liquidation_set, block_time)?;
 
         // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;
@@ -1404,7 +1421,8 @@ pub fn try_liquidate(
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
     {
-        let marketplace = unwrap_field(address_config.marketplace, "marketplace")?;
+        let adapter_marketplace =
+            unwrap_field(address_config.adapter_marketplace, "adapter_marketplace")?;
 
         // check operator and add approvals if it's required
         let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
@@ -1419,6 +1437,7 @@ pub fn try_liquidate(
             CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
                 &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                    route,
                 },
             )?,
             CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(
@@ -1434,10 +1453,10 @@ pub fn try_liquidate(
                 deps.querier,
                 &collection_list,
                 env.contract.address,
-                &marketplace,
+                &adapter_marketplace,
             )?)
             .add_message(WasmMsg::Execute {
-                contract_addr: marketplace.to_string(),
+                contract_addr: adapter_marketplace.to_string(),
                 msg: accept_bids_msg,
                 funds: vec![],
             });
@@ -1492,8 +1511,8 @@ pub fn try_update_address_config(
     worker: Option<String>,
     oracle: Option<String>,
     minter: Option<String>,
-    scheduler: Option<String>,
-    marketplace: Option<String>,
+    adapter_scheduler: Option<String>,
+    adapter_marketplace: Option<String>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1536,15 +1555,15 @@ pub fn try_update_address_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = scheduler {
+    if let Some(x) = adapter_scheduler {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.scheduler = Some(deps.api.addr_validate(&x)?);
+        config.adapter_scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
-    if let Some(x) = marketplace {
+    if let Some(x) = adapter_marketplace {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.marketplace = Some(deps.api.addr_validate(&x)?);
+        config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -1633,7 +1652,6 @@ pub fn try_update_common_config(
     unbonding_period: Option<u64>,
     collateral_min_value: Option<Uint128>,
     borrowers_reserve_fraction_ratio: Option<Decimal>,
-    price_update_period: Option<u64>,
     is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
@@ -1681,12 +1699,6 @@ pub fn try_update_common_config(
     if let Some(x) = borrowers_reserve_fraction_ratio {
         check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.borrowers_reserve_fraction_ratio = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = price_update_period {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.price_update_period = x;
         is_config_updated = true;
     }
 

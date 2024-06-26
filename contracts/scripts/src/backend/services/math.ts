@@ -1,10 +1,11 @@
+import { PriceItem } from "../../common/codegen/Oracle.types";
 import {
   Addr,
   BiddedCollateralItem,
   Collateral,
+  CurrencyForToken,
   LiquidationBid,
 } from "../../common/codegen/LendingPlatform.types";
-import { PriceItem } from "../../common/codegen/Oracle.types";
 
 export const YEAR_IN_SECONDS = 31536000;
 
@@ -60,8 +61,18 @@ export function calcDiscountedPrice(price: number, discount: number): number {
   return price * (1 - discount);
 }
 
+export function choosePrice(
+  mainCurrency: CurrencyForToken,
+  priceItem: PriceItem
+) {
+  return mainCurrency === priceItem.price.currency
+    ? priceItem.price.amount
+    : priceItem.usd_price.amount;
+}
+
 // places bid on each collateral token, best bids have higher priority
 export function matchCollateralsAndBids(
+  mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
   collectionAndBidList: [Addr, LiquidationBid][],
   priceList: PriceItem[]
@@ -96,29 +107,29 @@ export function matchCollateralsAndBids(
     );
     if (!priceItem) continue;
 
-    const { price } = priceItem;
+    const price = choosePrice(mainCurrency, priceItem);
 
-    for (const token_id of collateral.token_id_list) {
+    for (const tokenItem of collateral.token_item_list) {
       for (let i = 0; i < collectionAndBidList.length; i++) {
         const [_bid_collection, bid] = collectionAndBidList[i];
 
         let discounted_price = calcDiscountedPrice(
-          Number(price.amount),
+          Number(price),
           Number(bid.discount)
         );
 
         if (
-          bid.token_id_list.includes(token_id) &&
+          bid.token_id_list.includes(tokenItem.id) &&
           Number(bid.amount) >= discounted_price
         ) {
           const biddedCollateralItem: BiddedCollateralItem = {
             collection: collateral_collection,
-            token_id: token_id,
+            token_item: tokenItem,
             owner: collateral.owner,
             liquidator: bid.liquidator,
             bid_creation_date: bid.creation_date,
             liquidation_price: discounted_price.toString(),
-            collateral_price: price.amount,
+            collateral_price: price,
             bid_discount: bid.discount,
             bid_type: bid.bid_type,
           };

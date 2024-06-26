@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceKujira.types";
+import { InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceKujira.types";
 export interface AdapterMarketplaceKujiraReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;

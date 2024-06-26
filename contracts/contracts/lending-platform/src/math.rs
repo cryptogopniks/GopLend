@@ -3,17 +3,20 @@ use std::cmp::{max, min};
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use goplend_base::{
+    assets::{Currency, Token},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
-        state::{MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
+        state::{BLOCK_TIME_OFFSET, MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
         types::{BiddedCollateralItem, Collateral, LiquidationBid},
     },
     oracle::types::PriceItem,
 };
 
-pub fn calc_block_time_ceiled(block_time: u64, price_update_period: u64) -> u64 {
-    price_update_period * (block_time / price_update_period + 1)
+use crate::helpers::choose_price;
+
+pub fn calc_shifted_block_time(block_time: u64) -> u64 {
+    block_time + BLOCK_TIME_OFFSET
 }
 
 // expected_rewards = borrow_apr * total_borrowed_amount *
@@ -277,6 +280,7 @@ pub fn calc_total_available_to_borrow_liquidity(
 
 /// places bid on each collateral token, best bids have higher priority
 pub fn match_collaterals_and_bids(
+    main_currency: &Currency<Token>,
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
     collection_and_bid_list: &[(Addr, LiquidationBid)],
     price_list: &[PriceItem],
@@ -293,26 +297,28 @@ pub fn match_collaterals_and_bids(
     let mut bidded_collateral_list: Vec<BiddedCollateralItem> = vec![];
 
     for (collateral_collection, collateral) in collection_and_collateral_list_by_borrower {
-        let PriceItem { price, .. } = price_list
+        let price_item = price_list
             .iter()
             .find(|x| x.address == collateral_collection)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collateral_collection.to_string(),
             })?;
 
-        for token_id in collateral.token_id_list.clone() {
-            for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
-                let discounted_price = calc_discounted_price(price.amount, bid.discount);
+        let price = choose_price(&main_currency, &price_item);
 
-                if bid.token_id_list.contains(&token_id) && bid.amount >= discounted_price {
+        for token_item in collateral.token_item_list.clone() {
+            for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
+                let discounted_price = calc_discounted_price(price, bid.discount);
+
+                if bid.token_id_list.contains(&token_item.id) && bid.amount >= discounted_price {
                     bidded_collateral_list.push(BiddedCollateralItem {
                         collection: collateral_collection.clone(),
-                        token_id: token_id.clone(),
+                        token_item: token_item.clone(),
                         owner: collateral.owner.clone(),
                         liquidator: bid.liquidator.clone(),
                         bid_creation_date: bid.creation_date,
                         liquidation_price: discounted_price,
-                        collateral_price: price.amount,
+                        collateral_price: price,
                         bid_discount: bid.discount,
                         bid_type: bid.bid_type.clone(),
                     });

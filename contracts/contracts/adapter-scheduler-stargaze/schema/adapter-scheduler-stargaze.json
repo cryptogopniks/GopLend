@@ -153,7 +153,7 @@
           "liquidation_price",
           "liquidator",
           "owner",
-          "token_id"
+          "token_item"
         ],
         "properties": {
           "bid_creation_date": {
@@ -182,8 +182,8 @@
           "owner": {
             "$ref": "#/definitions/Addr"
           },
-          "token_id": {
-            "type": "string"
+          "token_item": {
+            "$ref": "#/definitions/TokenItem"
           }
         },
         "additionalProperties": false
@@ -214,6 +214,24 @@
             "items": {
               "$ref": "#/definitions/BiddedCollateralItem"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenItem": {
+        "type": "object",
+        "required": [
+          "creation_date",
+          "id"
+        ],
+        "properties": {
+          "creation_date": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "id": {
+            "type": "string"
           }
         },
         "additionalProperties": false

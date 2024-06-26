@@ -3,9 +3,10 @@ import { l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { COLLECTION, TOKEN } from "./constants";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   getChainOptionById,
-  getContractByWasm,
+  getContractByLabel,
 } from "../../common/config/config-utils";
 import {
   getCwExecHelpers,
@@ -37,9 +38,14 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-    const LENDING_PLATFORM_CONTRACT = getContractByWasm(
+    const LENDING_PLATFORM_MAIN_CONTRACT = getContractByLabel(
       CONTRACTS,
-      "lending_platform.wasm"
+      "lending_platform_main"
+    );
+
+    const LENDING_PLATFORM_STABLE_CONTRACT = getContractByLabel(
+      CONTRACTS,
+      "lending_platform_stable"
     );
 
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
@@ -54,101 +60,127 @@ async function main() {
       const name = NAME as "kujira" | "stargaze";
       const isKujira = name === "kujira";
 
-      const bglDenom = isKujira ? "bglKUJI" : "bglSTARS";
+      const bglDenomMain = isKujira ? "bglKUJI" : "bglSTARS";
+      const bglDenomStable = isKujira ? "bglUSK" : "bglUSDC";
       const paymentAmount = isKujira ? 100_000_000 : 10_000_000_000;
-      const paymentDenom = isKujira ? TOKEN.KUJI : TOKEN.STARS;
+      const paymentDenomMain = isKujira ? TOKEN.KUJI : TOKEN.STARS;
+      const paymentDenomStable = isKujira ? TOKEN.USK : TOKEN.USDC;
       const bglDecimals = 6;
 
-      await h.minter[name].cwCreateNative(
-        LENDING_PLATFORM_CONTRACT.ADDRESS,
+      const platforms: [PlatformType, string, string, string][] = [
+        [
+          "main",
+          LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
+          bglDenomMain,
+          paymentDenomMain,
+        ],
+        // [
+        //   "stable",
+        //   LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
+        //   bglDenomStable,
+        //   paymentDenomStable,
+        // ],
+      ];
+
+      for (const [
+        platformType,
+        lendingPlatformContract,
         bglDenom,
-        bglDecimals,
-        paymentAmount,
         paymentDenom,
-        gasPrice
-      );
+      ] of platforms) {
+        await h.minter[name].cwCreateNative(
+          lendingPlatformContract,
+          bglDenom,
+          bglDecimals,
+          paymentAmount,
+          paymentDenom,
+          gasPrice
+        );
 
-      const [bglCurrency] = (
-        await minter[name].cwQueryCurrenciesByCreator(
-          LENDING_PLATFORM_CONTRACT.ADDRESS
-        )
-      ).currencies;
-      const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
-      l({ bglDenomFull });
+        const [bglCurrency] = (
+          await minter[name].cwQueryCurrenciesByCreator(lendingPlatformContract)
+        ).currencies;
 
-      // setup lending
-      const isMarketplaceInterfaceEnabled = !isKujira;
+        const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
+        l({ bglDenomFull });
 
-      // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
-      // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
-      // reserve_pool = borrowed + withdrawable
+        // setup lending
+        const isMarketplaceInterfaceEnabled = !isKujira;
 
-      // deposited = 100, reserve_pool = 1000, time = 3
-      // borrowed = 100 + 0.45 * 1000 = 550
-      // withdrawable = 100 + 0.2 * 3 * 550 = 430
-      // reserve_pool = 550 + 430 = 980
-      await h.lending.cwUpdateCommonConfig(
-        {
-          bglCurrency: {
-            token: { native: { denom: bglDenomFull } },
-            decimals: bglDecimals,
-          },
-          collateralMinValue: 100,
-          unbondingPeriod: 60,
-          priceUpdatePeriod: 7 * 24 * 3600,
-          isMarketplaceInterfaceEnabled,
-          borrowersReserveFractionRatio: 0.45,
-        },
-        gasPrice
-      );
+        // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
+        // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
+        // reserve_pool = borrowed + withdrawable
 
-      // deposit reserve liquidity
-      await h.lending.cwDepositReserveLiquidity(
-        1_000_000_000,
-        { native: { denom: paymentDenom } },
-        gasPrice
-      );
-
-      // add collections
-      const collections = isKujira
-        ? [
-            [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
-            [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
-            [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
-          ]
-        : [
-            [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
-            [COLLECTION.STARGAZE.SHANE, "SHANE"],
-          ];
-
-      let i = 0;
-
-      for (const [collection_address, name] of collections) {
-        await h.lending.cwCreateProposal(
+        // deposited = 100, reserve_pool = 1000, time = 3
+        // borrowed = 100 + 0.45 * 1000 = 550
+        // withdrawable = 100 + 0.2 * 3 * 550 = 430
+        // reserve_pool = 550 + 430 = 980
+        await h.lending.cwUpdateCommonConfig(
+          platformType,
           {
-            proposal_type: {
-              add_collection: {
-                collection: { name, owner },
-                collection_address,
-              },
+            bglCurrency: {
+              token: { native: { denom: bglDenomFull } },
+              decimals: bglDecimals,
             },
-            listing_price: {
-              amount: "1",
-              currency: {
-                token: { native: { denom: paymentDenom } },
-                decimals: 6,
-              },
-            },
+            collateralMinValue: 100,
+            unbondingPeriod: 60,
+            isMarketplaceInterfaceEnabled,
+            borrowersReserveFractionRatio: 0.45,
           },
           gasPrice
         );
 
-        await h.lending.cwAcceptProposal(
-          ++i,
-          1,
+        // deposit reserve liquidity
+        await h.lending.cwDepositReserveLiquidity(
+          platformType,
+          1_000_000_000,
           { native: { denom: paymentDenom } },
           gasPrice
         );
+
+        // add collections
+        const collections = isKujira
+          ? [
+              [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
+              [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
+              [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
+            ]
+          : [
+              [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
+              [COLLECTION.STARGAZE.SHANE, "SHANE"],
+            ];
+
+        let i = 0;
+
+        for (const [collection_address, name] of collections) {
+          await h.lending.cwCreateProposal(
+            platformType,
+            {
+              proposal_type: {
+                add_collection: {
+                  collection: { name, owner },
+                  collection_address,
+                },
+              },
+              listing_price: {
+                amount: "1",
+                currency: {
+                  token: { native: { denom: paymentDenom } },
+                  decimals: 6,
+                },
+              },
+            },
+            gasPrice
+          );
+
+          await h.lending.cwAcceptProposal(
+            platformType,
+            ++i,
+            1,
+            { native: { denom: paymentDenom } },
+            gasPrice
+          );
+        }
       }
     };
 

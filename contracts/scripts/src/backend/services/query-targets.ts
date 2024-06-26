@@ -5,11 +5,13 @@ import { ENCODING, PATH_TO_CONFIG_JSON, parseStoreArgs } from "./utils";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
 import { ArrayOfPriceItem, PriceItem } from "../../common/codegen/Oracle.types";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   calcConditionalLtv,
   calcLiquidationSet,
   calcLiquidationValue,
   calcLtvMax,
+  choosePrice,
   matchCollateralsAndBids,
 } from "./math";
 import {
@@ -17,6 +19,7 @@ import {
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   Borrower,
   Collateral,
+  CurrencyForToken,
   LiquidationBid,
   LiquidationItem,
   QueryBorrowersResponseItem,
@@ -27,6 +30,7 @@ import {
 const PAGINATION_AMOUNT = 100;
 
 export async function queryTargets(
+  platformType: PlatformType,
   borrowers: string[]
 ): Promise<LiquidationItem[]> {
   // configs
@@ -52,7 +56,11 @@ export async function queryTargets(
 
     while (lastItem !== "") {
       const items: QueryBorrowersResponseItem[] =
-        await lending.cwQueryBorrowerList(PAGINATION_AMOUNT, lastItem);
+        await lending.cwQueryBorrowerList(
+          platformType,
+          PAGINATION_AMOUNT,
+          lastItem
+        );
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -112,10 +120,9 @@ export async function queryTargets(
   };
 
   const getCollateralValue = (
+    mainCurrency: CurrencyForToken,
     collectionAndCollateralListByBorrower: [Addr, Collateral][],
-    prices: PriceItem[],
-    blockTime: number,
-    priceUpdatePeriod: number
+    prices: PriceItem[]
   ) => {
     let isPriceOutdated = false;
 
@@ -124,13 +131,13 @@ export async function queryTargets(
         const priceItem = prices.find((x) => x.address === collectionAddress);
         if (!priceItem) return acc;
 
-        const { price, price_update_date } = priceItem;
-
-        if (blockTime - price_update_date > priceUpdatePeriod) {
+        if (priceItem.is_outdated) {
           isPriceOutdated = true;
         }
 
-        return acc + Number(price.amount) * collateral.token_id_list.length;
+        const price = choosePrice(mainCurrency, priceItem);
+
+        return acc + Number(price) * collateral.token_item_list.length;
       },
       0
     );
@@ -150,6 +157,7 @@ export async function queryTargets(
       while (lastItem !== "") {
         const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
           await lending.cwQueryLiquidationBidsByCollectionAddressList(
+            platformType,
             PAGINATION_AMOUNT,
             lastItem
           );
@@ -172,6 +180,7 @@ export async function queryTargets(
       while (lastItem !== "") {
         const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
           await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
+            platformType,
             PAGINATION_AMOUNT,
             lastItem
           );
@@ -202,7 +211,7 @@ export async function queryTargets(
             ([collection, collateral]) => {
               collection == collection_address &&
                 bid.token_id_list.some((y) =>
-                  collateral.token_id_list.includes(y)
+                  collateral.token_item_list.some((z) => z.id === y)
                 );
             }
           )
@@ -216,8 +225,8 @@ export async function queryTargets(
   };
 
   // core logic
-  const rateConfig = await lending.cwQueryRateConfig();
-  const commonConfig = await lending.cwQueryCommonConfig();
+  const rateConfig = await lending.cwQueryRateConfig(platformType);
+  const commonConfig = await lending.cwQueryCommonConfig(platformType);
   const borrowerList = await getBorrowers(borrowers);
 
   // get all collaterals
@@ -228,7 +237,11 @@ export async function queryTargets(
 
       while (lastItem !== "") {
         const items: QueryCollateralsResponseItem[] =
-          await lending.cwQueryCollateralList(PAGINATION_AMOUNT, lastItem);
+          await lending.cwQueryCollateralList(
+            platformType,
+            PAGINATION_AMOUNT,
+            lastItem
+          );
 
         lastItem = getLast(items)?.address || "";
         allItems = [...allItems, ...items];
@@ -258,10 +271,9 @@ export async function queryTargets(
     );
 
     const collateralValueOption = getCollateralValue(
+      commonConfig.main_currency,
       collectionAndCollateralListByBorrower,
-      prices,
-      blockTime,
-      commonConfig.price_update_period
+      prices
     );
 
     // go to next borrower if any price is outdated
@@ -304,6 +316,7 @@ export async function queryTargets(
     );
 
     const biddedCollateralList = matchCollateralsAndBids(
+      commonConfig.main_currency,
       collectionAndCollateralListByBorrower,
       collectionAndBidList,
       prices

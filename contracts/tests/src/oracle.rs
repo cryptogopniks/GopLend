@@ -16,7 +16,7 @@ use crate::helpers::{
     oracle::OracleExtension,
     suite::{
         core::{assert_error, Project},
-        types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
+        types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft},
     },
 };
 
@@ -28,14 +28,22 @@ fn default() -> StdResult<()> {
 
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
                 price: Funds::new(
                     Uint128::new(300),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                        ProjectCoin::Kuji.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(300),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -44,8 +52,15 @@ fn default() -> StdResult<()> {
                 price: Funds::new(
                     Uint128::new(800),
                     &Currency::new(
-                        &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                        ProjectToken::Atom.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(800),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             },
@@ -62,22 +77,38 @@ fn default() -> StdResult<()> {
             price: Funds::new(
                 Uint128::new(800),
                 &Currency::new(
-                    &Token::new_cw20(&ProjectToken::Atom.into()),
-                    ProjectToken::Atom.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
-            price_update_date: block_time,
+            usd_price: Funds::new(
+                Uint128::new(800),
+                &Currency::new(
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+            update_date: block_time,
+            is_outdated: false,
         },
         PriceItem {
             address: ProjectNft::Pinjeons.into(),
             price: Funds::new(
                 Uint128::new(300),
                 &Currency::new(
-                    &Token::new_native(&ProjectCoin::Kuji.to_string()),
-                    ProjectCoin::Kuji.get_decimals(),
+                    &Token::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
                 ),
             ),
-            price_update_date: block_time,
+            usd_price: Funds::new(
+                Uint128::new(300),
+                &Currency::new(
+                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+            update_date: block_time,
+            is_outdated: false,
         },
     ]);
 
@@ -91,14 +122,22 @@ fn unauthorized() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Admin,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -107,8 +146,15 @@ fn unauthorized() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(800),
                         &Currency::new(
-                            &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
-                            ProjectToken::Atom.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(800),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -128,14 +174,22 @@ fn duplicated_collections() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -144,8 +198,15 @@ fn duplicated_collections() -> StdResult<()> {
                     price: Funds::new(
                         Uint128::new(300),
                         &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                            ProjectCoin::Kuji.get_decimals(),
+                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                            ProjectCoin::Stars.get_decimals(),
+                        ),
+                    ),
+                    usd_price: Funds::new(
+                        Uint128::new(300),
+                        &Currency::new(
+                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                            ProjectCoin::Usdc.get_decimals(),
                         ),
                     ),
                 },
@@ -163,7 +224,11 @@ fn empty_raw_price_item_vec() -> StdResult<()> {
     let mut project = Project::new();
 
     let res = project
-        .oracle_try_update_prices(ProjectAccount::Scheduler, &[])
+        .oracle_try_update_prices(
+            ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
+            &[],
+        )
         .unwrap_err();
 
     assert_error(&res, ContractError::EmptyRawPriceItemVector);
@@ -178,13 +243,21 @@ fn zeros_in_prices() -> StdResult<()> {
     let res = project
         .oracle_try_update_prices(
             ProjectAccount::Scheduler,
+            &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
                 price: Funds::new(
                     Uint128::new(0),
                     &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Kuji.to_string()),
-                        ProjectCoin::Kuji.get_decimals(),
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(0),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
                     ),
                 ),
             }],

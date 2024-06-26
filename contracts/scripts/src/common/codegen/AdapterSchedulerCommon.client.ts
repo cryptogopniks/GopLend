@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerCommon.types";
+import { ClockSource, InstantiateMsg, ExecuteMsg, Route, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./AdapterSchedulerCommon.types";
 export interface AdapterSchedulerCommonReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
@@ -39,21 +39,25 @@ export interface AdapterSchedulerCommonInterface extends AdapterSchedulerCommonR
   updateConfig: ({
     admin,
     clockSource,
-    lendingPlatform,
-    minClockPeriod,
+    executionCooldown,
+    lendingPlatformMain,
+    lendingPlatformStable,
     offchainClock,
     worker
   }: {
     admin?: string;
     clockSource?: ClockSource;
-    lendingPlatform?: string;
-    minClockPeriod?: number;
+    executionCooldown?: number;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     offchainClock?: string[];
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   push: ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
@@ -78,15 +82,17 @@ export class AdapterSchedulerCommonClient extends AdapterSchedulerCommonQueryCli
   updateConfig = async ({
     admin,
     clockSource,
-    lendingPlatform,
-    minClockPeriod,
+    executionCooldown,
+    lendingPlatformMain,
+    lendingPlatformStable,
     offchainClock,
     worker
   }: {
     admin?: string;
     clockSource?: ClockSource;
-    lendingPlatform?: string;
-    minClockPeriod?: number;
+    executionCooldown?: number;
+    lendingPlatformMain?: string;
+    lendingPlatformStable?: string;
     offchainClock?: string[];
     worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
@@ -94,20 +100,24 @@ export class AdapterSchedulerCommonClient extends AdapterSchedulerCommonQueryCli
       update_config: {
         admin,
         clock_source: clockSource,
-        lending_platform: lendingPlatform,
-        min_clock_period: minClockPeriod,
+        execution_cooldown: executionCooldown,
+        lending_platform_main: lendingPlatformMain,
+        lending_platform_stable: lendingPlatformStable,
         offchain_clock: offchainClock,
         worker
       }
     }, fee, memo, _funds);
   };
   push = async ({
+    route,
     targets
   }: {
+    route: Route;
     targets: LiquidationItem[];
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       push: {
+        route,
         targets
       }
     }, fee, memo, _funds);

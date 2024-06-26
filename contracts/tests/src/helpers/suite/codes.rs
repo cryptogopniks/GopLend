@@ -1,11 +1,11 @@
-use cosmwasm_std::{coins, Addr, StdResult, Uint128};
+use cosmwasm_std::{coin, coins, Addr, Coin, StdResult, Uint128};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
 use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
-    adapters,
+    adapters::{self, marketplace::stargaze::types::MarketplaceVersion},
     assets::{Currency, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
@@ -21,6 +21,7 @@ pub trait WithCodes {
     fn store_cw20_base_code(&mut self) -> u64;
     fn store_cw721_base_code(&mut self) -> u64;
     fn store_stargaze_mocks_marketplace_code(&mut self) -> u64;
+    fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64;
 
     // store contracts
     fn store_lending_platform_code(&mut self) -> u64;
@@ -41,6 +42,17 @@ pub trait WithCodes {
         amount: u128,
         denom: ProjectCoin,
     ) -> Addr;
+    fn instantiate_adapter_dex_stargaze_mocks(
+        &mut self,
+        adapter_dex_stargaze_mocks_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
+        recover_address: &Option<Addr>,
+        max_price_impact: &Option<&str>,
+        amount: u128,
+        denom_list: &[ProjectCoin],
+    ) -> Addr;
 
     // instantiate contracts
     #[allow(clippy::too_many_arguments)]
@@ -51,8 +63,8 @@ pub trait WithCodes {
         worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
-        scheduler: &Option<Addr>,
-        marketplace: &Option<Addr>,
+        adapter_scheduler: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
 
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -66,7 +78,6 @@ pub trait WithCodes {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr;
 
@@ -75,7 +86,8 @@ pub trait WithCodes {
         oracle_code_id: u64,
         worker: &Option<ProjectAccount>,
         controller: &Option<Vec<ProjectAccount>>,
-        min_price_update_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
+        max_price_update_period: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_minter(
@@ -89,19 +101,23 @@ pub trait WithCodes {
         &mut self,
         adapter_scheduler_common_code_id: u64,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::common::types::ClockSource>,
-        min_clock_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
     ) -> Addr;
 
     fn instantiate_adapter_marketplace_stargaze(
         &mut self,
         adapter_marketplace_stargaze_code_id: u64,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
+        adapter_dex: &Option<Addr>,
+        marketplace_version: &Option<MarketplaceVersion>,
     ) -> Addr;
 
     fn instantiate_adapter_marketplace_kujira(
@@ -139,10 +155,21 @@ impl WithCodes for Project {
     }
 
     fn store_stargaze_mocks_marketplace_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                stargaze_mocks_marketplace::contract::execute,
+                stargaze_mocks_marketplace::contract::instantiate,
+                stargaze_mocks_marketplace::contract::query,
+            )
+            .with_sudo(stargaze_mocks_marketplace::contract::sudo),
+        ))
+    }
+
+    fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64 {
         self.app.store_code(Box::new(ContractWrapper::new(
-            stargaze_mocks_marketplace::contract::execute,
-            stargaze_mocks_marketplace::contract::instantiate,
-            stargaze_mocks_marketplace::contract::query,
+            adapter_dex_stargaze_mocks::contract::execute,
+            adapter_dex_stargaze_mocks::contract::instantiate,
+            adapter_dex_stargaze_mocks::contract::query,
         )))
     }
 
@@ -297,8 +324,6 @@ impl WithCodes for Project {
         amount: u128,
         denom: ProjectCoin,
     ) -> Addr {
-        self.increase_contract_counter(1);
-
         self.app
             .instantiate_contract(
                 stargaze_mocks_marketplace_code_id,
@@ -307,6 +332,40 @@ impl WithCodes for Project {
                     bids: bids.to_owned(),
                 },
                 &coins(amount, denom.to_string()),
+                "stargaze_mocks_marketplace",
+                Some(ProjectAccount::Admin.to_string()),
+            )
+            .unwrap()
+    }
+
+    fn instantiate_adapter_dex_stargaze_mocks(
+        &mut self,
+        adapter_dex_stargaze_mocks_code_id: u64,
+        worker: &Option<ProjectAccount>,
+        lending_platform_stable: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
+        recover_address: &Option<Addr>,
+        max_price_impact: &Option<&str>,
+        amount: u128,
+        denom_list: &[ProjectCoin],
+    ) -> Addr {
+        self.app
+            .instantiate_contract(
+                adapter_dex_stargaze_mocks_code_id,
+                ProjectAccount::Admin.into(),
+                &goplend_base::adapters::dex::stargaze::msg::InstantiateMsg {
+                    worker: worker.as_ref().map(|x| x.to_string()),
+                    lending_platform_stable: lending_platform_stable
+                        .as_ref()
+                        .map(|x| x.to_string()),
+                    adapter_marketplace: adapter_marketplace.as_ref().map(|x| x.to_string()),
+                    recover_address: recover_address.as_ref().map(|x| x.to_string()),
+                    max_price_impact: max_price_impact.as_ref().map(|x| str_to_dec(x)),
+                },
+                &denom_list
+                    .into_iter()
+                    .map(|x| coin(amount, x.to_string()))
+                    .collect::<Vec<Coin>>(),
                 "stargaze_mocks_marketplace",
                 Some(ProjectAccount::Admin.to_string()),
             )
@@ -322,8 +381,8 @@ impl WithCodes for Project {
         worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
-        scheduler: &Option<Addr>,
-        marketplace: &Option<Addr>,
+        adapter_scheduler: &Option<Addr>,
+        adapter_marketplace: &Option<Addr>,
 
         borrow_apr: &Option<&str>,
         borrow_fee_rate: &Option<&str>,
@@ -337,7 +396,6 @@ impl WithCodes for Project {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        price_update_period: &Option<u64>,
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr {
         self.instantiate_contract(
@@ -347,8 +405,8 @@ impl WithCodes for Project {
                 worker: worker.as_ref().map(|x| x.to_string()),
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 minter: minter.as_ref().map(|x| x.to_string()),
-                scheduler: scheduler.as_ref().map(|x| x.to_string()),
-                marketplace: marketplace.as_ref().map(|x| x.to_string()),
+                adapter_scheduler: adapter_scheduler.as_ref().map(|x| x.to_string()),
+                adapter_marketplace: adapter_marketplace.as_ref().map(|x| x.to_string()),
 
                 borrow_apr: borrow_apr.as_ref().map(|x| str_to_dec(x)),
                 borrow_fee_rate: borrow_fee_rate.as_ref().map(|x| str_to_dec(x)),
@@ -364,7 +422,6 @@ impl WithCodes for Project {
                 borrowers_reserve_fraction_ratio: borrowers_reserve_fraction_ratio
                     .as_ref()
                     .map(|x| str_to_dec(x)),
-                price_update_period: price_update_period.as_ref().map(|x| x.to_owned()),
                 is_marketplace_interface_enabled: is_marketplace_interface_enabled.to_owned(),
             },
         )
@@ -375,7 +432,8 @@ impl WithCodes for Project {
         oracle_code_id: u64,
         worker: &Option<ProjectAccount>,
         controller: &Option<Vec<ProjectAccount>>,
-        min_price_update_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
+        max_price_update_period: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             oracle_code_id,
@@ -385,7 +443,8 @@ impl WithCodes for Project {
                 controller: controller
                     .as_ref()
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
-                min_price_update_period: min_price_update_period.to_owned(),
+                execution_cooldown: execution_cooldown.to_owned(),
+                max_price_update_period: max_price_update_period.to_owned(),
             },
         )
     }
@@ -410,22 +469,24 @@ impl WithCodes for Project {
         &mut self,
         adapter_scheduler_common_code_id: u64,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
         offchain_clock: &Option<Vec<Addr>>,
         clock_source: &Option<adapters::scheduler::common::types::ClockSource>,
-        min_clock_period: &Option<u64>,
+        execution_cooldown: &Option<u64>,
     ) -> Addr {
         self.instantiate_contract(
             adapter_scheduler_common_code_id,
             "adapter_scheduler_common",
             &goplend_base::adapters::scheduler::common::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
-                lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                lending_platform_main: lending_platform_main.as_ref().map(|x| x.to_string()),
+                lending_platform_stable: lending_platform_stable.as_ref().map(|x| x.to_string()),
                 offchain_clock: offchain_clock
                     .as_ref()
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 clock_source: clock_source.to_owned(),
-                min_clock_period: min_clock_period.to_owned(),
+                execution_cooldown: execution_cooldown.to_owned(),
             },
         )
     }
@@ -434,18 +495,24 @@ impl WithCodes for Project {
         &mut self,
         adapter_marketplace_stargaze_code_id: u64,
         worker: &Option<ProjectAccount>,
-        lending_platform: &Option<Addr>,
+        lending_platform_main: &Option<Addr>,
+        lending_platform_stable: &Option<Addr>,
+        oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
-        infinity_pool: &Option<Addr>,
+        adapter_dex: &Option<Addr>,
+        marketplace_version: &Option<MarketplaceVersion>,
     ) -> Addr {
         self.instantiate_contract(
             adapter_marketplace_stargaze_code_id,
             "adapter_marketplace_stargaze",
             &goplend_base::adapters::marketplace::stargaze::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
-                lending_platform: lending_platform.as_ref().map(|x| x.to_string()),
+                lending_platform_main: lending_platform_main.as_ref().map(|x| x.to_string()),
+                lending_platform_stable: lending_platform_stable.as_ref().map(|x| x.to_string()),
+                oracle: oracle.as_ref().map(|x| x.to_string()),
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
-                infinity_pool: infinity_pool.as_ref().map(|x| x.to_string()),
+                adapter_dex: adapter_dex.as_ref().map(|x| x.to_string()),
+                marketplace_version: marketplace_version.to_owned(),
             },
         )
     }

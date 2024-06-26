@@ -3,9 +3,12 @@ use cosmwasm_std::{
 };
 
 use goplend_base::{
-    adapters::scheduler::common::{
-        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{ClockSource, Config, Log, TransferAdminState},
+    adapters::{
+        dex::stargaze::types::Route,
+        scheduler::common::{
+            state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+            types::{ClockSource, Config, Log, TransferAdminState},
+        },
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
@@ -18,14 +21,16 @@ pub fn try_push(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
+    route: Route,
 ) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
     let sender = info.sender;
     let Config {
-        lending_platform,
+        lending_platform_main,
+        lending_platform_stable,
         offchain_clock,
         clock_source,
-        min_clock_period,
+        execution_cooldown,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -46,7 +51,7 @@ pub fn try_push(
     } = unwrap_field(LOG.back(deps.storage)?, "log")?;
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
-    if block_time < block_time_prev + min_clock_period {
+    if block_time < block_time_prev + execution_cooldown {
         Err(ContractError::EarlyExecution)?;
     }
 
@@ -62,10 +67,16 @@ pub fn try_push(
         },
     )?;
 
+    // select lending platform depending on route
+    let lending_platform = match route {
+        Route::Empty => unwrap_field(lending_platform_main, "lending_platform_main")?,
+        _ => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
+    };
+
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: unwrap_field(lending_platform, "lending_platform")?.to_string(),
+        contract_addr: lending_platform.to_string(),
         msg: to_json_binary(
-            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets },
+            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets, route },
         )?,
         funds: vec![],
     });
@@ -119,10 +130,11 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    lending_platform: Option<String>,
+    lending_platform_main: Option<String>,
+    lending_platform_stable: Option<String>,
     offchain_clock: Option<Vec<String>>,
     clock_source: Option<ClockSource>,
-    min_clock_period: Option<u64>,
+    execution_cooldown: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -150,9 +162,15 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = lending_platform {
+    if let Some(x) = lending_platform_main {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.lending_platform = Some(deps.api.addr_validate(&x)?);
+        config.lending_platform_main = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = lending_platform_stable {
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -172,9 +190,9 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = min_clock_period {
+    if let Some(x) = execution_cooldown {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.min_clock_period = x;
+        config.execution_cooldown = x;
         is_config_updated = true;
     }
 

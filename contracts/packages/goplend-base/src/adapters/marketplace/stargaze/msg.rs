@@ -1,11 +1,18 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
+use crate::{adapters::dex::stargaze::types::Route, lending_platform::types::BiddedCollateralItem};
+
+use super::types::{MarketplaceVersion, PlatformType};
+
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub lending_platform: Option<String>,
+    pub lending_platform_main: Option<String>,
+    pub lending_platform_stable: Option<String>,
+    pub oracle: Option<String>,
     pub marketplace: Option<String>,
-    pub infinity_pool: Option<String>,
+    pub adapter_dex: Option<String>,
+    pub marketplace_version: Option<MarketplaceVersion>,
 }
 
 #[cw_serde]
@@ -22,14 +29,18 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        lending_platform: Option<String>,
+        lending_platform_main: Option<String>,
+        lending_platform_stable: Option<String>,
+        oracle: Option<String>,
         marketplace: Option<String>,
-        infinity_pool: Option<String>,
+        adapter_dex: Option<String>,
+        marketplace_version: Option<MarketplaceVersion>,
     },
 
     // lending platform
     AcceptOffers {
-        bidded_collateral_item_list: Vec<crate::lending_platform::types::BiddedCollateralItem>,
+        bidded_collateral_item_list: Vec<BiddedCollateralItem>,
+        route: Route,
     },
 }
 
@@ -41,6 +52,7 @@ pub enum QueryMsg {
 
     #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryOffersByCollectionAddressList {
+        platform_type: PlatformType,
         start_after: Option<String>,
         limit: Option<u32>,
     },
