@@ -131,7 +131,7 @@ async function main() {
 
     // await lending.cwQueryCollectionList();
 
-    await lending.cwQueryCollateralByOwner(owner);
+    await lending.cwQueryCollateralByOwner("main", owner);
 
     // await h.lending.cwApproveAndDepositCollateral(
     //   owner,
@@ -146,6 +146,7 @@ async function main() {
     // );
 
     await h.lending.cwWithdrawCollateral(
+      "main",
       [
         {
           collection_address: COLLECTION.KUJIRA.BANDIT_2,
@@ -155,7 +156,7 @@ async function main() {
       gasPrice
     );
 
-    await lending.cwQueryCollateralByOwner(owner);
+    await lending.cwQueryCollateralByOwner("main", owner);
 
     // await oracle.cwQueryPrices();
 

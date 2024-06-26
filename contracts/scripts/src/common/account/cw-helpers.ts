@@ -164,28 +164,24 @@ function getRevokeCollectionMsg(
 }
 
 function getContracts(contracts: ContractInfo[]) {
-  let ADAPTER_DEX_STARGAZE_CONTRACT: ContractInfo | undefined;
-  let ADAPTER_MARKETPLACE_STARGAZE_CONTRACT: ContractInfo | undefined;
-  let ADAPTER_SCHEDULER_COMMON_CONTRACT: ContractInfo | undefined;
+  let ADAPTER_DEX_CONTRACT: ContractInfo | undefined;
+  let ADAPTER_MARKETPLACE_CONTRACT: ContractInfo | undefined;
+  let ADAPTER_SCHEDULER_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_MAIN_CONTRACT: ContractInfo | undefined;
   let LENDING_PLATFORM_STABLE_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
-  let MINTER_KUJIRA_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
 
   try {
-    ADAPTER_DEX_STARGAZE_CONTRACT = getContractByLabel(
-      contracts,
-      "adapter_dex_stargaze"
-    );
+    ADAPTER_DEX_CONTRACT = getContractByLabel(contracts, "adapter_dex");
   } catch (error) {
     l(error);
   }
 
   try {
-    ADAPTER_SCHEDULER_COMMON_CONTRACT = getContractByLabel(
+    ADAPTER_SCHEDULER_CONTRACT = getContractByLabel(
       contracts,
-      "adapter_scheduler_common"
+      "adapter_scheduler"
     );
   } catch (error) {
     l(error);
@@ -216,25 +212,18 @@ function getContracts(contracts: ContractInfo[]) {
   }
 
   try {
-    MINTER_KUJIRA_CONTRACT = getContractByLabel(contracts, "minter_kujira");
-  } catch (error) {
-    l(error);
-  }
-
-  try {
     ORACLE_CONTRACT = getContractByLabel(contracts, "oracle");
   } catch (error) {
     l(error);
   }
 
   return {
-    ADAPTER_DEX_STARGAZE_CONTRACT,
-    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
-    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    ADAPTER_DEX_CONTRACT,
+    ADAPTER_MARKETPLACE_CONTRACT,
+    ADAPTER_SCHEDULER_CONTRACT,
     LENDING_PLATFORM_MAIN_CONTRACT,
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
-    MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
   };
 }
@@ -251,13 +240,12 @@ async function getCwExecHelpers(
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
   const {
-    ADAPTER_DEX_STARGAZE_CONTRACT,
-    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
-    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    ADAPTER_DEX_CONTRACT,
+    ADAPTER_MARKETPLACE_CONTRACT,
+    ADAPTER_SCHEDULER_CONTRACT,
     LENDING_PLATFORM_MAIN_CONTRACT,
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
-    MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
   } = getContracts(CONTRACTS);
 
@@ -269,23 +257,19 @@ async function getCwExecHelpers(
 
   const adapterDexStargazeMsgComposer = new AdapterDexStargazeMsgComposer(
     owner,
-    ADAPTER_DEX_STARGAZE_CONTRACT ? ADAPTER_DEX_STARGAZE_CONTRACT.ADDRESS : ""
+    ADAPTER_DEX_CONTRACT ? ADAPTER_DEX_CONTRACT.ADDRESS : ""
   );
 
   const adapterMarketplaceStargazeMsgComposer =
     new AdapterMarketplaceStargazeMsgComposer(
       owner,
-      ADAPTER_MARKETPLACE_STARGAZE_CONTRACT
-        ? ADAPTER_MARKETPLACE_STARGAZE_CONTRACT.ADDRESS
-        : ""
+      ADAPTER_MARKETPLACE_CONTRACT ? ADAPTER_MARKETPLACE_CONTRACT.ADDRESS : ""
     );
 
   const adapterSchedulerCommonMsgComposer =
     new AdapterSchedulerCommonMsgComposer(
       owner,
-      ADAPTER_SCHEDULER_COMMON_CONTRACT
-        ? ADAPTER_SCHEDULER_COMMON_CONTRACT.ADDRESS
-        : ""
+      ADAPTER_SCHEDULER_CONTRACT ? ADAPTER_SCHEDULER_CONTRACT.ADDRESS : ""
     );
 
   const lendingPlatformMainMsgComposer = new LendingPlatformMsgComposer(
@@ -307,7 +291,7 @@ async function getCwExecHelpers(
 
   const minterKujiraMsgComposer = new MinterKujiraMsgComposer(
     owner,
-    MINTER_KUJIRA_CONTRACT ? MINTER_KUJIRA_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
   );
 
   const oracleMsgComposer = new OracleMsgComposer(
@@ -1490,13 +1474,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
   const {
-    ADAPTER_DEX_STARGAZE_CONTRACT,
-    ADAPTER_MARKETPLACE_STARGAZE_CONTRACT,
-    ADAPTER_SCHEDULER_COMMON_CONTRACT,
+    ADAPTER_DEX_CONTRACT,
+    ADAPTER_MARKETPLACE_CONTRACT,
+    ADAPTER_SCHEDULER_CONTRACT,
     LENDING_PLATFORM_MAIN_CONTRACT,
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
-    MINTER_KUJIRA_CONTRACT,
     ORACLE_CONTRACT,
   } = getContracts(CONTRACTS);
 
@@ -1507,23 +1490,19 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   const adapterDexStargazeQueryClient = new AdapterDexStargazeQueryClient(
     cosmwasmQueryClient,
-    ADAPTER_DEX_STARGAZE_CONTRACT ? ADAPTER_DEX_STARGAZE_CONTRACT.ADDRESS : ""
+    ADAPTER_DEX_CONTRACT ? ADAPTER_DEX_CONTRACT.ADDRESS : ""
   );
 
   const adapterMarketplaceStargazeQueryClient =
     new AdapterMarketplaceStargazeQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_MARKETPLACE_STARGAZE_CONTRACT
-        ? ADAPTER_MARKETPLACE_STARGAZE_CONTRACT.ADDRESS
-        : ""
+      ADAPTER_MARKETPLACE_CONTRACT ? ADAPTER_MARKETPLACE_CONTRACT.ADDRESS : ""
     );
 
   const adapterSchedulerCommonQueryClient =
     new AdapterSchedulerCommonQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_SCHEDULER_COMMON_CONTRACT
-        ? ADAPTER_SCHEDULER_COMMON_CONTRACT.ADDRESS
-        : ""
+      ADAPTER_SCHEDULER_CONTRACT ? ADAPTER_SCHEDULER_CONTRACT.ADDRESS : ""
     );
 
   const lendingPlatformMainQueryClient = new LendingPlatformQueryClient(
@@ -1545,7 +1524,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   const minterKujiraQueryClient = new MinterKujiraQueryClient(
     cosmwasmQueryClient,
-    MINTER_KUJIRA_CONTRACT ? MINTER_KUJIRA_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
   );
 
   const oracleQueryClient = new OracleQueryClient(
