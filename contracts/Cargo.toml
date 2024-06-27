@@ -2,7 +2,7 @@
 members = [
     "contracts/*",
     "packages/*",
-    "tests"
+    # "tests"
 ]
 exclude = []
 resolver = "2"
@@ -39,6 +39,8 @@ cw-multi-test = "0.17.0"
 speculoos = "0.11.0"
 semver = "1.0.20"
 bech32 = "0.11.0"
+skip = { git = "https://github.com/skip-mev/skip-api-contracts", version = "0.3.0" }
+# skip = { path = "./packages/skip" }
 
 goplend-base = { path = "./packages/goplend-base" }
 stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }

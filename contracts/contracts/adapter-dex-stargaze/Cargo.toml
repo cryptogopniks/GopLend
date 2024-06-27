@@ -23,3 +23,4 @@ goplend-base = { workspace = true }
 semver = { workspace = true }
 anybuf = { workspace = true }
 bech32 = { workspace = true }
+skip = { workspace = true }
