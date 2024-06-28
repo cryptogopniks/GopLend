@@ -73,60 +73,60 @@ async function main() {
 
     const timeInNanos = await getTimeInNanos();
 
-    // ntrn -> osmo
-    // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
-    const res = await sgIbcHookCall(
-      "osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv",
-      0.01 * 1e6,
-      "untrn",
-      {
-        swap_and_action: {
-          user_swap: {
-            swap_exact_asset_in: {
-              swap_venue_name: "osmosis-poolmanager",
-              operations: [
-                {
-                  pool: "1388",
-                  denom_in:
-                    "ibc/126DA09104B71B164883842B769C0E9EC1486C0887D27A9999E395C2C8FB5682",
-                  denom_out: "uosmo",
-                },
-              ],
-            },
-          },
-          min_asset: {
-            native: {
-              denom: "uosmo",
-              amount: "100",
-            },
-          },
-          timeout_timestamp: timeInNanos + 10 * 60 * 1e9,
-          post_swap_action: {
-            transfer: {
-              to_address:
-                "osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw",
-            },
-          },
-          affiliates: [],
-        },
-      },
-      "transfer",
-      "channel-10",
-      timeInNanos,
-      gasPrice
-    );
-
-    li(res);
-    return;
-
-    // await h.adapter.dex.stargaze.cwSwap(
-    //   10_000,
-    //   { native: { denom: "untrn" } },
-    //   "test2",
-    //   0.51,
+    // // ntrn -> osmo
+    // // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
+    // const res = await sgIbcHookCall(
+    //   "osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv",
+    //   0.01 * 1e6,
+    //   "untrn",
+    //   {
+    //     swap_and_action: {
+    //       user_swap: {
+    //         swap_exact_asset_in: {
+    //           swap_venue_name: "osmosis-poolmanager",
+    //           operations: [
+    //             {
+    //               pool: "1388",
+    //               denom_in:
+    //                 "ibc/126DA09104B71B164883842B769C0E9EC1486C0887D27A9999E395C2C8FB5682",
+    //               denom_out: "uosmo",
+    //             },
+    //           ],
+    //         },
+    //       },
+    //       min_asset: {
+    //         native: {
+    //           denom: "uosmo",
+    //           amount: "100",
+    //         },
+    //       },
+    //       timeout_timestamp: timeInNanos + 10 * 60 * 1e9,
+    //       post_swap_action: {
+    //         transfer: {
+    //           to_address:
+    //             "osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw",
+    //         },
+    //       },
+    //       affiliates: [],
+    //     },
+    //   },
+    //   "transfer",
+    //   "channel-10",
+    //   timeInNanos,
     //   gasPrice
     // );
+
+    // li(res);
     // return;
+
+    await h.adapter.dex.stargaze.cwSwap(
+      310_000,
+      { native: { denom: "untrn" } },
+      "test",
+      0.764,
+      gasPrice
+    );
+    return;
 
     // await adapter.marketplace.stargaze.cwQueryConfig();
     // await adapter.scheduler[name].cwQueryConfig();

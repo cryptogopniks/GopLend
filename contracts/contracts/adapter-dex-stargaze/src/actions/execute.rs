@@ -2,8 +2,8 @@ use anybuf::Anybuf;
 use bech32::{decode, encode, Bech32, Hrp};
 
 use cosmwasm_std::{
-    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult, Uint128,
+    coin, coins, to_json_string, Addr, Coin, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
+    Response, StdResult, Uint128,
 };
 
 use skip::{
@@ -30,6 +30,8 @@ use goplend_base::{
     error::ContractError,
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
+
+const FEE_REFUNDER_FEE: u128 = 100_000;
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -147,7 +149,8 @@ pub fn try_swap(
     route: Route,
     price_ratio: Decimal,
 ) -> Result<Response, ContractError> {
-    let (sender_address, asset_amount, asset_info) = check_funds(
+    let contract_address = &env.contract.address;
+    let (_sender_address, asset_amount, asset_info) = check_funds(
         deps.as_ref(),
         &info,
         FundsType::Single {
@@ -183,7 +186,7 @@ pub fn try_swap(
 
     let msg = match route {
         Route::Osmosis => {
-            let ibc_swap_memo = get_osmosis_ibc_swap_memo(
+            let ibc_transfer_memo = get_osmosis_ibc_transfer_memo(
                 asset_amount,
                 price_ratio,
                 max_price_impact,
@@ -192,18 +195,18 @@ pub fn try_swap(
                 recover_address,
             );
 
-            get_ibc_swap_msg(
+            get_ibc_transfer_msg(
                 CHANNEL_STARGAZE_OSMOSIS,
                 denom_in,
                 asset_amount,
-                &sender_address,
+                contract_address,
                 CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
                 timeout_timestamp_ns,
-                &ibc_swap_memo,
+                &ibc_transfer_memo,
             )
         }
         Route::Neutron => {
-            let ibc_swap_memo = get_neutron_ibc_swap_memo(
+            let ibc_transfer_memo = get_neutron_ibc_transfer_memo(
                 asset_amount,
                 price_ratio,
                 max_price_impact,
@@ -212,19 +215,22 @@ pub fn try_swap(
                 recover_address,
             );
 
-            get_ibc_swap_msg(
+            get_ibc_transfer_msg(
                 CHANNEL_STARGAZE_NEUTRON,
                 denom_in,
                 asset_amount,
-                &sender_address,
+                contract_address,
                 CONTRACT_NEUTRON_SKIP_ENTRY_POINT,
                 timeout_timestamp_ns,
-                &ibc_swap_memo,
+                &ibc_transfer_memo,
             )
         }
         Route::Test => {
-            let ibc_swap_memo = get_swap_and_action_memo(
-                asset_amount,
+            // let amount_in = asset_amount - Uint128::new(3 * FEE_REFUNDER_FEE);
+            let amount_in = Uint128::new(10_000);
+
+            let ibc_transfer_memo = get_swap_and_action_memo(
+                amount_in,
                 price_ratio,
                 max_price_impact,
                 timeout_timestamp_ns,
@@ -232,18 +238,18 @@ pub fn try_swap(
                 recover_address,
             )?;
 
-            get_ibc_swap_msg(
+            get_neutron_ibc_transfer_msg(
                 CHANNEL_NEUTRON_OSMOSIS,
                 denom_in,
-                asset_amount,
-                &sender_address,
+                amount_in,
+                contract_address,
                 CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
                 timeout_timestamp_ns,
-                &ibc_swap_memo,
+                &ibc_transfer_memo,
             )
         }
         // Route::Test2 => {
-        //     let ibc_swap_memo = get_test_2_ibc_swap_memo(
+        //     let ibc_transfer_memo = get_test_2_ibc_transfer_memo(
         //         asset_amount,
         //         price_ratio,
         //         max_price_impact,
@@ -252,14 +258,14 @@ pub fn try_swap(
         //         recover_address,
         //     );
 
-        //     get_ibc_swap_msg(
+        //     get_neutron_ibc_transfer_msg(
         //         CHANNEL_NEUTRON_OSMOSIS,
         //         denom_in,
         //         asset_amount,
         //         &sender_address,
         //         CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
         //         timeout_timestamp_ns,
-        //         &ibc_swap_memo,
+        //         &ibc_transfer_memo,
         //     )
         // }
         _ => unimplemented!(),
@@ -270,14 +276,14 @@ pub fn try_swap(
         .add_attribute("action", "try_swap"))
 }
 
-fn get_ibc_swap_msg(
+fn get_ibc_transfer_msg(
     channel: &str,
     denom_in: &str,
     amount_in: Uint128,
     sender: &Addr,
     skip_entry_point: &str,
     timeout_timestamp_ns: u64,
-    ibc_swap_memo: &str,
+    ibc_transfer_memo: &str,
 ) -> CosmosMsg {
     CosmosMsg::Stargate {
         type_url: "/ibc.applications.transfer.v1.MsgTransfer".to_string(),
@@ -302,13 +308,81 @@ fn get_ibc_swap_msg(
             // TimeoutTimestamp
             .append_uint64(7, timeout_timestamp_ns)
             // IBC Hook memo
-            .append_string(8, ibc_swap_memo)
+            .append_string(8, ibc_transfer_memo)
             .into_vec()
             .into(),
     }
 }
 
-fn get_osmosis_ibc_swap_memo(
+fn get_neutron_ibc_transfer_msg(
+    channel: &str,
+    denom_in: &str,
+    amount_in: Uint128,
+    sender: &Addr,
+    skip_entry_point: &str,
+    timeout_timestamp_ns: u64,
+    ibc_transfer_memo: &str,
+) -> CosmosMsg {
+    let fee = &coins(FEE_REFUNDER_FEE, DENOM_NEUTRON_NTRN);
+    let fee_message = &create_fee_message(fee, fee, fee);
+
+    // https://github.com/neutron-org/neutron/blob/main/proto/neutron/transfer/v1/tx.proto#L25
+    CosmosMsg::Stargate {
+        type_url: "/ibc.applications.transfer.v1.MsgTransfer".to_string(),
+        value: Anybuf::new()
+            // source port
+            .append_string(1, "transfer")
+            // source channel (IBC Channel on your network side)
+            .append_string(2, channel)
+            // token
+            .append_message(
+                3,
+                &Anybuf::new()
+                    .append_string(1, denom_in)
+                    .append_string(2, amount_in.to_string()),
+            )
+            // sender
+            .append_string(4, sender)
+            // recipient
+            .append_string(5, skip_entry_point)
+            // TimeoutHeight
+            .append_message(6, &Anybuf::new().append_uint64(1, 0).append_uint64(2, 0))
+            // TimeoutTimestamp
+            .append_uint64(7, timeout_timestamp_ns)
+            // IBC Hook memo
+            .append_string(8, ibc_transfer_memo)
+            // fee funder
+            .append_message(9, fee_message)
+            .into_vec()
+            .into(),
+    }
+}
+
+fn create_fee_message(
+    recv_fee: &Vec<Coin>,
+    ack_fee: &Vec<Coin>,
+    timeout_fee: &Vec<Coin>,
+) -> Anybuf {
+    Anybuf::new()
+        .append_message(1, &create_coin_list(recv_fee))
+        .append_message(2, &create_coin_list(ack_fee))
+        .append_message(3, &create_coin_list(timeout_fee))
+}
+
+fn create_coin_list(coins: &Vec<Coin>) -> Anybuf {
+    let mut coin_list = Anybuf::new();
+    for coin in coins {
+        coin_list = coin_list.append_message(
+            1,
+            &Anybuf::new()
+                .append_string(1, coin.denom.to_string())
+                .append_string(2, coin.amount.to_string()),
+        );
+    }
+    coin_list
+}
+
+fn get_osmosis_ibc_transfer_memo(
     token_in_amount: Uint128,
     price_ratio: Decimal,
     max_price_impact: Decimal,
@@ -345,7 +419,7 @@ fn get_osmosis_ibc_swap_memo(
     )
 }
 
-fn get_neutron_ibc_swap_memo(
+fn get_neutron_ibc_transfer_memo(
     token_in_amount: Uint128,
     price_ratio: Decimal,
     max_price_impact: Decimal,
@@ -382,7 +456,7 @@ fn get_neutron_ibc_swap_memo(
     )
 }
 
-fn get_test_ibc_swap_memo(
+fn get_test_ibc_transfer_memo(
     token_in_amount: Uint128,
     price_ratio: Decimal,
     max_price_impact: Decimal,
@@ -420,7 +494,7 @@ fn get_test_ibc_swap_memo(
 }
 
 // swap and send on osmosis contract address
-fn get_test_2_ibc_swap_memo(
+fn get_test_2_ibc_transfer_memo(
     token_in_amount: Uint128,
     price_ratio: Decimal,
     max_price_impact: Decimal,

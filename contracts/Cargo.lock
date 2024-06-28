@@ -119,7 +119,7 @@ dependencies = [
  "cw-storage-plus 0.15.1",
  "cw-utils 0.15.1",
  "cw20 0.15.1",
- "itertools",
+ "itertools 0.10.5",
  "uint",
 ]
 
@@ -225,7 +225,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73c9d2043a9e617b0d602fbc0a0ecd621568edbf3a9774890a6d562389bd8e1c"
 dependencies = [
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "tendermint-proto",
 ]
@@ -357,6 +357,60 @@ dependencies = [
  "rand_core 0.5.1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "cw-address-like"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "451a4691083a88a3c0630a8a88799e9d4cd6679b7ce8ff22b8da2873ff31d380"
+dependencies = [
+ "cosmwasm-std",
+]
+
+[[package]]
+name = "cw-multi-test"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d818f5323c80ed4890db7f89d65eda3f0261fe21878e628c27ea2d8de4b7ba4"
+dependencies = [
+ "anyhow",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
+ "derivative",
+ "itertools 0.11.0",
+ "prost 0.12.6",
+ "schemars",
+ "serde",
+ "sha2 0.10.8",
+ "thiserror",
+]
+
+[[package]]
+name = "cw-ownable"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "093dfb4520c48b5848274dd88ea99e280a04bc08729603341c7fb0d758c74321"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-address-like",
+ "cw-ownable-derive",
+ "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
+ "thiserror",
+]
+
+[[package]]
+name = "cw-ownable-derive"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1d3bf2e0f341bb6cc100d7d441d31cf713fbd3ce0c511f91e79f14b40a889af"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -578,6 +632,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cw721-base"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da518d9f68bfda7d972cbaca2e8fcf04651d0edc3de72b04ae2bcd9289c81614"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-ownable",
+ "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "cw721 0.18.0",
+ "cw721-base 0.16.0",
+ "schemars",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "der"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -780,6 +853,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "heck"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
+
+[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,7 +883,7 @@ dependencies = [
  "bytes",
  "flex-error",
  "ics23",
- "prost",
+ "prost 0.11.9",
  "serde",
  "subtle-encoding",
  "tendermint-proto",
@@ -819,7 +898,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "hex",
- "prost",
+ "prost 0.11.9",
 ]
 
 [[package]]
@@ -837,6 +916,15 @@ name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
 dependencies = [
  "either",
 ]
@@ -1010,9 +1098,42 @@ checksum = "943ccd9f9749e96095237502e1c61abc867fd5cf28668097b359b0d61aa50c96"
 dependencies = [
  "cosmos-sdk-proto",
  "cosmwasm-std",
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "tendermint-proto",
+]
+
+[[package]]
+name = "num"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35bd024e8b2ff75562e5f34e7f4905839deb4b22955ef5e73d2fea1b9813cb23"
+dependencies = [
+ "num-bigint",
+ "num-complex",
+ "num-integer",
+ "num-iter",
+ "num-rational",
+ "num-traits",
+]
+
+[[package]]
+name = "num-bigint"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
+dependencies = [
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -1030,6 +1151,37 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "num-integer"
+version = "0.1.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7969661fd2958a5cb096e56c8e1ad0444ac2bbcd0061bd28660485a44879858f"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "num-iter"
+version = "0.1.45"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1429034a0490724d0075ebb2bc9e875d6503c3cf69e235a8941aa757d83ef5bf"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f83d14da390562dca69fc84082e73e548e1ad308d24accdedd2720017cb37824"
+dependencies = [
+ "num-bigint",
+ "num-integer",
+ "num-traits",
 ]
 
 [[package]]
@@ -1075,7 +1227,7 @@ dependencies = [
  "chrono",
  "cosmwasm-std",
  "osmosis-std-derive 0.15.3",
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "schemars",
  "serde",
@@ -1091,7 +1243,7 @@ dependencies = [
  "chrono",
  "cosmwasm-std",
  "osmosis-std-derive 0.20.1",
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "schemars",
  "serde",
@@ -1104,7 +1256,7 @@ version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4d482a16be198ee04e0f94e10dd9b8d02332dcf33bc5ea4b255e7e25eedc5df"
 dependencies = [
- "itertools",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -1116,7 +1268,7 @@ version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5ebdfd1bc8ed04db596e110c6baa9b174b04f6ed1ec22c666ddc5cb3fa91bd7"
 dependencies = [
- "itertools",
+ "itertools 0.10.5",
  "proc-macro2",
  "prost-types",
  "quote",
@@ -1167,7 +1319,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b82eaa1d779e9a4bc1c3217db8ffbeabaae1dca241bf70183242128d48681cd"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.11.9",
+]
+
+[[package]]
+name = "prost"
+version = "0.12.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "deb1435c188b76130da55f17a466d252ff7b1418b2ad3e037d127b94e3411f29"
+dependencies = [
+ "bytes",
+ "prost-derive 0.12.6",
 ]
 
 [[package]]
@@ -1177,10 +1339,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5d2d8d10f3c6ded6da8b05b5fb3b8a5082514344d56c9f871412d29b4e075b4"
 dependencies = [
  "anyhow",
- "itertools",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "prost-derive"
+version = "0.12.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
+dependencies = [
+ "anyhow",
+ "itertools 0.10.5",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.68",
 ]
 
 [[package]]
@@ -1189,7 +1364,7 @@ version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "213622a1460818959ac1181aaeb2dc9c7f63df720db7d788b3e24eacd1983e13"
 dependencies = [
- "prost",
+ "prost 0.11.9",
 ]
 
 [[package]]
@@ -1246,6 +1421,12 @@ dependencies = [
  "hmac",
  "subtle",
 ]
+
+[[package]]
+name = "rustversion"
+version = "1.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "955d28af4278de8121b7ebeb796b6a45735dc01436d898801014aced2773a3d6"
 
 [[package]]
 name = "ryu"
@@ -1395,7 +1576,7 @@ dependencies = [
  "cw2 0.16.0",
  "cw20 0.16.0",
  "cw721 0.16.0",
- "cw721-base",
+ "cw721-base 0.16.0",
  "schemars",
  "semver",
  "serde",
@@ -1461,7 +1642,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-utils 0.16.0",
- "cw721-base",
+ "cw721-base 0.16.0",
  "serde",
  "thiserror",
 ]
@@ -1478,7 +1659,7 @@ dependencies = [
  "cw-utils 0.16.0",
  "cw2 0.16.0",
  "cw721 0.16.0",
- "cw721-base",
+ "cw721-base 0.16.0",
  "serde",
  "sg-std",
  "sg721",
@@ -1539,6 +1720,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "speculoos"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65881c9270d6157f30a09233305da51bed97eef9192d0ea21e57b1c8f05c3620"
+dependencies = [
+ "num",
+]
+
+[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1568,6 +1758,25 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "strum"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "063e6045c0e62079840579a7e47a355ae92f60eb74daaf156fb1e84ba164e63f"
+
+[[package]]
+name = "strum_macros"
+version = "0.24.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "subtle"
@@ -1616,12 +1825,45 @@ dependencies = [
  "flex-error",
  "num-derive",
  "num-traits",
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "serde",
  "serde_bytes",
  "subtle-encoding",
  "time",
+]
+
+[[package]]
+name = "tests"
+version = "1.0.0"
+dependencies = [
+ "adapter-dex-stargaze-mocks",
+ "adapter-marketplace-kujira",
+ "adapter-marketplace-stargaze",
+ "adapter-scheduler-common",
+ "adapter-scheduler-stargaze",
+ "anyhow",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-multi-test",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw20 1.1.2",
+ "cw20-base",
+ "cw721 0.18.0",
+ "cw721-base 0.18.0",
+ "goplend-base",
+ "lending-platform",
+ "minter",
+ "minter-kujira",
+ "oracle",
+ "serde",
+ "sg-marketplace",
+ "speculoos",
+ "stargaze-mocks-marketplace",
+ "strum",
+ "strum_macros",
+ "thiserror",
 ]
 
 [[package]]
@@ -1761,7 +2003,7 @@ dependencies = [
  "cw2 1.1.2",
  "cw20 1.1.2",
  "osmosis-std-derive 0.15.3",
- "prost",
+ "prost 0.11.9",
  "prost-types",
  "protobuf",
  "schemars",
