@@ -762,6 +762,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "faucet"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "osmosis-std 0.20.1",
+ "semver",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "ff"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

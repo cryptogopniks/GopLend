@@ -22,6 +22,12 @@ pub mod minter_kujira {
     pub mod types;
 }
 
+pub mod faucet {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
+}
+
 pub mod adapters {
     pub mod marketplace {
         pub mod kujira {
