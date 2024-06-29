@@ -183,6 +183,15 @@ function getContracts(contracts: ContractInfo[]) {
   }
 
   try {
+    ADAPTER_MARKETPLACE_CONTRACT = getContractByLabel(
+      contracts,
+      "adapter_marketplace"
+    );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
     ADAPTER_SCHEDULER_CONTRACT = getContractByLabel(
       contracts,
       "adapter_scheduler"

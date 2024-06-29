@@ -126,6 +126,12 @@ export const CHAIN_CONFIG: ChainConfig = {
                   lending_platform_stable: $(
                     "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
                   ),
+                  adapter_dex: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS"
+                  ),
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
                 },
               }),
               CODE: 4312,

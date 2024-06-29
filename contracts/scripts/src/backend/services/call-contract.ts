@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
 import { COLLECTION, TOKEN } from "./constants";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -25,11 +26,11 @@ import {
 
 async function main() {
   try {
+    const { chainId } = parseStoreArgs();
     const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
       encoding: ENCODING,
     });
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
-    const { chainId } = parseStoreArgs();
     const {
       NAME,
       PREFIX: PREFIX,
@@ -58,7 +59,7 @@ async function main() {
       await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
-    const { getAllBalances, getTimeInNanos } = sgQueryHelpers;
+    const { getBalance, getAllBalances, getTimeInNanos } = sgQueryHelpers;
     const { sgMultiSend, sgIbcHookCall } = sgExecHelpers;
 
     const name = NAME as "kujira" | "stargaze";
@@ -69,7 +70,11 @@ async function main() {
     // li(JSON.parse(p));
     // return;
 
-    const timeInNanos = await getTimeInNanos();
+    // const timeInNanos = await getTimeInNanos();
+
+    // await h.faucet.stargaze.cwClaimFor([[owner, 20_000_000_000]], gasPrice);
+    // await getBalance(owner, TOKEN.USDC);
+    // return;
 
     // // ntrn -> osmo
     // // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
@@ -117,22 +122,26 @@ async function main() {
     // li(res);
     // return;
 
-    await h.adapter.dex.stargaze.cwSwap(
-      310_000,
-      { native: { denom: "untrn" } },
-      "test",
-      0.764,
-      gasPrice
-    );
-    return;
+    // await h.adapter.dex.stargaze.cwSwap(
+    //   310_000,
+    //   { native: { denom: "untrn" } },
+    //   "test",
+    //   0.764,
+    //   gasPrice
+    // );
+    // return;
 
     // await adapter.marketplace.stargaze.cwQueryConfig();
     // await adapter.scheduler[name].cwQueryConfig();
-    // await lending.cwQueryAddressConfig();
-    // await lending.cwQueryRateConfig();
-    // await lending.cwQueryCommonConfig();
+    // const platforms: PlatformType[] = ["main", "stable"];
+    // for (const platformType of platforms) {
+    //   await lending.cwQueryAddressConfig(platformType);
+    //   await lending.cwQueryRateConfig(platformType);
+    //   await lending.cwQueryCommonConfig(platformType);
+    // }
     // await minter[name].cwQueryConfig();
     // await oracle.cwQueryConfig();
+    // return;
 
     // await lending.cwQueryCollectionList();
 

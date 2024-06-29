@@ -158,6 +158,14 @@ async function getSgQueryHelpers(rpc: string) {
   const bankExtension = setupBankExtension(queryClient);
   const stakingExtension = setupStakingExtension(queryClient);
 
+  async function getBalance(address: string, denom: string) {
+    const res = await bankExtension.bank.balance(address, denom);
+    l();
+    li(res);
+    l();
+    return res;
+  }
+
   async function getAllBalances(address: string) {
     const res = await bankExtension.bank.allBalances(address);
     l();
@@ -198,7 +206,13 @@ async function getSgQueryHelpers(rpc: string) {
     return res;
   }
 
-  return { getAllBalances, getMetadata, getValidators, getTimeInNanos };
+  return {
+    getBalance,
+    getAllBalances,
+    getMetadata,
+    getValidators,
+    getTimeInNanos,
+  };
 }
 
 export { getSgExecHelpers, getSgQueryHelpers };

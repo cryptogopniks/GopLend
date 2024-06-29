@@ -105,7 +105,8 @@ async function main() {
         l({ bglDenomFull });
 
         // setup lending
-        const isMarketplaceInterfaceEnabled = !isKujira;
+        const isMarketplaceInterfaceEnabled =
+          !isKujira && platformType === "main";
 
         // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
         // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
