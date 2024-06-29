@@ -111,7 +111,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 4315,
+              "CODE": 4314,
               "ADDRESS": "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8"
             },
             {

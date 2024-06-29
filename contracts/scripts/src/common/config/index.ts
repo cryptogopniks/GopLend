@@ -246,8 +246,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4311,
+              ADDRESS:
+                "stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y",
             },
 
             {
@@ -270,8 +271,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4312,
+              ADDRESS:
+                "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93",
             },
 
             {
@@ -299,8 +301,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4313,
+              ADDRESS:
+                "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k",
             },
 
             {
@@ -334,8 +337,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4314,
+              ADDRESS:
+                "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5",
             },
 
             {
@@ -369,8 +373,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4314,
+              ADDRESS:
+                "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
             },
 
             {
@@ -385,8 +390,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   worker: ADDRESS.STARGAZE.WORKER,
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4316,
+              ADDRESS:
+                "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk",
             },
 
             {
@@ -407,8 +413,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4317,
+              ADDRESS:
+                "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7",
             },
 
             {
