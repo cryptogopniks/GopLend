@@ -115,6 +115,7 @@ function findTemplates(text: string): string[] {
 type MsgType = "instantiate" | "update" | "migrate";
 
 function replaceTemplates(
+  chainId: string,
   configJsonObj: ChainConfig,
   config: ChainConfig,
   msgType: MsgType
@@ -133,6 +134,9 @@ function replaceTemplates(
         }
 
         for (const template of findTemplates(msg)) {
+          // ignore templates for other chains
+          if (!template.includes(chainId)) continue;
+
           const replacement = parseTemplate(
             configJsonObj,
             template.replace(/\!/g, "")

@@ -24,13 +24,13 @@ import {
 
 async function main() {
   try {
+    const { chainId, labelList } = parseStoreArgs();
     const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
       encoding: ENCODING,
     });
     let configJson: ChainConfig = JSON.parse(configJsonStr);
-    configJson = replaceTemplates(configJson, CHAIN_CONFIG, "update");
+    configJson = replaceTemplates(chainId, configJson, CHAIN_CONFIG, "update");
 
-    const { chainId, labelList } = parseStoreArgs();
     const {
       PREFIX,
       OPTION: {

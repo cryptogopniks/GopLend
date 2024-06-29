@@ -43,13 +43,18 @@ function parseAddressList(events: readonly Event[]): string[] {
 
 async function main() {
   try {
+    const { chainId, labelList } = parseStoreArgs();
     const configJsonStr: string = await readFile(PATH_TO_CONFIG_JSON, {
       encoding: ENCODING,
     });
     let configJson: ChainConfig = JSON.parse(configJsonStr);
-    configJson = replaceTemplates(configJson, CHAIN_CONFIG, "instantiate");
+    configJson = replaceTemplates(
+      chainId,
+      configJson,
+      CHAIN_CONFIG,
+      "instantiate"
+    );
 
-    const { chainId, labelList } = parseStoreArgs();
     const {
       PREFIX,
       OPTION: {
