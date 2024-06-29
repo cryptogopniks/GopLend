@@ -539,7 +539,7 @@ pub fn query_ltv_list(
                         })?;
                     }
 
-                    let price = helpers::choose_price(&common_config.main_currency, &price_item);
+                    let price = helpers::choose_price(&common_config.main_currency, price_item);
 
                     Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
                 },
@@ -624,7 +624,7 @@ pub fn query_conditional_ltv(
                 })?;
             }
 
-            let price = helpers::choose_price(&common_config.main_currency, &price_item);
+            let price = helpers::choose_price(&common_config.main_currency, price_item);
 
             Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
         },
@@ -752,7 +752,7 @@ pub fn query_available_to_borrow(
                 })?;
             }
 
-            let price = helpers::choose_price(&common_config.main_currency, &price_item);
+            let price = helpers::choose_price(&common_config.main_currency, price_item);
 
             Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
         },

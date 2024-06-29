@@ -561,7 +561,7 @@ pub mod offchain {
                     is_price_outdated = true;
                 }
 
-                let price = choose_price(&main_currency, &price_item);
+                let price = choose_price(main_currency, price_item);
 
                 Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
             },

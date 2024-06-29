@@ -304,7 +304,7 @@ pub fn match_collaterals_and_bids(
                 val: collateral_collection.to_string(),
             })?;
 
-        let price = choose_price(&main_currency, &price_item);
+        let price = choose_price(main_currency, price_item);
 
         for token_item in collateral.token_item_list.clone() {
             for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {

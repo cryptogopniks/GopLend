@@ -23,6 +23,7 @@ pub trait AdapterMarketplaceStargazeExtension {
         sender: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn adapter_marketplace_stargaze_try_update_config(
         &mut self,
         sender: ProjectAccount,

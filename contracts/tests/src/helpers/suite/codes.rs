@@ -42,6 +42,7 @@ pub trait WithCodes {
         amount: u128,
         denom: ProjectCoin,
     ) -> Addr;
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_adapter_dex_stargaze_mocks(
         &mut self,
         adapter_dex_stargaze_mocks_code_id: u64,
@@ -97,6 +98,7 @@ pub trait WithCodes {
         cw20_base_code_id: &Option<u64>,
     ) -> Addr;
 
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_adapter_scheduler_common(
         &mut self,
         adapter_scheduler_common_code_id: u64,
@@ -108,6 +110,7 @@ pub trait WithCodes {
         execution_cooldown: &Option<u64>,
     ) -> Addr;
 
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_adapter_marketplace_stargaze(
         &mut self,
         adapter_marketplace_stargaze_code_id: u64,
@@ -363,7 +366,7 @@ impl WithCodes for Project {
                     max_price_impact: max_price_impact.as_ref().map(|x| str_to_dec(x)),
                 },
                 &denom_list
-                    .into_iter()
+                    .iter()
                     .map(|x| coin(amount, x.to_string()))
                     .collect::<Vec<Coin>>(),
                 "stargaze_mocks_marketplace",

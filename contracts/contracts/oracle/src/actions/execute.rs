@@ -84,7 +84,7 @@ pub fn try_set_prices(
         let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
         if let Ok(PriceItem { update_date, .. }) =
-            PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+            PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
         {
             if update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
@@ -93,7 +93,7 @@ pub fn try_set_prices(
 
         PRICE_AND_DATE_LIST.save(
             deps.storage,
-            &collection_address,
+            collection_address,
             &PriceItem {
                 address: collection_address.to_owned(),
                 price,
@@ -184,7 +184,7 @@ pub fn try_update_prices(
         let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
         if let Ok(PriceItem { update_date, .. }) =
-            PRICE_AND_DATE_LIST.load(deps.storage, &collection_address)
+            PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
         {
             if update_date == block_time {
                 Err(ContractError::CollectionDuplication)?;
@@ -193,7 +193,7 @@ pub fn try_update_prices(
 
         PRICE_AND_DATE_LIST.save(
             deps.storage,
-            &collection_address,
+            collection_address,
             &PriceItem {
                 address: collection_address.to_owned(),
                 price,
@@ -275,6 +275,7 @@ pub fn try_accept_admin_role(
     Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
     deps: DepsMut,
     env: Env,
