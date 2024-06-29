@@ -12,7 +12,7 @@ import {
 } from "./utils";
 import {
   getChainOptionById,
-  getContractByWasm,
+  getContractByLabel,
 } from "../../common/config/config-utils";
 import {
   getSgQueryHelpers,

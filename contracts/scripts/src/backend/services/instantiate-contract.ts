@@ -5,7 +5,7 @@ import { CHAIN_CONFIG } from "../../common/config";
 import { readFile, writeFile } from "fs/promises";
 import { getCwClient } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
-import { Wasm, ContractInfo, ChainConfig } from "../../common/interfaces";
+import { ContractInfo, ChainConfig } from "../../common/interfaces";
 import { MsgInstantiateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
   SigningCosmWasmClient,
@@ -49,7 +49,7 @@ async function main() {
     let configJson: ChainConfig = JSON.parse(configJsonStr);
     configJson = replaceTemplates(configJson, CHAIN_CONFIG, "instantiate");
 
-    const { chainId, wasmList } = parseStoreArgs();
+    const { chainId, labelList } = parseStoreArgs();
     const {
       PREFIX,
       OPTION: {
@@ -75,7 +75,7 @@ async function main() {
     let addressList: string[] = [];
 
     for (const CONTRACT of CONTRACTS) {
-      if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
+      if (!labelList.includes(CONTRACT.LABEL)) continue;
 
       const { LABEL, INIT_MSG, CODE } = CONTRACT;
 
@@ -134,7 +134,7 @@ async function main() {
 
     // update CONFIG with contract addresses
     for (const i in contractConfigAndInitMsgList) {
-      const [{ WASM }] = contractConfigAndInitMsgList[i];
+      const [{ LABEL }] = contractConfigAndInitMsgList[i];
       const contractAddress = addressList[i];
 
       configJson = {
@@ -148,7 +148,7 @@ async function main() {
               return {
                 ...option,
                 CONTRACTS: option.CONTRACTS.map((contract) => {
-                  if (contract.WASM !== WASM) return contract;
+                  if (contract.LABEL !== LABEL) return contract;
 
                   return {
                     ...contract,
@@ -161,7 +161,7 @@ async function main() {
         }),
       };
 
-      const contractName = WASM.replace(".wasm", "").toLowerCase();
+      const contractName = LABEL.toLowerCase();
       l(`"${contractName}" contract address is ${contractAddress}\n`);
     }
 

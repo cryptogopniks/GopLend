@@ -1,7 +1,7 @@
 import { getSigner } from "../account/signer";
 import { l } from "../../common/utils";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig, Wasm, ContractInfo } from "../../common/interfaces";
+import { ChainConfig, ContractInfo } from "../../common/interfaces";
 import { CHAIN_CONFIG } from "../../common/config";
 import { calculateFee } from "@cosmjs/stargate";
 import { toUtf8 } from "@cosmjs/encoding";
@@ -30,7 +30,7 @@ async function main() {
     let configJson: ChainConfig = JSON.parse(configJsonStr);
     configJson = replaceTemplates(configJson, CHAIN_CONFIG, "update");
 
-    const { chainId, wasmList } = parseStoreArgs();
+    const { chainId, labelList } = parseStoreArgs();
     const {
       PREFIX,
       OPTION: {
@@ -55,7 +55,7 @@ async function main() {
     ][] = [];
 
     for (const CONTRACT of CONTRACTS) {
-      if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
+      if (!labelList.includes(CONTRACT.LABEL)) continue;
 
       const { UPDATE_MSG, ADDRESS } = CONTRACT;
       const msg: MsgExecuteContractEncodeObject = {

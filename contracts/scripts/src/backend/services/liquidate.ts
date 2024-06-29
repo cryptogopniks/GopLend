@@ -4,6 +4,8 @@ import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { queryTargets } from "./query-targets";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import { Route } from "../../common/codegen/AdapterDexStargaze.types";
 import {
   getCwExecHelpers,
   getCwQueryHelpers,
@@ -23,11 +25,17 @@ const PAGINATION_QUERY_AMOUNT = 100;
 const PAGINATION_EXECUTE_AMOUNT = 10;
 
 async function liquidate(
+  platformType: PlatformType,
+  route: Route,
   queryBorrowerListFn: (
+    platformType: PlatformType,
     paginationQueryAmount: number,
     lastItem?: string
   ) => Promise<QueryBorrowersResponseItem[]>,
-  pushFn: (liquidationItemList: LiquidationItem[]) => Promise<void>
+  pushFn: (
+    route: Route,
+    liquidationItemList: LiquidationItem[]
+  ) => Promise<void>
 ) {
   try {
     // query all borrowers
@@ -36,6 +44,7 @@ async function liquidate(
 
     while (lastItem !== "") {
       const items: QueryBorrowersResponseItem[] = await queryBorrowerListFn(
+        platformType,
         PAGINATION_QUERY_AMOUNT,
         lastItem
       );
@@ -49,7 +58,7 @@ async function liquidate(
     const borrowerAddressList = allItems.map((x) => x.address);
 
     // get targets
-    const targets = await queryTargets(borrowerAddressList);
+    const targets = await queryTargets(platformType, borrowerAddressList);
 
     // liquidate with pagination
     let liquidationItemList: LiquidationItem[] = [];
@@ -57,7 +66,7 @@ async function liquidate(
     for (let i = 0; i < targets.length; i++) {
       if (liquidationItemList.length >= PAGINATION_EXECUTE_AMOUNT) {
         l(i);
-        await pushFn(liquidationItemList);
+        await pushFn(route, liquidationItemList);
         liquidationItemList = [];
       }
 
@@ -95,19 +104,44 @@ async function main() {
   const name = NAME as "kujira" | "stargaze";
 
   const cwQueryBorrowerList = async (
+    platformType: PlatformType,
     paginationQueryAmount: number,
     lastItem?: string
   ): Promise<QueryBorrowersResponseItem[]> => {
-    return await lending.cwQueryBorrowerList(paginationQueryAmount, lastItem);
+    return await lending.cwQueryBorrowerList(
+      platformType,
+      paginationQueryAmount,
+      lastItem
+    );
   };
 
-  const cwPush = async (liquidationItemList: LiquidationItem[]) => {
-    await h.adapter.scheduler[name].cwPush(liquidationItemList, gasPrice);
+  const cwPush = async (
+    route: Route,
+    liquidationItemList: LiquidationItem[]
+  ) => {
+    await h.adapter.scheduler[name].cwPush(
+      route,
+      liquidationItemList,
+      gasPrice
+    );
   };
+
+  let platform: PlatformType = "main";
+  let route: Route = "empty";
 
   // run liquidation in infinite loop
   while (true) {
-    await liquidate(cwQueryBorrowerList, cwPush);
+    await liquidate(platform, route, cwQueryBorrowerList, cwPush);
+
+    // switch platform and route
+    if (platform === "main") {
+      platform = "stable";
+      // TODO: query network/dex status and choose route
+      route = "neutron" || "osmosis";
+    } else {
+      platform = "main";
+      route = "empty";
+    }
   }
 }
 

@@ -6,7 +6,7 @@ import { gzip } from "pako";
 import { readFile, writeFile } from "fs/promises";
 import { getCwClient } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
-import { Wasm, ContractInfo, ChainConfig } from "../../common/interfaces";
+import { ContractInfo, ChainConfig } from "../../common/interfaces";
 import { MsgStoreCode } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
   SigningCosmWasmClient,
@@ -40,7 +40,7 @@ async function main() {
     });
     let configJson: ChainConfig = JSON.parse(configJsonStr);
 
-    const { chainId, wasmList } = parseStoreArgs();
+    const { chainId, labelList } = parseStoreArgs();
     const {
       PREFIX,
       OPTION: {
@@ -67,7 +67,7 @@ async function main() {
     ][] = [];
 
     for (const CONTRACT of CONTRACTS) {
-      if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
+      if (!labelList.includes(CONTRACT.LABEL)) continue;
 
       const wasmBinary = await readFile(
         rootPath(`../artifacts/${CONTRACT.WASM}`)
@@ -116,7 +116,7 @@ async function main() {
 
     // update CONFIG with code id's
     for (const i in contractConfigAndStoreCodeMsgList) {
-      const [{ WASM }] = contractConfigAndStoreCodeMsgList[i];
+      const [{ LABEL }] = contractConfigAndStoreCodeMsgList[i];
       const codeId = codeIdList[i];
 
       configJson = {
@@ -130,7 +130,7 @@ async function main() {
               return {
                 ...option,
                 CONTRACTS: option.CONTRACTS.map((contract) => {
-                  if (contract.WASM !== WASM) return contract;
+                  if (contract.LABEL !== LABEL) return contract;
 
                   return {
                     ...contract,
@@ -143,7 +143,7 @@ async function main() {
         }),
       };
 
-      const contractName = WASM.replace(".wasm", "").toLowerCase();
+      const contractName = LABEL.toLowerCase();
       l(`\n"${contractName}" contract code is ${codeId}\n`);
     }
 

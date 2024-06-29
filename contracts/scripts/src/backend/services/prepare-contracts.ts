@@ -74,12 +74,12 @@ async function main() {
           bglDenomMain,
           paymentDenomMain,
         ],
-        // [
-        //   "stable",
-        //   LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
-        //   bglDenomStable,
-        //   paymentDenomStable,
-        // ],
+        [
+          "stable",
+          LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
+          bglDenomStable,
+          paymentDenomStable,
+        ],
       ];
 
       for (const [
