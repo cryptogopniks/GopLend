@@ -75,8 +75,8 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\"}}",
-              "CODE": 4304,
-              "ADDRESS": "stars1ddhwqdc5sx5t7f84k4d3a7kdk5tvdxjspaz0mtmf9sp44q7frgmqhknjv4"
+              "CODE": 4311,
+              "ADDRESS": "stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y"
             },
             {
               "WASM": "adapter_marketplace_stargaze.wasm",
@@ -84,8 +84,8 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\"}}",
-              "CODE": 4305,
-              "ADDRESS": "stars1pj5eq6gg8c2ne9ay5n2k5hvacfjs23jrp5tachhpa9sqv5llvcyqtsfqje"
+              "CODE": 4312,
+              "ADDRESS": "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93"
             },
             {
               "WASM": "adapter_scheduler_common.wasm",
@@ -93,8 +93,8 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\"}}",
-              "CODE": 4306,
-              "ADDRESS": "stars1hvmqf220auf24s3r7d9ulytfh8e2hvpes5t0jfl4xxx4ex8r49ysp97msh"
+              "CODE": 4313,
+              "ADDRESS": "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k"
             },
             {
               "WASM": "lending_platform.wasm",
@@ -102,17 +102,17 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 4307,
-              "ADDRESS": "stars13rke3fzp22qcvz9hrf4myt9c8dfr6xr5my62n2vc4vzwxgvscz4q400dak"
+              "CODE": 4314,
+              "ADDRESS": "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5"
             },
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform_stable",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 4308,
-              "ADDRESS": "stars128l2ddsrr4jsa4zjqsg6qxt9dw0meldyn4keer5f3reglrd8a6yslt2tyw"
+              "CODE": 4315,
+              "ADDRESS": "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8"
             },
             {
               "WASM": "minter.wasm",
@@ -120,8 +120,8 @@
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}}",
-              "CODE": 4309,
-              "ADDRESS": "stars12kqp3hp6mptpq4xckf4udv72yh4km6lsv7flj78t6kqs5ymwk6jqv2rrmc"
+              "CODE": 4316,
+              "ADDRESS": "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk"
             },
             {
               "WASM": "oracle.wasm",
@@ -129,8 +129,8 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 4310,
-              "ADDRESS": "stars1w7q59eg3ujrn99jmc4gpaf24u5gfhuwdu4z2q37uttpy5ln4kezqmlughh"
+              "CODE": 4317,
+              "ADDRESS": "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7"
             },
             {
               "WASM": "faucet.wasm",

@@ -18,7 +18,7 @@ function toJson<T>(obj: T): string {
 // "PREFIX[CHAIN_ID=terra-0]"
 // "OPTIONS[CHAIN_ID=terra-0]|GAS_PRICE_AMOUNT"
 // "OPTIONS[CHAIN_ID=terra-0]|IBC[COUNTERPARTY_CHAIN_ID=stargaze-0]|CHANNEL_ID"
-// "OPTIONS[CHAIN_ID=terra-0]|CONTRACTS[WASM=counter.wasm]|ADDRESS"
+// "OPTIONS[CHAIN_ID=terra-0]|CONTRACTS[LABEL=counter]|ADDRESS"
 function parseTemplate(chainConfig: ChainConfig, template: string) {
   const fieldList = template.split("|");
 
@@ -121,7 +121,7 @@ function replaceTemplates(
 ): ChainConfig {
   for (const { OPTIONS } of config.CHAINS) {
     for (const { CONTRACTS, CHAIN_ID } of OPTIONS) {
-      for (const { INIT_MSG, UPDATE_MSG, MIGRATE_MSG, WASM } of CONTRACTS) {
+      for (const { INIT_MSG, UPDATE_MSG, MIGRATE_MSG, LABEL } of CONTRACTS) {
         let msg = INIT_MSG;
 
         if (msgType === "update") {
@@ -168,7 +168,7 @@ function replaceTemplates(
                   return {
                     ...option,
                     CONTRACTS: option.CONTRACTS.map((contract) => {
-                      if (contract.WASM !== WASM) return contract;
+                      if (contract.LABEL !== LABEL) return contract;
 
                       return { ...contract, ...msgObj };
                     }),
@@ -233,10 +233,10 @@ function getContract(
   chainConfig: ChainConfig,
   name: string,
   type: ChainType,
-  wasm: Wasm
+  label: Label
 ) {
   const { CONTRACTS } = getChainOption(chainConfig, name, type);
-  const contract = CONTRACTS.find((x) => x.WASM === wasm);
+  const contract = CONTRACTS.find((x) => x.LABEL === label);
   if (!contract) throw new Error(`Contract "${contract}" is not found!`);
 
   return contract;
