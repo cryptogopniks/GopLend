@@ -21,7 +21,14 @@ pub fn try_instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let (sender_address, ..) = check_funds(
+        deps.as_ref(),
+        &info,
+        FundsType::Single {
+            sender: None,
+            amount: None,
+        },
+    )?;
 
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 

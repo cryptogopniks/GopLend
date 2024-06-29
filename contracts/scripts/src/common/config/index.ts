@@ -56,10 +56,9 @@ export const ADDRESS = {
   },
 };
 
-// TODO: update
 const DENOM = {
   STARGAZE: {
-    USDC: "uusdc",
+    USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
   },
 };
 
@@ -424,8 +423,9 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<FaucetTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4303,
+              ADDRESS:
+                "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8",
             },
           ],
           IBC: [],

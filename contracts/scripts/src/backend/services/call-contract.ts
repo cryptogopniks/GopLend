@@ -54,10 +54,8 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { adapter, lending, minter, oracle, utils } = await getCwQueryHelpers(
-      chainId,
-      RPC
-    );
+    const { adapter, lending, minter, oracle, utils, faucet } =
+      await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getAllBalances, getTimeInNanos } = sgQueryHelpers;

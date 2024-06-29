@@ -23,6 +23,6 @@ export const TOKEN = {
   STARS: "ustars",
   BGL_STARS:
     "factory/stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz/bglSTARS",
-  USDC: "",
+  USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
   BGL_USDC: "",
 };
