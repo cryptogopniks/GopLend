@@ -9,6 +9,7 @@ import * as LendingPlatformTypes from "../codegen/LendingPlatform.types";
 import * as MinterTypes from "../codegen/Minter.types";
 import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
+import * as FaucetTypes from "../codegen/Faucet.types";
 
 export type NetworkName = "KUJIRA" | "STARGAZE" | "NEUTRON";
 
@@ -21,7 +22,8 @@ export type Wasm =
   | "lending_platform.wasm"
   | "minter.wasm"
   | "minter_kujira.wasm"
-  | "oracle.wasm";
+  | "oracle.wasm"
+  | "faucet.wasm";
 
 export type Label =
   | "adapter_dex"
@@ -30,7 +32,8 @@ export type Label =
   | "lending_platform_main"
   | "lending_platform_stable"
   | "minter"
-  | "oracle";
+  | "oracle"
+  | "faucet";
 
 export const ADDRESS = {
   KUJIRA: {
@@ -404,6 +407,22 @@ export const CHAIN_CONFIG: ChainConfig = {
                     ADDRESS.STARGAZE.ORACLE_CONTROLLER,
                   ],
                 },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "faucet.wasm",
+              LABEL: "faucet",
+              INIT_MSG: toJson<FaucetTypes.InstantiateMsg>({
+                subdenom: "usdc",
+              }),
+              MIGRATE_MSG: toJson<FaucetTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<FaucetTypes.ExecuteMsg>({
+                update_config: {},
               }),
               CODE: 0,
               ADDRESS: "",

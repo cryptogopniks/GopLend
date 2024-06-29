@@ -19,6 +19,9 @@ import { MinterKujiraQueryClient } from "../codegen/MinterKujira.client";
 import { OracleMsgComposer } from "../codegen/Oracle.message-composer";
 import { OracleQueryClient } from "../codegen/Oracle.client";
 
+import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
+import { FaucetQueryClient } from "../codegen/Faucet.client";
+
 import CONFIG_JSON from "../config/config.json";
 import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
@@ -171,6 +174,7 @@ function getContracts(contracts: ContractInfo[]) {
   let LENDING_PLATFORM_STABLE_CONTRACT: ContractInfo | undefined;
   let MINTER_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
+  let FAUCET_CONTRACT: ContractInfo | undefined;
 
   try {
     ADAPTER_DEX_CONTRACT = getContractByLabel(contracts, "adapter_dex");
@@ -217,6 +221,12 @@ function getContracts(contracts: ContractInfo[]) {
     l(error);
   }
 
+  try {
+    FAUCET_CONTRACT = getContractByLabel(contracts, "faucet");
+  } catch (error) {
+    l(error);
+  }
+
   return {
     ADAPTER_DEX_CONTRACT,
     ADAPTER_MARKETPLACE_CONTRACT,
@@ -225,6 +235,7 @@ function getContracts(contracts: ContractInfo[]) {
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
+    FAUCET_CONTRACT,
   };
 }
 
@@ -247,6 +258,7 @@ async function getCwExecHelpers(
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
+    FAUCET_CONTRACT,
   } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc, owner, signer);
@@ -297,6 +309,11 @@ async function getCwExecHelpers(
   const oracleMsgComposer = new OracleMsgComposer(
     owner,
     ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
+  );
+
+  const faucetMsgComposer = new FaucetMsgComposer(
+    owner,
+    FAUCET_CONTRACT ? FAUCET_CONTRACT.ADDRESS : ""
   );
 
   const getPlatformComposer = (platformType: PlatformType) => {
@@ -1374,6 +1391,49 @@ async function getCwExecHelpers(
     );
   }
 
+  // faucet
+
+  async function cwClaim(gasPrice: string) {
+    return await _msgWrapperWithGasPrice([faucetMsgComposer.claim()], gasPrice);
+  }
+
+  async function cwClaimFor(
+    addressAndAmountList: [string, number][],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        faucetMsgComposer.claimFor({
+          addressAndAmountList: addressAndAmountList.map(
+            ([address, amount]) => [address, amount.toString()]
+          ),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwFaucetUpdateConfig(
+    {
+      claimableAmount,
+      claimCooldown,
+    }: {
+      claimableAmount?: number;
+      claimCooldown?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        faucetMsgComposer.updateConfig({
+          claimableAmount: claimableAmount?.toString(),
+          claimCooldown,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   return {
     utils: { cwRevoke },
     adapter: {
@@ -1464,6 +1524,14 @@ async function getCwExecHelpers(
       cwUpdatePrices,
       cwRemovePrices,
     },
+    faucet: {
+      kujira: {},
+      stargaze: {
+        cwClaim,
+        cwClaimFor,
+        cwUpdateConfig: cwFaucetUpdateConfig,
+      },
+    },
   };
 }
 
@@ -1481,6 +1549,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     LENDING_PLATFORM_STABLE_CONTRACT,
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
+    FAUCET_CONTRACT,
   } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc);
@@ -1530,6 +1599,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   const oracleQueryClient = new OracleQueryClient(
     cosmwasmQueryClient,
     ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
+  );
+
+  const faucetQueryClient = new FaucetQueryClient(
+    cosmwasmQueryClient,
+    FAUCET_CONTRACT ? FAUCET_CONTRACT.ADDRESS : ""
   );
 
   const getPlatformQueryClient = (platformType: PlatformType) => {
@@ -2010,6 +2084,23 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
+  // faucet
+
+  async function cwQueryDenom() {
+    const res = await faucetQueryClient.queryDenom();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryLastClaimDate(address: string) {
+    const res = await faucetQueryClient.queryLastClaimDate({ address });
+    return logAndReturn(res);
+  }
+
+  async function cwFaucetQueryConfig() {
+    const res = await faucetQueryClient.queryConfig();
+    return logAndReturn(res);
+  }
+
   return {
     utils: {
       cwQueryOperators,
@@ -2090,6 +2181,14 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryPrices,
       cwQueryBlockTime,
       cwQueryLog: cwOracleQueryLog,
+    },
+    faucet: {
+      kujira: {},
+      stargaze: {
+        cwQueryDenom,
+        cwQueryLastClaimDate,
+        cwQueryConfig: cwFaucetQueryConfig,
+      },
     },
   };
 }

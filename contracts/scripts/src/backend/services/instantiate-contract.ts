@@ -1,5 +1,5 @@
 import { l } from "../../common/utils";
-import { calculateFee, Event } from "@cosmjs/stargate";
+import { calculateFee, coins, Event } from "@cosmjs/stargate";
 import { toUtf8 } from "@cosmjs/encoding";
 import { CHAIN_CONFIG } from "../../common/config";
 import { readFile, writeFile } from "fs/promises";
@@ -78,6 +78,16 @@ async function main() {
       if (!wasmList.includes(CONTRACT.WASM as Wasm)) continue;
 
       const { LABEL, INIT_MSG, CODE } = CONTRACT;
+
+      // Token Factory config for faucet
+      const funds =
+        LABEL !== "faucet"
+          ? []
+          : {
+              ustars: coins(10_000_000_000, DENOM),
+              ukuji: coins(100_000_000, DENOM),
+            }[DENOM];
+
       const instantiateContractMsg: MsgInstantiateContractEncodeObject = {
         typeUrl: "/cosmwasm.wasm.v1.MsgInstantiateContract",
         value: MsgInstantiateContract.fromPartial({
@@ -85,7 +95,7 @@ async function main() {
           codeId: BigInt(CODE),
           label: LABEL,
           msg: toUtf8(INIT_MSG),
-          funds: [],
+          funds,
           admin: owner,
         }),
       };
