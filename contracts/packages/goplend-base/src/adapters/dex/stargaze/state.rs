@@ -5,6 +5,8 @@ use crate::adapters::dex::stargaze::types::{Config, TransferAdminState};
 pub const CONTRACT_NAME: &str = "goplend-adapter-dex-stargaze";
 
 // ----------------------------------------- osmosis -----------------------------------------
+pub const SWAP_VENUE_OSMOSIS: &str = "osmosis-poolmanager";
+
 // https://github.com/skip-mev/skip-api-contracts/blob/main/deployed-contracts/osmosis/mainnet.toml#L28
 pub const CONTRACT_OSMOSIS_SKIP_ENTRY_POINT: &str =
     "osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv";
@@ -23,6 +25,7 @@ pub const CHANNEL_STARGAZE_OSMOSIS: &str = "channel-0";
 pub const CHANNEL_OSMOSIS_NOBLE: &str = "channel-750";
 
 // ----------------------------------------- neutron -----------------------------------------
+pub const SWAP_VENUE_NEUTRON: &str = "neutron-astroport";
 pub const CONTRACT_NEUTRON_SKIP_ENTRY_POINT: &str =
     "neutron1h70czc4nz6enrcwpuz5nhxwupmmsgfx4mk4mncnffpwwjma3d8qshtjfr4";
 
@@ -50,6 +53,7 @@ pub const CHANNEL_NEUTRON_OSMOSIS: &str = "channel-10";
 pub const CHANNEL_NOBLE_NEUTRON: &str = "channel-18";
 
 // ------------------------------------------------------------------------------------------
+pub const PORT: &str = "transfer";
 pub const CHANNEL_NOBLE_STARGAZE: &str = "channel-11";
 pub const IBC_TIMEOUT: u64 = 10 * 60;
 

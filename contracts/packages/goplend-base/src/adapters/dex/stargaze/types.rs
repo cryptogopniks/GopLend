@@ -7,7 +7,17 @@ pub enum Route {
     Neutron,
     Osmosis,
     Test,
-    Test2,
+}
+
+#[cw_serde]
+pub enum IbcMemo {
+    Forward {
+        channel: String,
+        port: String,
+        receiver: String,
+        retries: u8,
+        timeout: u64,
+    },
 }
 
 #[cw_serde]
