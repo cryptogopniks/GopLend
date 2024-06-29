@@ -23,4 +23,4 @@ goplend-base = { workspace = true }
 semver = { workspace = true }
 anybuf = { workspace = true }
 bech32 = { workspace = true }
-skip = { workspace = true }
+skip = { git = "https://github.com/skip-mev/skip-api-contracts", version = "0.3.0" }

@@ -254,8 +254,7 @@
           "empty",
           "neutron",
           "osmosis",
-          "test",
-          "test2"
+          "test"
         ]
       },
       "TokenItem": {
