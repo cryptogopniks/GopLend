@@ -29,7 +29,7 @@ export type ExecuteMsg = {
     route: Route;
   };
 };
-export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2";
+export type Route = "empty" | "neutron" | "osmosis" | "test";
 export type QueryMsg = {
   query_config: {};
 };

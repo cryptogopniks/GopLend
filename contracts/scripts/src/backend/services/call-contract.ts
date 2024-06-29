@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
 import { COLLECTION, TOKEN } from "./constants";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -12,7 +13,7 @@ import {
 } from "./utils";
 import {
   getChainOptionById,
-  getContractByWasm,
+  getContractByLabel,
 } from "../../common/config/config-utils";
 import {
   getSgQueryHelpers,
@@ -25,11 +26,11 @@ import {
 
 async function main() {
   try {
+    const { chainId } = parseStoreArgs();
     const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
       encoding: ENCODING,
     });
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
-    const { chainId } = parseStoreArgs();
     const {
       NAME,
       PREFIX: PREFIX,
@@ -54,33 +55,93 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { adapter, lending, minter, oracle, utils } = await getCwQueryHelpers(
-      chainId,
-      RPC
-    );
+    const { adapter, lending, minter, oracle, utils, faucet } =
+      await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
-    const { getAllBalances } = sgQueryHelpers;
-    const { sgMultiSend } = sgExecHelpers;
+    const { getBalance, getAllBalances, getTimeInNanos } = sgQueryHelpers;
+    const { sgMultiSend, sgIbcHookCall } = sgExecHelpers;
 
     const name = NAME as "kujira" | "stargaze";
 
-    await h.adapter.dex.stargaze.cwSwap(
-      10_000,
-      { native: { denom: "untrn" } },
-      "test2",
-      0.51,
-      gasPrice
-    );
-    return;
+    // const p =
+    //   '{"wasm":{"contract":"osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv","msg":{"swap_and_action":{"user_swap":{"swap_exact_asset_in":{"swap_venue_name":"osmosis-poolmanager","operations":[{"pool":"1048","denom_in":"ibc/126DA09104B71B164883842B769C0E9EC1486C0887D27A9999E395C2C8FB5682","denom_out":"ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858"},{"pool":"1212","denom_in":"ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858","denom_out":"ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4"}]}},"min_asset":{"native":{"denom":"ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4","amount":"42783"}},"timeout_timestamp":1719426656827535276,"post_swap_action":{"transfer":{"to_address":"osmo1j5ft99lyd36e5fyp8kh8ze7qcj00relm0md4k9"}},"affiliates":[]}}}}';
+
+    // li(JSON.parse(p));
+    // return;
+
+    // const timeInNanos = await getTimeInNanos();
+
+    // await h.faucet.stargaze.cwClaimFor([[owner, 20_000_000_000]], gasPrice);
+    // await getBalance(owner, TOKEN.USDC);
+    // return;
+
+    // // ntrn -> osmo
+    // // https://osmosis-api.lavenderfive.com/cosmos/bank/v1beta1/balances/osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw
+    // const res = await sgIbcHookCall(
+    //   "osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv",
+    //   0.01 * 1e6,
+    //   "untrn",
+    //   {
+    //     swap_and_action: {
+    //       user_swap: {
+    //         swap_exact_asset_in: {
+    //           swap_venue_name: "osmosis-poolmanager",
+    //           operations: [
+    //             {
+    //               pool: "1388",
+    //               denom_in:
+    //                 "ibc/126DA09104B71B164883842B769C0E9EC1486C0887D27A9999E395C2C8FB5682",
+    //               denom_out: "uosmo",
+    //             },
+    //           ],
+    //         },
+    //       },
+    //       min_asset: {
+    //         native: {
+    //           denom: "uosmo",
+    //           amount: "100",
+    //         },
+    //       },
+    //       timeout_timestamp: timeInNanos + 10 * 60 * 1e9,
+    //       post_swap_action: {
+    //         transfer: {
+    //           to_address:
+    //             "osmo1llh07xn7pcst3jqm0xpsucf90lzugfskkkhk8a3u2yznqmse4l5smydwpw",
+    //         },
+    //       },
+    //       affiliates: [],
+    //     },
+    //   },
+    //   "transfer",
+    //   "channel-10",
+    //   timeInNanos,
+    //   gasPrice
+    // );
+
+    // li(res);
+    // return;
+
+    // await h.adapter.dex.stargaze.cwSwap(
+    //   310_000,
+    //   { native: { denom: "untrn" } },
+    //   "test",
+    //   0.764,
+    //   gasPrice
+    // );
+    // return;
 
     // await adapter.marketplace.stargaze.cwQueryConfig();
     // await adapter.scheduler[name].cwQueryConfig();
-    // await lending.cwQueryAddressConfig();
-    // await lending.cwQueryRateConfig();
-    // await lending.cwQueryCommonConfig();
+    // const platforms: PlatformType[] = ["main", "stable"];
+    // for (const platformType of platforms) {
+    //   await lending.cwQueryAddressConfig(platformType);
+    //   await lending.cwQueryRateConfig(platformType);
+    //   await lending.cwQueryCommonConfig(platformType);
+    // }
     // await minter[name].cwQueryConfig();
     // await oracle.cwQueryConfig();
+    // return;
 
     // await lending.cwQueryCollectionList();
 

@@ -33,7 +33,7 @@ pub enum ContractError {
     #[error("Custom Error val: {val:?}")]
     CustomError { val: String },
 
-    // common
+    // ------------------------------ common ----------------------------------------
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
@@ -49,7 +49,11 @@ pub enum ContractError {
     #[error("Collection {val:?} price data is outdated!")]
     OutdatedPrice { val: String },
 
-    // adapter-scheduler
+    // ------------------------------ faucet ----------------------------------------
+    #[error("Come back later!")]
+    ClaimCooldown,
+
+    // ------------------------------ adapter-scheduler ----------------------------------------
     #[error("Scheduler is executed too early!")]
     EarlyExecution,
 

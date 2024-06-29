@@ -53,6 +53,7 @@ adapter-scheduler-stargaze = { path = "./contracts/adapter-scheduler-stargaze" }
 adapter-marketplace-kujira = { path = "./contracts/adapter-marketplace-kujira" }
 adapter-marketplace-stargaze = { path = "./contracts/adapter-marketplace-stargaze" }
 adapter-dex-stargaze = { path = "./contracts/adapter-dex-stargaze" }
+faucet = { path = "./contracts/faucet" }
 
 sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", version = "1.4.0", features = ["library"] }
 # stargaze-marketplace-v2 = "0.1.0"

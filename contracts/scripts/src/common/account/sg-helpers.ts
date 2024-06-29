@@ -1,6 +1,6 @@
 import { l, li } from "../utils";
 import { getSgClient, signAndBroadcastWrapper } from "./clients";
-import { Tendermint37Client } from "@cosmjs/tendermint-rpc";
+import { Tendermint37Client, toSeconds } from "@cosmjs/tendermint-rpc";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { longify } from "@cosmjs/stargate/build/queryclient";
 import {
@@ -18,6 +18,7 @@ import {
   coin,
   MsgVoteEncodeObject,
   setupStakingExtension,
+  MsgTransferEncodeObject,
 } from "@cosmjs/stargate";
 
 async function getSgExecHelpers(
@@ -105,11 +106,49 @@ async function getSgExecHelpers(
     return tx;
   }
 
+  async function sgIbcHookCall(
+    contractAddress: string,
+    amount: number,
+    denom: string,
+    msg: any,
+    sourcePort: string,
+    sourceChannel: string,
+    timeInNanos: number,
+    gasPrice: string
+  ) {
+    const timeoutInMins = 10;
+
+    const memo = JSON.stringify({
+      wasm: {
+        contract: contractAddress,
+        msg,
+      },
+    });
+
+    const ibcMsg: MsgTransferEncodeObject = {
+      typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
+      value: {
+        token: coin(amount, denom),
+        sender: owner,
+        receiver: contractAddress,
+        sourcePort,
+        sourceChannel,
+        timeoutTimestamp: BigInt(timeInNanos + timeoutInMins * 60 * 1e9),
+        memo,
+      },
+    };
+
+    const tx = await signAndBroadcast([ibcMsg], gasPrice, 1.1);
+    l("\n", tx, "\n");
+    return tx;
+  }
+
   return {
     sgDelegate,
     sgVote,
     sgSend,
     sgMultiSend,
+    sgIbcHookCall,
   };
 }
 
@@ -118,6 +157,14 @@ async function getSgQueryHelpers(rpc: string) {
   const queryClient = QueryClient.withExtensions(tmClient);
   const bankExtension = setupBankExtension(queryClient);
   const stakingExtension = setupStakingExtension(queryClient);
+
+  async function getBalance(address: string, denom: string) {
+    const res = await bankExtension.bank.balance(address, denom);
+    l();
+    li(res);
+    l();
+    return res;
+  }
 
   async function getAllBalances(address: string) {
     const res = await bankExtension.bank.allBalances(address);
@@ -146,7 +193,26 @@ async function getSgQueryHelpers(rpc: string) {
     return validators;
   }
 
-  return { getAllBalances, getMetadata, getValidators };
+  async function getTimeInNanos() {
+    const {
+      block: {
+        header: { time },
+      },
+    } = await tmClient.block();
+
+    const { seconds, nanos } = toSeconds(time);
+    const res = nanos + seconds * 1e9;
+
+    return res;
+  }
+
+  return {
+    getBalance,
+    getAllBalances,
+    getMetadata,
+    getValidators,
+    getTimeInNanos,
+  };
 }
 
 export { getSgExecHelpers, getSgQueryHelpers };

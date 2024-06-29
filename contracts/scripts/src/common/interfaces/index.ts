@@ -86,7 +86,7 @@ interface Wallets {
 
 interface StoreArgs {
   chainId: string;
-  wasmList: Wasm[];
+  labelList: Label[];
 }
 
 interface MintStruct {

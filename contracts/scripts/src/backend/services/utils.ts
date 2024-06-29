@@ -1,22 +1,23 @@
 import { access, readFile } from "fs/promises";
-import { decrypt, l, li, getLast } from "../../common/utils";
+import { decrypt, getLast } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
-import { Wasm, ChainType, Wallets, StoreArgs } from "../../common/interfaces";
+import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
+import { Label } from "../../common/config";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");
 
-// "$CHAIN_ID|$WASM_A,$WASM_B"
+// "$CHAIN_ID|$LABEL_A,$LABEL_B"
 function parseStoreArgs(): StoreArgs {
   const args = getLast(process.argv).trim();
   if (args.includes("/")) throw new Error("Store args are not specified!");
 
-  const [chainId, wasmListString] = args.split("|");
-  const wasmList = wasmListString.split(",").map((x) => x as Wasm);
+  const [chainId, labelListString] = args.split("|");
+  const labelList = labelListString.split(",").map((x) => x as Label);
 
   return {
     chainId,
-    wasmList,
+    labelList,
   };
 }
 

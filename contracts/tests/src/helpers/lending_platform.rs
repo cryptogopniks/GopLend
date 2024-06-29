@@ -97,6 +97,7 @@ pub trait LendingPlatformExtension {
         creation_date: u64,
     ) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn lending_platform_try_update_bid(
         &mut self,
         sender: ProjectAccount,

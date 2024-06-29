@@ -889,12 +889,12 @@ pub fn add_token_to_exec_msg<T: Serialize + std::fmt::Debug>(
 }
 
 pub fn to_string_vec(str_vec: &[&str]) -> Vec<String> {
-    str_vec.into_iter().map(|x| x.to_string()).collect()
+    str_vec.iter().map(|x| x.to_string()).collect()
 }
 
 pub fn to_token_item_list(str_vec: &[&str], date: u64) -> Vec<TokenItem> {
     str_vec
-        .into_iter()
+        .iter()
         .map(|x| TokenItem {
             id: x.to_string(),
             creation_date: date,

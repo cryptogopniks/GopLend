@@ -1,0 +1,2 @@
+[toolchain]
+channel = "1.71.0"  # required for skip v0.3.0

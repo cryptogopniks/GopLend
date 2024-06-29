@@ -198,7 +198,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             ProjectCoin::Stars.get_decimals(),
         ),
         &collection_and_collateral_list_by_borrower,
-        &collection_and_bid_list,
+        collection_and_bid_list,
         &price_list,
     )?;
 

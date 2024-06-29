@@ -376,7 +376,7 @@ pub fn try_deposit_collateral(
             })?;
         }
 
-        let price = choose_price(&common_config.main_currency, &price_item);
+        let price = choose_price(&common_config.main_currency, price_item);
 
         // update collaterals
         COLLATERALS.update(
@@ -570,7 +570,7 @@ pub fn try_withdraw_collateral(
             })?;
         }
 
-        let price = choose_price(&common_config.main_currency, &price_item);
+        let price = choose_price(&common_config.main_currency, price_item);
 
         // update collaterals
         let collaterals: Vec<Collateral> = COLLATERALS

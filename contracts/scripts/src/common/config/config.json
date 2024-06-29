@@ -1,6 +1,138 @@
 {
   "CHAINS": [
     {
+      "NAME": "stargaze",
+      "PREFIX": "stars",
+      "OPTIONS": [
+        {
+          "TYPE": "test",
+          "DENOM": "ustars",
+          "CHAIN_ID": "elgafar-1",
+          "RPC_LIST": [
+            "https://rpc.elgafar-1.stargaze-apis.com:443"
+          ],
+          "GAS_PRICE_AMOUNT": 0.04,
+          "STORE_CODE_GAS_MULTIPLIER": 22,
+          "CONTRACTS": [
+            {
+              "WASM": "adapter_dex_stargaze.wasm",
+              "LABEL": "adapter_dex",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93\",\"lending_platform_stable\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\"}}",
+              "CODE": 4311,
+              "ADDRESS": "stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y"
+            },
+            {
+              "WASM": "adapter_marketplace_stargaze.wasm",
+              "LABEL": "adapter_marketplace",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5\",\"lending_platform_stable\":\"stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8\",\"adapter_dex\":\"stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y\",\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\"}}",
+              "CODE": 4312,
+              "ADDRESS": "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93"
+            },
+            {
+              "WASM": "adapter_scheduler_common.wasm",
+              "LABEL": "adapter_scheduler",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5\",\"lending_platform_stable\":\"stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8\"}}",
+              "CODE": 4313,
+              "ADDRESS": "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k"
+            },
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform_main",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\",\"minter\":\"stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk\",\"adapter_scheduler\":\"stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k\",\"adapter_marketplace\":\"stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93\"}}",
+              "CODE": 4314,
+              "ADDRESS": "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5"
+            },
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform_stable",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\",\"minter\":\"stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk\",\"adapter_scheduler\":\"stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k\",\"adapter_marketplace\":\"stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93\"}}",
+              "CODE": 4314,
+              "ADDRESS": "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8"
+            },
+            {
+              "WASM": "minter.wasm",
+              "LABEL": "minter",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}}",
+              "CODE": 4316,
+              "ADDRESS": "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk"
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
+              "CODE": 4317,
+              "ADDRESS": "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7"
+            },
+            {
+              "WASM": "faucet.wasm",
+              "LABEL": "faucet",
+              "INIT_MSG": "{\"subdenom\":\"usdc\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 4303,
+              "ADDRESS": "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8"
+            }
+          ],
+          "IBC": []
+        },
+        {
+          "TYPE": "main",
+          "DENOM": "ustars",
+          "CHAIN_ID": "stargaze-1",
+          "RPC_LIST": [
+            "https://stargaze-rpc.reece.sh:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1.1,
+          "STORE_CODE_GAS_MULTIPLIER": 19.5,
+          "CONTRACTS": [],
+          "IBC": []
+        },
+        {
+          "TYPE": "local",
+          "DENOM": "ustars",
+          "CHAIN_ID": "stargaze-0",
+          "RPC_LIST": [],
+          "GAS_PRICE_AMOUNT": 0.04,
+          "STORE_CODE_GAS_MULTIPLIER": 25,
+          "CONTRACTS": [
+            {
+              "WASM": "lending_platform.wasm",
+              "LABEL": "lending_platform_main",
+              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"worker\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "oracle.wasm",
+              "LABEL": "oracle",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"]}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        }
+      ]
+    },
+    {
       "NAME": "kujira",
       "PREFIX": "kujira",
       "OPTIONS": [
@@ -19,16 +151,16 @@
               "LABEL": "adapter_scheduler",
               "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"clock_source\":\"offchain\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform\":\"kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\"}}",
               "CODE": 3347,
               "ADDRESS": "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7"
             },
             {
               "WASM": "lending_platform.wasm",
-              "LABEL": "lending_platform",
+              "LABEL": "lending_platform_main",
               "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=harpoon-4]|DENOM!\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj\",\"minter\":\"kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs\",\"scheduler\":\"kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7\"}}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
               "CODE": 3350,
               "ADDRESS": "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l"
             },
@@ -56,111 +188,6 @@
       ]
     },
     {
-      "NAME": "stargaze",
-      "PREFIX": "stars",
-      "OPTIONS": [
-        {
-          "TYPE": "test",
-          "DENOM": "ustars",
-          "CHAIN_ID": "elgafar-1",
-          "RPC_LIST": [
-            "https://rpc.elgafar-1.stargaze-apis.com:443"
-          ],
-          "GAS_PRICE_AMOUNT": 0.04,
-          "STORE_CODE_GAS_MULTIPLIER": 22,
-          "CONTRACTS": [
-            {
-              "WASM": "adapter_marketplace_stargaze.wasm",
-              "LABEL": "adapter_marketplace",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform\":\"stars1c4umfkz395g77lp7wmy0zrvg880kv2tn33yk93k67wc8az39hc5sceww5c\"}}",
-              "CODE": 4250,
-              "ADDRESS": "stars1rynz7ykmgk2x97mghg8tseutzcsj0cr0eqce68zf5u2h5z2h6hsqwqyj26"
-            },
-            {
-              "WASM": "adapter_scheduler_common.wasm",
-              "LABEL": "adapter_scheduler",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform\":\"stars1c4umfkz395g77lp7wmy0zrvg880kv2tn33yk93k67wc8az39hc5sceww5c\"}}",
-              "CODE": 4251,
-              "ADDRESS": "stars1w24jypy6vd2zj9lptcatmxlfr8mqn2kv58juhts03p0dat0t5yjq8hyxad"
-            },
-            {
-              "WASM": "lending_platform.wasm",
-              "LABEL": "lending_platform",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=elgafar-1]|DENOM!\"}},\"decimals\":6}}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1zk74zn3cpfw5342au5gu3jjvmv6xl4aaerm4qggsk7wduhmdr4lqsykh79\",\"minter\":\"stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz\",\"scheduler\":\"stars1w24jypy6vd2zj9lptcatmxlfr8mqn2kv58juhts03p0dat0t5yjq8hyxad\",\"marketplace\":\"stars1rynz7ykmgk2x97mghg8tseutzcsj0cr0eqce68zf5u2h5z2h6hsqwqyj26\"}}",
-              "CODE": 4252,
-              "ADDRESS": "stars1c4umfkz395g77lp7wmy0zrvg880kv2tn33yk93k67wc8az39hc5sceww5c"
-            },
-            {
-              "WASM": "minter.wasm",
-              "LABEL": "minter",
-              "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}}",
-              "CODE": 4253,
-              "ADDRESS": "stars1kzpc7dvlhwl456kn85khm7t88c2r72a5lx7sydl6y3yu0sdjqpcqeyxavz"
-            },
-            {
-              "WASM": "oracle.wasm",
-              "LABEL": "oracle",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 4266,
-              "ADDRESS": "stars1zk74zn3cpfw5342au5gu3jjvmv6xl4aaerm4qggsk7wduhmdr4lqsykh79"
-            }
-          ],
-          "IBC": []
-        },
-        {
-          "TYPE": "main",
-          "DENOM": "ustars",
-          "CHAIN_ID": "stargaze-1",
-          "RPC_LIST": [
-            "https://stargaze-rpc.reece.sh:443"
-          ],
-          "GAS_PRICE_AMOUNT": 1.1,
-          "STORE_CODE_GAS_MULTIPLIER": 19.5,
-          "CONTRACTS": [],
-          "IBC": []
-        },
-        {
-          "TYPE": "local",
-          "DENOM": "ustars",
-          "CHAIN_ID": "stargaze-0",
-          "RPC_LIST": [],
-          "GAS_PRICE_AMOUNT": 0.04,
-          "STORE_CODE_GAS_MULTIPLIER": 25,
-          "CONTRACTS": [
-            {
-              "WASM": "lending_platform.wasm",
-              "LABEL": "lending_platform",
-              "INIT_MSG": "{\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-0]|DENOM!\"}},\"decimals\":6}}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"worker\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
-            },
-            {
-              "WASM": "oracle.wasm",
-              "LABEL": "oracle",
-              "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"]}}",
-              "CODE": 0,
-              "ADDRESS": ""
-            }
-          ],
-          "IBC": []
-        }
-      ]
-    },
-    {
       "NAME": "neutron",
       "PREFIX": "neutron",
       "OPTIONS": [
@@ -179,7 +206,7 @@
               "LABEL": "adapter_dex",
               "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"adapter_marketplace\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"recover_address\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform\":\"neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\"}}",
               "CODE": 1474,
               "ADDRESS": "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt"
             },

@@ -9,8 +9,9 @@ import * as LendingPlatformTypes from "../codegen/LendingPlatform.types";
 import * as MinterTypes from "../codegen/Minter.types";
 import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
+import * as FaucetTypes from "../codegen/Faucet.types";
 
-export type NetworkName = "KUJIRA" | "STARGAZE" | "NEUTRON";
+export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON";
 
 export type Wasm =
   | "adapter_dex_stargaze.wasm"
@@ -21,7 +22,8 @@ export type Wasm =
   | "lending_platform.wasm"
   | "minter.wasm"
   | "minter_kujira.wasm"
-  | "oracle.wasm";
+  | "oracle.wasm"
+  | "faucet.wasm";
 
 export type Label =
   | "adapter_dex"
@@ -30,15 +32,10 @@ export type Label =
   | "lending_platform_main"
   | "lending_platform_stable"
   | "minter"
-  | "oracle";
+  | "oracle"
+  | "faucet";
 
 export const ADDRESS = {
-  KUJIRA: {
-    ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
-    WORKER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
-    LIQUIDATION_CONTROLLER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
-    ORACLE_CONTROLLER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
-  },
   STARGAZE: {
     ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
@@ -47,16 +44,21 @@ export const ADDRESS = {
     MARKETPLACE:
       "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
   },
+  KUJIRA: {
+    ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
+    WORKER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
+    LIQUIDATION_CONTROLLER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
+    ORACLE_CONTROLLER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
+  },
   NEUTRON: {
     ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
     WORKER: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
   },
 };
 
-// TODO: update
 const DENOM = {
   STARGAZE: {
-    USDC: "uusdc",
+    USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
   },
 };
 
@@ -69,6 +71,298 @@ const DENOM = {
  */
 export const CHAIN_CONFIG: ChainConfig = {
   CHAINS: [
+    {
+      NAME: "stargaze",
+      PREFIX: "stars",
+      OPTIONS: [
+        {
+          TYPE: "test",
+          DENOM: "ustars",
+          CHAIN_ID: "elgafar-1",
+          RPC_LIST: ["https://rpc.elgafar-1.stargaze-apis.com:443"],
+          GAS_PRICE_AMOUNT: 0.04,
+          STORE_CODE_GAS_MULTIPLIER: 22,
+          CONTRACTS: [
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                recover_address: ADDRESS.STARGAZE.ADMIN,
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 4311,
+              ADDRESS:
+                "stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y",
+            },
+
+            {
+              WASM: "adapter_marketplace_stargaze.wasm",
+              LABEL: "adapter_marketplace",
+              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
+              }),
+              MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterMarketplaceStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                  adapter_dex: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS"
+                  ),
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 4312,
+              ADDRESS:
+                "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93",
+            },
+
+            {
+              WASM: "adapter_scheduler_common.wasm",
+              LABEL: "adapter_scheduler",
+              INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                clock_source: "offchain",
+              }),
+              MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
+                update_config: {
+                  offchain_clock: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
+                  ],
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 4313,
+              ADDRESS:
+                "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_main",
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 4314,
+              ADDRESS:
+                "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_stable",
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.USDC },
+                  },
+                  decimals: 6,
+                },
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 4314,
+              ADDRESS:
+                "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
+            },
+
+            {
+              WASM: "minter.wasm",
+              LABEL: "minter",
+              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  worker: ADDRESS.STARGAZE.WORKER,
+                },
+              }),
+              CODE: 4316,
+              ADDRESS:
+                "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+              }),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.ORACLE_CONTROLLER,
+                  ],
+                },
+              }),
+              CODE: 4317,
+              ADDRESS:
+                "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7",
+            },
+
+            {
+              WASM: "faucet.wasm",
+              LABEL: "faucet",
+              INIT_MSG: toJson<FaucetTypes.InstantiateMsg>({
+                subdenom: "usdc",
+              }),
+              MIGRATE_MSG: toJson<FaucetTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<FaucetTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 4303,
+              ADDRESS:
+                "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8",
+            },
+          ],
+          IBC: [],
+        },
+
+        {
+          TYPE: "main",
+          DENOM: "ustars",
+          CHAIN_ID: "stargaze-1",
+          RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
+          GAS_PRICE_AMOUNT: 1.1,
+          STORE_CODE_GAS_MULTIPLIER: 19.5,
+          CONTRACTS: [],
+          IBC: [],
+        },
+
+        {
+          TYPE: "local",
+          DENOM: "ustars",
+          CHAIN_ID: "stargaze-0",
+          RPC_LIST: [],
+          GAS_PRICE_AMOUNT: 0.04,
+          STORE_CODE_GAS_MULTIPLIER: 25,
+          CONTRACTS: [
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_main",
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: [ADDRESS.STARGAZE.ADMIN],
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
     {
       NAME: "kujira",
       PREFIX: "kujira",
@@ -205,268 +499,6 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 3349,
               ADDRESS:
                 "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj",
-            },
-          ],
-          IBC: [],
-        },
-      ],
-    },
-
-    {
-      NAME: "stargaze",
-      PREFIX: "stars",
-      OPTIONS: [
-        {
-          TYPE: "test",
-          DENOM: "ustars",
-          CHAIN_ID: "elgafar-1",
-          RPC_LIST: ["https://rpc.elgafar-1.stargaze-apis.com:443"],
-          GAS_PRICE_AMOUNT: 0.04,
-          STORE_CODE_GAS_MULTIPLIER: 22,
-          CONTRACTS: [
-            {
-              WASM: "adapter_dex_stargaze.wasm",
-              LABEL: "adapter_dex",
-              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-                recover_address: ADDRESS.STARGAZE.ADMIN,
-              }),
-              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
-                update_config: {
-                  adapter_marketplace: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
-                  ),
-                  lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "adapter_marketplace_stargaze.wasm",
-              LABEL: "adapter_marketplace",
-              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
-              }),
-              MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<AdapterMarketplaceStargazeTypes.ExecuteMsg>({
-                update_config: {
-                  lending_platform_main: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
-                  ),
-                  lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "adapter_scheduler_common.wasm",
-              LABEL: "adapter_scheduler",
-              INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-                clock_source: "offchain",
-              }),
-              MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
-                update_config: {
-                  offchain_clock: [
-                    ADDRESS.STARGAZE.ADMIN,
-                    ADDRESS.STARGAZE.WORKER,
-                    ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
-                  ],
-                  lending_platform_main: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
-                  ),
-                  lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform_main",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-                main_currency: {
-                  token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  oracle: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
-                  ),
-                  minter: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
-                  ),
-                  adapter_scheduler: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
-                  ),
-                  adapter_marketplace: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform_stable",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-                main_currency: {
-                  token: {
-                    native: { denom: DENOM.STARGAZE.USDC },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  oracle: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
-                  ),
-                  minter: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=minter]|ADDRESS"
-                  ),
-                  adapter_scheduler: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
-                  ),
-                  adapter_marketplace: $(
-                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "minter.wasm",
-              LABEL: "minter",
-              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
-                update_config: {
-                  worker: ADDRESS.STARGAZE.WORKER,
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.WORKER,
-              }),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  controller: [
-                    ADDRESS.STARGAZE.ADMIN,
-                    ADDRESS.STARGAZE.WORKER,
-                    ADDRESS.STARGAZE.ORACLE_CONTROLLER,
-                  ],
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-          ],
-          IBC: [],
-        },
-
-        {
-          TYPE: "main",
-          DENOM: "ustars",
-          CHAIN_ID: "stargaze-1",
-          RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
-          GAS_PRICE_AMOUNT: 1.1,
-          STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [],
-          IBC: [],
-        },
-
-        {
-          TYPE: "local",
-          DENOM: "ustars",
-          CHAIN_ID: "stargaze-0",
-          RPC_LIST: [],
-          GAS_PRICE_AMOUNT: 0.04,
-          STORE_CODE_GAS_MULTIPLIER: 25,
-          CONTRACTS: [
-            {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform_main",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                main_currency: {
-                  token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  controller: [ADDRESS.STARGAZE.ADMIN],
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
             },
           ],
           IBC: [],
