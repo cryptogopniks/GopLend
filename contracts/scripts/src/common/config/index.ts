@@ -286,6 +286,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "faucet",
               INIT_MSG: toJson<FaucetTypes.InstantiateMsg>({
                 subdenom: "usdc",
+                claimable_amount: `${100_000_000}`,
               }),
               MIGRATE_MSG: toJson<FaucetTypes.MigrateMsg>({
                 version: "1.0.0",

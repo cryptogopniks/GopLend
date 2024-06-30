@@ -25,7 +25,6 @@ const PAGINATION_QUERY_AMOUNT = 100;
 const PAGINATION_EXECUTE_AMOUNT = 10;
 
 async function liquidate(
-  platformType: PlatformType,
   route: Route,
   queryBorrowerListFn: (
     platformType: PlatformType,
@@ -38,6 +37,8 @@ async function liquidate(
   ) => Promise<void>
 ) {
   try {
+    let platformType: PlatformType = route === "empty" ? "main" : "stable";
+
     // query all borrowers
     let allItems: QueryBorrowersResponseItem[] = [];
     let lastItem: string | undefined = undefined;
@@ -126,20 +127,17 @@ async function main() {
     );
   };
 
-  let platform: PlatformType = "main";
   let route: Route = "empty";
 
   // run liquidation in infinite loop
   while (true) {
-    await liquidate(platform, route, cwQueryBorrowerList, cwPush);
+    await liquidate(route, cwQueryBorrowerList, cwPush);
 
-    // switch platform and route
-    if (platform === "main") {
-      platform = "stable";
+    // switch route
+    if (route === "empty") {
       // TODO: query network/dex status and choose route
       route = "neutron" || "osmosis";
     } else {
-      platform = "main";
       route = "empty";
     }
   }
