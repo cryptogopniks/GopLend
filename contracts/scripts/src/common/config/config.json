@@ -80,7 +80,7 @@
             {
               "WASM": "faucet.wasm",
               "LABEL": "faucet",
-              "INIT_MSG": "{\"subdenom\":\"usdc\"}",
+              "INIT_MSG": "{\"subdenom\":\"usdc\",\"claimable_amount\":\"100000000\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
               "CODE": 4303,
