@@ -309,7 +309,27 @@ export const CHAIN_CONFIG: ChainConfig = {
           RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [],
+          CONTRACTS: [
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.ADMIN,
+                adapter_marketplace: ADDRESS.STARGAZE.ADMIN,
+                recover_address: ADDRESS.STARGAZE.ADMIN,
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
           IBC: [],
         },
 
