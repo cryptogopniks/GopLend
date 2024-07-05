@@ -102,6 +102,10 @@
             {
               "WASM": "adapter_dex_stargaze.wasm",
               "LABEL": "adapter_dex",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+              ],
               "INIT_MSG": "{\"worker\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"adapter_marketplace\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}}",
@@ -136,98 +140,6 @@
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"]}}",
               "CODE": 0,
               "ADDRESS": ""
-            }
-          ],
-          "IBC": []
-        }
-      ]
-    },
-    {
-      "NAME": "kujira",
-      "PREFIX": "kujira",
-      "OPTIONS": [
-        {
-          "TYPE": "test",
-          "DENOM": "ukuji",
-          "CHAIN_ID": "harpoon-4",
-          "RPC_LIST": [
-            "https://kujira-testnet-rpc.polkachu.com:443"
-          ],
-          "GAS_PRICE_AMOUNT": 0.01,
-          "STORE_CODE_GAS_MULTIPLIER": 20,
-          "CONTRACTS": [
-            {
-              "WASM": "adapter_scheduler_common.wasm",
-              "LABEL": "adapter_scheduler",
-              "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"clock_source\":\"offchain\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu\"],\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\"}}",
-              "CODE": 3347,
-              "ADDRESS": "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7"
-            },
-            {
-              "WASM": "lending_platform.wasm",
-              "LABEL": "lending_platform_main",
-              "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=harpoon-4]|DENOM!\"}},\"decimals\":6}}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 3350,
-              "ADDRESS": "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l"
-            },
-            {
-              "WASM": "minter_kujira.wasm",
-              "LABEL": "minter",
-              "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}}",
-              "CODE": 3348,
-              "ADDRESS": "kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs"
-            },
-            {
-              "WASM": "oracle.wasm",
-              "LABEL": "oracle",
-              "INIT_MSG": "{\"worker\":\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8\",\"kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2\",\"kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3\"]}}",
-              "CODE": 3349,
-              "ADDRESS": "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj"
-            }
-          ],
-          "IBC": []
-        }
-      ]
-    },
-    {
-      "NAME": "neutron",
-      "PREFIX": "neutron",
-      "OPTIONS": [
-        {
-          "TYPE": "main",
-          "DENOM": "untrn",
-          "CHAIN_ID": "neutron-1",
-          "RPC_LIST": [
-            "https://rpc-neutron.cosmos-spaces.cloud:443"
-          ],
-          "GAS_PRICE_AMOUNT": 0.99,
-          "STORE_CODE_GAS_MULTIPLIER": 20,
-          "CONTRACTS": [
-            {
-              "WASM": "adapter_dex_stargaze.wasm",
-              "LABEL": "adapter_dex",
-              "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"adapter_marketplace\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"recover_address\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\"}}",
-              "CODE": 1474,
-              "ADDRESS": "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt"
-            },
-            {
-              "WASM": "oracle.wasm",
-              "LABEL": "oracle",
-              "INIT_MSG": "{\"worker\":\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\"]}}",
-              "CODE": 1472,
-              "ADDRESS": "neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv"
             }
           ],
           "IBC": []

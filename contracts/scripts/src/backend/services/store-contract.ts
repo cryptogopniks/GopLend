@@ -7,6 +7,7 @@ import { readFile, writeFile } from "fs/promises";
 import { getCwClient } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
 import { ContractInfo, ChainConfig } from "../../common/interfaces";
+import { AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 import { MsgStoreCode } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
   SigningCosmWasmClient,
@@ -18,6 +19,23 @@ import {
   PATH_TO_CONFIG_JSON,
   getWallets,
 } from "./utils";
+
+function getInstantiatePermission(addresses?: string[]): {
+  permission?: AccessType;
+  address?: string;
+  addresses?: string[];
+} {
+  if (addresses?.length) {
+    return {
+      permission: AccessType.ACCESS_TYPE_ANY_OF_ADDRESSES,
+      addresses,
+    };
+  }
+
+  return {
+    permission: AccessType.ACCESS_TYPE_EVERYBODY,
+  };
+}
 
 function parseCodeIdListLegacy(rawLog: string): number[] {
   const regex = /"code_id","value":"(\d+)"/g;
@@ -69,6 +87,9 @@ async function main() {
     for (const CONTRACT of CONTRACTS) {
       if (!labelList.includes(CONTRACT.LABEL)) continue;
 
+      const instantiatePermission = getInstantiatePermission(
+        CONTRACT.PERMISSION
+      );
       const wasmBinary = await readFile(
         rootPath(`../artifacts/${CONTRACT.WASM}`)
       );
@@ -81,6 +102,7 @@ async function main() {
         value: MsgStoreCode.fromPartial({
           sender: owner,
           wasmByteCode: compressed,
+          instantiatePermission,
         }),
       };
 
