@@ -11,7 +11,7 @@ import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 import * as FaucetTypes from "../codegen/Faucet.types";
 
-export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON";
+export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON" | "TERRA";
 
 export type Wasm =
   | "adapter_dex_stargaze.wasm"
@@ -58,7 +58,12 @@ export const ADDRESS = {
 
 const DENOM = {
   STARGAZE: {
-    USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
+    MAINNET: {
+      USDC: "ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591",
+    },
+    TESTNET: {
+      USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
+    },
   },
 };
 
@@ -212,7 +217,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.STARGAZE.WORKER,
                 main_currency: {
                   token: {
-                    native: { denom: DENOM.STARGAZE.USDC },
+                    native: { denom: DENOM.STARGAZE.TESTNET.USDC },
                   },
                   decimals: 6,
                 },
@@ -309,7 +314,253 @@ export const CHAIN_CONFIG: ChainConfig = {
           RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [],
+          CONTRACTS: [
+            // for tests
+            // {
+            //   WASM: "adapter_dex_stargaze.wasm",
+            //   LABEL: "adapter_dex",
+            //   PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+            //   INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+            //     worker: ADDRESS.STARGAZE.ADMIN,
+            //     adapter_marketplace: ADDRESS.STARGAZE.ADMIN,
+            //     recover_address: ADDRESS.STARGAZE.ADMIN,
+            //   }),
+            //   MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+            //     version: "1.0.0",
+            //   }),
+            //   UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+            //     update_config: {
+            //       lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
+            //     },
+            //   }),
+            //   CODE: 303,
+            //   ADDRESS:
+            //     "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
+            // },
+
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                recover_address: ADDRESS.STARGAZE.ADMIN,
+                max_price_impact: "0.03",
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "adapter_marketplace_stargaze.wasm",
+              LABEL: "adapter_marketplace",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
+                marketplace_version: "v1",
+              }),
+              MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterMarketplaceStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                  adapter_dex: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS"
+                  ),
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "adapter_scheduler_common.wasm",
+              LABEL: "adapter_scheduler",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                clock_source: "offchain",
+                execution_cooldown: 4,
+              }),
+              MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
+                update_config: {
+                  offchain_clock: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
+                  ],
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_main",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                borrow_apr: "0.25",
+                borrow_fee_rate: "0.05",
+                liquidation_fee_rate: "0.05",
+                discount_min_rate: "0",
+                discount_max_rate: "0.2",
+                bid_min_rate: "0.1",
+                collateral_min_value: `${100_000_000}`,
+                unbonding_period: 14 * 24 * 3600,
+                is_marketplace_interface_enabled: true,
+                borrowers_reserve_fraction_ratio: "0.45",
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_stable",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.MAINNET.USDC },
+                  },
+                  decimals: 6,
+                },
+                borrow_apr: "0.16", // TODO: ???
+                borrow_fee_rate: "0.05",
+                liquidation_fee_rate: "0.05",
+                discount_min_rate: "0",
+                discount_max_rate: "0.2",
+                bid_min_rate: "0.1",
+                collateral_min_value: `${1_000_000}`,
+                unbonding_period: 14 * 24 * 3600,
+                is_marketplace_interface_enabled: true,
+                borrowers_reserve_fraction_ratio: "0.45",
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "minter.wasm",
+              LABEL: "minter",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  worker: ADDRESS.STARGAZE.WORKER,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                execution_cooldown: 4,
+                max_price_update_period: 30,
+              }),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.ORACLE_CONTROLLER,
+                  ],
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
           IBC: [],
         },
 
@@ -322,248 +573,271 @@ export const CHAIN_CONFIG: ChainConfig = {
           STORE_CODE_GAS_MULTIPLIER: 25,
           CONTRACTS: [
             {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform_main",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                main_currency: {
-                  token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-0]|DENOM") },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  controller: [ADDRESS.STARGAZE.ADMIN],
-                },
-              }),
-              CODE: 0,
-              ADDRESS: "",
-            },
-          ],
-          IBC: [],
-        },
-      ],
-    },
-
-    {
-      NAME: "kujira",
-      PREFIX: "kujira",
-      OPTIONS: [
-        {
-          TYPE: "test",
-          DENOM: "ukuji",
-          CHAIN_ID: "harpoon-4",
-          RPC_LIST: ["https://kujira-testnet-rpc.polkachu.com:443"],
-          GAS_PRICE_AMOUNT: 0.01,
-          STORE_CODE_GAS_MULTIPLIER: 20,
-          CONTRACTS: [
-            // {
-            //   WASM: "adapter_marketplace_kujira.wasm",
-            //   LABEL: "adapter_marketplace",
-            //   INIT_MSG: toJson<AdapterMarketplaceKujiraTypes.InstantiateMsg>(
-            //     {}
-            //   ),
-            //   MIGRATE_MSG: toJson<AdapterMarketplaceKujiraTypes.MigrateMsg>({
-            //     version: "1.0.0",
-            //   }),
-            //   UPDATE_MSG: toJson<AdapterMarketplaceKujiraTypes.ExecuteMsg>({
-            //     update_config: {
-            //       lending_platform: $(
-            //         "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
-            //       ),
-            //     },
-            //   }),
-            //   CODE: 0,
-            //   ADDRESS: "",
-            // },
-
-            {
-              WASM: "adapter_scheduler_common.wasm",
-              LABEL: "adapter_scheduler",
-              INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
-                worker: ADDRESS.KUJIRA.WORKER,
-                clock_source: "offchain",
-              }),
-              MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
-                update_config: {
-                  offchain_clock: [
-                    ADDRESS.KUJIRA.ADMIN,
-                    ADDRESS.KUJIRA.WORKER,
-                    ADDRESS.KUJIRA.LIQUIDATION_CONTROLLER,
-                  ],
-                  lending_platform_main: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
-                  ),
-                  lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 3347,
-              ADDRESS:
-                "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7",
-            },
-
-            {
-              WASM: "lending_platform.wasm",
-              LABEL: "lending_platform_main",
-              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                worker: ADDRESS.KUJIRA.WORKER,
-                main_currency: {
-                  token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=harpoon-4]|DENOM") },
-                  },
-                  decimals: 6,
-                },
-              }),
-              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
-                update_address_config: {
-                  oracle: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=oracle]|ADDRESS"
-                  ),
-                  minter: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=minter]|ADDRESS"
-                  ),
-                  adapter_scheduler: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
-                  ),
-                  adapter_marketplace: $(
-                    "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
-                  ),
-                },
-              }),
-              CODE: 3350,
-              ADDRESS:
-                "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l",
-            },
-
-            {
-              WASM: "minter_kujira.wasm",
-              LABEL: "minter",
-              INIT_MSG: toJson<MinterKujiraTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<MinterKujiraTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<MinterKujiraTypes.ExecuteMsg>({
-                update_config: {
-                  worker: ADDRESS.KUJIRA.WORKER,
-                },
-              }),
-              CODE: 3348,
-              ADDRESS:
-                "kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs",
-            },
-
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
-                worker: ADDRESS.KUJIRA.WORKER,
-              }),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  controller: [
-                    ADDRESS.KUJIRA.ADMIN,
-                    ADDRESS.KUJIRA.WORKER,
-                    ADDRESS.KUJIRA.ORACLE_CONTROLLER,
-                  ],
-                },
-              }),
-              CODE: 3349,
-              ADDRESS:
-                "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj",
-            },
-          ],
-          IBC: [],
-        },
-      ],
-    },
-
-    {
-      NAME: "neutron",
-      PREFIX: "neutron",
-      OPTIONS: [
-        {
-          TYPE: "main",
-          DENOM: "untrn",
-          CHAIN_ID: "neutron-1",
-          RPC_LIST: ["https://rpc-neutron.cosmos-spaces.cloud:443"],
-          GAS_PRICE_AMOUNT: 0.99,
-          STORE_CODE_GAS_MULTIPLIER: 20,
-          CONTRACTS: [
-            {
               WASM: "adapter_dex_stargaze.wasm",
               LABEL: "adapter_dex",
               INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-                worker: ADDRESS.NEUTRON.WORKER,
-                adapter_marketplace: ADDRESS.NEUTRON.ADMIN,
-                recover_address: ADDRESS.NEUTRON.WORKER,
+                worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                adapter_marketplace:
+                  "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                recover_address: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
               }),
               MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
                 update_config: {
-                  lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
-                  ),
+                  lending_platform_stable:
+                    "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
                 },
               }),
-              CODE: 1474,
-              ADDRESS:
-                "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt",
-            },
-
-            {
-              WASM: "oracle.wasm",
-              LABEL: "oracle",
-              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
-                worker: ADDRESS.NEUTRON.WORKER,
-              }),
-              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
-                update_config: {
-                  controller: [ADDRESS.NEUTRON.ADMIN],
-                },
-              }),
-              CODE: 1472,
-              ADDRESS:
-                "neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv",
+              CODE: 0,
+              ADDRESS: "",
             },
           ],
           IBC: [],
         },
       ],
     },
+
+    {
+      NAME: "terra",
+      PREFIX: "terra",
+      OPTIONS: [
+        {
+          TYPE: "local",
+          DENOM: "uluna",
+          CHAIN_ID: "terra-0",
+          RPC_LIST: [],
+          GAS_PRICE_AMOUNT: 0.04,
+          STORE_CODE_GAS_MULTIPLIER: 25,
+          CONTRACTS: [
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
+                adapter_marketplace:
+                  "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
+                recover_address: "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform_stable:
+                    "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
+    // {
+    //   NAME: "kujira",
+    //   PREFIX: "kujira",
+    //   OPTIONS: [
+    //     {
+    //       TYPE: "test",
+    //       DENOM: "ukuji",
+    //       CHAIN_ID: "harpoon-4",
+    //       RPC_LIST: ["https://kujira-testnet-rpc.polkachu.com:443"],
+    //       GAS_PRICE_AMOUNT: 0.01,
+    //       STORE_CODE_GAS_MULTIPLIER: 20,
+    //       CONTRACTS: [
+    //         // {
+    //         //   WASM: "adapter_marketplace_kujira.wasm",
+    //         //   LABEL: "adapter_marketplace",
+    //         //   INIT_MSG: toJson<AdapterMarketplaceKujiraTypes.InstantiateMsg>(
+    //         //     {}
+    //         //   ),
+    //         //   MIGRATE_MSG: toJson<AdapterMarketplaceKujiraTypes.MigrateMsg>({
+    //         //     version: "1.0.0",
+    //         //   }),
+    //         //   UPDATE_MSG: toJson<AdapterMarketplaceKujiraTypes.ExecuteMsg>({
+    //         //     update_config: {
+    //         //       lending_platform: $(
+    //         //         "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[WASM=lending_platform.wasm]|ADDRESS"
+    //         //       ),
+    //         //     },
+    //         //   }),
+    //         //   CODE: 0,
+    //         //   ADDRESS: "",
+    //         // },
+
+    //         {
+    //           WASM: "adapter_scheduler_common.wasm",
+    //           LABEL: "adapter_scheduler",
+    //           INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+    //             worker: ADDRESS.KUJIRA.WORKER,
+    //             clock_source: "offchain",
+    //           }),
+    //           MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
+    //             update_config: {
+    //               offchain_clock: [
+    //                 ADDRESS.KUJIRA.ADMIN,
+    //                 ADDRESS.KUJIRA.WORKER,
+    //                 ADDRESS.KUJIRA.LIQUIDATION_CONTROLLER,
+    //               ],
+    //               lending_platform_main: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+    //               ),
+    //               lending_platform_stable: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+    //               ),
+    //             },
+    //           }),
+    //           CODE: 3347,
+    //           ADDRESS:
+    //             "kujira1g83xecy00r2ghae0d7xlmdzysnyv80m8vtgzr300v6rcf37sw97scgpez7",
+    //         },
+
+    //         {
+    //           WASM: "lending_platform.wasm",
+    //           LABEL: "lending_platform_main",
+    //           INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+    //             worker: ADDRESS.KUJIRA.WORKER,
+    //             main_currency: {
+    //               token: {
+    //                 native: { denom: $("OPTIONS[CHAIN_ID=harpoon-4]|DENOM") },
+    //               },
+    //               decimals: 6,
+    //             },
+    //           }),
+    //           MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+    //             update_address_config: {
+    //               oracle: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=oracle]|ADDRESS"
+    //               ),
+    //               minter: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=minter]|ADDRESS"
+    //               ),
+    //               adapter_scheduler: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+    //               ),
+    //               adapter_marketplace: $(
+    //                 "OPTIONS[CHAIN_ID=harpoon-4]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+    //               ),
+    //             },
+    //           }),
+    //           CODE: 3350,
+    //           ADDRESS:
+    //             "kujira14wwj7myrhag72a4llxh4qaetwfmem7yx6kz8mru4vfe5w00065csyvrf8l",
+    //         },
+
+    //         {
+    //           WASM: "minter_kujira.wasm",
+    //           LABEL: "minter",
+    //           INIT_MSG: toJson<MinterKujiraTypes.InstantiateMsg>({}),
+    //           MIGRATE_MSG: toJson<MinterKujiraTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<MinterKujiraTypes.ExecuteMsg>({
+    //             update_config: {
+    //               worker: ADDRESS.KUJIRA.WORKER,
+    //             },
+    //           }),
+    //           CODE: 3348,
+    //           ADDRESS:
+    //             "kujira1h85yg8utphr7qzu560u0ec682qfxvxq5tujt7md9ndagncxdf7qspjaxzs",
+    //         },
+
+    //         {
+    //           WASM: "oracle.wasm",
+    //           LABEL: "oracle",
+    //           INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+    //             worker: ADDRESS.KUJIRA.WORKER,
+    //           }),
+    //           MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+    //             update_config: {
+    //               controller: [
+    //                 ADDRESS.KUJIRA.ADMIN,
+    //                 ADDRESS.KUJIRA.WORKER,
+    //                 ADDRESS.KUJIRA.ORACLE_CONTROLLER,
+    //               ],
+    //             },
+    //           }),
+    //           CODE: 3349,
+    //           ADDRESS:
+    //             "kujira1f3lvdp53p55fwdkna9qdxc4zjysz0jk6lxz2ukxt9th8qkg9dmqsgf39wj",
+    //         },
+    //       ],
+    //       IBC: [],
+    //     },
+    //   ],
+    // },
+
+    // {
+    //   NAME: "neutron",
+    //   PREFIX: "neutron",
+    //   OPTIONS: [
+    //     {
+    //       TYPE: "main",
+    //       DENOM: "untrn",
+    //       CHAIN_ID: "neutron-1",
+    //       RPC_LIST: ["https://rpc-neutron.cosmos-spaces.cloud:443"],
+    //       GAS_PRICE_AMOUNT: 0.99,
+    //       STORE_CODE_GAS_MULTIPLIER: 20,
+    //       CONTRACTS: [
+    //         {
+    //           WASM: "adapter_dex_stargaze.wasm",
+    //           LABEL: "adapter_dex",
+    //           INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+    //             worker: ADDRESS.NEUTRON.WORKER,
+    //             adapter_marketplace: ADDRESS.NEUTRON.ADMIN,
+    //             recover_address: ADDRESS.NEUTRON.WORKER,
+    //           }),
+    //           MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+    //             update_config: {
+    //               lending_platform_stable: $(
+    //                 "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+    //               ),
+    //             },
+    //           }),
+    //           CODE: 1474,
+    //           ADDRESS:
+    //             "neutron1r7t9k558xrgvzjrl05m22fvqwk74rgs6y4dkm5ls73z55amxrknq9jh3xt",
+    //         },
+
+    //         {
+    //           WASM: "oracle.wasm",
+    //           LABEL: "oracle",
+    //           INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+    //             worker: ADDRESS.NEUTRON.WORKER,
+    //           }),
+    //           MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+    //             version: "1.0.0",
+    //           }),
+    //           UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+    //             update_config: {
+    //               controller: [ADDRESS.NEUTRON.ADMIN],
+    //             },
+    //           }),
+    //           CODE: 1472,
+    //           ADDRESS:
+    //             "neutron1wtf3j50a32hvwdvjdxu97fz8zgxsp3ay324u75r5yecwj5jzhsass9aqkv",
+    //         },
+    //       ],
+    //       IBC: [],
+    //     },
+    //   ],
+    // },
   ],
 };

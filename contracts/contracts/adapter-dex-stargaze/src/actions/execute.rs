@@ -2,8 +2,8 @@ use anybuf::Anybuf;
 use bech32::{decode, encode, Bech32, Hrp};
 
 use cosmwasm_std::{
-    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult, Uint128,
+    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env, MessageInfo,
+    Response, StdResult, Uint128,
 };
 
 use skip::{
@@ -22,8 +22,8 @@ use goplend_base::{
             DENOM_NEUTRON_NTRN, DENOM_NEUTRON_STARS, DENOM_NEUTRON_USDC, DENOM_OSMOSIS_OSMO,
             DENOM_OSMOSIS_STARS, DENOM_OSMOSIS_USDC, IBC_TIMEOUT, MAX_PRICE_IMPACT,
             POOL_NEUTRON_NTRN_USDC, POOL_NEUTRON_STARS_NTRN, POOL_OSMOSIS_OSMO_USDC,
-            POOL_OSMOSIS_STARS_OSMO, PORT, SWAP_VENUE_NEUTRON, SWAP_VENUE_OSMOSIS,
-            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+            POOL_OSMOSIS_STARS_OSMO, PORT, PREFIX_NEUTRON, PREFIX_NOBLE, PREFIX_OSMOSIS,
+            SWAP_VENUE_NEUTRON, SWAP_VENUE_OSMOSIS, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
         types::{Config, IbcMemo, Route, TransferAdminState},
     },
@@ -151,7 +151,7 @@ pub fn try_swap(
     price_ratio: Decimal,
 ) -> Result<Response, ContractError> {
     let contract_address = &env.contract.address;
-    let (_sender_address, asset_amount, asset_info) = check_funds(
+    let (sender_address, asset_amount, asset_info) = check_funds(
         deps.as_ref(),
         &info,
         FundsType::Single {
@@ -161,19 +161,18 @@ pub fn try_swap(
     )?;
     let Config {
         lending_platform_stable,
-        // adapter_marketplace,
+        adapter_marketplace,
         recover_address,
         ..
     } = CONFIG.load(deps.storage)?;
 
-    // TODO: uncomment on mainnet
-    // check_authorization(
-    //     deps.as_ref(),
-    //     &sender_address,
-    //     AuthType::Specified {
-    //         allowlist: vec![adapter_marketplace],
-    //     },
-    // )?;
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![adapter_marketplace],
+        },
+    )?;
 
     let lending_platform_stable =
         &unwrap_field(lending_platform_stable, "lending_platform_stable")?;
@@ -208,6 +207,7 @@ pub fn try_swap(
                 &ibc_transfer_memo,
             )
         }
+        // TODO: don't use this route - it doesn't work
         Route::Neutron => {
             let ibc_transfer_memo = get_neutron_memo(
                 asset_amount,
@@ -228,26 +228,26 @@ pub fn try_swap(
                 &ibc_transfer_memo,
             )
         }
-        Route::Test => {
-            let ibc_transfer_memo = get_test_memo(
-                asset_amount,
-                price_ratio,
-                max_price_impact,
-                timeout_timestamp_ns,
-                lending_platform_stable,
-                recover_address,
-            )?;
+        // Route::Test => {
+        //     let ibc_transfer_memo = get_test_memo(
+        //         asset_amount,
+        //         price_ratio,
+        //         max_price_impact,
+        //         timeout_timestamp_ns,
+        //         lending_platform_stable,
+        //         recover_address,
+        //     )?;
 
-            get_ibc_transfer_msg(
-                CHANNEL_STARGAZE_OSMOSIS,
-                denom_in,
-                asset_amount,
-                contract_address,
-                CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
-                timeout_timestamp_ns,
-                &ibc_transfer_memo,
-            )
-        }
+        //     get_ibc_transfer_msg(
+        //         CHANNEL_STARGAZE_OSMOSIS,
+        //         denom_in,
+        //         asset_amount,
+        //         contract_address,
+        //         CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
+        //         timeout_timestamp_ns,
+        //         &ibc_transfer_memo,
+        //     )
+        // }
         _ => unimplemented!(),
     };
 
@@ -270,70 +270,50 @@ fn get_osmosis_memo(
             .to_uint_floor()
             .u128();
 
-    let recipient = &recipient.to_string();
-    let recover_address = &recover_address.to_string();
-    let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+    let recipient_noble = get_addr_by_prefix(recipient, PREFIX_NOBLE);
+    let recover_address_osmosis = get_addr_by_prefix(recover_address, PREFIX_OSMOSIS);
 
-    // format!(
-    //     "{{\"wasm\":{{\"contract\":\"{CONTRACT_OSMOSIS_SKIP_ENTRY_POINT}\",\
-    //     \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
-    //     {{\"swap_venue_name\":\"osmosis-poolmanager\",\"operations\":[{{\"pool\":\
-    //     \"{POOL_OSMOSIS_STARS_OSMO}\",\"denom_in\":\"{DENOM_OSMOSIS_STARS}\",\
-    //     \"denom_out\":\"{DENOM_OSMOSIS_OSMO}\"}},{{\"pool\":\"{POOL_OSMOSIS_OSMO_USDC}\",\
-    //     \"denom_in\":\"{DENOM_OSMOSIS_OSMO}\",\"denom_out\":\"{DENOM_OSMOSIS_USDC}\"}}]}}}},\
-    //     \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_OSMOSIS_USDC}\",\
-    //     \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
-    //     \"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\
-    //     \"{CHANNEL_OSMOSIS_NOBLE}\",\"receiver\":\"{recipient_noble}\",\"memo\":\"{{\\\"forward\\\":\
-    //     {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_STARGAZE}\\\",\\\"port\\\":\\\"transfer\\\",\
-    //     \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
-    //     {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_osmosis}\"}}}}}},\
-    //     \"affiliates\":[]}}}}}}}}"
-    // )
-
-    to_json_string(&skip::entry_point::ExecuteMsg::SwapAndAction {
-        // sent_asset: Some(Asset::Native(coin(
-        //     token_in_amount.u128(),
-        //     DENOM_OSMOSIS_STARS,
-        // ))),
-        sent_asset: None,
-        user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
-            swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
-            operations: vec![
-                SwapOperation {
-                    pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
-                    denom_in: DENOM_OSMOSIS_STARS.to_string(),
-                    denom_out: DENOM_OSMOSIS_OSMO.to_string(),
-                    interface: None,
+    to_json_string(&IbcMemo::Wasm {
+        contract: CONTRACT_OSMOSIS_SKIP_ENTRY_POINT.to_string(),
+        msg: skip::entry_point::ExecuteMsg::SwapAndAction {
+            sent_asset: None,
+            user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
+                swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
+                operations: vec![
+                    SwapOperation {
+                        pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
+                        denom_in: DENOM_OSMOSIS_STARS.to_string(),
+                        denom_out: DENOM_OSMOSIS_OSMO.to_string(),
+                        interface: None,
+                    },
+                    SwapOperation {
+                        pool: POOL_OSMOSIS_OSMO_USDC.to_string(),
+                        denom_in: DENOM_OSMOSIS_OSMO.to_string(),
+                        denom_out: DENOM_OSMOSIS_USDC.to_string(),
+                        interface: None,
+                    },
+                ],
+            }),
+            min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_USDC)),
+            timeout_timestamp: timeout_timestamp_ns,
+            post_swap_action: Action::IbcTransfer {
+                ibc_info: IbcInfo {
+                    source_channel: CHANNEL_OSMOSIS_NOBLE.to_string(),
+                    receiver: recipient_noble,
+                    fee: None,
+                    memo: to_json_string(&IbcMemo::Forward::<Empty> {
+                        channel: CHANNEL_NOBLE_STARGAZE.to_string(),
+                        port: PORT.to_string(),
+                        receiver: recipient.to_string(),
+                        retries: 2,
+                        timeout: timeout_timestamp_ns,
+                    })?,
+                    recover_address: recover_address_osmosis,
                 },
-                SwapOperation {
-                    pool: POOL_OSMOSIS_OSMO_USDC.to_string(),
-                    denom_in: DENOM_OSMOSIS_OSMO.to_string(),
-                    denom_out: DENOM_OSMOSIS_USDC.to_string(),
-                    interface: None,
-                },
-            ],
-        }),
-        min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_USDC)),
-        timeout_timestamp: timeout_timestamp_ns,
-        post_swap_action: Action::IbcTransfer {
-            ibc_info: IbcInfo {
-                source_channel: CHANNEL_OSMOSIS_NOBLE.to_string(),
-                receiver: recipient_noble,
-                fee: None,
-                memo: to_json_string(&IbcMemo::Forward {
-                    channel: CHANNEL_NOBLE_STARGAZE.to_string(),
-                    port: PORT.to_string(),
-                    receiver: recipient.to_string(),
-                    retries: 2,
-                    timeout: timeout_timestamp_ns,
-                })?,
-                recover_address: recover_address_osmosis,
+                fee_swap: None,
             },
-            fee_swap: None,
+            affiliates: vec![],
         },
-        affiliates: vec![],
     })
 }
 
@@ -351,115 +331,91 @@ fn get_neutron_memo(
             .to_uint_floor()
             .u128();
 
-    let recipient = &recipient.to_string();
-    let recover_address = &recover_address.to_string();
-    let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    let recover_address_neutron = get_addr_by_prefix(recover_address, "neutron");
+    let recipient_noble = get_addr_by_prefix(recipient, PREFIX_NOBLE);
+    let recover_address_neutron = get_addr_by_prefix(recover_address, PREFIX_NEUTRON);
 
-    // format!(
-    //     "{{\"wasm\":{{\"contract\":\"{CONTRACT_NEUTRON_SKIP_ENTRY_POINT}\",\
-    //     \"msg\":{{\"swap_and_action\":{{\"user_swap\":{{\"swap_exact_asset_in\":\
-    //     {{\"swap_venue_name\":\"neutron-astroport\",\"operations\":[{{\"pool\":\
-    //     \"{POOL_NEUTRON_STARS_NTRN}\",\"denom_in\":\"{DENOM_NEUTRON_STARS}\",\
-    //     \"denom_out\":\"{DENOM_NEUTRON_NTRN}\"}},{{\"pool\":\"{POOL_NEUTRON_NTRN_USDC}\",\
-    //     \"denom_in\":\"{DENOM_NEUTRON_NTRN}\",\"denom_out\":\"{DENOM_NEUTRON_USDC}\"}}]}}}},\
-    //     \"min_asset\":{{\"native\":{{\"denom\":\"{DENOM_NEUTRON_USDC}\",\
-    //     \"amount\":\"{min_token_out_amount}\"}}}},\"timeout_timestamp\":{timeout_timestamp_ns},\
-    //     \"post_swap_action\":{{\"ibc_transfer\":{{\"ibc_info\":{{\"source_channel\":\
-    //     \"{CHANNEL_NEUTRON_NOBLE}\",\"receiver\":\"{recipient_noble}\",\"memo\":\"{{\\\"forward\\\":\
-    //     {{\\\"channel\\\":\\\"{CHANNEL_NOBLE_STARGAZE}\\\",\\\"port\\\":\\\"transfer\\\",\
-    //     \\\"receiver\\\":\\\"{recipient}\\\",\\\"retries\\\":2,\\\"timeout\\\":\
-    //     {timeout_timestamp_ns}}}}}\",\"recover_address\":\"{recover_address_neutron}\"}}}}}},\
-    //     \"affiliates\":[]}}}}}}}}"
-    // )
-
-    to_json_string(&skip::entry_point::ExecuteMsg::SwapAndAction {
-        // sent_asset: Some(Asset::Native(coin(
-        //     token_in_amount.u128(),
-        //     DENOM_NEUTRON_STARS,
-        // ))),
-        sent_asset: None,
-        user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
-            swap_venue_name: SWAP_VENUE_NEUTRON.to_string(),
-            operations: vec![
-                SwapOperation {
-                    pool: POOL_NEUTRON_STARS_NTRN.to_string(),
-                    denom_in: DENOM_NEUTRON_STARS.to_string(),
-                    denom_out: DENOM_NEUTRON_NTRN.to_string(),
-                    interface: None,
+    to_json_string(&IbcMemo::Wasm {
+        contract: CONTRACT_NEUTRON_SKIP_ENTRY_POINT.to_string(),
+        msg: skip::entry_point::ExecuteMsg::SwapAndAction {
+            sent_asset: None,
+            user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
+                swap_venue_name: SWAP_VENUE_NEUTRON.to_string(),
+                operations: vec![
+                    SwapOperation {
+                        pool: POOL_NEUTRON_STARS_NTRN.to_string(),
+                        denom_in: DENOM_NEUTRON_STARS.to_string(),
+                        denom_out: DENOM_NEUTRON_NTRN.to_string(),
+                        interface: None,
+                    },
+                    SwapOperation {
+                        pool: POOL_NEUTRON_NTRN_USDC.to_string(),
+                        denom_in: DENOM_NEUTRON_NTRN.to_string(),
+                        denom_out: DENOM_NEUTRON_USDC.to_string(),
+                        interface: None,
+                    },
+                ],
+            }),
+            min_asset: Asset::Native(coin(min_token_out_amount, DENOM_NEUTRON_USDC)),
+            timeout_timestamp: timeout_timestamp_ns,
+            post_swap_action: Action::IbcTransfer {
+                ibc_info: IbcInfo {
+                    source_channel: CHANNEL_NEUTRON_NOBLE.to_string(),
+                    receiver: recipient_noble,
+                    fee: None,
+                    memo: to_json_string(&IbcMemo::Forward::<Empty> {
+                        channel: CHANNEL_NOBLE_STARGAZE.to_string(),
+                        port: PORT.to_string(),
+                        receiver: recipient.to_string(),
+                        retries: 2,
+                        timeout: timeout_timestamp_ns,
+                    })?,
+                    recover_address: recover_address_neutron,
                 },
-                SwapOperation {
-                    pool: POOL_NEUTRON_NTRN_USDC.to_string(),
-                    denom_in: DENOM_NEUTRON_NTRN.to_string(),
-                    denom_out: DENOM_NEUTRON_USDC.to_string(),
-                    interface: None,
-                },
-            ],
-        }),
-        min_asset: Asset::Native(coin(min_token_out_amount, DENOM_NEUTRON_USDC)),
-        timeout_timestamp: timeout_timestamp_ns,
-        post_swap_action: Action::IbcTransfer {
-            ibc_info: IbcInfo {
-                source_channel: CHANNEL_NEUTRON_NOBLE.to_string(),
-                receiver: recipient_noble,
-                fee: None,
-                memo: to_json_string(&IbcMemo::Forward {
-                    channel: CHANNEL_NOBLE_STARGAZE.to_string(),
-                    port: PORT.to_string(),
-                    receiver: recipient.to_string(),
-                    retries: 2,
-                    timeout: timeout_timestamp_ns,
-                })?,
-                recover_address: recover_address_neutron,
+                fee_swap: None,
             },
-            fee_swap: None,
+            affiliates: vec![],
         },
-        affiliates: vec![],
     })
 }
 
-fn get_test_memo(
-    token_in_amount: Uint128,
-    price_ratio: Decimal, // asset_in_price / asset_out_price
-    max_price_impact: Decimal,
-    timeout_timestamp_ns: u64,
-    recipient: &Addr,
-    _recover_address: &Addr,
-) -> StdResult<String> {
-    // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
-    let min_token_out_amount =
-        (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
-            .to_uint_floor()
-            .u128();
+// fn get_test_memo(
+//     token_in_amount: Uint128,
+//     price_ratio: Decimal, // asset_in_price / asset_out_price
+//     max_price_impact: Decimal,
+//     timeout_timestamp_ns: u64,
+//     recipient: &Addr,
+//     _recover_address: &Addr,
+// ) -> StdResult<String> {
+//     // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
+//     let min_token_out_amount =
+//         (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
+//             .to_uint_floor()
+//             .u128();
 
-    let recipient = &recipient.to_string();
-    // let recover_address = &recover_address.to_string();
-    // let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    // let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+//     let recipient_osmosis = get_addr_by_prefix(recipient, PREFIX_OSMOSIS);
 
-    to_json_string(&skip::entry_point::ExecuteMsg::SwapAndAction {
-        // sent_asset: Some(Asset::Native(coin(
-        //     token_in_amount.u128(),
-        //     DENOM_OSMOSIS_STARS,
-        // ))),
-        sent_asset: None,
-        user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
-            swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
-            operations: vec![SwapOperation {
-                pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
-                denom_in: DENOM_OSMOSIS_STARS.to_string(),
-                denom_out: DENOM_OSMOSIS_OSMO.to_string(),
-                interface: None,
-            }],
-        }),
-        min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
-        timeout_timestamp: timeout_timestamp_ns,
-        post_swap_action: Action::Transfer {
-            to_address: recipient.to_string(),
-        },
-        affiliates: vec![],
-    })
-}
+//     to_json_string(&IbcMemo::Wasm {
+//         contract: CONTRACT_OSMOSIS_SKIP_ENTRY_POINT.to_string(),
+//         msg: skip::entry_point::ExecuteMsg::SwapAndAction {
+//             sent_asset: None,
+//             user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
+//                 swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
+//                 operations: vec![SwapOperation {
+//                     pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
+//                     denom_in: DENOM_OSMOSIS_STARS.to_string(),
+//                     denom_out: DENOM_OSMOSIS_OSMO.to_string(),
+//                     interface: None,
+//                 }],
+//             }),
+//             min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
+//             timeout_timestamp: timeout_timestamp_ns,
+//             post_swap_action: Action::Transfer {
+//                 to_address: recipient_osmosis.to_string(),
+//             },
+//             affiliates: vec![],
+//         },
+//     })
+// }
 
 fn get_ibc_transfer_msg(
     channel: &str,
@@ -474,7 +430,7 @@ fn get_ibc_transfer_msg(
         type_url: "/ibc.applications.transfer.v1.MsgTransfer".to_string(),
         value: Anybuf::new()
             // source port
-            .append_string(1, "transfer")
+            .append_string(1, PORT)
             // source channel (IBC Channel on your network side)
             .append_string(2, channel)
             // token
@@ -567,8 +523,8 @@ fn get_ibc_transfer_msg(
 //     coin_list
 // }
 
-fn get_addr_by_prefix(address: &str, prefix: &str) -> String {
-    let (_, data) = decode(address).unwrap();
+fn get_addr_by_prefix(address: impl ToString, prefix: &str) -> String {
+    let (_, data) = decode(&address.to_string()).unwrap();
     encode::<Bech32>(Hrp::parse(prefix).unwrap(), &data).unwrap()
 }
 

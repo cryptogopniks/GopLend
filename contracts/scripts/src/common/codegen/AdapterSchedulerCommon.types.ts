@@ -31,7 +31,7 @@ export type ExecuteMsg = {
     targets: LiquidationItem[];
   };
 };
-export type Route = "empty" | "neutron" | "osmosis" | "test";
+export type Route = "empty" | "neutron" | "osmosis";
 export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Uint128 = string;

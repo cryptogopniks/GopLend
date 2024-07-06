@@ -37,7 +37,7 @@ async function liquidate(
   ) => Promise<void>
 ) {
   try {
-    let platformType: PlatformType = route === "empty" ? "main" : "stable";
+    const platformType: PlatformType = route === "empty" ? "main" : "stable";
 
     // query all borrowers
     let allItems: QueryBorrowersResponseItem[] = [];

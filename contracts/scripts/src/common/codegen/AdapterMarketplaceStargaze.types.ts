@@ -37,7 +37,7 @@ export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Uint128 = string;
 export type Addr = string;
-export type Route = "empty" | "neutron" | "osmosis" | "test";
+export type Route = "empty" | "neutron" | "osmosis";
 export interface BiddedCollateralItem {
   bid_creation_date: number;
   bid_discount: Decimal;

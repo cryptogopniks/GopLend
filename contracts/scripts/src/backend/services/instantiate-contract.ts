@@ -7,6 +7,7 @@ import { getCwClient } from "../../common/account/clients";
 import { getSigner } from "../account/signer";
 import { ContractInfo, ChainConfig } from "../../common/interfaces";
 import { MsgInstantiateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { LEGACY_CHAIN_ID_LIST } from "./constants";
 import {
   SigningCosmWasmClient,
   MsgInstantiateContractEncodeObject,
@@ -117,7 +118,7 @@ async function main() {
     const gasWantedSim = Math.ceil(1.2 * gasSimulated);
 
     // legacy
-    if (chainId === "stargaze-0") {
+    if (LEGACY_CHAIN_ID_LIST.includes(chainId)) {
       const tx = (await signingClient.signAndBroadcast(
         owner,
         contractConfigAndInitMsgList.map((x) => x[1]),

@@ -1143,8 +1143,7 @@
         "enum": [
           "empty",
           "neutron",
-          "osmosis",
-          "test"
+          "osmosis"
         ]
       },
       "TokenItem": {

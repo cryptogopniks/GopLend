@@ -148,6 +148,7 @@ type ChainType = "main" | "test" | "local";
 interface ContractInfo {
   WASM: Wasm;
   LABEL: Label;
+  PERMISSION?: string[];
   INIT_MSG: string;
   MIGRATE_MSG: string;
   UPDATE_MSG: string;

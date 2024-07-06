@@ -6,17 +6,20 @@ pub enum Route {
     Empty,
     Neutron,
     Osmosis,
-    Test,
 }
 
 #[cw_serde]
-pub enum IbcMemo {
+pub enum IbcMemo<M> {
     Forward {
         channel: String,
         port: String,
         receiver: String,
         retries: u8,
         timeout: u64,
+    },
+    Wasm {
+        contract: String,
+        msg: M,
     },
 }
 

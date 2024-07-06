@@ -86,7 +86,7 @@ BID_MIN = 1.1 * loan
 ```
 In order to offer attractive terms to liquidators, you need to have a wide range of discount. In this case it ranges from 0 to 20 %. From here the maximum bid (with the minimum discount) is determined
 ```
-BID_MAX = BID_MIN / (DISCOUNT_MAX - DISCOUNT_MIN)
+BID_MAX = BID_MIN / (1 - (DISCOUNT_MAX - DISCOUNT_MIN))
 BID_MAX = 1.375 * loan
 ```
 From here it is easy to get the `LTV_MAX` value
