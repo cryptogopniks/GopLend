@@ -83,9 +83,7 @@ pub fn try_update_config(
     recover_address: Option<String>,
     max_price_impact: Option<Decimal>,
 ) -> Result<Response, ContractError> {
-    // TODO: uncomment on mainnet
-    // let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let sender_address = &info.sender;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
 
@@ -130,8 +128,7 @@ pub fn try_update_config(
     }
 
     if let Some(x) = max_price_impact {
-        // TODO: uncomment on mainnet
-        // check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.max_price_impact = x;
         is_config_updated = true;
     }
@@ -266,11 +263,31 @@ pub fn try_swap(
                 denom_in,
                 asset_amount,
                 contract_address,
-                "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au",
+                CONTRACT_OSMOSIS_SKIP_ENTRY_POINT,
                 timeout_timestamp_ns,
                 &ibc_transfer_memo,
             )
         }
+        // Route::Test2 => {
+        //     let ibc_transfer_memo = get_test_memo_2(
+        //         asset_amount,
+        //         price_ratio,
+        //         max_price_impact,
+        //         timeout_timestamp_ns,
+        //         lending_platform_stable,
+        //         recover_address,
+        //     )?;
+
+        //     get_ibc_transfer_msg(
+        //         CHANNEL_STARGAZE_OSMOSIS,
+        //         denom_in,
+        //         asset_amount,
+        //         contract_address,
+        //         "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au",
+        //         timeout_timestamp_ns,
+        //         &ibc_transfer_memo,
+        //     )
+        // }
         _ => unimplemented!(),
     };
 
@@ -460,50 +477,95 @@ fn get_test_memo(
     let recipient_osmosis = get_addr_by_prefix(recipient, PREFIX_OSMOSIS);
     // let recover_address_osmosis = get_addr_by_prefix(recover_address, PREFIX_OSMOSIS);
 
-    to_json_string(&skip::entry_point::ExecuteMsg::SwapAndAction {
-        sent_asset: Some(Asset::Native(coin(
-            token_in_amount.u128(),
-            DENOM_OSMOSIS_STARS,
-        ))),
-        // sent_asset: None,
-        user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
-            swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
-            operations: vec![SwapOperation {
-                pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
-                denom_in: DENOM_OSMOSIS_STARS.to_string(),
-                denom_out: DENOM_OSMOSIS_OSMO.to_string(),
-                interface: None,
-            }],
-        }),
-        min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
-        timeout_timestamp: timeout_timestamp_ns,
-        post_swap_action: Action::Transfer {
-            to_address: recipient_osmosis.to_string(),
+    to_json_string(&IbcMemo::Wasm {
+        contract: CONTRACT_OSMOSIS_SKIP_ENTRY_POINT.to_string(),
+        msg: skip::entry_point::ExecuteMsg::SwapAndAction {
+            sent_asset: None,
+            user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
+                swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
+                operations: vec![SwapOperation {
+                    pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
+                    denom_in: DENOM_OSMOSIS_STARS.to_string(),
+                    denom_out: DENOM_OSMOSIS_OSMO.to_string(),
+                    interface: None,
+                }],
+            }),
+            min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
+            timeout_timestamp: timeout_timestamp_ns,
+            post_swap_action: Action::Transfer {
+                to_address: recipient_osmosis.to_string(),
+            },
+            affiliates: vec![],
         },
-        affiliates: vec![],
     })
 }
 
 fn get_test_memo_2(
-    _token_in_amount: Uint128,
-    _price_ratio: Decimal, // asset_in_price / asset_out_price
-    _max_price_impact: Decimal,
-    _timeout_timestamp_ns: u64,
-    _recipient: &Addr,
+    token_in_amount: Uint128,
+    price_ratio: Decimal, // asset_in_price / asset_out_price
+    max_price_impact: Decimal,
+    timeout_timestamp_ns: u64,
+    recipient: &Addr,
     _recover_address: &Addr,
 ) -> StdResult<String> {
+    // min_token_out_amount = token_in_amount * price_ratio * (1 - max_price_impact)
+    let min_token_out_amount =
+        (u128_to_dec(token_in_amount) * price_ratio * (Decimal::one() - max_price_impact))
+            .to_uint_floor()
+            .u128();
+
+    let recipient = &recipient.to_string();
+    // let recover_address = &recover_address.to_string();
+    let recipient_osmosis = get_addr_by_prefix(recipient, PREFIX_OSMOSIS);
+    // let recover_address_osmosis = get_addr_by_prefix(recover_address, PREFIX_OSMOSIS);
+
     to_json_string(&IbcMemo::Wasm {
-        contract: "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au".to_string(),
-        msg: goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::UpdateConfig {
-            admin: None,
-            worker: None,
-            lending_platform_stable: None,
-            adapter_marketplace: None,
-            recover_address: None,
-            max_price_impact: Some(str_to_dec("0.42")),
+        contract: CONTRACT_OSMOSIS_SKIP_ENTRY_POINT.to_string(),
+        msg: skip::entry_point::ExecuteMsg::SwapAndAction {
+            sent_asset: Some(Asset::Native(coin(
+                token_in_amount.u128(),
+                DENOM_OSMOSIS_STARS,
+            ))),
+            // sent_asset: None,
+            user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
+                swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
+                operations: vec![SwapOperation {
+                    pool: POOL_OSMOSIS_STARS_OSMO.to_string(),
+                    denom_in: DENOM_OSMOSIS_STARS.to_string(),
+                    denom_out: DENOM_OSMOSIS_OSMO.to_string(),
+                    interface: None,
+                }],
+            }),
+            min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
+            timeout_timestamp: timeout_timestamp_ns,
+            post_swap_action: Action::Transfer {
+                to_address: recipient_osmosis.to_string(),
+            },
+            affiliates: vec![],
         },
     })
 }
+
+// fn get_test_memo_2(
+//     _token_in_amount: Uint128,
+//     _price_ratio: Decimal, // asset_in_price / asset_out_price
+//     _max_price_impact: Decimal,
+//     _timeout_timestamp_ns: u64,
+//     _recipient: &Addr,
+//     _recover_address: &Addr,
+// ) -> StdResult<String> {
+//     to_json_string(&IbcMemo::Wasm {
+//         contract: "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au".to_string(),
+//         msg: goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::UpdateConfig {
+//             admin: None,
+//             worker: None,
+//             lending_platform_stable: None,
+//             adapter_marketplace: None,
+//             recover_address: None,
+//             max_price_impact: Some(str_to_dec("0.42")),
+//         },
+//     })
+// }
 
 fn get_ibc_transfer_msg(
     channel: &str,

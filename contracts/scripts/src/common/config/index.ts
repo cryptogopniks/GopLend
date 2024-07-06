@@ -333,7 +333,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
                 },
               }),
-              CODE: 301,
+              CODE: 302,
               ADDRESS:
                 "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
             },
