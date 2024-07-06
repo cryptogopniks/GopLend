@@ -1,12 +1,12 @@
 {
-  "start_time": 1720288258,
+  "start_time": 1720291717,
   "chains": [
     {
       "chain_id": "stargaze-0",
       "chain_name": "stargaze-0",
-      "rpc_address": "http://127.0.0.1:36247",
-      "rest_address": "http://127.0.0.1:40709",
-      "grpc_address": "127.0.0.1:36005",
+      "rpc_address": "http://127.0.0.1:45611",
+      "rest_address": "http://127.0.0.1:45943",
+      "grpc_address": "127.0.0.1:41407",
       "ibc_paths": [
         "stargaze-terra"
       ]
@@ -14,9 +14,9 @@
     {
       "chain_id": "terra-0",
       "chain_name": "terra-0",
-      "rpc_address": "http://127.0.0.1:40437",
-      "rest_address": "http://127.0.0.1:45967",
-      "grpc_address": "127.0.0.1:41265",
+      "rpc_address": "http://127.0.0.1:32963",
+      "rest_address": "http://127.0.0.1:38149",
+      "grpc_address": "127.0.0.1:42333",
       "ibc_paths": [
         "stargaze-terra"
       ]

@@ -12,7 +12,7 @@ pub enum Route {
 }
 
 #[cw_serde]
-pub enum IbcMemo {
+pub enum IbcMemo<M> {
     Forward {
         channel: String,
         port: String,
@@ -22,7 +22,7 @@ pub enum IbcMemo {
     },
     Wasm {
         contract: String,
-        msg: String,
+        msg: M,
     },
 }
 

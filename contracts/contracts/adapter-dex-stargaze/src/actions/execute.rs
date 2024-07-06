@@ -2,8 +2,8 @@ use anybuf::Anybuf;
 use bech32::{decode, encode, Bech32, Hrp};
 
 use cosmwasm_std::{
-    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, IbcMsg, IbcTimeout,
-    MessageInfo, Response, StdResult, Timestamp, Uint128,
+    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env, MessageInfo,
+    Response, StdResult, Uint128,
 };
 
 use skip::{
@@ -345,7 +345,7 @@ fn get_osmosis_memo(
                 source_channel: CHANNEL_OSMOSIS_NOBLE.to_string(),
                 receiver: recipient_noble,
                 fee: None,
-                memo: to_json_string(&IbcMemo::Forward {
+                memo: to_json_string(&IbcMemo::Forward::<Empty> {
                     channel: CHANNEL_NOBLE_STARGAZE.to_string(),
                     port: PORT.to_string(),
                     receiver: recipient.to_string(),
@@ -426,7 +426,7 @@ fn get_neutron_memo(
                 source_channel: CHANNEL_NEUTRON_NOBLE.to_string(),
                 receiver: recipient_noble,
                 fee: None,
-                memo: to_json_string(&IbcMemo::Forward {
+                memo: to_json_string(&IbcMemo::Forward::<Empty> {
                     channel: CHANNEL_NOBLE_STARGAZE.to_string(),
                     port: PORT.to_string(),
                     receiver: recipient.to_string(),
@@ -492,8 +492,9 @@ fn get_test_memo_2(
     _recipient: &Addr,
     _recover_address: &Addr,
 ) -> StdResult<String> {
-    let msg = to_json_string(
-        &goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::UpdateConfig {
+    to_json_string(&IbcMemo::Wasm {
+        contract: "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au".to_string(),
+        msg: goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::UpdateConfig {
             admin: None,
             worker: None,
             lending_platform_stable: None,
@@ -501,11 +502,6 @@ fn get_test_memo_2(
             recover_address: None,
             max_price_impact: Some(str_to_dec("0.42")),
         },
-    )?;
-
-    to_json_string(&IbcMemo::Wasm {
-        contract: "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au".to_string(),
-        msg,
     })
 }
 
