@@ -9,15 +9,15 @@
   ./codegen.sh oracle
 
 yarn run json
-yarn run store "elgafar-1|adapter-dex,adapter-marketplace,adapter-scheduler,lending-platform-main"
-yarn run store "elgafar-1|lending-platform-stable,minter,oracle"
-yarn run inst "elgafar-1|adapter-dex,adapter-marketplace,adapter-scheduler,lending-platform-main,lending-platform-stable,minter,oracle"
-yarn run config "elgafar-1|adapter-dex,adapter-marketplace,adapter-scheduler,lending-platform-main,lending-platform-stable,minter,oracle"
+yarn run store "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
+yarn run store "elgafar-1|lending_platform_stable,minter,oracle"
+yarn run inst "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle"
+yarn run config "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle"
 yarn run prepare-contracts "elgafar-1|"
 yarn run call "elgafar-1|"
 
 yarn run json
-yarn run store "stargaze-1|adapter-dex"
-yarn run inst "stargaze-1|adapter-dex"
-yarn run config "stargaze-1|adapter-dex"
+yarn run store "stargaze-1|adapter_dex"
+yarn run inst "stargaze-1|adapter_dex"
+yarn run config "stargaze-1|adapter_dex"
 yarn run call "stargaze-1|"
