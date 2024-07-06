@@ -58,7 +58,12 @@ export const ADDRESS = {
 
 const DENOM = {
   STARGAZE: {
-    USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
+    MAINNET: {
+      USDC: "ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591",
+    },
+    TESTNET: {
+      USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
+    },
   },
 };
 
@@ -212,7 +217,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.STARGAZE.WORKER,
                 main_currency: {
                   token: {
-                    native: { denom: DENOM.STARGAZE.USDC },
+                    native: { denom: DENOM.STARGAZE.TESTNET.USDC },
                   },
                   decimals: 6,
                 },
@@ -310,6 +315,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
           CONTRACTS: [
+            // TODO: for tests
             {
               WASM: "adapter_dex_stargaze.wasm",
               LABEL: "adapter_dex",
@@ -325,6 +331,229 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
                 update_config: {
                   lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            // {
+            //   WASM: "adapter_dex_stargaze.wasm",
+            //   LABEL: "adapter_dex",
+            //   PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+            //   INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+            //     worker: ADDRESS.STARGAZE.WORKER,
+            //     recover_address: ADDRESS.STARGAZE.ADMIN,
+            //     max_price_impact: "0.03",
+            //   }),
+            //   MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+            //     version: "1.0.0",
+            //   }),
+            //   UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+            //     update_config: {
+            //       adapter_marketplace: $(
+            //         "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+            //       ),
+            //       lending_platform_stable: $(
+            //         "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+            //       ),
+            //     },
+            //   }),
+            //   CODE: 0,
+            //   ADDRESS: "",
+            // },
+
+            {
+              WASM: "adapter_marketplace_stargaze.wasm",
+              LABEL: "adapter_marketplace",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
+                marketplace_version: "v1",
+              }),
+              MIGRATE_MSG: toJson<AdapterMarketplaceStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterMarketplaceStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                  adapter_dex: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS"
+                  ),
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "adapter_scheduler_common.wasm",
+              LABEL: "adapter_scheduler",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                clock_source: "offchain",
+                execution_cooldown: 4,
+              }),
+              MIGRATE_MSG: toJson<AdapterSchedulerCommonTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
+                update_config: {
+                  offchain_clock: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.LIQUIDATION_CONTROLLER,
+                  ],
+                  lending_platform_main: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_main",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                borrow_apr: "0.25",
+                borrow_fee_rate: "0.05",
+                liquidation_fee_rate: "0.05",
+                discount_min_rate: "0",
+                discount_max_rate: "0.2",
+                bid_min_rate: "0.1",
+                collateral_min_value: `${100_000_000}`,
+                unbonding_period: 14 * 24 * 3600,
+                is_marketplace_interface_enabled: true,
+                borrowers_reserve_fraction_ratio: "0.45",
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform_stable",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.MAINNET.USDC },
+                  },
+                  decimals: 6,
+                },
+                borrow_apr: "0.16", // TODO: ???
+                borrow_fee_rate: "0.05",
+                liquidation_fee_rate: "0.05",
+                discount_min_rate: "0",
+                discount_max_rate: "0.2",
+                bid_min_rate: "0.1",
+                collateral_min_value: `${1_000_000}`,
+                unbonding_period: 14 * 24 * 3600,
+                is_marketplace_interface_enabled: true,
+                borrowers_reserve_fraction_ratio: "0.45",
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  adapter_scheduler: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS"
+                  ),
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "minter.wasm",
+              LABEL: "minter",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  worker: ADDRESS.STARGAZE.WORKER,
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                execution_cooldown: 4,
+                max_price_update_period: 30,
+              }),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: [
+                    ADDRESS.STARGAZE.ADMIN,
+                    ADDRESS.STARGAZE.WORKER,
+                    ADDRESS.STARGAZE.ORACLE_CONTROLLER,
+                  ],
                 },
               }),
               CODE: 0,
