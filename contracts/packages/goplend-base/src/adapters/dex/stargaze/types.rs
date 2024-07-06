@@ -7,6 +7,8 @@ pub enum Route {
     Neutron,
     Osmosis,
     Test,
+    Test2, // regular ibc transfer sg0 -> sg2
+    Test3, // ibc call of entry point on sg2
 }
 
 #[cw_serde]

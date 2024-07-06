@@ -1,3 +1,5 @@
+export const LEGACY_CHAIN_ID_LIST = ["stargaze-0", "stargaze-2"];
+
 export const COLLECTION = {
   STARGAZE: {
     PIGEON: "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",

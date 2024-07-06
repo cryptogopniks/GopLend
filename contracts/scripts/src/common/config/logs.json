@@ -1,14 +1,61 @@
 {
-  "start_time": 1707060527,
+  "start_time": 1720280926,
   "chains": [
     {
       "chain_id": "stargaze-0",
       "chain_name": "stargaze-0",
-      "rpc_address": "http://127.0.0.1:33565",
-      "rest_address": "http://127.0.0.1:37369",
-      "grpc_address": "127.0.0.1:43387",
-      "ibc_paths": []
+      "rpc_address": "http://127.0.0.1:34027",
+      "rest_address": "http://127.0.0.1:35203",
+      "grpc_address": "127.0.0.1:42073",
+      "ibc_paths": [
+        "sg0-sg2"
+      ]
+    },
+    {
+      "chain_id": "stargaze-2",
+      "chain_name": "stargaze-2",
+      "rpc_address": "http://127.0.0.1:36603",
+      "rest_address": "http://127.0.0.1:33079",
+      "grpc_address": "127.0.0.1:39333",
+      "ibc_paths": [
+        "sg0-sg2"
+      ]
     }
   ],
-  "ibc_channels": []
+  "ibc_channels": [
+    {
+      "chain_id": "stargaze-0",
+      "channel": {
+        "state": "STATE_OPEN",
+        "ordering": "ORDER_UNORDERED",
+        "counterparty": {
+          "port_id": "transfer",
+          "channel_id": "channel-0"
+        },
+        "connection_hops": [
+          "connection-0"
+        ],
+        "version": "ics20-1",
+        "port_id": "transfer",
+        "channel_id": "channel-0"
+      }
+    },
+    {
+      "chain_id": "stargaze-2",
+      "channel": {
+        "state": "STATE_OPEN",
+        "ordering": "ORDER_UNORDERED",
+        "counterparty": {
+          "port_id": "transfer",
+          "channel_id": "channel-0"
+        },
+        "connection_hops": [
+          "connection-0"
+        ],
+        "version": "ics20-1",
+        "port_id": "transfer",
+        "channel_id": "channel-0"
+      }
+    }
+  ]
 }

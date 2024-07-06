@@ -2,8 +2,8 @@ use anybuf::Anybuf;
 use bech32::{decode, encode, Bech32, Hrp};
 
 use cosmwasm_std::{
-    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult, Uint128,
+    coin, to_json_string, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, IbcMsg, IbcTimeout,
+    MessageInfo, Response, StdResult, Timestamp, Uint128,
 };
 
 use skip::{
@@ -248,6 +248,12 @@ pub fn try_swap(
                 &ibc_transfer_memo,
             )
         }
+        Route::Test2 => CosmosMsg::Ibc(IbcMsg::Transfer {
+            channel_id: "channel-0".to_string(),
+            to_address: "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u".to_string(),
+            amount: coin(60, "ustars"),
+            timeout: IbcTimeout::with_timestamp(Timestamp::from_nanos(timeout_timestamp_ns)),
+        }),
         _ => unimplemented!(),
     };
 

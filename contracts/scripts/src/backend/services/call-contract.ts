@@ -64,15 +64,32 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    const BOB_SG2 = "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u";
+    const [RPC_SG2] = getChainOptionById(CHAIN_CONFIG, "stargaze-2").OPTION
+      .RPC_LIST;
+
+    await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
+
     await h.adapter.dex.stargaze.cwSwap(
-      // 10_000,
       10_000_000,
       { native: { denom: "ustars" } },
-      "test",
+      "test2",
       0.009,
       gasPrice
     );
+
+    await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
     return;
+
+    // await h.adapter.dex.stargaze.cwSwap(
+    //   // 10_000,
+    //   10_000_000,
+    //   { native: { denom: "ustars" } },
+    //   "test",
+    //   0.009,
+    //   gasPrice
+    // );
+    // return;
 
     // const p =
     //   '{"wasm":{"contract":"osmo1vkdakqqg5htq5c3wy2kj2geq536q665xdexrtjuwqckpads2c2nsvhhcyv","msg":{"swap_and_action":{"user_swap":{"swap_exact_asset_in":{"swap_venue_name":"osmosis-poolmanager","operations":[{"pool":"1048","denom_in":"ibc/126DA09104B71B164883842B769C0E9EC1486C0887D27A9999E395C2C8FB5682","denom_out":"ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858"},{"pool":"1212","denom_in":"ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858","denom_out":"ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4"}]}},"min_asset":{"native":{"denom":"ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4","amount":"42783"}},"timeout_timestamp":1719426656827535276,"post_swap_action":{"transfer":{"to_address":"osmo1j5ft99lyd36e5fyp8kh8ze7qcj00relm0md4k9"}},"affiliates":[]}}}}';

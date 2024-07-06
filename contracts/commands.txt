@@ -22,3 +22,8 @@ yarn run migrate "stargaze-1|adapter_dex"
 yarn run inst "stargaze-1|adapter_dex"
 yarn run config "stargaze-1|adapter_dex"
 yarn run call "stargaze-1|"
+
+yarn run json
+./run.sh
+./test.sh
+./stop.sh && ./stop.sh

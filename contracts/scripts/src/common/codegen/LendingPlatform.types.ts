@@ -141,7 +141,7 @@ export type ExecuteMsg = {
   };
 };
 export type Binary = string;
-export type Route = "empty" | "neutron" | "osmosis" | "test";
+export type Route = "empty" | "neutron" | "osmosis" | "test" | "test2" | "test3";
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Addr = string;
 export type ProposalStatus = "active" | "accepted" | "rejected";

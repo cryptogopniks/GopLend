@@ -159,7 +159,9 @@
           "empty",
           "neutron",
           "osmosis",
-          "test"
+          "test",
+          "test2",
+          "test3"
         ]
       }
     }
