@@ -64,15 +64,16 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    const CHAID_ID_SG2 = "stargaze-2";
-    const BOB_SG2 = "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u";
-    const [RPC_SG2] = getChainOptionById(CHAIN_CONFIG, CHAID_ID_SG2).OPTION
+    const CHAID_ID_TERRA = "terra-0";
+    const DEX_TERRA =
+      "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au";
+    const [RPC_TERRA] = getChainOptionById(CHAIN_CONFIG, CHAID_ID_TERRA).OPTION
       .RPC_LIST;
 
-    await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
     await (
-      await getCwQueryHelpers(CHAID_ID_SG2, RPC_SG2)
+      await getCwQueryHelpers(CHAID_ID_TERRA, RPC_TERRA)
     ).adapter.dex.stargaze.cwQueryConfig();
+    await (await getSgQueryHelpers(RPC_TERRA)).getAllBalances(DEX_TERRA);
 
     await h.adapter.dex.stargaze.cwSwap(
       10_000_000,
@@ -82,10 +83,11 @@ async function main() {
       gasPrice
     );
 
-    await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
+    await wait(10_000);
     await (
-      await getCwQueryHelpers(CHAID_ID_SG2, RPC_SG2)
+      await getCwQueryHelpers(CHAID_ID_TERRA, RPC_TERRA)
     ).adapter.dex.stargaze.cwQueryConfig();
+    await (await getSgQueryHelpers(RPC_TERRA)).getAllBalances(DEX_TERRA);
     return;
 
     // await h.adapter.dex.stargaze.cwSwap(

@@ -1,9 +1,7 @@
-CONFIG_JSON="./chains/sg0_sg2.json"
+CONFIG_JSON="./chains/stargaze_terra.json"
 CHAIN_ID_A="stargaze-0"
-CHAIN_ID_B="stargaze-2"
+CHAIN_ID_B="terra-0"
 LABEL_ADAPTER_DEX="adapter_dex"
-# WASM_LENDING_PLATFORM="lending_platform.wasm"
-# WASM_ORACLE="oracle.wasm"
 
 
 function print() {

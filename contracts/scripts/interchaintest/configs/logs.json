@@ -1,24 +1,24 @@
 {
-  "start_time": 1720285495,
+  "start_time": 1720288258,
   "chains": [
     {
       "chain_id": "stargaze-0",
       "chain_name": "stargaze-0",
-      "rpc_address": "http://127.0.0.1:41373",
-      "rest_address": "http://127.0.0.1:46177",
-      "grpc_address": "127.0.0.1:32791",
+      "rpc_address": "http://127.0.0.1:36247",
+      "rest_address": "http://127.0.0.1:40709",
+      "grpc_address": "127.0.0.1:36005",
       "ibc_paths": [
-        "sg0-sg2"
+        "stargaze-terra"
       ]
     },
     {
-      "chain_id": "stargaze-2",
-      "chain_name": "stargaze-2",
-      "rpc_address": "http://127.0.0.1:43759",
-      "rest_address": "http://127.0.0.1:40783",
-      "grpc_address": "127.0.0.1:37455",
+      "chain_id": "terra-0",
+      "chain_name": "terra-0",
+      "rpc_address": "http://127.0.0.1:40437",
+      "rest_address": "http://127.0.0.1:45967",
+      "grpc_address": "127.0.0.1:41265",
       "ibc_paths": [
-        "sg0-sg2"
+        "stargaze-terra"
       ]
     }
   ],
@@ -41,7 +41,7 @@
       }
     },
     {
-      "chain_id": "stargaze-2",
+      "chain_id": "terra-0",
       "channel": {
         "state": "STATE_OPEN",
         "ordering": "ORDER_UNORDERED",

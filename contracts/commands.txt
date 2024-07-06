@@ -26,4 +26,4 @@ yarn run call "stargaze-1|"
 yarn run json
 ./run.sh
 ./test.sh
-./stop.sh && ./stop.sh
+./stop.sh

@@ -11,7 +11,7 @@ import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 import * as FaucetTypes from "../codegen/Faucet.types";
 
-export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON";
+export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON" | "TERRA";
 
 export type Wasm =
   | "adapter_dex_stargaze.wasm"
@@ -596,11 +596,17 @@ export const CHAIN_CONFIG: ChainConfig = {
           ],
           IBC: [],
         },
+      ],
+    },
 
+    {
+      NAME: "terra",
+      PREFIX: "terra",
+      OPTIONS: [
         {
           TYPE: "local",
-          DENOM: "ustars",
-          CHAIN_ID: "stargaze-2",
+          DENOM: "uluna",
+          CHAIN_ID: "terra-0",
           RPC_LIST: [],
           GAS_PRICE_AMOUNT: 0.04,
           STORE_CODE_GAS_MULTIPLIER: 25,
@@ -609,10 +615,10 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "adapter_dex_stargaze.wasm",
               LABEL: "adapter_dex",
               INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-                worker: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                worker: "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
                 adapter_marketplace:
-                  "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
-                recover_address: "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                  "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
+                recover_address: "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
               }),
               MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
                 version: "1.0.0",
@@ -620,7 +626,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
                 update_config: {
                   lending_platform_stable:
-                    "stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw",
+                    "terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl",
                 },
               }),
               CODE: 0,

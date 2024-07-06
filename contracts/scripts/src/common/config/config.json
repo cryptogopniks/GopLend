@@ -198,7 +198,7 @@
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-0",
           "RPC_LIST": [
-            "http://127.0.0.1:41373"
+            "http://127.0.0.1:36247"
           ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
@@ -217,16 +217,22 @@
             {
               "CHANNEL_ID": "channel-0",
               "PORT": "transfer",
-              "COUNTERPARTY_CHAIN_ID": "stargaze-2"
+              "COUNTERPARTY_CHAIN_ID": "terra-0"
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "NAME": "terra",
+      "PREFIX": "terra",
+      "OPTIONS": [
         {
           "TYPE": "local",
-          "DENOM": "ustars",
-          "CHAIN_ID": "stargaze-2",
+          "DENOM": "uluna",
+          "CHAIN_ID": "terra-0",
           "RPC_LIST": [
-            "http://127.0.0.1:43759"
+            "http://127.0.0.1:40437"
           ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
@@ -234,11 +240,11 @@
             {
               "WASM": "adapter_dex_stargaze.wasm",
               "LABEL": "adapter_dex",
-              "INIT_MSG": "{\"worker\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\",\"adapter_marketplace\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\",\"recover_address\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}",
+              "INIT_MSG": "{\"worker\":\"terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl\",\"adapter_marketplace\":\"terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl\",\"recover_address\":\"terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"stars19y7a38cnf9d8cr264wz5d6dmrsgsmplxkf4lyw\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"terra19y7a38cnf9d8cr264wz5d6dmrsgsmplxy3czdl\"}}",
               "CODE": 1,
-              "ADDRESS": "stars14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9srsl6sm"
+              "ADDRESS": "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au"
             }
           ],
           "IBC": [

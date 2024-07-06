@@ -266,7 +266,7 @@ pub fn try_swap(
                 denom_in,
                 asset_amount,
                 contract_address,
-                "stars14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9srsl6sm",
+                "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au",
                 timeout_timestamp_ns,
                 &ibc_transfer_memo,
             )
@@ -504,7 +504,7 @@ fn get_test_memo_2(
     )?;
 
     to_json_string(&IbcMemo::Wasm {
-        contract: "stars14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9srsl6sm".to_string(),
+        contract: "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au".to_string(),
         msg,
     })
 }
