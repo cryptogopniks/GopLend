@@ -158,10 +158,7 @@
         "enum": [
           "empty",
           "neutron",
-          "osmosis",
-          "test",
-          "test2",
-          "test3"
+          "osmosis"
         ]
       }
     }

@@ -91,10 +91,9 @@ async function main() {
     // return;
 
     await h.adapter.dex.stargaze.cwSwap(
-      // 10_000,
       10_000_000,
       { native: { denom: "ustars" } },
-      "test",
+      "osmosis",
       0.009,
       gasPrice
     );

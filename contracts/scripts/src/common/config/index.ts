@@ -315,54 +315,54 @@ export const CHAIN_CONFIG: ChainConfig = {
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
           CONTRACTS: [
-            // TODO: for tests
-            {
-              WASM: "adapter_dex_stargaze.wasm",
-              LABEL: "adapter_dex",
-              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
-              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-                worker: ADDRESS.STARGAZE.ADMIN,
-                adapter_marketplace: ADDRESS.STARGAZE.ADMIN,
-                recover_address: ADDRESS.STARGAZE.ADMIN,
-              }),
-              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
-                update_config: {
-                  lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
-                },
-              }),
-              CODE: 302,
-              ADDRESS:
-                "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
-            },
-
+            // for tests
             // {
             //   WASM: "adapter_dex_stargaze.wasm",
             //   LABEL: "adapter_dex",
             //   PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
             //   INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-            //     worker: ADDRESS.STARGAZE.WORKER,
+            //     worker: ADDRESS.STARGAZE.ADMIN,
+            //     adapter_marketplace: ADDRESS.STARGAZE.ADMIN,
             //     recover_address: ADDRESS.STARGAZE.ADMIN,
-            //     max_price_impact: "0.03",
             //   }),
             //   MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
             //     version: "1.0.0",
             //   }),
             //   UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
             //     update_config: {
-            //       adapter_marketplace: $(
-            //         "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
-            //       ),
-            //       lending_platform_stable: $(
-            //         "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
-            //       ),
+            //       lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
             //     },
             //   }),
-            //   CODE: 0,
-            //   ADDRESS: "",
+            //   CODE: 303,
+            //   ADDRESS:
+            //     "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
             // },
+
+            {
+              WASM: "adapter_dex_stargaze.wasm",
+              LABEL: "adapter_dex",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                recover_address: ADDRESS.STARGAZE.ADMIN,
+                max_price_impact: "0.03",
+              }),
+              MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
+                update_config: {
+                  adapter_marketplace: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
+                  ),
+                  lending_platform_stable: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
 
             {
               WASM: "adapter_marketplace_stargaze.wasm",

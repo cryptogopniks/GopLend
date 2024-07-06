@@ -109,7 +109,7 @@
               "INIT_MSG": "{\"worker\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"adapter_marketplace\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}}",
-              "CODE": 302,
+              "CODE": 303,
               "ADDRESS": "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv"
             },
             {
