@@ -53,6 +53,11 @@ pub const CHANNEL_NEUTRON_OSMOSIS: &str = "channel-10";
 pub const CHANNEL_NOBLE_NEUTRON: &str = "channel-18";
 
 // ------------------------------------------------------------------------------------------
+pub const PREFIX_OSMOSIS: &str = "osmo";
+pub const PREFIX_NEUTRON: &str = "neutron";
+pub const PREFIX_NOBLE: &str = "noble";
+pub const PREFIX_STARGAZE: &str = "stars";
+
 pub const PORT: &str = "transfer";
 pub const CHANNEL_NOBLE_STARGAZE: &str = "channel-11";
 pub const IBC_TIMEOUT: u64 = 10 * 60;

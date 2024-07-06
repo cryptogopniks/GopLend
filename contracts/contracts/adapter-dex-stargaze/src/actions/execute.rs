@@ -22,8 +22,8 @@ use goplend_base::{
             DENOM_NEUTRON_NTRN, DENOM_NEUTRON_STARS, DENOM_NEUTRON_USDC, DENOM_OSMOSIS_OSMO,
             DENOM_OSMOSIS_STARS, DENOM_OSMOSIS_USDC, IBC_TIMEOUT, MAX_PRICE_IMPACT,
             POOL_NEUTRON_NTRN_USDC, POOL_NEUTRON_STARS_NTRN, POOL_OSMOSIS_OSMO_USDC,
-            POOL_OSMOSIS_STARS_OSMO, PORT, SWAP_VENUE_NEUTRON, SWAP_VENUE_OSMOSIS,
-            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+            POOL_OSMOSIS_STARS_OSMO, PORT, PREFIX_NEUTRON, PREFIX_NOBLE, PREFIX_OSMOSIS,
+            SWAP_VENUE_NEUTRON, SWAP_VENUE_OSMOSIS, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
         types::{Config, IbcMemo, Route, TransferAdminState},
     },
@@ -272,8 +272,8 @@ fn get_osmosis_memo(
 
     let recipient = &recipient.to_string();
     let recover_address = &recover_address.to_string();
-    let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+    let recipient_noble = get_addr_by_prefix(recipient, PREFIX_NOBLE);
+    let recover_address_osmosis = get_addr_by_prefix(recover_address, PREFIX_OSMOSIS);
 
     // format!(
     //     "{{\"wasm\":{{\"contract\":\"{CONTRACT_OSMOSIS_SKIP_ENTRY_POINT}\",\
@@ -353,8 +353,8 @@ fn get_neutron_memo(
 
     let recipient = &recipient.to_string();
     let recover_address = &recover_address.to_string();
-    let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    let recover_address_neutron = get_addr_by_prefix(recover_address, "neutron");
+    let recipient_noble = get_addr_by_prefix(recipient, PREFIX_NOBLE);
+    let recover_address_neutron = get_addr_by_prefix(recover_address, PREFIX_NEUTRON);
 
     // format!(
     //     "{{\"wasm\":{{\"contract\":\"{CONTRACT_NEUTRON_SKIP_ENTRY_POINT}\",\
@@ -434,15 +434,15 @@ fn get_test_memo(
 
     let recipient = &recipient.to_string();
     // let recover_address = &recover_address.to_string();
-    // let recipient_noble = get_addr_by_prefix(recipient, "noble");
-    // let recover_address_osmosis = get_addr_by_prefix(recover_address, "osmosis");
+    let recipient_osmosis = get_addr_by_prefix(recipient, PREFIX_OSMOSIS);
+    // let recover_address_osmosis = get_addr_by_prefix(recover_address, PREFIX_OSMOSIS);
 
     to_json_string(&skip::entry_point::ExecuteMsg::SwapAndAction {
-        // sent_asset: Some(Asset::Native(coin(
-        //     token_in_amount.u128(),
-        //     DENOM_OSMOSIS_STARS,
-        // ))),
-        sent_asset: None,
+        sent_asset: Some(Asset::Native(coin(
+            token_in_amount.u128(),
+            DENOM_OSMOSIS_STARS,
+        ))),
+        // sent_asset: None,
         user_swap: Swap::SwapExactAssetIn(SwapExactAssetIn {
             swap_venue_name: SWAP_VENUE_OSMOSIS.to_string(),
             operations: vec![SwapOperation {
@@ -455,7 +455,7 @@ fn get_test_memo(
         min_asset: Asset::Native(coin(min_token_out_amount, DENOM_OSMOSIS_OSMO)),
         timeout_timestamp: timeout_timestamp_ns,
         post_swap_action: Action::Transfer {
-            to_address: recipient.to_string(),
+            to_address: recipient_osmosis.to_string(),
         },
         affiliates: vec![],
     })
@@ -474,7 +474,7 @@ fn get_ibc_transfer_msg(
         type_url: "/ibc.applications.transfer.v1.MsgTransfer".to_string(),
         value: Anybuf::new()
             // source port
-            .append_string(1, "transfer")
+            .append_string(1, PORT)
             // source channel (IBC Channel on your network side)
             .append_string(2, channel)
             // token

@@ -65,7 +65,8 @@ async function main() {
     const name = NAME as "kujira" | "stargaze";
 
     await h.adapter.dex.stargaze.cwSwap(
-      10_000,
+      // 10_000,
+      10_000_000,
       { native: { denom: "ustars" } },
       "test",
       0.009,
