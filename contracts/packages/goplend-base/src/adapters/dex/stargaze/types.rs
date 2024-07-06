@@ -20,6 +20,10 @@ pub enum IbcMemo {
         retries: u8,
         timeout: u64,
     },
+    Wasm {
+        contract: String,
+        msg: String,
+    },
 }
 
 #[cw_serde]

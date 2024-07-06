@@ -64,11 +64,15 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    const CHAID_ID_SG2 = "stargaze-2";
     const BOB_SG2 = "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u";
-    const [RPC_SG2] = getChainOptionById(CHAIN_CONFIG, "stargaze-2").OPTION
+    const [RPC_SG2] = getChainOptionById(CHAIN_CONFIG, CHAID_ID_SG2).OPTION
       .RPC_LIST;
 
     await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
+    await (
+      await getCwQueryHelpers(CHAID_ID_SG2, RPC_SG2)
+    ).adapter.dex.stargaze.cwQueryConfig();
 
     await h.adapter.dex.stargaze.cwSwap(
       10_000_000,
@@ -79,6 +83,9 @@ async function main() {
     );
 
     await (await getSgQueryHelpers(RPC_SG2)).getAllBalances(BOB_SG2);
+    await (
+      await getCwQueryHelpers(CHAID_ID_SG2, RPC_SG2)
+    ).adapter.dex.stargaze.cwQueryConfig();
     return;
 
     // await h.adapter.dex.stargaze.cwSwap(

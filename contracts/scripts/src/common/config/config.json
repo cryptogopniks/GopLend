@@ -198,7 +198,7 @@
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-0",
           "RPC_LIST": [
-            "http://127.0.0.1:34027"
+            "http://127.0.0.1:41373"
           ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,
@@ -226,7 +226,7 @@
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-2",
           "RPC_LIST": [
-            "http://127.0.0.1:36603"
+            "http://127.0.0.1:43759"
           ],
           "GAS_PRICE_AMOUNT": 0.04,
           "STORE_CODE_GAS_MULTIPLIER": 25,

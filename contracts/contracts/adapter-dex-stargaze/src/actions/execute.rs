@@ -83,7 +83,9 @@ pub fn try_update_config(
     recover_address: Option<String>,
     max_price_impact: Option<Decimal>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    // TODO: uncomment on mainnet
+    // let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let sender_address = &info.sender;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
 
@@ -128,7 +130,8 @@ pub fn try_update_config(
     }
 
     if let Some(x) = max_price_impact {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        // TODO: uncomment on mainnet
+        // check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.max_price_impact = x;
         is_config_updated = true;
     }
@@ -248,12 +251,26 @@ pub fn try_swap(
                 &ibc_transfer_memo,
             )
         }
-        Route::Test2 => CosmosMsg::Ibc(IbcMsg::Transfer {
-            channel_id: "channel-0".to_string(),
-            to_address: "stars1nngvah0u8wltpjrnl87quwacde05q8ys7juv3u".to_string(),
-            amount: coin(60, "ustars"),
-            timeout: IbcTimeout::with_timestamp(Timestamp::from_nanos(timeout_timestamp_ns)),
-        }),
+        Route::Test2 => {
+            let ibc_transfer_memo = get_test_memo_2(
+                asset_amount,
+                price_ratio,
+                max_price_impact,
+                timeout_timestamp_ns,
+                lending_platform_stable,
+                recover_address,
+            )?;
+
+            get_ibc_transfer_msg(
+                CHANNEL_STARGAZE_OSMOSIS,
+                denom_in,
+                asset_amount,
+                contract_address,
+                "stars14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9srsl6sm",
+                timeout_timestamp_ns,
+                &ibc_transfer_memo,
+            )
+        }
         _ => unimplemented!(),
     };
 
@@ -464,6 +481,31 @@ fn get_test_memo(
             to_address: recipient_osmosis.to_string(),
         },
         affiliates: vec![],
+    })
+}
+
+fn get_test_memo_2(
+    _token_in_amount: Uint128,
+    _price_ratio: Decimal, // asset_in_price / asset_out_price
+    _max_price_impact: Decimal,
+    _timeout_timestamp_ns: u64,
+    _recipient: &Addr,
+    _recover_address: &Addr,
+) -> StdResult<String> {
+    let msg = to_json_string(
+        &goplend_base::adapters::dex::stargaze::msg::ExecuteMsg::UpdateConfig {
+            admin: None,
+            worker: None,
+            lending_platform_stable: None,
+            adapter_marketplace: None,
+            recover_address: None,
+            max_price_impact: Some(str_to_dec("0.42")),
+        },
+    )?;
+
+    to_json_string(&IbcMemo::Wasm {
+        contract: "stars14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9srsl6sm".to_string(),
+        msg,
     })
 }
 

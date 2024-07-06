@@ -1,12 +1,12 @@
 {
-  "start_time": 1720280926,
+  "start_time": 1720285495,
   "chains": [
     {
       "chain_id": "stargaze-0",
       "chain_name": "stargaze-0",
-      "rpc_address": "http://127.0.0.1:34027",
-      "rest_address": "http://127.0.0.1:35203",
-      "grpc_address": "127.0.0.1:42073",
+      "rpc_address": "http://127.0.0.1:41373",
+      "rest_address": "http://127.0.0.1:46177",
+      "grpc_address": "127.0.0.1:32791",
       "ibc_paths": [
         "sg0-sg2"
       ]
@@ -14,9 +14,9 @@
     {
       "chain_id": "stargaze-2",
       "chain_name": "stargaze-2",
-      "rpc_address": "http://127.0.0.1:36603",
-      "rest_address": "http://127.0.0.1:33079",
-      "grpc_address": "127.0.0.1:39333",
+      "rpc_address": "http://127.0.0.1:43759",
+      "rest_address": "http://127.0.0.1:40783",
+      "grpc_address": "127.0.0.1:37455",
       "ibc_paths": [
         "sg0-sg2"
       ]
