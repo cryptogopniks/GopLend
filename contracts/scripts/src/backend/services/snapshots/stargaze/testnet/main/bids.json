@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "liquidator_address": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
+        "liquidation_bids": [
+          {
+            "creation_date": 1720372079,
+            "liquidator": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "1000000",
+            "discount": "0.01",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1720372135,
+            "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "2000000",
+            "discount": "0.02",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
+        "liquidation_bids": [
+          {
+            "creation_date": 1720372079,
+            "liquidator": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "1000000",
+            "discount": "0.01",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1720372135,
+            "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "2000000",
+            "discount": "0.02",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  }
+]

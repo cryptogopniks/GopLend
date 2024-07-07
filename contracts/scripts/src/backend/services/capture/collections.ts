@@ -55,7 +55,12 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const collections = await getCollections(platform);
+    let collections = await getCollections(platform);
+
+    // sort by name ascending
+    collections = collections.sort((a, b) =>
+      a.collection.name.localeCompare(b.collection.name)
+    );
 
     // write files
     await writeFile(

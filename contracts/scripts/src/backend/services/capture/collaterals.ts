@@ -4,13 +4,27 @@ import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryCollateralsResponseItem } from "../../../common/codegen/LendingPlatform.types";
+import {
+  Addr,
+  QueryCollateralsResponseItem,
+  TokenItem,
+} from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
   parseStoreArgs,
   getSnapshotPath,
 } from "../utils";
+
+interface CollateralByOwner {
+  collection: Addr;
+  token_item_list: TokenItem[];
+}
+
+interface CollateralsByOwnerListItem {
+  owner: Addr;
+  collateral: CollateralByOwner[];
+}
 
 const PAGINATION_QUERY_AMOUNT = 200;
 
@@ -55,12 +69,48 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const collaterals = await getCollaterals(platform);
+    let collateralList = await getCollaterals(platform);
+
+    // get list of collateral by owner
+    const ownerList = Array(
+      ...new Set(
+        collateralList.map((x) => x.collateral.map((y) => y.owner)).flat()
+      )
+    );
+
+    let collateralsByOwnerList: CollateralsByOwnerListItem[] = [];
+
+    for (const currentOwner of ownerList) {
+      let collateralByOwner: CollateralByOwner[] = [];
+
+      for (const { address: collectionAddress, collateral } of collateralList) {
+        for (const { owner, token_item_list } of collateral) {
+          if (currentOwner === owner) {
+            collateralByOwner.push({
+              collection: collectionAddress,
+              token_item_list,
+            });
+          }
+        }
+      }
+
+      collateralsByOwnerList.push({
+        owner: currentOwner,
+        collateral: collateralByOwner,
+      });
+    }
+
+    // sort by tokens amount descending
+    collateralsByOwnerList = collateralsByOwnerList.sort(
+      (a, b) =>
+        b.collateral.reduce((acc, cur) => acc + cur.token_item_list.length, 0) -
+        a.collateral.reduce((acc, cur) => acc + cur.token_item_list.length, 0)
+    );
 
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "collaterals.json"),
-      JSON.stringify(collaterals),
+      JSON.stringify(collateralsByOwnerList),
       {
         encoding: ENCODING,
       }

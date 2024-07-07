@@ -55,7 +55,14 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const liquidators = await getLiquidators(platform);
+    let liquidators = await getLiquidators(platform);
+
+    // sort by collection amount descending
+    liquidators = liquidators.sort(
+      (a, b) =>
+        b.liquidator.collection_addresses.length -
+        a.liquidator.collection_addresses.length
+    );
 
     // write files
     await writeFile(

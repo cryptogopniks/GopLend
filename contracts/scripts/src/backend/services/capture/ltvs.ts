@@ -54,7 +54,10 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const ltvs = await getLtvList(platform);
+    let ltvs = await getLtvList(platform);
+
+    // sort by ltv descending
+    ltvs = ltvs.sort((a, b) => Number(b[1]) - Number(a[1]));
 
     // write files
     await writeFile(
