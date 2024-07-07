@@ -27,3 +27,12 @@ yarn run json
 ./run.sh
 ./test.sh
 ./stop.sh
+
+yarn run capture-unbonders "elgafar-1|"
+yarn run capture-borrowers "elgafar-1|"
+yarn run capture-liquidators "elgafar-1|"
+yarn run capture-collaterals "elgafar-1|"
+yarn run capture-bids "elgafar-1|"
+yarn run capture-proposals "elgafar-1|"
+yarn run capture-collections "elgafar-1|"
+yarn run capture-ltvs "elgafar-1|"

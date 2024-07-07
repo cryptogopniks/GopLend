@@ -20,7 +20,15 @@
     "transpile": "shx rm -rf ./dist/backend/* && shx rm -rf ./dist/common/* && npx babel ./src/common --out-dir ./dist/common --extensions '.ts' && shx cp -r ./src/common/config/*.json ./dist/common/config",
     "types": "tsc -p ./src/backend/tsconfig.json",
     "prepare": "npm run transpile && npm run types",
-    "gov": "ts-node ./src/backend/services/gov-contract.ts"
+    "gov": "ts-node ./src/backend/services/gov-contract.ts",
+    "capture-unbonders": "ts-node ./src/backend/services/capture/unbonders.ts",
+    "capture-borrowers": "ts-node ./src/backend/services/capture/borrowers.ts",
+    "capture-liquidators": "ts-node ./src/backend/services/capture/liquidators.ts",
+    "capture-collaterals": "ts-node ./src/backend/services/capture/collaterals.ts",
+    "capture-bids": "ts-node ./src/backend/services/capture/bids.ts",
+    "capture-proposals": "ts-node ./src/backend/services/capture/proposals.ts",
+    "capture-collections": "ts-node ./src/backend/services/capture/collections.ts",
+    "capture-ltvs": "ts-node ./src/backend/services/capture/ltvs.ts"
   },
   "repository": {
     "type": "git",

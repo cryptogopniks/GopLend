@@ -1,0 +1,34 @@
+[
+  {
+    "address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+    "collateral": [
+      {
+        "owner": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+        "token_item_list": [
+          {
+            "id": "180",
+            "creation_date": 1720253844
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "address": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
+    "collateral": [
+      {
+        "owner": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+        "token_item_list": [
+          {
+            "id": "3",
+            "creation_date": 1720253126
+          },
+          {
+            "id": "2",
+            "creation_date": 1720254285
+          }
+        ]
+      }
+    ]
+  }
+]
