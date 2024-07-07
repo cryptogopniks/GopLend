@@ -55,7 +55,20 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const unbonders = await getUnbonders(platform);
+    let unbonders = await getUnbonders(platform);
+
+    // sort by returned amount descending
+    unbonders = unbonders.sort(
+      (a, b) =>
+        b.unbonder.returned_and_unbonded.reduce(
+          (acc, cur) => acc + Number(cur[0]),
+          0
+        ) -
+        a.unbonder.returned_and_unbonded.reduce(
+          (acc, cur) => acc + Number(cur[0]),
+          0
+        )
+    );
 
     // write files
     await writeFile(

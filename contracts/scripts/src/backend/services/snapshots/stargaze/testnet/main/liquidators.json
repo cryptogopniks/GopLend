@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "address": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t",
+    "liquidator": {
+      "collection_addresses": [
+        "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
+      ]
+    }
+  },
+  {
+    "address": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+    "liquidator": {
+      "collection_addresses": [
+        "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
+      ]
+    }
+  }
+]

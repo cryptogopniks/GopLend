@@ -4,7 +4,7 @@ import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryLiquidationBidsByCollectionAddressListResponseItem } from "../../../common/codegen/LendingPlatform.types";
+import { QueryLiquidationBidsByLiquidatorAddressListResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -31,20 +31,20 @@ async function main() {
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
   const getBids = async (platformType: PlatformType) => {
-    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+    let allItems: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
       [];
     let lastItem: string | undefined = undefined;
 
     while (lastItem !== "") {
-      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        await lending.cwQueryLiquidationBidsByCollectionAddressList(
+      const items: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
+        await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
           lastItem,
           true
         );
 
-      lastItem = getLast(items)?.collection_address || "";
+      lastItem = getLast(items)?.liquidator_address || "";
       allItems = [...allItems, ...items];
 
       l({ lastBid: lastItem });
@@ -56,7 +56,30 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const bids = await getBids(platform);
+    let bids = await getBids(platform);
+
+    // sort by amount descending
+    bids = bids.sort(
+      (a, b) =>
+        b.collection_and_liquidation_bids_list.reduce(
+          (acc1, cur1) =>
+            acc1 +
+            cur1.liquidation_bids.reduce(
+              (acc2, cur2) => acc2 + Number(cur2.amount),
+              0
+            ),
+          0
+        ) -
+        a.collection_and_liquidation_bids_list.reduce(
+          (acc1, cur1) =>
+            acc1 +
+            cur1.liquidation_bids.reduce(
+              (acc2, cur2) => acc2 + Number(cur2.amount),
+              0
+            ),
+          0
+        )
+    );
 
     // write files
     await writeFile(

@@ -55,7 +55,15 @@ async function main() {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const borrowers = await getBorrowers(platform);
+    let borrowers = await getBorrowers(platform);
+
+    // sort by (loan + accumulated_loan) descending
+    borrowers = borrowers.sort(
+      (a, b) =>
+        Number(b.borrower.loan.amount) +
+        Number(b.borrower.accumulated_loan) -
+        (Number(a.borrower.loan.amount) + Number(a.borrower.accumulated_loan))
+    );
 
     // write files
     await writeFile(
