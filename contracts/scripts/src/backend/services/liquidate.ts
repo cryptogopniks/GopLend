@@ -86,12 +86,12 @@ async function main() {
   const { chainId } = parseStoreArgs();
   const {
     NAME,
-    PREFIX: PREFIX,
+    PREFIX,
     OPTION: {
       RPC_LIST: [RPC],
-      DENOM: DENOM,
-      GAS_PRICE_AMOUNT: GAS_PRICE_AMOUNT,
-      TYPE: TYPE,
+      DENOM,
+      GAS_PRICE_AMOUNT,
+      TYPE,
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
@@ -136,7 +136,7 @@ async function main() {
     // switch route
     if (route === "empty") {
       // TODO: query network/dex status and choose route
-      route = "neutron" || "osmosis";
+      route = "osmosis";
     } else {
       route = "empty";
     }

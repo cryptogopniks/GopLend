@@ -1,0 +1,22 @@
+[
+  {
+    "address": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+    "borrower": {
+      "accumulated_loan": "3862",
+      "loan": {
+        "creation_date": 1720254090,
+        "amount": "5000000"
+      }
+    }
+  },
+  {
+    "address": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    "borrower": {
+      "accumulated_loan": "16774",
+      "loan": {
+        "creation_date": 1720254268,
+        "amount": "14749427"
+      }
+    }
+  }
+]

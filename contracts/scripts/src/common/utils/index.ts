@@ -18,10 +18,12 @@ function li(object: any) {
   );
 }
 
-function logAndReturn<T>(object: T): T {
-  l();
-  li(object);
-  l();
+function logAndReturn<T>(object: T, isHided: boolean = false): T {
+  if (!isHided) {
+    l();
+    li(object);
+    l();
+  }
   return object;
 }
 

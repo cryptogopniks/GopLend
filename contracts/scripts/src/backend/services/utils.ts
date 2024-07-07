@@ -3,6 +3,7 @@ import { decrypt, getLast } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 import { Label } from "../../common/config";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");
@@ -66,6 +67,17 @@ async function getWallets(chainType: ChainType): Promise<Wallets> {
   return testWallets;
 }
 
+function getSnapshotPath(
+  name: string,
+  chainType: ChainType,
+  platformType: PlatformType,
+  fileName: string
+) {
+  return rootPath(
+    `./src/backend/services/snapshots/${name}/${chainType}net/${platformType}/${fileName}`
+  );
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -73,4 +85,5 @@ export {
   parseChainId,
   parseStoreArgs,
   getWallets,
+  getSnapshotPath,
 };

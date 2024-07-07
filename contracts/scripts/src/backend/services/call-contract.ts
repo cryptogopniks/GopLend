@@ -33,13 +33,13 @@ async function main() {
     const CHAIN_CONFIG: ChainConfig = JSON.parse(configJsonStr);
     const {
       NAME,
-      PREFIX: PREFIX,
+      PREFIX,
       OPTION: {
         RPC_LIST: [RPC],
-        DENOM: DENOM,
-        CONTRACTS: CONTRACTS,
-        GAS_PRICE_AMOUNT: GAS_PRICE_AMOUNT,
-        TYPE: TYPE,
+        DENOM,
+        CONTRACTS,
+        GAS_PRICE_AMOUNT,
+        TYPE,
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
