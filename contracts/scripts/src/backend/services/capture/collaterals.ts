@@ -110,7 +110,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "collaterals.json"),
-      JSON.stringify(collateralsByOwnerList),
+      JSON.stringify(collateralsByOwnerList, null, 2),
       {
         encoding: ENCODING,
       }

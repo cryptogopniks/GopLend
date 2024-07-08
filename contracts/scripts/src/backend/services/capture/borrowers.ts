@@ -68,7 +68,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "borrowers.json"),
-      JSON.stringify(borrowers),
+      JSON.stringify(borrowers, null, 2),
       {
         encoding: ENCODING,
       }

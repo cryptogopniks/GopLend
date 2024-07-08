@@ -73,7 +73,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "unbonders.json"),
-      JSON.stringify(unbonders),
+      JSON.stringify(unbonders, null, 2),
       {
         encoding: ENCODING,
       }

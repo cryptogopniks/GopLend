@@ -62,7 +62,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "ltvs.json"),
-      JSON.stringify(ltvs),
+      JSON.stringify(ltvs, null, 2),
       {
         encoding: ENCODING,
       }
