@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryProposals(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          firstItem,
-          true
+          firstItem
         );
 
       firstItem = getLast(items)?.id || 0;

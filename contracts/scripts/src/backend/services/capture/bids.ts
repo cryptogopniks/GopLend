@@ -40,8 +40,7 @@ async function main() {
         await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.liquidator_address || "";

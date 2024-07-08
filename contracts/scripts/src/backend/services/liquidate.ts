@@ -112,7 +112,8 @@ async function main() {
     return await lending.cwQueryBorrowerList(
       platformType,
       paginationQueryAmount,
-      lastItem
+      lastItem,
+      true
     );
   };
 

@@ -72,7 +72,7 @@ async function main() {
 
     // await (
     //   await getCwQueryHelpers(CHAID_ID_TERRA, RPC_TERRA)
-    // ).adapter.dex.stargaze.cwQueryConfig();
+    // ).adapter.dex.stargaze.cwQueryConfig(true);
     // await (await getSgQueryHelpers(RPC_TERRA)).getAllBalances(DEX_TERRA);
 
     // await h.adapter.dex.stargaze.cwSwap(
@@ -86,7 +86,7 @@ async function main() {
     // await wait(10_000);
     // await (
     //   await getCwQueryHelpers(CHAID_ID_TERRA, RPC_TERRA)
-    // ).adapter.dex.stargaze.cwQueryConfig();
+    // ).adapter.dex.stargaze.cwQueryConfig(true);
     // await (await getSgQueryHelpers(RPC_TERRA)).getAllBalances(DEX_TERRA);
     // return;
 
@@ -166,19 +166,19 @@ async function main() {
     // );
     // return;
 
-    // await adapter.marketplace.stargaze.cwQueryConfig();
-    // await adapter.scheduler[name].cwQueryConfig();
+    // await adapter.marketplace.stargaze.cwQueryConfig(true);
+    // await adapter.scheduler[name].cwQueryConfig(true);
     // const platforms: PlatformType[] = ["main", "stable"];
     // for (const platformType of platforms) {
-    //   await lending.cwQueryAddressConfig(platformType);
-    //   await lending.cwQueryRateConfig(platformType);
-    //   await lending.cwQueryCommonConfig(platformType);
+    //   await lending.cwQueryAddressConfig(platformType, true);
+    //   await lending.cwQueryRateConfig(platformType, true);
+    //   await lending.cwQueryCommonConfig(platformType, true);
     // }
-    // await minter[name].cwQueryConfig();
-    // await oracle.cwQueryConfig();
+    // await minter[name].cwQueryConfig(true);
+    // await oracle.cwQueryConfig(true);
     // return;
 
-    // await lending.cwQueryCollectionList();
+    // await lending.cwQueryCollectionList(true);
 
     // await h.minter.kujira.cwCreateNative(
     //   owner,
@@ -188,7 +188,7 @@ async function main() {
     //   "ukuji",
     //   gasPrice
     // );
-    // await minterKujira.cwQueryCurrenciesByCreator(owner);
+    // await minterKujira.cwQueryCurrenciesByCreator(owner, true);
 
     // await h.minter.kujira.cwMint(
     //   420,
@@ -210,24 +210,24 @@ async function main() {
     //   { native: { denom: TOKEN.BGL_KUJI } },
     //   gasPrice
     // );
-    // await lending.cwQueryUnbonder(owner);
+    // await lending.cwQueryUnbonder(owner, true);
 
     // await wait(60_000);
     // await h.lending.cwWithdraw(gasPrice);
     // await getAllBalances(owner);
 
     // await minterKujira.cwQueryCurrenciesByCreator(
-    //   LENDING_PLATFORM_CONTRACT.ADDRESS
+    //   LENDING_PLATFORM_CONTRACT.ADDRESS, true
     // );
 
     // await updateConfigs();
 
-    // await utils.cwQueryBalanceInNft(owner, COLLECTION.BANDIT_3); // 2,3 - [ '5', '6', '7', '8' ]
-    // await utils.cwQueryOperators(owner, COLLECTION.BANDIT_1);
+    // await utils.cwQueryBalanceInNft(owner, COLLECTION.BANDIT_3, true); // 2,3 - [ '5', '6', '7', '8' ]
+    // await utils.cwQueryOperators(owner, COLLECTION.BANDIT_1, true);
 
-    // await lending.cwQueryCollectionList();
+    // await lending.cwQueryCollectionList(true);
 
-    await lending.cwQueryCollateralByOwner("main", owner);
+    await lending.cwQueryCollateralByOwner("main", owner, true);
 
     // await h.lending.cwApproveAndDepositCollateral(
     //   owner,
@@ -252,9 +252,9 @@ async function main() {
       gasPrice
     );
 
-    await lending.cwQueryCollateralByOwner("main", owner);
+    await lending.cwQueryCollateralByOwner("main", owner, true);
 
-    // await oracle.cwQueryPrices();
+    // await oracle.cwQueryPrices(true);
 
     // await getAllBalances(ADDRESS.ORACLE_WORKER);
     // await getAllBalances(ADDRESS.LIQUIDATION_WORKER);

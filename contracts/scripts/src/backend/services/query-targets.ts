@@ -59,7 +59,8 @@ export async function queryTargets(
         await lending.cwQueryBorrowerList(
           platformType,
           PAGINATION_AMOUNT,
-          lastItem
+          lastItem,
+          true
         );
 
       lastItem = getLast(items)?.address || "";
@@ -94,7 +95,8 @@ export async function queryTargets(
     return await oracle.cwQueryPrices(
       0, // as collectionAddressesByBorrowers is used
       undefined, // as collectionAddressesByBorrowers is used
-      collectionAddressesByBorrowers
+      collectionAddressesByBorrowers,
+      true
     );
   };
 
@@ -159,7 +161,8 @@ export async function queryTargets(
           await lending.cwQueryLiquidationBidsByCollectionAddressList(
             platformType,
             PAGINATION_AMOUNT,
-            lastItem
+            lastItem,
+            true
           );
 
         lastItem = getLast(items)?.collection_address || "";
@@ -182,7 +185,8 @@ export async function queryTargets(
           await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
             platformType,
             PAGINATION_AMOUNT,
-            lastItem
+            lastItem,
+            true
           );
 
         lastItem = getLast(items)?.collection_address || "";
@@ -225,8 +229,8 @@ export async function queryTargets(
   };
 
   // core logic
-  const rateConfig = await lending.cwQueryRateConfig(platformType);
-  const commonConfig = await lending.cwQueryCommonConfig(platformType);
+  const rateConfig = await lending.cwQueryRateConfig(platformType, true);
+  const commonConfig = await lending.cwQueryCommonConfig(platformType, true);
   const borrowerList = await getBorrowers(borrowers);
 
   // get all collaterals
@@ -240,7 +244,8 @@ export async function queryTargets(
           await lending.cwQueryCollateralList(
             platformType,
             PAGINATION_AMOUNT,
-            lastItem
+            lastItem,
+            true
           );
 
         lastItem = getLast(items)?.address || "";
@@ -257,7 +262,7 @@ export async function queryTargets(
     borrowerList,
     collectionAndCollateralList
   );
-  const blockTime = await oracle.cwQueryBlockTime();
+  const blockTime = await oracle.cwQueryBlockTime(true);
 
   // accumulators
   let targets: LiquidationItem[] = [];

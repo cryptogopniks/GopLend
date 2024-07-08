@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryBorrowerList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.address || "";
