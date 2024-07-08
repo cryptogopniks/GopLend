@@ -18,8 +18,8 @@ function li(object: any) {
   );
 }
 
-function logAndReturn<T>(object: T, isHided: boolean = false): T {
-  if (!isHided) {
+function logAndReturn<T>(object: T, isDisplayed: boolean = false): T {
+  if (isDisplayed) {
     l();
     li(object);
     l();

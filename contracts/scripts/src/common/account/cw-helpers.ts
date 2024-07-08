@@ -1626,7 +1626,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   async function cwQueryOperators(
     ownerAddress: string,
     collectionAddress: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
       all_operators: {
@@ -1638,13 +1638,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         collectionAddress,
         queryAllOperatorsMsg
       );
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryApprovals(
     collectionAddress: string,
     tokenId: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const queryApprovalsMsg: QueryApprovalsMsg = {
       approvals: {
@@ -1655,13 +1655,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryApprovalsMsg
     );
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryBalanceInNft(
     owner: string,
     collectionAddress: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const MAX_LIMIT = 100;
     const ITER_LIMIT = 50;
@@ -1698,13 +1698,13 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     }
 
     const res: TokensResponse = { tokens: tokenList };
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryNftOwner(
     collectionAddress: string,
     tokenId: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const queryOwnerOfMsg: QueryOwnerOf = {
       owner_of: { token_id: tokenId },
@@ -1713,324 +1713,328 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       collectionAddress,
       queryOwnerOfMsg
     );
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // adapter-dex-stargaze
 
-  async function cwAdapterDexStargazeQueryConfig(isHided: boolean = false) {
+  async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
     const res = await adapterDexStargazeQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // adapter-marketplace-stargaze
 
   async function cwAdapterMarketplaceStargazeQueryConfig(
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await adapterMarketplaceStargazeQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res =
       await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddressList(
         { platformType, startAfter, limit }
       );
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // adapter-scheduler-common
 
-  async function cwAdapterSchedulerCommonQueryConfig(isHided: boolean = false) {
+  async function cwAdapterSchedulerCommonQueryConfig(
+    isDisplayed: boolean = false
+  ) {
     const res = await adapterSchedulerCommonQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterSchedulerCommonQueryLog(isHided: boolean = false) {
+  async function cwAdapterSchedulerCommonQueryLog(
+    isDisplayed: boolean = false
+  ) {
     const res = await adapterSchedulerCommonQueryClient.queryLog();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // lending-platform
 
   async function cwLendingPlatformQueryAddressConfig(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryAddressConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwLendingPlatformQueryRateConfig(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryRateConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwLendingPlatformQueryCommonConfig(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryCommonConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryPlatformRevenue(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryPlatformRevenue();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryBalances(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryBalances();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryUnbonderList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryUnbonderList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryUnbonder(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryUnbonder({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryBorrowerList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryBorrowerList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryBorrower(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryBorrower({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidatorList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryLiquidatorList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidator(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryLiquidator({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryCollateralList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryCollateralList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryCollateral(
     platformType: PlatformType,
     collectionAddress: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryCollateral({
       collectionAddress,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryCollateralByOwner(
     platformType: PlatformType,
     owner: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryCollateralByOwner({
       owner,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddressList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryLiquidationBidsByCollectionAddressList({ startAfter, limit });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddress(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryLiquidationBidsByCollectionAddress({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddressList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryLiquidationBidsByLiquidatorAddressList({ startAfter, limit });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLiquidationBidsByLiquidatorAddress(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryLiquidationBidsByLiquidatorAddress({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryProposals(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: number | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryProposals({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryCollectionList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryCollectionList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryCollection(
     platformType: PlatformType,
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryCollection({
       address,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryBglCurrencyToMainCurrencyPrice(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryBglCurrencyToMainCurrencyPrice();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryConditionalDepositApr(
     platformType: PlatformType,
     amountToDeposit: number,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryConditionalDepositApr({
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLtvList(
     platformType: PlatformType,
     limit: number = 100,
     startAfter: string | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryLtvList({
       startAfter,
       limit,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryConditionalLtv(
@@ -2038,31 +2042,31 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     borrower: string,
     amountToDeposit: number = 0,
     amountToBorrow: number = 0,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryConditionalLtv({
       borrower,
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
       amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryTotalAvailableToBorrowLiquidity(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryTotalAvailableToBorrowLiquidity();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryAvailableToBorrow(
     platformType: PlatformType,
     borrower: string,
     targetLtv: number | undefined = undefined,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
@@ -2070,77 +2074,77 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       borrower,
       targetLtv: targetLtv ? targetLtv.toString() : undefined,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryAmounts(
     platformType: PlatformType,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryAmounts();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // minter
 
   async function cwQueryCurrenciesByCreator(
     creator: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await minterQueryClient.queryCurrenciesByCreator({ creator });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwMinterQueryConfig(isHided: boolean = false) {
+  async function cwMinterQueryConfig(isDisplayed: boolean = false) {
     const res = await minterQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwMinterQueryTokenOwner(
     denom: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await minterQueryClient.queryTokenOwner({ denom });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // minter-kujira
 
   async function cwMinterKujiraQueryCurrenciesByCreator(
     creator: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await minterKujiraQueryClient.queryCurrenciesByCreator({
       creator,
     });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwMinterKujiraQueryConfig(isHided: boolean = false) {
+  async function cwMinterKujiraQueryConfig(isDisplayed: boolean = false) {
     const res = await minterKujiraQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwMinterKujiraQueryTokenOwner(
     denom: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await minterKujiraQueryClient.queryTokenOwner({ denom });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // oracle
 
-  async function cwOracleQueryConfig(isHided: boolean = false) {
+  async function cwOracleQueryConfig(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryPrices(
     limit: number = 100,
     startAfter: string | undefined = undefined,
     collectionAddresses: string[] = [],
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const msg_1 = {
       startAfter,
@@ -2151,37 +2155,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     const res = await oracleQueryClient.queryPrices(
       collectionAddresses.length ? msg_2 : msg_1
     );
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBlockTime(isHided: boolean = false) {
+  async function cwQueryBlockTime(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryBlockTime();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwOracleQueryLog(isHided: boolean = false) {
+  async function cwOracleQueryLog(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryLog();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   // faucet
 
-  async function cwQueryDenom(isHided: boolean = false) {
+  async function cwQueryDenom(isDisplayed: boolean = false) {
     const res = await faucetQueryClient.queryDenom();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   async function cwQueryLastClaimDate(
     address: string,
-    isHided: boolean = false
+    isDisplayed: boolean = false
   ) {
     const res = await faucetQueryClient.queryLastClaimDate({ address });
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwFaucetQueryConfig(isHided: boolean = false) {
+  async function cwFaucetQueryConfig(isDisplayed: boolean = false) {
     const res = await faucetQueryClient.queryConfig();
-    return logAndReturn(res, isHided);
+    return logAndReturn(res, isDisplayed);
   }
 
   return {
