@@ -1,0 +1,32 @@
+{
+  "unbonder": {
+    "returned_and_unbonded": []
+  },
+  "borrower": {
+    "accumulated_loan": "12141",
+    "loan": {
+      "creation_date": 1720254090,
+      "amount": "5000000"
+    }
+  },
+  "collateral": [
+    {
+      "address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collateral": [
+        {
+          "owner": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+          "token_item_list": [
+            {
+              "id": "180",
+              "creation_date": 1720253844
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ltv": "0.392451284219666119",
+  "availableToBorrow": "4276127",
+  "ownBids": [],
+  "sideBids": []
+}

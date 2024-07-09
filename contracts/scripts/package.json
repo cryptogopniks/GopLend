@@ -28,7 +28,8 @@
     "capture-bids": "ts-node ./src/backend/services/capture/bids.ts",
     "capture-proposals": "ts-node ./src/backend/services/capture/proposals.ts",
     "capture-collections": "ts-node ./src/backend/services/capture/collections.ts",
-    "capture-ltvs": "ts-node ./src/backend/services/capture/ltvs.ts"
+    "capture-ltvs": "ts-node ./src/backend/services/capture/ltvs.ts",
+    "capture-user": "ts-node ./src/backend/services/capture/user.ts"
   },
   "repository": {
     "type": "git",

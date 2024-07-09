@@ -38,8 +38,7 @@ async function main() {
       const items: [Addr, Decimal][] = await lending.cwQueryLtvList(
         platformType,
         PAGINATION_QUERY_AMOUNT,
-        lastItem,
-        true
+        lastItem
       );
 
       lastItem = getLast(items)?.[0] || "";
@@ -62,7 +61,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "ltvs.json"),
-      JSON.stringify(ltvs),
+      JSON.stringify(ltvs, null, 2),
       {
         encoding: ENCODING,
       }

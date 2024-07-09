@@ -53,8 +53,7 @@ async function main() {
         await lending.cwQueryCollateralList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.address || "";
@@ -110,7 +109,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "collaterals.json"),
-      JSON.stringify(collateralsByOwnerList),
+      JSON.stringify(collateralsByOwnerList, null, 2),
       {
         encoding: ENCODING,
       }

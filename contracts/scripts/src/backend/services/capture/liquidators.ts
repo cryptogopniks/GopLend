@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryLiquidatorList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.address || "";
@@ -67,7 +66,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "liquidators.json"),
-      JSON.stringify(liquidators),
+      JSON.stringify(liquidators, null, 2),
       {
         encoding: ENCODING,
       }

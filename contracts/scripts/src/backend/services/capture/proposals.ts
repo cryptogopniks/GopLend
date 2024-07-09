@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryProposals(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          firstItem,
-          true
+          firstItem
         );
 
       firstItem = getLast(items)?.id || 0;
@@ -60,7 +59,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "proposals.json"),
-      JSON.stringify(proposals),
+      JSON.stringify(proposals, null, 2),
       {
         encoding: ENCODING,
       }

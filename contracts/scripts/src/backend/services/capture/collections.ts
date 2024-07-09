@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryCollectionList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.address || "";
@@ -65,7 +64,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "collections.json"),
-      JSON.stringify(collections),
+      JSON.stringify(collections, null, 2),
       {
         encoding: ENCODING,
       }

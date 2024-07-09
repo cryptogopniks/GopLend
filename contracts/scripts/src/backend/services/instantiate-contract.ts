@@ -171,7 +171,7 @@ async function main() {
       l(`"${contractName}" contract address is ${contractAddress}\n`);
     }
 
-    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson), {
+    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson, null, 2), {
       encoding: ENCODING,
     });
   } catch (error) {

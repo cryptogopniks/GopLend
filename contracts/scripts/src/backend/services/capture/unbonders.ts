@@ -39,8 +39,7 @@ async function main() {
         await lending.cwQueryUnbonderList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
-          lastItem,
-          true
+          lastItem
         );
 
       lastItem = getLast(items)?.address || "";
@@ -73,7 +72,7 @@ async function main() {
     // write files
     await writeFile(
       getSnapshotPath(NAME, TYPE, platform, "unbonders.json"),
-      JSON.stringify(unbonders),
+      JSON.stringify(unbonders, null, 2),
       {
         encoding: ENCODING,
       }
