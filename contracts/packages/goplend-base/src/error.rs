@@ -17,7 +17,7 @@ impl From<ContractError> for StdError {
 
 pub fn parse_err(err: anyhow::Error) -> StdError {
     let context = format!("{}", err);
-    let source = err.source().unwrap().to_string();
+    let source = err.source().map(|x| x.to_string()).unwrap_or_default();
 
     StdError::GenericErr {
         msg: format!("{}\n{}", context, source),
