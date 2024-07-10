@@ -31,25 +31,54 @@ async function main(userAddress: string) {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending } = await getCwQueryHelpers(chainId, RPC);
+  const { adapter, lending } = await getCwQueryHelpers(chainId, RPC);
 
   const getBids = async (platformType: PlatformType) => {
-    let allItems: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
       [];
     let lastItem: string | undefined = undefined;
 
     while (lastItem !== "") {
-      const items: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
-        await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
+      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+        await lending.cwQueryLiquidationBidsByCollectionAddressList(
           platformType,
           PAGINATION_QUERY_AMOUNT,
           lastItem
         );
 
-      lastItem = getLast(items)?.liquidator_address || "";
+      lastItem = getLast(items)?.collection_address || "";
       allItems = [...allItems, ...items];
 
       l({ lastBid: lastItem });
+    }
+
+    return allItems;
+  };
+
+  const getOffers = async (platformType: PlatformType) => {
+    const { is_marketplace_interface_enabled } =
+      await lending.cwQueryCommonConfig(platformType);
+
+    if (!is_marketplace_interface_enabled) {
+      return [];
+    }
+
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+      [];
+    let lastItem: string | undefined = undefined;
+
+    while (lastItem !== "") {
+      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+        await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
+          platformType,
+          PAGINATION_QUERY_AMOUNT,
+          lastItem
+        );
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+
+      l({ lastOffer: lastItem });
     }
 
     return allItems;
@@ -80,51 +109,50 @@ async function main(userAddress: string) {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
-    const bidList = await getBids(platform);
+    let bidList = await getBids(platform);
+    const offerList = await getOffers(platform);
+    bidList = [...bidList, ...offerList];
+
     const { unbonder, borrower, collateral, ltv, availableToBorrow } =
       await getUser(platform);
 
-    const ownBids =
-      bidList.find((x) => x.liquidator_address === userAddress)
-        ?.collection_and_liquidation_bids_list || [];
+    const ownBids = await lending.cwQueryLiquidationBidsByLiquidatorAddress(
+      platform,
+      userAddress
+    );
 
     let sideBids: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
       [];
 
-    for (const bidListItem of bidList) {
-      for (const {
-        collection_address,
-        liquidation_bids,
-      } of bidListItem.collection_and_liquidation_bids_list) {
-        for (const bid of liquidation_bids) {
-          if (
-            collateral
-              .find((x) => x.address === collection_address)
-              ?.collateral.some((y) =>
-                y.token_item_list.some((z) => bid.token_id_list.includes(z.id))
-              )
-          ) {
-            const sideBidsByCollection = sideBids.find(
-              (x) => x.collection_address === collection_address
-            );
-            if (!sideBidsByCollection) {
-              sideBids.push({
-                collection_address,
-                liquidation_bids: [],
-              });
-            }
-
-            sideBids = sideBids.map((x) => {
-              if (x.collection_address !== collection_address) {
-                return x;
-              }
-
-              return {
-                collection_address,
-                liquidation_bids: [...x.liquidation_bids, bid],
-              };
+    for (const { collection_address, liquidation_bids } of bidList) {
+      for (const bid of liquidation_bids) {
+        if (
+          collateral
+            .find((x) => x.address === collection_address)
+            ?.collateral.some((y) =>
+              y.token_item_list.some((z) => bid.token_id_list.includes(z.id))
+            )
+        ) {
+          const sideBidsByCollection = sideBids.find(
+            (x) => x.collection_address === collection_address
+          );
+          if (!sideBidsByCollection) {
+            sideBids.push({
+              collection_address,
+              liquidation_bids: [],
             });
           }
+
+          sideBids = sideBids.map((x) => {
+            if (x.collection_address !== collection_address) {
+              return x;
+            }
+
+            return {
+              collection_address,
+              liquidation_bids: [...x.liquidation_bids, bid],
+            };
+          });
         }
       }
     }
@@ -141,7 +169,12 @@ async function main(userAddress: string) {
 
     // write files
     await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "user.json"),
+      getSnapshotPath(
+        NAME,
+        TYPE,
+        platform,
+        `user-${userAddress.slice(-3)}.json`
+      ),
       JSON.stringify(userInfo, null, 2),
       {
         encoding: ENCODING,
