@@ -1,4 +1,5 @@
 {
+  "bglTokenBalance": "1000000000",
   "unbonder": {
     "returned_and_unbonded": []
   },

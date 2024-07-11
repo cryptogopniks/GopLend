@@ -4,10 +4,8 @@ import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import {
-  QueryLiquidationBidsByCollectionAddressListResponseItem,
-  QueryLiquidationBidsByLiquidatorAddressListResponseItem,
-} from "../../../common/codegen/LendingPlatform.types";
+import { QueryLiquidationBidsByCollectionAddressListResponseItem } from "../../../common/codegen/LendingPlatform.types";
+import { getSgQueryHelpers } from "../../../common/account/sg-helpers";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -32,6 +30,7 @@ async function main(userAddress: string) {
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
   const { adapter, lending } = await getCwQueryHelpers(chainId, RPC);
+  const { getBalance } = await getSgQueryHelpers(RPC);
 
   const getBids = async (platformType: PlatformType) => {
     let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
@@ -55,10 +54,10 @@ async function main(userAddress: string) {
     return allItems;
   };
 
-  const getOffers = async (platformType: PlatformType) => {
-    const { is_marketplace_interface_enabled } =
-      await lending.cwQueryCommonConfig(platformType);
-
+  const getOffers = async (
+    platformType: PlatformType,
+    is_marketplace_interface_enabled: boolean
+  ) => {
     if (!is_marketplace_interface_enabled) {
       return [];
     }
@@ -109,8 +108,21 @@ async function main(userAddress: string) {
   const platformList: PlatformType[] = ["main", "stable"];
   for (const platform of platformList) {
     l("\n", { platform });
+
+    const { is_marketplace_interface_enabled, bgl_currency } =
+      await lending.cwQueryCommonConfig(platform);
+
+    const bglToken = bgl_currency?.token;
+    if (!bglToken) throw new Error("bglToken isn't found!");
+
+    const bglDenom = "native" in bglToken ? bglToken.native.denom : "";
+    const bglTokenBalance = (await getBalance(userAddress, bglDenom)).amount;
+
     let bidList = await getBids(platform);
-    const offerList = await getOffers(platform);
+    const offerList = await getOffers(
+      platform,
+      is_marketplace_interface_enabled
+    );
     bidList = [...bidList, ...offerList];
 
     const { unbonder, borrower, collateral, ltv, availableToBorrow } =
@@ -158,6 +170,7 @@ async function main(userAddress: string) {
     }
 
     const userInfo = {
+      bglTokenBalance,
       unbonder,
       borrower,
       collateral,
