@@ -4,37 +4,34 @@
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "18857",
+    "accumulated_loan": "18914",
     "loan": {
       "creation_date": 1720254090,
       "amount": "5000000"
     }
   },
+  "collateralCost": "12771367",
   "collateral": [
     {
-      "address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "collateral": [
+      "collectionAddress": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collectionPrice": "12771367",
+      "tokenItemList": [
         {
-          "owner": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-          "token_item_list": [
-            {
-              "id": "180",
-              "creation_date": 1720253844
-            }
-          ]
+          "id": "180",
+          "creation_date": 1720253844
         }
       ]
     }
   ],
-  "ltv": "0.392977149229295973",
-  "availableToBorrow": "4269411",
+  "ltv": "0.39298158427653336",
+  "availableToBorrow": "4269354",
   "ownBids": [],
   "sideBids": [
     {
       "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
       "liquidation_bids": [
         {
-          "creation_date": 1720729789,
+          "creation_date": 1720731213,
           "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
           "token_id_list": [
             "180",
@@ -47,7 +44,7 @@
           "bid_type": "collection_offer"
         },
         {
-          "creation_date": 1720729789,
+          "creation_date": 1720731213,
           "liquidator": "stars1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyzrpx49",
           "token_id_list": [
             "180",
@@ -60,7 +57,7 @@
           "bid_type": "collection_offer"
         },
         {
-          "creation_date": 1720729789,
+          "creation_date": 1720731213,
           "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
           "token_id_list": [
             "180",
@@ -73,7 +70,7 @@
           "bid_type": "collection_offer"
         },
         {
-          "creation_date": 1720729789,
+          "creation_date": 1720731213,
           "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
           "token_id_list": [
             "180",

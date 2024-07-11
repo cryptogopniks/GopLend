@@ -4,14 +4,24 @@ import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryLiquidationBidsByCollectionAddressListResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import { getSgQueryHelpers } from "../../../common/account/sg-helpers";
+import {
+  QueryLiquidationBidsByCollectionAddressListResponseItem,
+  TokenItem,
+  Addr,
+} from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
   parseStoreArgs,
   getSnapshotPath,
 } from "../utils";
+
+interface CollateralsResponseItem {
+  collectionAddress: Addr;
+  collectionPrice: string;
+  tokenItemList: TokenItem[];
+}
 
 const PAGINATION_QUERY_AMOUNT = 200;
 
@@ -29,7 +39,7 @@ async function main(userAddress: string) {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { adapter, lending } = await getCwQueryHelpers(chainId, RPC);
+  const { adapter, lending, oracle } = await getCwQueryHelpers(chainId, RPC);
   const { getBalance } = await getSgQueryHelpers(RPC);
 
   const getBids = async (platformType: PlatformType) => {
@@ -128,6 +138,38 @@ async function main(userAddress: string) {
     const { unbonder, borrower, collateral, ltv, availableToBorrow } =
       await getUser(platform);
 
+    // get collateral collection prices
+    const collectionAddresses = collateral.map((x) => x.address);
+    const priceList = await oracle.cwQueryPrices(
+      PAGINATION_QUERY_AMOUNT,
+      undefined,
+      collectionAddresses
+    );
+
+    const collateralWithPrices: CollateralsResponseItem[] = collateral.map(
+      ({ address, collateral }) => {
+        const priceItem = priceList.find((y) => y.address === address);
+        const collectionPrice =
+          (platform === "main"
+            ? priceItem?.price?.amount
+            : priceItem?.usd_price?.amount) || "0";
+
+        return {
+          collectionAddress: address,
+          collectionPrice,
+          tokenItemList: collateral[0].token_item_list,
+        };
+      }
+    );
+
+    const collateralCost = collateralWithPrices
+      .reduce(
+        (acc, cur) =>
+          acc + Number(cur.collectionPrice) * cur.tokenItemList.length,
+        0
+      )
+      .toString();
+
     const ownBids = await lending.cwQueryLiquidationBidsByLiquidatorAddress(
       platform,
       userAddress
@@ -173,7 +215,8 @@ async function main(userAddress: string) {
       bglTokenBalance,
       unbonder,
       borrower,
-      collateral,
+      collateralCost,
+      collateral: collateralWithPrices,
       ltv,
       availableToBorrow,
       ownBids,
