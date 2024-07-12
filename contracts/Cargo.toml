@@ -55,6 +55,6 @@ adapter-marketplace-stargaze = { path = "./contracts/adapter-marketplace-stargaz
 adapter-dex-stargaze = { path = "./contracts/adapter-dex-stargaze" }
 faucet = { path = "./contracts/faucet" }
 
-sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", version = "1.4.0", features = ["library"] }
+sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", rev = "b9780c36619adec7d6f79453ddbf449ae26b9112", version = "1.8.0", features = ["library"] }
 # stargaze-marketplace-v2 = "0.1.0"
 # infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }

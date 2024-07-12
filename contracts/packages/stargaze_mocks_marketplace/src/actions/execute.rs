@@ -1,4 +1,6 @@
-use cosmwasm_std::{to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, WasmMsg};
+use cosmwasm_std::{
+    to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
+};
 
 use goplend_base::{
     error::ContractError,
@@ -17,6 +19,7 @@ pub fn accept_collection_bid(
     token_id: TokenId,
     bidder: String,
     _finder: Option<String>,
+    _amount: Uint128,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
