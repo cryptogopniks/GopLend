@@ -210,16 +210,17 @@ export async function queryTargets(
 
     for (const { collection_address, liquidation_bids } of liquidationBids) {
       for (const bid of liquidation_bids) {
-        if (
-          collectionAndCollateralListByBorrower.some(
-            ([collection, collateral]) => {
-              collection == collection_address &&
-                bid.token_id_list.some((y) =>
-                  collateral.token_item_list.some((z) => z.id === y)
-                );
-            }
-          )
-        ) {
+        const matchingCollateral = collectionAndCollateralListByBorrower.find(
+          ([collection, collateral]) => {
+            return (
+              collection === collection_address &&
+              bid.token_id_list.some((y) =>
+                collateral.token_item_list.some((z) => z.id.includes(y))
+              )
+            );
+          }
+        );
+        if (matchingCollateral) {
           collectionAndBidList.push([collection_address, bid]);
         }
       }
