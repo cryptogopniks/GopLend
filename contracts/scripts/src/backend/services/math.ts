@@ -65,7 +65,8 @@ export function choosePrice(
   mainCurrency: CurrencyForToken,
   priceItem: PriceItem
 ) {
-  return mainCurrency === priceItem.price.currency
+  return JSON.stringify(mainCurrency.token) ===
+    JSON.stringify(priceItem.price.currency.token)
     ? priceItem.price.amount
     : priceItem.usd_price.amount;
 }
