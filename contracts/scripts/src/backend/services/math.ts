@@ -58,7 +58,7 @@ export function calcConditionalLtv(
 }
 
 export function calcDiscountedPrice(price: number, discount: number): number {
-  return price * (1 - discount);
+  return Math.floor(price * (1 - discount));
 }
 
 export function choosePrice(
