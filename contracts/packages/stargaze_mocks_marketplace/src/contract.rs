@@ -84,6 +84,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             limit,
         )?),
 
+        QueryMsg::Params {} => to_json_binary(&q::params(deps, env)?),
+
         _ => unimplemented!(),
     }
 }

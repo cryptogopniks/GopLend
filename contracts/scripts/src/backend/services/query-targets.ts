@@ -195,6 +195,18 @@ export async function queryTargets(
         l({ lastOffer: lastItem });
       }
 
+      // // scale offers by 1 / (100 % - 2 %) = 1.0205 due to marketplace fee
+      // const k = 1.0205;
+      // allItems = allItems.map((x) => {
+      //   x.liquidation_bids = x.liquidation_bids.map((y) => {
+      //     y.amount = Math.ceil(k * Number(y.amount)).toString();
+
+      //     return y;
+      //   });
+
+      //   return x;
+      // });
+
       liquidationBids = [...liquidationBids, ...allItems];
     }
 

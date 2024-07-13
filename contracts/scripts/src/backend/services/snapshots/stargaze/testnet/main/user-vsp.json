@@ -1,0 +1,105 @@
+{
+  "bglTokenBalance": "0",
+  "unbonder": {
+    "returned_and_unbonded": []
+  },
+  "borrower": {
+    "accumulated_loan": "17919",
+    "loan": {
+      "creation_date": 1720889368,
+      "amount": "5393784"
+    }
+  },
+  "collateralCost": "7300000",
+  "collateral": [
+    {
+      "collectionAddress": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collectionPrice": "7300000",
+      "tokenItemList": [
+        {
+          "id": "308",
+          "creation_date": 1720620108
+        }
+      ]
+    }
+  ],
+  "ltv": "0.741328841465904588",
+  "availableToBorrow": "0",
+  "ownBids": [
+    {
+      "collection_address": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
+      "liquidation_bids": [
+        {
+          "creation_date": 1720372079,
+          "liquidator": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t",
+          "token_id_list": [
+            "2"
+          ],
+          "amount": "1000000",
+          "discount": "0.01",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720619739,
+          "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+          "token_id_list": [
+            "3"
+          ],
+          "amount": "2000000",
+          "discount": "0.02",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720804226,
+          "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+          "token_id_list": [
+            "2"
+          ],
+          "amount": "11000000",
+          "discount": "0.02",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720807795,
+          "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+          "token_id_list": [
+            "2"
+          ],
+          "amount": "23000000",
+          "discount": "0.06",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720870750,
+          "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+          "token_id_list": [
+            "3"
+          ],
+          "amount": "10000000",
+          "discount": "0",
+          "bid_type": "liquidation_bid"
+        }
+      ]
+    }
+  ],
+  "sideBids": [
+    {
+      "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "liquidation_bids": [
+        {
+          "creation_date": 1720895625,
+          "liquidator": "stars1lze4mhdus8tfh40046sz5r533grvua5rcv0f09",
+          "token_id_list": [
+            "180",
+            "308",
+            "302",
+            "258"
+          ],
+          "amount": "8000000",
+          "discount": "0.02",
+          "bid_type": "collection_offer"
+        }
+      ]
+    }
+  ]
+}

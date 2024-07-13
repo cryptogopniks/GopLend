@@ -4,17 +4,27 @@
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "71689",
+    "accumulated_loan": "80735",
     "loan": {
-      "creation_date": 1720801770,
-      "amount": "19939427"
+      "creation_date": 1720871141,
+      "amount": "10239427"
     }
   },
-  "collateralCost": "19737826",
+  "collateralCost": "27000000",
   "collateral": [
     {
+      "collectionAddress": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collectionPrice": "9000000",
+      "tokenItemList": [
+        {
+          "id": "302",
+          "creation_date": 1720871917
+        }
+      ]
+    },
+    {
       "collectionAddress": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
-      "collectionPrice": "9868913",
+      "collectionPrice": "9000000",
       "tokenItemList": [
         {
           "id": "3",
@@ -27,8 +37,8 @@
       ]
     }
   ],
-  "ltv": "1.01384557194399914",
-  "availableToBorrow": "0",
+  "ltv": "0.382228089570637672",
+  "availableToBorrow": "9316205",
   "ownBids": [
     {
       "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
@@ -56,11 +66,25 @@
         {
           "creation_date": 1720801199,
           "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
-          "token_id_list": [
-            "302"
-          ],
-          "amount": "500000000",
+          "token_id_list": [],
+          "amount": "490300000",
           "discount": "0.03",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720871509,
+          "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+          "token_id_list": [],
+          "amount": "1000000",
+          "discount": "0",
+          "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720871884,
+          "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+          "token_id_list": [],
+          "amount": "1000000",
+          "discount": "0",
           "bid_type": "liquidation_bid"
         }
       ]
@@ -109,6 +133,73 @@
           "amount": "23000000",
           "discount": "0.06",
           "bid_type": "liquidation_bid"
+        },
+        {
+          "creation_date": 1720870750,
+          "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+          "token_id_list": [
+            "3"
+          ],
+          "amount": "10000000",
+          "discount": "0",
+          "bid_type": "liquidation_bid"
+        }
+      ]
+    },
+    {
+      "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "liquidation_bids": [
+        {
+          "creation_date": 1720875415,
+          "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+          "token_id_list": [
+            "180",
+            "308",
+            "258",
+            "302"
+          ],
+          "amount": "100000000",
+          "discount": "0",
+          "bid_type": "collection_offer"
+        },
+        {
+          "creation_date": 1720875415,
+          "liquidator": "stars1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyzrpx49",
+          "token_id_list": [
+            "180",
+            "308",
+            "258",
+            "302"
+          ],
+          "amount": "100000000",
+          "discount": "0",
+          "bid_type": "collection_offer"
+        },
+        {
+          "creation_date": 1720875415,
+          "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+          "token_id_list": [
+            "180",
+            "308",
+            "258",
+            "302"
+          ],
+          "amount": "100000000",
+          "discount": "0",
+          "bid_type": "collection_offer"
+        },
+        {
+          "creation_date": 1720875415,
+          "liquidator": "stars1c3yt57kz5mstnc2n08n47phjumn57ds0znapj8",
+          "token_id_list": [
+            "180",
+            "308",
+            "258",
+            "302"
+          ],
+          "amount": "70000000",
+          "discount": "0",
+          "bid_type": "collection_offer"
         }
       ]
     }

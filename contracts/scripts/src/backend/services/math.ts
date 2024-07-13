@@ -130,7 +130,8 @@ export function matchCollateralsAndBids(
             liquidator: bid.liquidator,
             bid_creation_date: bid.creation_date,
             liquidation_price: discounted_price.toString(),
-            collateral_price: price,
+            // collateral_price: price,
+            collateral_price: bid.amount, // it isn't collateral_price but bid_amount required for marketplace
             bid_discount: bid.discount,
             bid_type: bid.bid_type,
           };

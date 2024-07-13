@@ -49,7 +49,8 @@ async function main() {
   const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
   const targets = await queryTargets("main", [
-    "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    // "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
   ]);
 
   li({ targets });

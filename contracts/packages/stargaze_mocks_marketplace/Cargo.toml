@@ -21,6 +21,7 @@ cw2 = { workspace = true }
 cw721 = { workspace = true }
 serde = { workspace = true }
 goplend-base = { workspace = true }
+cw-utils = "0.16.0"
 sg-marketplace = { workspace = true }
 # stargaze-marketplace-v2 = { workspace = true }
 semver = { workspace = true }

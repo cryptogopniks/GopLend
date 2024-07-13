@@ -29,7 +29,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\",\"adapter_dex\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS!\",\"oracle\":\"!OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\"}}",
-              "CODE": 4371,
+              "CODE": 4376,
               "ADDRESS": "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93"
             },
             {

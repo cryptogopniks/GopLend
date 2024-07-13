@@ -1,8 +1,14 @@
-use cosmwasm_std::{Deps, Env, StdResult};
+use cosmwasm_std::{Decimal, Deps, Env, StdResult, Uint128};
 
+use cw_utils::Duration;
+use goplend_base::converters::str_to_dec;
 use sg_marketplace::{
-    msg::{BidOffset, BidsResponse, Collection, CollectionBidOffset, CollectionBidsResponse},
-    state::{Bid, CollectionBid},
+    msg::{
+        BidOffset, BidsResponse, Collection, CollectionBidOffset, CollectionBidsResponse,
+        ParamsResponse,
+    },
+    state::{Bid, CollectionBid, SudoParams},
+    ExpiryRange,
 };
 
 use crate::state::{COLLECTION_OFFERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT};
@@ -63,4 +69,20 @@ pub fn bids_sorted_by_price(
         .collect();
 
     Ok(BidsResponse { bids })
+}
+
+pub fn params(_deps: Deps, _env: Env) -> StdResult<ParamsResponse> {
+    Ok(ParamsResponse {
+        params: SudoParams {
+            trading_fee_percent: str_to_dec("0.02"),
+            ask_expiry: ExpiryRange { min: 0, max: 100 },
+            bid_expiry: ExpiryRange { min: 0, max: 100 },
+            operators: vec![],
+            max_finders_fee_percent: str_to_dec("0.1"),
+            min_price: Uint128::zero(),
+            stale_bid_duration: Duration::Time(100),
+            bid_removal_reward_percent: Decimal::zero(),
+            listing_fee: Uint128::zero(),
+        },
+    })
 }

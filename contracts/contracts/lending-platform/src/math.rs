@@ -318,7 +318,7 @@ pub fn match_collaterals_and_bids(
                         liquidator: bid.liquidator.clone(),
                         bid_creation_date: bid.creation_date,
                         liquidation_price: discounted_price,
-                        collateral_price: price,
+                        collateral_price: price, // we have bid.amount in client scripts due to marketplace requirements
                         bid_discount: bid.discount,
                         bid_type: bid.bid_type.clone(),
                     });

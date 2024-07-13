@@ -110,6 +110,7 @@ pub struct BiddedCollateralItem {
     pub liquidator: Addr,
     pub bid_creation_date: u64,
     pub liquidation_price: Uint128,
+    /// it isn't collateral_price but bid_amount required for marketplace
     pub collateral_price: Uint128,
     pub bid_discount: Decimal,
     pub bid_type: BidType,

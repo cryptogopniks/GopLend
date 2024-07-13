@@ -64,6 +64,10 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    await utils.cwQueryNetworkFee(ADDRESS.STARGAZE.MARKETPLACE, true);
+    await utils.cwQueryRoyaltyFee(COLLECTION.STARGAZE.PIGEON, true);
+    return;
+
     // const CHAID_ID_TERRA = "terra-0";
     // const DEX_TERRA =
     //   "terra14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9ssrc8au";
