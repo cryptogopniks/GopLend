@@ -195,6 +195,18 @@ export async function queryTargets(
         l({ lastOffer: lastItem });
       }
 
+      // // scale offers by 1 / (100 % - 2 %) = 1.0205 due to marketplace fee
+      // const k = 1.0205;
+      // allItems = allItems.map((x) => {
+      //   x.liquidation_bids = x.liquidation_bids.map((y) => {
+      //     y.amount = Math.ceil(k * Number(y.amount)).toString();
+
+      //     return y;
+      //   });
+
+      //   return x;
+      // });
+
       liquidationBids = [...liquidationBids, ...allItems];
     }
 
@@ -202,24 +214,23 @@ export async function queryTargets(
   };
 
   // find bids containing at least 1 borrower's collateral token
-  const getCollectionAndBidList = async (
+  const getCollectionAndBidList = (
     liquidationBids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
     collectionAndCollateralListByBorrower: [Addr, Collateral][]
-  ): Promise<[Addr, LiquidationBid][]> => {
+  ): [Addr, LiquidationBid][] => {
     let collectionAndBidList: [Addr, LiquidationBid][] = [];
 
     for (const { collection_address, liquidation_bids } of liquidationBids) {
       for (const bid of liquidation_bids) {
-        if (
-          collectionAndCollateralListByBorrower.some(
-            ([collection, collateral]) => {
-              collection == collection_address &&
-                bid.token_id_list.some((y) =>
-                  collateral.token_item_list.some((z) => z.id === y)
-                );
-            }
-          )
-        ) {
+        const matchingCollateral = collectionAndCollateralListByBorrower.some(
+          ([collection, collateral]) =>
+            collection === collection_address &&
+            bid.token_id_list.some((bidTokenId) =>
+              collateral.token_item_list.some(({ id }) => id === bidTokenId)
+            )
+        );
+
+        if (matchingCollateral) {
           collectionAndBidList.push([collection_address, bid]);
         }
       }
@@ -315,7 +326,7 @@ export async function queryTargets(
     const liquidationBids = await queryLiquidationBids(
       commonConfig.is_marketplace_interface_enabled
     );
-    const collectionAndBidList = await getCollectionAndBidList(
+    const collectionAndBidList = getCollectionAndBidList(
       liquidationBids,
       collectionAndCollateralListByBorrower
     );

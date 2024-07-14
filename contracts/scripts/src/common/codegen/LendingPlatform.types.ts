@@ -171,6 +171,7 @@ export interface LiquidationItem {
   liquidation_set: BiddedCollateralItem[];
 }
 export interface BiddedCollateralItem {
+  bid_amount: Uint128;
   bid_creation_date: number;
   bid_discount: Decimal;
   bid_type: BidType;

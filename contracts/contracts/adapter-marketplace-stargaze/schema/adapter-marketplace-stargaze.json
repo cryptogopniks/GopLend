@@ -194,6 +194,7 @@
       "BiddedCollateralItem": {
         "type": "object",
         "required": [
+          "bid_amount",
           "bid_creation_date",
           "bid_discount",
           "bid_type",
@@ -205,6 +206,9 @@
           "token_item"
         ],
         "properties": {
+          "bid_amount": {
+            "$ref": "#/definitions/Uint128"
+          },
           "bid_creation_date": {
             "type": "integer",
             "format": "uint64",

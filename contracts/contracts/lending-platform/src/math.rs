@@ -8,7 +8,7 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{BLOCK_TIME_OFFSET, MAX_DEPOSIT_APR, YEAR_IN_SECONDS},
-        types::{BiddedCollateralItem, Collateral, LiquidationBid},
+        types::{BidType, BiddedCollateralItem, Collateral, LiquidationBid},
     },
     oracle::types::PriceItem,
 };
@@ -164,8 +164,8 @@ pub fn calc_liquidation_value(
     )
 }
 
-pub fn calc_discounted_price(price: Uint128, discount: Decimal) -> Uint128 {
-    (u128_to_dec(price) * (Decimal::one() - discount)).to_uint_ceil()
+pub fn calc_discounted_amount(amount: Uint128, discount: Decimal) -> Uint128 {
+    (u128_to_dec(amount) * (Decimal::one() - discount)).to_uint_ceil()
 }
 
 pub fn calc_accumulated_loan(
@@ -278,7 +278,15 @@ pub fn calc_total_available_to_borrow_liquidity(
     ) + calc_available_to_borrow_reserve_liquidity(borrowers_reserve_fraction, reserve_borrowed)
 }
 
-/// places bid on each collateral token, best bids have higher priority
+/// Places bid on each collateral token, best bids have higher priority
+///
+/// Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
+/// is floating), offfers from 100 % or more (liquidation price is fixed). Here are examples:
+/// 1) Bid for 200 at a 5 % discount. At liquidation, the token price is 100,
+/// but the liquidation price is 95. After liquidation the bid is 105, you can withdraw it
+/// and get the balance back
+/// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
+/// but the liquidation price is 190. After liquidation the offer will be consumed completely
 pub fn match_collaterals_and_bids(
     main_currency: &Currency<Token>,
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
@@ -308,22 +316,38 @@ pub fn match_collaterals_and_bids(
 
         for token_item in collateral.token_item_list.clone() {
             for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {
-                let discounted_price = calc_discounted_price(price, bid.discount);
+                let (bid_amount, discounted_price, liquidation_price) =
+                    if matches!(bid.bid_type, BidType::LiquidationBid) {
+                        // bids
+                        let bid_amount = bid.amount;
+                        let discounted_price = calc_discounted_amount(price, bid.discount);
+                        let liquidation_price = discounted_price;
 
-                if bid.token_id_list.contains(&token_item.id) && bid.amount >= discounted_price {
+                        (bid_amount, discounted_price, liquidation_price)
+                    } else {
+                        // offers
+                        let bid_amount = calc_discounted_amount(bid.amount, bid.discount);
+                        let discounted_price = price;
+                        let liquidation_price = bid_amount;
+
+                        (bid_amount, discounted_price, liquidation_price)
+                    };
+
+                if bid.token_id_list.contains(&token_item.id) && bid_amount >= discounted_price {
                     bidded_collateral_list.push(BiddedCollateralItem {
                         collection: collateral_collection.clone(),
                         token_item: token_item.clone(),
                         owner: collateral.owner.clone(),
                         liquidator: bid.liquidator.clone(),
                         bid_creation_date: bid.creation_date,
-                        liquidation_price: discounted_price,
+                        liquidation_price,
                         collateral_price: price,
+                        bid_amount: bid.amount,
                         bid_discount: bid.discount,
                         bid_type: bid.bid_type.clone(),
                     });
 
-                    bid.amount -= discounted_price;
+                    bid.amount = bid_amount - discounted_price;
                     break;
                 }
             }

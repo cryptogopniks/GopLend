@@ -33,12 +33,13 @@ export type ExecuteMsg = {
     route: Route;
   };
 };
+export type Uint128 = string;
 export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
-export type Uint128 = string;
 export type Addr = string;
 export type Route = "empty" | "neutron" | "osmosis";
 export interface BiddedCollateralItem {
+  bid_amount: Uint128;
   bid_creation_date: number;
   bid_discount: Decimal;
   bid_type: BidType;

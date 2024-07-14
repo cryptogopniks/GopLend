@@ -37,14 +37,20 @@ pub fn execute(
             token_id,
             bidder,
             finder,
-        } => e::accept_collection_bid(deps, env, info, collection, token_id, bidder, finder),
+            amount,
+        } => e::accept_collection_bid(
+            deps, env, info, collection, token_id, bidder, finder, amount,
+        ),
 
         ExecuteMsg::AcceptBid {
             collection,
             token_id,
             bidder,
             finder,
-        } => e::accept_collection_bid(deps, env, info, collection, token_id, bidder, finder),
+            amount,
+        } => e::accept_collection_bid(
+            deps, env, info, collection, token_id, bidder, finder, amount,
+        ),
 
         _ => unimplemented!(),
     }
@@ -77,6 +83,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             start_before,
             limit,
         )?),
+
+        QueryMsg::Params {} => to_json_binary(&q::params(deps, env)?),
 
         _ => unimplemented!(),
     }

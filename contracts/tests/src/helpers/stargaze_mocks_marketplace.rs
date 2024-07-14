@@ -68,6 +68,7 @@ impl StargazeMocksMarketplaceExtension for Project {
                     token_id: token_id.parse().unwrap(),
                     bidder: bidder.to_string(),
                     finder: finder.as_ref().map(|x| x.to_string()),
+                    amount: Uint128::zero(),
                 },
                 &[],
             )
@@ -92,6 +93,7 @@ impl StargazeMocksMarketplaceExtension for Project {
                     token_id: token_id.parse().unwrap(),
                     bidder: bidder.to_string(),
                     finder: finder.as_ref().map(|x| x.to_string()),
+                    amount: Uint128::zero(),
                 },
                 &[],
             )

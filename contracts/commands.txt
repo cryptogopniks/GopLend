@@ -16,6 +16,9 @@ yarn run config "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,len
 yarn run prepare-contracts "elgafar-1|"
 yarn run call "elgafar-1|"
 
+yarn run get-targets "elgafar-1|"
+yarn run liquidate "elgafar-1|"
+
 yarn run json
 yarn run store "stargaze-1|adapter_dex"
 yarn run migrate "stargaze-1|adapter_dex"
