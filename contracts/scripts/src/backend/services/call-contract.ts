@@ -64,8 +64,70 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    await utils.cwQueryNetworkFee(ADDRESS.STARGAZE.MARKETPLACE, true);
-    await utils.cwQueryRoyaltyFee(COLLECTION.STARGAZE.PIGEON, true);
+    const CURRENCY = {
+      STARS: {
+        token: { native: { denom: TOKEN.STARS } },
+        decimals: 6,
+      },
+      USDC: {
+        token: { native: { denom: TOKEN.USDC } },
+        decimals: 6,
+      },
+    };
+
+    await h.oracle.cwUpdatePrices(
+      0.0097,
+      [
+        {
+          collection_address: COLLECTION.STARGAZE.PIGEON,
+          price: {
+            amount: "20000000",
+            // amount: "30000000",
+            currency: CURRENCY.STARS,
+          },
+          usd_price: {
+            amount: "194000",
+            // amount: "291000",
+            currency: CURRENCY.USDC,
+          },
+        },
+        {
+          collection_address: COLLECTION.STARGAZE.SHANE,
+          price: {
+            amount: "10000000",
+            currency: CURRENCY.STARS,
+          },
+          usd_price: {
+            amount: "97000",
+            currency: CURRENCY.USDC,
+          },
+        },
+      ],
+      gasPrice
+    );
+    // await oracle.cwQueryPrices(100, undefined, undefined, true);
+    // await oracle.cwQueryPriceRatio(true);
+
+    // const amountToBorrow = await lending.cwQueryAvailableToBorrow(
+    //   "main",
+    //   owner,
+    //   undefined,
+    //   true
+    // );
+    // await h.lending.cwBorrow(
+    //   "main",
+    //   Math.floor(0.9 * Number(amountToBorrow)),
+    //   gasPrice
+    // );
+
+    // await lending.cwQueryConditionalLtv(
+    //   "main",
+    //   owner,
+    //   undefined,
+    //   undefined,
+    //   true
+    // );
+
     return;
 
     // const CHAID_ID_TERRA = "terra-0";
