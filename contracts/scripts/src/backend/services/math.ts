@@ -57,8 +57,8 @@ export function calcConditionalLtv(
   return loan / collateral;
 }
 
-export function calcDiscountedPrice(price: number, discount: number): number {
-  return Math.floor(price * (1 - discount));
+export function calcDiscountedAmount(amount: number, discount: number): number {
+  return Math.floor(amount * (1 - discount));
 }
 
 export function choosePrice(
@@ -71,7 +71,15 @@ export function choosePrice(
     : priceItem.usd_price.amount;
 }
 
-// places bid on each collateral token, best bids have higher priority
+// Places bid on each collateral token, best bids have higher priority
+//
+// Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
+// is floating), offfers from 100 % or more (liquidation price is fixed). Here are examples:
+// 1) Bid for 200 at a 5 % discount. At liquidation, the token price is 100,
+// but the liquidation price is 95. After liquidation the bid is 105, you can withdraw it
+// and get the balance back
+// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
+// but the liquidation price is 190. After liquidation the offer will be consumed completely
 export function matchCollateralsAndBids(
   mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
@@ -114,14 +122,34 @@ export function matchCollateralsAndBids(
       for (let i = 0; i < collectionAndBidList.length; i++) {
         const [_bid_collection, bid] = collectionAndBidList[i];
 
-        let discounted_price = calcDiscountedPrice(
-          Number(price),
-          Number(bid.discount)
-        );
+        const { bidAmount, discountedPrice, liquidationPrice } =
+          bid.bid_type === "liquidation_bid"
+            ? (() => {
+                // bids
+                const bidAmount = Number(bid.amount);
+                const discountedPrice = calcDiscountedAmount(
+                  Number(price),
+                  Number(bid.discount)
+                );
+                const liquidationPrice = discountedPrice;
+
+                return { bidAmount, discountedPrice, liquidationPrice };
+              })()
+            : (() => {
+                // offers
+                const bidAmount = calcDiscountedAmount(
+                  Number(bid.amount),
+                  Number(bid.discount)
+                );
+                const discountedPrice = Number(price);
+                const liquidationPrice = bidAmount;
+
+                return { bidAmount, discountedPrice, liquidationPrice };
+              })();
 
         if (
           bid.token_id_list.includes(tokenItem.id) &&
-          Number(bid.amount) >= discounted_price
+          bidAmount >= discountedPrice
         ) {
           const biddedCollateralItem: BiddedCollateralItem = {
             collection: collateral_collection,
@@ -129,9 +157,9 @@ export function matchCollateralsAndBids(
             owner: collateral.owner,
             liquidator: bid.liquidator,
             bid_creation_date: bid.creation_date,
-            liquidation_price: discounted_price.toString(),
-            // collateral_price: price,
-            collateral_price: bid.amount, // it isn't collateral_price but bid_amount required for marketplace
+            liquidation_price: liquidationPrice.toString(),
+            collateral_price: price,
+            bid_amount: bid.amount,
             bid_discount: bid.discount,
             bid_type: bid.bid_type,
           };
@@ -139,7 +167,7 @@ export function matchCollateralsAndBids(
           biddedCollateralList.push(biddedCollateralItem);
 
           collectionAndBidList[i][1].amount = (
-            Number(bid.amount) - discounted_price
+            bidAmount - discountedPrice
           ).toString();
           break;
         }

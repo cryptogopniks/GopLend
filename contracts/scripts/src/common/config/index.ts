@@ -139,7 +139,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4376,
+              CODE: 4379,
               ADDRESS:
                 "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93",
             },
@@ -169,7 +169,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4313,
+              CODE: 4380,
               ADDRESS:
                 "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k",
             },
@@ -205,7 +205,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4314,
+              CODE: 4381,
               ADDRESS:
                 "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5",
             },
@@ -241,7 +241,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4314,
+              CODE: 4381,
               ADDRESS:
                 "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
             },

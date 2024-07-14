@@ -195,7 +195,7 @@ pub fn try_accept_offers(
         token_item,
         liquidator,
         liquidation_price,
-        collateral_price,
+        bid_amount,
         bid_type,
         ..
     } in bidded_collateral_item_list
@@ -226,7 +226,7 @@ pub fn try_accept_offers(
                     })?,
                 bidder: liquidator.to_string(),
                 finder: None,
-                amount: collateral_price,
+                amount: bid_amount,
             },
             BidType::TokenOffer => MarketplaceExecuteMsg::AcceptBid {
                 collection: collection.to_string(),
@@ -238,7 +238,7 @@ pub fn try_accept_offers(
                     })?,
                 bidder: liquidator.to_string(),
                 finder: None,
-                amount: collateral_price,
+                amount: bid_amount,
             },
             _ => unimplemented!(),
         };

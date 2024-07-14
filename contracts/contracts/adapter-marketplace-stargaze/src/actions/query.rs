@@ -131,6 +131,7 @@ pub fn query_offers_by_collection_address_list(
         let mut offers: Vec<LiquidationBid> = vec![];
 
         for bid in bids {
+            // TODO: do we need to query more offers if we got too much expired offers?
             // skip expired bids
             if bid.is_expired(&env.block) {
                 continue;
@@ -177,7 +178,8 @@ pub fn query_offers_by_collection_address_list(
                 },
             )?;
 
-            // TODO: check if it's fine to pass all tokens including tokens owned by liquidators
+            // it's fine to pass all tokens including tokens owned by liquidators
+            // as we need offers capacity as much as possible
             let token_id_list = collateral
                 .into_iter()
                 .flat_map(|x| {

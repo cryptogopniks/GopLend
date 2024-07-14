@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
+import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;

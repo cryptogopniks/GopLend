@@ -32,15 +32,16 @@ export type ExecuteMsg = {
   };
 };
 export type Route = "empty" | "neutron" | "osmosis";
+export type Uint128 = string;
 export type Decimal = string;
 export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
-export type Uint128 = string;
 export type Addr = string;
 export interface LiquidationItem {
   borrower: string;
   liquidation_set: BiddedCollateralItem[];
 }
 export interface BiddedCollateralItem {
+  bid_amount: Uint128;
   bid_creation_date: number;
   bid_discount: Decimal;
   bid_type: BidType;

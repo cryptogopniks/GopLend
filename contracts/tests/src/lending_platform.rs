@@ -8085,7 +8085,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     let mut project = Project::new();
 
     const COLLECTION_PRICE_BEFORE: u128 = 700;
-    const COLLECTION_PRICE_AFTER: u128 = 600;
+    const COLLECTION_PRICE_AFTER: u128 = 400;
     const AMOUNT_TO_BORROW: u128 = 500;
     const LIQUIDATION_BID: u128 = 2_000;
     const DISCOUNT: &str = "0.1";
@@ -8320,7 +8320,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     )?;
 
     assert_that(&ltv_before_alice.to_string().as_str()).is_equal_to("0.729008117706747843");
-    assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("0.850509470657872484");
+    assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("1.275764205986808726");
 
     // check marketplace offers
     let offers_gopniks = &project
@@ -8439,10 +8439,11 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
     assert_that(&offers_gopniks.len()).is_equal_to(1);
     assert_that(&offers_pingeons.len()).is_equal_to(1);
 
-    // main_currency_pool_addition = 0.95 * 700 + 0.95 * 600 + 0.95 * 0.9 * 600 = 1748
-    // main_pool = 1000 + 92 + (1748 - 92 - 1500) = 1248
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(1248);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(1460);
+    // main_currency_pool_addition = 0.95 * 700 + 0.95 * 700 + 0.95 * 0.9 * 400 = 1672
+    // platform_revenue = (1 - 0.95) * 700 + (1 - 0.95) * 700 + (1 - 0.95) * 0.9 * 400 = 88
+    // main_pool = 1000 + 88 + (1672 - 88 - 1500) = 1172
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(1172);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(1640);
 
     let res = project.query_all_nft(ProjectAccount::John);
     let (_collection, token_info) = res
