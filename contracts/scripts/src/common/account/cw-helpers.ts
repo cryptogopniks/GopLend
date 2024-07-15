@@ -2291,6 +2291,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function cwQueryPriceRatio(isDisplayed: boolean = false) {
+    const res = await oracleQueryClient.queryPriceRatio();
+    return logAndReturn(res, isDisplayed);
+  }
+
   async function cwQueryBlockTime(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryBlockTime();
     return logAndReturn(res, isDisplayed);
@@ -2401,6 +2406,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,
       cwQueryPrices,
+      cwQueryPriceRatio,
       cwQueryBlockTime,
       cwQueryLog: cwOracleQueryLog,
     },
