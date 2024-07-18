@@ -2431,6 +2431,46 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 }
 
 #[test]
+fn unbond_as_reserve_liquidity_provider() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config(PlatformType::Main)?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // check contract balances
+    let balances = project.lending_platform_query_balances(PlatformType::Main)?;
+    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
+
+    let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token)?;
+    assert_that(&admin_bgl_balance).is_equal_to(INITIAL_LIQUIDITY);
+
+    // unbond
+    let res = project
+        .lending_platform_try_unbond(
+            ProjectAccount::Admin,
+            PlatformType::Main,
+            10 * DEPOSIT_AMOUNT,
+            &bgl_token,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::ExceededAssetSupply);
+
+    Ok(())
+}
+
+#[test]
 fn multiple_unbonding_positions() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_common_config(PlatformType::Main)?;
