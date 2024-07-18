@@ -351,6 +351,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         QueryMsg::QueryAmounts {} => to_json_binary(&q::query_amounts(deps, env)?),
+
+        QueryMsg::QueryUserInfo { address } => {
+            to_json_binary(&q::query_user_info(deps, env, address)?)
+        }
     }
 }
 

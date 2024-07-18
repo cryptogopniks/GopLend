@@ -307,6 +307,10 @@ export type QueryMsg = {
   };
 } | {
   query_amounts: {};
+} | {
+  query_user_info: {
+    address: string;
+  };
 };
 export interface MigrateMsg {
   version: string;
@@ -470,4 +474,14 @@ export type ArrayOfQueryUnbondersResponseItem = QueryUnbondersResponseItem[];
 export interface QueryUnbondersResponseItem {
   address: Addr;
   unbonder: Unbonder;
+}
+export interface QueryUserInfoResponse {
+  available_to_borrow: Uint128;
+  bgl_token_balance: Uint128;
+  collateral: QueryCollateralsResponseItem[];
+  liquidation_bids: QueryLiquidationBidsByCollectionAddressListResponseItem[];
+  loan: Uint128;
+  ltv: Decimal;
+  main_token_balance: Uint128;
+  returned_and_unbonded: [Uint128, Vault][];
 }

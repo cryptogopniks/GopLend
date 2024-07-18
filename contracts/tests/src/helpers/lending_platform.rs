@@ -13,6 +13,7 @@ use goplend_base::{
             QueryLiquidationBidsByCollectionAddressListResponseItem,
             QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,
             QueryMsg, QueryProposalsResponseItem, QueryUnbondersResponseItem,
+            QueryUserInfoResponse,
         },
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
@@ -387,6 +388,12 @@ pub trait LendingPlatformExtension {
         &self,
         platform_type: PlatformType,
     ) -> StdResult<QueryAmountsResponse>;
+
+    fn lending_platform_query_user_info(
+        &self,
+        platform_type: PlatformType,
+        address: ProjectAccount,
+    ) -> StdResult<QueryUserInfoResponse>;
 }
 
 impl LendingPlatformExtension for Project {
@@ -1453,5 +1460,24 @@ impl LendingPlatformExtension for Project {
         self.app
             .wrap()
             .query_wasm_smart(contract_address, &QueryMsg::QueryAmounts {})
+    }
+
+    #[track_caller]
+    fn lending_platform_query_user_info(
+        &self,
+        platform_type: PlatformType,
+        address: ProjectAccount,
+    ) -> StdResult<QueryUserInfoResponse> {
+        let contract_address = match platform_type {
+            PlatformType::Main => self.get_lending_platform_main_address(),
+            PlatformType::Stable => self.get_lending_platform_stable_address(),
+        };
+
+        self.app.wrap().query_wasm_smart(
+            contract_address,
+            &QueryMsg::QueryUserInfo {
+                address: address.to_string(),
+            },
+        )
     }
 }

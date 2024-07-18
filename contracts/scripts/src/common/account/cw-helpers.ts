@@ -2218,6 +2218,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function cwQueryUserInfo(
+    platformType: PlatformType,
+    address: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await getPlatformQueryClient(platformType).queryUserInfo({
+      address,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
   // minter
 
   async function cwQueryCurrenciesByCreator(
@@ -2334,6 +2345,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryNftOwner,
       cwQueryNetworkFee,
       cwQueryRoyaltyFee,
+      cwQueryFinderFee,
     },
     adapter: {
       dex: {
@@ -2390,6 +2402,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryTotalAvailableToBorrowLiquidity,
       cwQueryAvailableToBorrow,
       cwQueryAmounts,
+      cwQueryUserInfo,
     },
     minter: {
       kujira: {
