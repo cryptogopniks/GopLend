@@ -3249,6 +3249,10 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     assert_that(&collaterals_before).is_equal_to(collaterals_after);
     assert_that(&liquidation_bids_before).is_equal_to(liquidation_bids_after);
 
+    let deposit_apr =
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
+
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
@@ -3286,6 +3290,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         &targets,
         &Route::Empty,
     )?;
+
+    // liquidation reduces deposit apr
+    let deposit_apr =
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.121764705882352941"));
 
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,

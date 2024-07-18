@@ -64,6 +64,13 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    await lending.cwQueryCommonConfig("main", true);
+    return;
+
+    await lending.cwQueryBalances("main", true);
+    await lending.cwQueryConditionalDepositApr("main", 0, true);
+    return;
+
     const CURRENCY = {
       STARS: {
         token: { native: { denom: TOKEN.STARS } },
