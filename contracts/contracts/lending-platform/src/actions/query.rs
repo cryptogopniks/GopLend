@@ -9,7 +9,7 @@ use goplend_base::{
             QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
             QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,
-            QueryProposalsResponseItem, QueryUnbondersResponseItem,
+            QueryProposalsResponseItem, QueryUnbondersResponseItem, QueryUserInfoResponse,
         },
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
@@ -805,5 +805,173 @@ pub fn query_amounts(deps: Deps, _env: Env) -> StdResult<QueryAmountsResponse> {
         collections: COLLECTIONS
             .keys(deps.storage, None, None, Order::Ascending)
             .count() as u32,
+    })
+}
+
+pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<QueryUserInfoResponse> {
+    let user = &deps.api.addr_validate(&address)?;
+    let block_time = env.block.time.seconds();
+    let AddressConfig { oracle, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    let CommonConfig {
+        main_currency,
+        bgl_currency,
+        ..
+    } = COMMON_CONFIG.load(deps.storage)?;
+    let RateConfig {
+        borrow_apr,
+        discount_min_rate,
+        discount_max_rate,
+        bid_min_rate,
+        ..
+    } = RATE_CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let main_denom = main_currency.token.try_get_native()?;
+    let bgl_token = unwrap_field(bgl_currency, "bgl_currency")?.token;
+
+    // balances
+    let main_token_balance = deps.querier.query_balance(user, main_denom)?.amount;
+    let bgl_token_balance = match bgl_token {
+        Token::Native { denom } => deps.querier.query_balance(user, denom)?.amount,
+        Token::Cw20 { address } => {
+            deps.querier
+                .query_wasm_smart::<cw20::BalanceResponse>(
+                    address,
+                    &cw20::Cw20QueryMsg::Balance {
+                        address: user.to_string(),
+                    },
+                )?
+                .balance
+        }
+    };
+
+    // unbonder
+    let Unbonder {
+        returned_and_unbonded,
+    } = UNBONDERS.load(deps.storage, user).unwrap_or_default();
+
+    // borrower
+    let shifted_block_time = math::calc_shifted_block_time(block_time);
+    let Borrower {
+        accumulated_loan,
+        loan,
+    } = BORROWERS.load(deps.storage, user).unwrap_or_default();
+    let loan = loan.amount
+        + math::calc_accumulated_loan(
+            borrow_apr,
+            accumulated_loan,
+            loan.amount,
+            shifted_block_time,
+            loan.creation_date,
+        );
+
+    // collateral
+    let collateral_list = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+
+    let collateral: Vec<QueryCollateralsResponseItem> = collateral_list
+        .iter()
+        .cloned()
+        .filter(|(_, collateral)| collateral.iter().any(|x| x.owner == user))
+        .map(|(address, collateral)| QueryCollateralsResponseItem {
+            address,
+            collateral: collateral.into_iter().filter(|x| x.owner == user).collect(),
+        })
+        .collect();
+
+    // ltv
+    //
+    // get collaterals owned by borrower
+    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
+
+    for (collection, collaterals) in collateral_list {
+        if let Some(collateral) = collaterals
+            .iter()
+            .find(|collateral| collateral.owner == user)
+        {
+            collection_and_collateral_list.push((collection, collateral.to_owned()));
+        }
+    }
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let collateral_value = collection_and_collateral_list.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let price_item = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if price_item.is_outdated {
+                Err(ContractError::OutdatedPrice {
+                    val: collection_address.to_string(),
+                })?;
+            }
+
+            let price = helpers::choose_price(&main_currency, price_item);
+
+            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
+        },
+    )?;
+
+    let ltv = if collateral_value.is_zero() && !loan.is_zero() {
+        Decimal::zero()
+    } else {
+        math::calc_conditional_ltv(
+            borrow_apr,
+            Uint128::zero(),
+            Uint128::zero(),
+            loan,
+            Uint128::zero(),
+            collateral_value,
+            block_time,
+            block_time,
+        )
+    };
+
+    // available_to_borrow
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let available_to_borrow = math::calc_available_to_borrow(ltv_max, collateral_value, loan);
+
+    // liquidation bids
+    let liquidation_bids = LIQUIDATORS
+        .load(deps.storage, user)
+        .unwrap_or_default()
+        .collection_addresses
+        .into_iter()
+        .map(|collection_address| {
+            let liquidation_bids = LIQUIDATION_BIDS.load(deps.storage, &collection_address)?;
+
+            Ok(QueryLiquidationBidsByCollectionAddressListResponseItem {
+                collection_address,
+                liquidation_bids,
+            })
+        })
+        .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>()?;
+
+    Ok(QueryUserInfoResponse {
+        main_token_balance,
+        bgl_token_balance,
+        returned_and_unbonded,
+        loan,
+        collateral,
+        ltv,
+        available_to_borrow,
+        liquidation_bids,
     })
 }

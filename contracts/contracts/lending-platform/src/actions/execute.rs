@@ -139,6 +139,12 @@ pub fn try_unbond(
 
     BALANCES.save(deps.storage, &balances)?;
 
+    // check if unbonded bgl amount isn't bigger than regular bgl supply
+    // weak checker to prevent burning reserve pool bgl tokens
+    if asset_amount > balances.regular.bgl_supply {
+        Err(ContractError::ExceededAssetSupply)?;
+    }
+
     // create unbonding position to withdraw main token later
     UNBONDERS.update(deps.storage, &sender_address, |x| -> StdResult<Unbonder> {
         let returned_and_unbonded = (

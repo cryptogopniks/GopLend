@@ -16,7 +16,7 @@ impl From<ContractError> for StdError {
 }
 
 pub fn parse_err(err: anyhow::Error) -> StdError {
-    let context = format!("{}", err);
+    let context = format!("{:#?}", err);
     let source = err.source().map(|x| x.to_string()).unwrap_or_default();
 
     StdError::GenericErr {
@@ -147,6 +147,9 @@ pub enum ContractError {
 
     #[error("Weight is out of range!")]
     WeightIsOutOfRange,
+
+    #[error("Exceeded asset supply!")]
+    ExceededAssetSupply,
 
     #[error("Undefined Reply ID!")]
     UndefinedReplyId,

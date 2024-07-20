@@ -239,4 +239,4 @@ async function main(userAddress: string) {
   }
 }
 
-main("stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu");
+main("stars1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyzrpx49");

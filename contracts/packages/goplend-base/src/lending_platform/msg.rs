@@ -8,7 +8,7 @@ use crate::{
     assets::{Currency, Token, TokenUnverified},
     lending_platform::types::{
         Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
-        Liquidator, Proposal, Unbonder,
+        Liquidator, Proposal, Unbonder, Vault,
     },
 };
 
@@ -273,6 +273,9 @@ pub enum QueryMsg {
 
     #[returns(QueryAmountsResponse)]
     QueryAmounts {},
+
+    #[returns(QueryUserInfoResponse)]
+    QueryUserInfo { address: String },
 }
 
 #[cw_serde]
@@ -333,4 +336,16 @@ pub struct QueryAmountsResponse {
     pub liquidation_bids: u32,
     pub proposals: u32,
     pub collections: u32,
+}
+
+#[cw_serde]
+pub struct QueryUserInfoResponse {
+    pub main_token_balance: Uint128,
+    pub bgl_token_balance: Uint128,
+    pub returned_and_unbonded: Vec<(Uint128, Vault)>,
+    pub loan: Uint128,
+    pub collateral: Vec<QueryCollateralsResponseItem>,
+    pub ltv: Decimal,
+    pub available_to_borrow: Uint128,
+    pub liquidation_bids: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
 }

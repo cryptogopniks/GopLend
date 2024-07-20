@@ -2431,6 +2431,46 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 }
 
 #[test]
+fn unbond_as_reserve_liquidity_provider() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config(PlatformType::Main)?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const DEPOSIT_AMOUNT: u128 = 1_000;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        DEPOSIT_AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // check contract balances
+    let balances = project.lending_platform_query_balances(PlatformType::Main)?;
+    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
+
+    let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token)?;
+    assert_that(&admin_bgl_balance).is_equal_to(INITIAL_LIQUIDITY);
+
+    // unbond
+    let res = project
+        .lending_platform_try_unbond(
+            ProjectAccount::Admin,
+            PlatformType::Main,
+            10 * DEPOSIT_AMOUNT,
+            &bgl_token,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::ExceededAssetSupply);
+
+    Ok(())
+}
+
+#[test]
 fn multiple_unbonding_positions() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_common_config(PlatformType::Main)?;
@@ -3249,6 +3289,10 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     assert_that(&collaterals_before).is_equal_to(collaterals_after);
     assert_that(&liquidation_bids_before).is_equal_to(liquidation_bids_after);
 
+    let deposit_apr =
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
+
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
         ProjectAccount::Scheduler,
@@ -3286,6 +3330,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
         &targets,
         &Route::Empty,
     )?;
+
+    // liquidation reduces deposit apr
+    let deposit_apr =
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.121764705882352941"));
 
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,

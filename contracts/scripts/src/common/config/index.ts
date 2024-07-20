@@ -205,7 +205,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4381,
+              CODE: 4385,
               ADDRESS:
                 "stars1kxakggmu07svefv6gfdqg0kw50facm7uzjy57ehhkmgrzrkm530qhw2cs5",
             },
@@ -241,7 +241,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4381,
+              CODE: 4385,
               ADDRESS:
                 "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
             },
