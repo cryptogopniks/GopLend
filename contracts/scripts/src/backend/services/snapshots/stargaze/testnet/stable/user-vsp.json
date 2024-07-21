@@ -1,13 +1,35 @@
 {
-  "bglTokenBalance": "81000000",
+  "bglTokenBalance": "77000000",
   "unbonder": {
-    "returned_and_unbonded": []
+    "returned_and_unbonded": [
+      [
+        "2000000",
+        {
+          "creation_date": 1721578409,
+          "amount": "2000008"
+        }
+      ],
+      [
+        "1000000",
+        {
+          "creation_date": 1721578431,
+          "amount": "1000004"
+        }
+      ],
+      [
+        "1000000",
+        {
+          "creation_date": 1721578453,
+          "amount": "1000004"
+        }
+      ]
+    ]
   },
   "borrower": {
-    "accumulated_loan": "0",
+    "accumulated_loan": "89",
     "loan": {
-      "creation_date": 0,
-      "amount": "0"
+      "creation_date": 1721578689,
+      "amount": "51000000"
     }
   },
   "collateralCost": "0",

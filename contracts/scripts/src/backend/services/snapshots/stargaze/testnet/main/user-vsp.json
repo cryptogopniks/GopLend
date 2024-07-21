@@ -1,7 +1,22 @@
 {
-  "bglTokenBalance": "101000000",
+  "bglTokenBalance": "98000000",
   "unbonder": {
-    "returned_and_unbonded": []
+    "returned_and_unbonded": [
+      [
+        "2000000",
+        {
+          "creation_date": 1721578353,
+          "amount": "2000011"
+        }
+      ],
+      [
+        "1000000",
+        {
+          "creation_date": 1721578442,
+          "amount": "1000005"
+        }
+      ]
+    ]
   },
   "borrower": {
     "accumulated_loan": "0",
@@ -10,10 +25,21 @@
       "amount": "0"
     }
   },
-  "collateralCost": "0",
-  "collateral": [],
+  "collateralCost": "10000000",
+  "collateral": [
+    {
+      "collectionAddress": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collectionPrice": "10000000",
+      "tokenItemList": [
+        {
+          "id": "628",
+          "creation_date": 1721578554
+        }
+      ]
+    }
+  ],
   "ltv": "0",
-  "availableToBorrow": "0",
+  "availableToBorrow": "7272727",
   "ownBids": [],
   "sideBids": []
 }

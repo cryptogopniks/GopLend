@@ -78,6 +78,84 @@ function getSnapshotPath(
   );
 }
 
+/**
+ * Converts a Unix epoch time (in seconds) to a human-readable date string in the format "DD.MM.YYYY HH:MM:SS".
+ * @param unixTimestamp Unix epoch time in seconds
+ * @returns Human-readable date string in the format "DD.MM.YYYY HH:MM:SS"
+ */
+function epochToDateString(unixTimestamp: number): string {
+  const date = new Date(unixTimestamp * 1000);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+
+  return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Converts a human-readable date string in the format "DD.MM.YYYY HH:MM:SS" to a Unix epoch time (in seconds).
+ * @param dateString Human-readable date string in the format "DD.MM.YYYY HH:MM:SS"
+ * @returns Unix epoch time in seconds
+ */
+function dateStringToEpoch(dateString: string): number {
+  const [date, time] = dateString.split(" ");
+  const [day, month, year] = date.split(".");
+  const [hours, minutes, seconds] = time.split(":");
+  const timestamp = new Date(
+    parseInt(year),
+    parseInt(month) - 1,
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes),
+    parseInt(seconds)
+  );
+
+  return Math.floor(timestamp.getTime() / 1000);
+}
+
+/**
+ * Converts a Unix epoch time (in seconds) to a human-readable date string in the format "DD.MM.YYYY HH:MM:SS" (UTC).
+ * @param unixTimestamp Unix epoch time in seconds
+ * @returns Human-readable date string in the format "DD.MM.YYYY HH:MM:SS" (UTC)
+ */
+function epochToDateStringUTC(unixTimestamp: number): string {
+  const date = new Date(unixTimestamp * 1000);
+  const day = date.getUTCDate().toString().padStart(2, "0");
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const hours = date.getUTCHours().toString().padStart(2, "0");
+  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+  const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+
+  return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Converts a human-readable date string in the format "DD.MM.YYYY HH:MM:SS" to a Unix epoch time (in seconds) (UTC).
+ * @param dateString Human-readable date string in the format "DD.MM.YYYY HH:MM:SS"
+ * @returns Unix epoch time in seconds (UTC)
+ */
+function dateStringToEpochUTC(dateString: string): number {
+  const [date, time] = dateString.split(" ");
+  const [day, month, year] = date.split(".");
+  const [hours, minutes, seconds] = time.split(":");
+  const timestamp = new Date(
+    Date.UTC(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hours),
+      parseInt(minutes),
+      parseInt(seconds)
+    )
+  );
+
+  return Math.floor(timestamp.getTime() / 1000);
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -86,4 +164,8 @@ export {
   parseStoreArgs,
   getWallets,
   getSnapshotPath,
+  epochToDateString,
+  dateStringToEpoch,
+  epochToDateStringUTC,
+  dateStringToEpochUTC,
 };
