@@ -25,6 +25,82 @@ pub enum AuthType {
     Specified { allowlist: Vec<Option<Addr>> },
     AdminOrWorkerOrSpecified { allowlist: Vec<Option<Addr>> },
     AdminOrSpecified { allowlist: Vec<Option<Addr>> },
+    Excluded { ignorelist: Vec<Option<Addr>> },
+}
+
+pub fn check_authorization(
+    sender: &Addr,
+    admin: &Addr,
+    worker: &Option<Addr>,
+    auth_type: AuthType,
+) -> StdResult<()> {
+    let worker = unwrap_field(worker.to_owned(), "worker");
+
+    match auth_type {
+        AuthType::Any => {}
+        AuthType::Admin => {
+            if sender != admin {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+        AuthType::AdminOrWorker => {
+            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+        AuthType::Specified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
+
+                false
+            });
+
+            if !is_included {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
+
+                false
+            });
+
+            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+        AuthType::AdminOrSpecified { allowlist } => {
+            let is_included = allowlist.iter().any(|some_address| {
+                if let Some(x) = some_address {
+                    if sender == x {
+                        return true;
+                    }
+                }
+
+                false
+            });
+
+            if !((sender == admin) || is_included) {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+        AuthType::Excluded { ignorelist } => {
+            if ignorelist.contains(&Some(sender.to_owned())) {
+                Err(ContractError::Unauthorized)?;
+            }
+        }
+    };
+
+    Ok(())
 }
 
 #[cw_serde]

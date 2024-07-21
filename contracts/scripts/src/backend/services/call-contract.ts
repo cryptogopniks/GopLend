@@ -60,9 +60,32 @@ async function main() {
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getBalance, getAllBalances, getTimeInNanos } = sgQueryHelpers;
-    const { sgMultiSend, sgIbcHookCall } = sgExecHelpers;
+    const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
 
     const name = NAME as "kujira" | "stargaze";
+
+    // await sgSend(
+    //   "stars1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8lhzvv",
+    //   { amount: "8873880531", denom: TOKEN.BGL_STARS },
+    //   gasPrice
+    // );
+    // return;
+
+    await lending.cwQueryAvailableToBorrow(
+      "main",
+      "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+      undefined,
+      true
+    );
+    await lending.cwQueryTotalAvailableToBorrowLiquidity("main", true);
+    return;
+
+    await lending.cwQueryUserInfo(
+      "main",
+      "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+      true
+    );
+    return;
 
     await lending.cwQueryCommonConfig("main", true);
     return;
