@@ -180,11 +180,9 @@ pub struct RegularBalances {
 #[derive(Default)]
 #[cw_serde]
 pub struct ReserveBalances {
-    /// increased on try_deposit_reserve_liquidity
+    /// increased on try_deposit_reserve_liquidity                                                  \
+    /// decreased on try_withdraw_reserve_liquidity
     pub deposited: Uint128,
-    /// binded to reserve.deposited, doesn't affect on bgl price                                    \
-    /// increased on try_deposit_reserve_liquidity
-    pub bgl_supply: Uint128,
 
     /// used to provide temporary liquidity to withdrawers w/o affecting on bgl price and deposit apr        \
     /// has higher priority than reserve.borrowed                                                    \

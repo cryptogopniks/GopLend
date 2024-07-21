@@ -119,6 +119,11 @@ export interface LendingPlatformMsg {
     unbondingPeriod?: number;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   depositReserveLiquidity: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  withdrawReserveLiquidity: ({
+    amount
+  }: {
+    amount: Uint128;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   reinforceBglToken: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   lock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   unlock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
@@ -171,6 +176,7 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     this.updateRateConfig = this.updateRateConfig.bind(this);
     this.updateCommonConfig = this.updateCommonConfig.bind(this);
     this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
+    this.withdrawReserveLiquidity = this.withdrawReserveLiquidity.bind(this);
     this.reinforceBglToken = this.reinforceBglToken.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
@@ -531,6 +537,25 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           deposit_reserve_liquidity: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  withdrawReserveLiquidity = ({
+    amount
+  }: {
+    amount: Uint128;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          withdraw_reserve_liquidity: {
+            amount
+          }
         })),
         funds: _funds
       })

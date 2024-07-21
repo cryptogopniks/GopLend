@@ -125,6 +125,10 @@ pub enum ExecuteMsg {
     // admin, worker
     DepositReserveLiquidity {},
 
+    WithdrawReserveLiquidity {
+        amount: Uint128,
+    },
+
     ReinforceBglToken {},
 
     Lock {},

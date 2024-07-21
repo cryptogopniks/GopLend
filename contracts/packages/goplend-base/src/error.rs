@@ -148,8 +148,8 @@ pub enum ContractError {
     #[error("Weight is out of range!")]
     WeightIsOutOfRange,
 
-    #[error("Exceeded asset supply!")]
-    ExceededAssetSupply,
+    #[error("Exceeded available asset amount!")]
+    ExceededAvailableAssetAmount,
 
     #[error("Undefined Reply ID!")]
     UndefinedReplyId,
