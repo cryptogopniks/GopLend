@@ -2,10 +2,13 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
-    adapters::scheduler::common::{
-        msg::InstantiateMsg,
-        state::{CLOCK_SOURCE, CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER},
-        types::{Config, Log},
+    adapters::{
+        dex::stargaze::types::Route,
+        scheduler::common::{
+            msg::InstantiateMsg,
+            state::{CLOCK_SOURCE, CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER},
+            types::{Config, Log},
+        },
     },
     error::ContractError,
 };
@@ -60,6 +63,7 @@ pub fn try_instantiate(
         &Log {
             block_time,
             sender: sender.to_owned(),
+            route: Route::Empty,
             counter: LOG_COUNTER,
         },
     )?;

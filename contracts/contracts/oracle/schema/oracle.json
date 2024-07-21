@@ -489,6 +489,7 @@
           "required": [
             "block_time",
             "counter",
+            "outdated_price_collections",
             "sender"
           ],
           "properties": {
@@ -501,6 +502,12 @@
               "type": "integer",
               "format": "uint8",
               "minimum": 0.0
+            },
+            "outdated_price_collections": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Addr"
+              }
             },
             "sender": {
               "$ref": "#/definitions/Addr"

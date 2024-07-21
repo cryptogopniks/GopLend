@@ -67,7 +67,7 @@ pub enum QueryMsg {
     #[returns(u64)]
     QueryBlockTime {},
 
-    #[returns(Vec<crate::adapters::scheduler::common::types::Log>)]
+    #[returns(Vec<crate::oracle::types::Log>)]
     QueryLog {},
 }
 

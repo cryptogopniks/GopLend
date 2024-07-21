@@ -77,5 +77,6 @@ export type ArrayOfLog = Log[];
 export interface Log {
   block_time: number;
   counter: number;
+  route: Route;
   sender: Addr;
 }

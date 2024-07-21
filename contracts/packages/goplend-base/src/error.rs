@@ -50,8 +50,8 @@ pub enum ContractError {
     OutdatedPrice { val: String },
 
     // ------------------------------ faucet ----------------------------------------
-    #[error("Come back later!")]
-    ClaimCooldown,
+    #[error("Come back in {remaining_time_in_mins:?} minutes!")]
+    ClaimCooldown { remaining_time_in_mins: u64 },
 
     // ------------------------------ adapter-scheduler ----------------------------------------
     #[error("Scheduler is executed too early!")]

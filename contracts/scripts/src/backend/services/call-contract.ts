@@ -123,24 +123,22 @@ async function main() {
         {
           collection_address: COLLECTION.STARGAZE.PIGEON,
           price: {
-            amount: "20000000",
-            // amount: "30000000",
+            amount: "10000000",
             currency: CURRENCY.STARS,
           },
           usd_price: {
-            amount: "194000",
-            // amount: "291000",
+            amount: "97000",
             currency: CURRENCY.USDC,
           },
         },
         {
           collection_address: COLLECTION.STARGAZE.SHANE,
           price: {
-            amount: "10000000",
+            amount: "20000000",
             currency: CURRENCY.STARS,
           },
           usd_price: {
-            amount: "97000",
+            amount: "194000",
             currency: CURRENCY.USDC,
           },
         },

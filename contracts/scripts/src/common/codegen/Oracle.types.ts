@@ -90,6 +90,7 @@ export type ArrayOfLog = Log[];
 export interface Log {
   block_time: number;
   counter: number;
+  outdated_price_collections: Addr[];
   sender: Addr;
 }
 export interface PriceRatioItem {

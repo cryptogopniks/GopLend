@@ -442,6 +442,7 @@
           "required": [
             "block_time",
             "counter",
+            "route",
             "sender"
           ],
           "properties": {
@@ -455,11 +456,22 @@
               "format": "uint8",
               "minimum": 0.0
             },
+            "route": {
+              "$ref": "#/definitions/Route"
+            },
             "sender": {
               "$ref": "#/definitions/Addr"
             }
           },
           "additionalProperties": false
+        },
+        "Route": {
+          "type": "string",
+          "enum": [
+            "empty",
+            "neutron",
+            "osmosis"
+          ]
         }
       }
     }

@@ -1,7 +1,6 @@
-use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdResult};
 
 use goplend_base::{
-    adapters::scheduler::common::types::Log,
     assets::{Currency, Funds},
     error::ContractError,
     oracle::{
@@ -9,7 +8,7 @@ use goplend_base::{
             CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO, TRANSFER_ADMIN_STATE,
             TRANSFER_ADMIN_TIMEOUT,
         },
-        types::{Config, PriceItem, PriceRatioItem, RawPriceItem, TransferAdminState},
+        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem, TransferAdminState},
     },
     utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
@@ -27,6 +26,7 @@ pub fn try_set_prices(
     let Config {
         controller,
         execution_cooldown,
+        max_price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -49,6 +49,15 @@ pub fn try_set_prices(
         Err(ContractError::EarlyExecution)?;
     }
 
+    let decreased_block_time =
+        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
+    let outdated_price_collections: Vec<Addr> = PRICE_AND_DATE_LIST
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_, price_item)| decreased_block_time.gt(&price_item.update_date))
+        .map(|(collection_address, _)| collection_address)
+        .collect();
+
     if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
         LOG.pop_front(deps.storage)?;
     }
@@ -57,6 +66,7 @@ pub fn try_set_prices(
         &Log {
             block_time,
             sender: sender_address,
+            outdated_price_collections,
             counter,
         },
     )?;
@@ -129,6 +139,7 @@ pub fn try_update_prices(
     let Config {
         controller,
         execution_cooldown,
+        max_price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -151,6 +162,15 @@ pub fn try_update_prices(
         Err(ContractError::EarlyExecution)?;
     }
 
+    let decreased_block_time =
+        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
+    let outdated_price_collections: Vec<Addr> = PRICE_AND_DATE_LIST
+        .range(deps.storage, None, None, Order::Ascending)
+        .flatten()
+        .filter(|(_, price_item)| decreased_block_time.gt(&price_item.update_date))
+        .map(|(collection_address, _)| collection_address)
+        .collect();
+
     if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
         LOG.pop_front(deps.storage)?;
     }
@@ -159,6 +179,7 @@ pub fn try_update_prices(
         &Log {
             block_time,
             sender: sender_address,
+            outdated_price_collections,
             counter,
         },
     )?;

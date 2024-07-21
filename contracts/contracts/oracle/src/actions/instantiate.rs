@@ -2,14 +2,13 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
-    adapters::scheduler::common::types::Log,
     error::ContractError,
     oracle::{
         msg::InstantiateMsg,
         state::{
             CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER, MAX_PRICE_UPDATE_PERIOD,
         },
-        types::Config,
+        types::{Config, Log},
     },
 };
 
@@ -57,6 +56,7 @@ pub fn try_instantiate(
         &Log {
             block_time,
             sender: sender.to_owned(),
+            outdated_price_collections: vec![],
             counter: LOG_COUNTER,
         },
     )?;

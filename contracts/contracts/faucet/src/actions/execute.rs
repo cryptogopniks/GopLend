@@ -47,7 +47,7 @@ pub fn try_update_config(
 pub fn try_claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
-    let now_in_seconds = env.block.time.seconds();
+    let block_time = env.block.time.seconds();
     let creator = &env.contract.address;
     let denom = TOKEN.load(deps.storage)?;
     let amount = coin(CLAIMABLE_AMOUNT, denom);
@@ -56,11 +56,13 @@ pub fn try_claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response,
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
 
-    if now_in_seconds < last_claimed + CLAIM_COOLDOWN {
-        Err(ContractError::ClaimCooldown)?;
+    if block_time < last_claimed + CLAIM_COOLDOWN {
+        Err(ContractError::ClaimCooldown {
+            remaining_time_in_mins: (last_claimed + CLAIM_COOLDOWN - block_time) / 60,
+        })?;
     }
 
-    LAST_CLAIM_DATE.save(deps.storage, &sender_address, &now_in_seconds)?;
+    LAST_CLAIM_DATE.save(deps.storage, &sender_address, &block_time)?;
 
     let msg_list = vec![
         OsmosisFactory::MsgMint {

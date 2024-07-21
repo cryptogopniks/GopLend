@@ -2,12 +2,11 @@ use cosmwasm_std::StdResult;
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    adapters::scheduler::common::types::Log,
     converters::str_to_dec,
     error::parse_err,
     oracle::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{Config, PriceItem, PriceRatioItem, RawPriceItem},
+        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem},
     },
 };
 

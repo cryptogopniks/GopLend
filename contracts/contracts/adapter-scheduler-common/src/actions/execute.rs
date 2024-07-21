@@ -63,6 +63,7 @@ pub fn try_push(
         &Log {
             block_time,
             sender,
+            route: route.clone(),
             counter,
         },
     )?;
