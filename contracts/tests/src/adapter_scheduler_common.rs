@@ -265,16 +265,19 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         Log {
             block_time: 1571799519,
             sender: ProjectAccount::Bob.into(),
+            route: Route::Empty,
             counter: 2,
         },
         Log {
             block_time: 1571798519,
             sender: ProjectAccount::Alice.into(),
+            route: Route::Empty,
             counter: 1,
         },
         Log {
             block_time: 1571797419,
             sender: ProjectAccount::Admin.into(),
+            route: Route::Empty,
             counter: 0,
         },
     ]);
@@ -508,21 +511,25 @@ fn log_zero_cross() -> StdResult<()> {
         Log {
             block_time: 1572054675,
             sender: ProjectAccount::Scheduler.into(),
+            route: Route::Empty,
             counter: 1,
         },
         Log {
             block_time: 1572053674,
             sender: ProjectAccount::Scheduler.into(),
+            route: Route::Empty,
             counter: 0,
         },
         Log {
             block_time: 1572052673,
             sender: ProjectAccount::Scheduler.into(),
+            route: Route::Empty,
             counter: 255,
         },
         Log {
             block_time: 1572051672,
             sender: ProjectAccount::Scheduler.into(),
+            route: Route::Empty,
             counter: 254,
         },
     ]);

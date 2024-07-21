@@ -1,15 +1,12 @@
 use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 use cw_storage_plus::Bound;
-use goplend_base::{
-    adapters::scheduler::common::types::Log,
-    oracle::{
-        state::{
-            CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
-            PRICE_RATIO,
-        },
-        types::{Config, PriceItem, PriceRatioItem},
+use goplend_base::oracle::{
+    state::{
+        CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
+        PRICE_RATIO,
     },
+    types::{Config, Log, PriceItem, PriceRatioItem},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -52,12 +49,14 @@ pub fn query_prices(
         None => None,
     };
 
+    let decreased_block_time =
+        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
     Ok(PRICE_AND_DATE_LIST
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
             let (_address, mut price_item) = x.unwrap();
-            price_item.is_outdated = block_time > price_item.update_date + max_price_update_period;
+            price_item.is_outdated = decreased_block_time > price_item.update_date;
 
             price_item
         })

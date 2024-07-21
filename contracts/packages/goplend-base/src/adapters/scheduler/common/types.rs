@@ -1,6 +1,8 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 
+use crate::adapters::dex::stargaze::types::Route;
+
 #[cw_serde]
 pub enum ClockSource {
     Onchain,
@@ -28,5 +30,6 @@ pub struct TransferAdminState {
 pub struct Log {
     pub block_time: u64,
     pub sender: Addr,
+    pub route: Route,
     pub counter: u8,
 }

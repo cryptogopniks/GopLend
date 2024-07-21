@@ -169,7 +169,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4380,
+              CODE: 4395,
               ADDRESS:
                 "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k",
             },
@@ -281,7 +281,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 4317,
+              CODE: 4396,
               ADDRESS:
                 "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7",
             },
@@ -299,7 +299,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<FaucetTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 4303,
+              CODE: 4397,
               ADDRESS:
                 "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8",
             },

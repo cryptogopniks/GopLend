@@ -1,10 +1,7 @@
 use cosmwasm_std::Addr;
 use cw_storage_plus::{Deque, Item, Map};
 
-use crate::{
-    adapters::scheduler::common::types::Log,
-    oracle::types::{Config, TransferAdminState},
-};
+use crate::oracle::types::{Config, Log, TransferAdminState};
 
 use super::types::{PriceItem, PriceRatioItem};
 
