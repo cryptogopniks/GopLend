@@ -41,7 +41,7 @@ async function getSgExecHelpers(
         amount: [amount],
       },
     };
-    const tx = await signAndBroadcast([msg], gasPrice);
+    const tx = await signAndBroadcast([msg], gasPrice, 1.1);
     l("\n", tx, "\n");
     return tx;
   }

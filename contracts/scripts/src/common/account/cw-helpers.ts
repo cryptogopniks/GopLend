@@ -1204,6 +1204,17 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMinterUpdateTokenOwner(
+    denom: string,
+    owner: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.updateTokenOwner({ denom, owner })],
+      gasPrice
+    );
+  }
+
   // minter-kujira
 
   async function cwMinterKujiraCreateNative(
@@ -1524,6 +1535,7 @@ async function getCwExecHelpers(
         cwRegisterCurrency,
         cwAcceptAdminRole: cwMinterAcceptAdminRole,
         cwUpdateConfig: cwMinterUpdateConfig,
+        cwUpdateTokenOwner: cwMinterUpdateTokenOwner,
       },
     },
     oracle: {
