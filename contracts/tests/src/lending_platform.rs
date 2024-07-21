@@ -2431,7 +2431,7 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 }
 
 #[test]
-fn unbond_as_reserve_liquidity_provider() -> StdResult<()> {
+fn withdraw_reserve_liquidity_default() -> StdResult<()> {
     let mut project = Project::new();
     let config = project.lending_platform_query_common_config(PlatformType::Main)?;
     let bgl_token = config
@@ -2453,19 +2453,24 @@ fn unbond_as_reserve_liquidity_provider() -> StdResult<()> {
     let balances = project.lending_platform_query_balances(PlatformType::Main)?;
     assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
 
+    let admin_main_balance_before =
+        project.query_balance(ProjectAccount::Admin, &ProjectCoin::Stars)?;
+
     let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token)?;
-    assert_that(&admin_bgl_balance).is_equal_to(INITIAL_LIQUIDITY);
+    assert_that(&admin_bgl_balance).is_equal_to(0);
 
     // unbond
-    let res = project
-        .lending_platform_try_unbond(
-            ProjectAccount::Admin,
-            PlatformType::Main,
-            10 * DEPOSIT_AMOUNT,
-            &bgl_token,
-        )
-        .unwrap_err();
-    assert_error(&res, ContractError::Unauthorized);
+    project.lending_platform_try_withdraw_reserve_liquidity(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        INITIAL_LIQUIDITY,
+    )?;
+
+    let admin_main_balance_after =
+        project.query_balance(ProjectAccount::Admin, &ProjectCoin::Stars)?;
+
+    assert_that(&(admin_main_balance_after - admin_main_balance_before))
+        .is_equal_to(INITIAL_LIQUIDITY);
 
     Ok(())
 }
@@ -3226,7 +3231,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -3493,7 +3498,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -3703,7 +3708,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -3913,7 +3918,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -4123,7 +4128,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -4327,7 +4332,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -4537,7 +4542,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -4747,7 +4752,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -4964,7 +4969,7 @@ fn single_discount_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -5099,7 +5104,6 @@ fn single_discount_liquidation() -> StdResult<()> {
         },
         reserve: ReserveBalances {
             deposited: Uint128::new(INITIAL_LIQUIDITY),
-            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
             withdrawn: Uint128::new(0),
             borrowed: Vault {
                 creation_date: 1571797519,
@@ -5220,7 +5224,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -5387,7 +5391,6 @@ fn multiple_discount_liquidation() -> StdResult<()> {
         },
         reserve: ReserveBalances {
             deposited: Uint128::new(INITIAL_LIQUIDITY),
-            bgl_supply: Uint128::new(INITIAL_LIQUIDITY),
             withdrawn: Uint128::new(0),
             borrowed: Vault {
                 creation_date: 1571797529,
@@ -5574,7 +5577,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -5859,7 +5862,7 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -6215,7 +6218,7 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -6635,7 +6638,7 @@ fn big_numbers() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT,
         ProjectCoin::Stars,
@@ -6643,7 +6646,7 @@ fn big_numbers() -> StdResult<()> {
 
     // unbond
     project.lending_platform_try_unbond(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT / 2,
         &bgl_token,
@@ -6693,7 +6696,6 @@ fn big_numbers() -> StdResult<()> {
         },
         reserve: ReserveBalances {
             deposited: Uint128::new(100_000_100_000_000_000),
-            bgl_supply: Uint128::new(100_000_100_000_000_000),
             withdrawn: Uint128::new(0),
             borrowed: Vault {
                 creation_date: 1887157419,
@@ -7388,7 +7390,7 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -7705,7 +7707,7 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         2 * AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -7974,7 +7976,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -8298,7 +8300,7 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
 
     // deposit
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Main,
         2 * AMOUNT_TO_BORROW,
         ProjectCoin::Stars,
@@ -8665,7 +8667,7 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         .u128();
 
     project.lending_platform_try_deposit(
-        ProjectAccount::Kate,
+        ProjectAccount::Admin,
         PlatformType::Stable,
         amount_to_borrow,
         ProjectCoin::Usdc,

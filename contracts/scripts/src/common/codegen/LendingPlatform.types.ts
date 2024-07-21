@@ -114,6 +114,10 @@ export type ExecuteMsg = {
 } | {
   deposit_reserve_liquidity: {};
 } | {
+  withdraw_reserve_liquidity: {
+    amount: Uint128;
+  };
+} | {
   reinforce_bgl_token: {};
 } | {
   lock: {};
@@ -350,7 +354,6 @@ export interface Vault {
   creation_date: number;
 }
 export interface ReserveBalances {
-  bgl_supply: Uint128;
   borrowed: Vault;
   deposited: Uint128;
   withdrawn: Uint128;

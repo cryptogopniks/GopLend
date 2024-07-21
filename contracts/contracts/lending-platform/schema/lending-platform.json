@@ -709,6 +709,27 @@
       {
         "type": "object",
         "required": [
+          "withdraw_reserve_liquidity"
+        ],
+        "properties": {
+          "withdraw_reserve_liquidity": {
+            "type": "object",
+            "required": [
+              "amount"
+            ],
+            "properties": {
+              "amount": {
+                "$ref": "#/definitions/Uint128"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "reinforce_bgl_token"
         ],
         "properties": {
@@ -2120,20 +2141,11 @@
         "ReserveBalances": {
           "type": "object",
           "required": [
-            "bgl_supply",
             "borrowed",
             "deposited",
             "withdrawn"
           ],
           "properties": {
-            "bgl_supply": {
-              "description": "binded to reserve.deposited, doesn't affect on bgl price                                    \\ increased on try_deposit_reserve_liquidity",
-              "allOf": [
-                {
-                  "$ref": "#/definitions/Uint128"
-                }
-              ]
-            },
             "borrowed": {
               "description": "used to provide temporary liquidity to borrowers w/o affecting on bgl price and deposit apr        \\ accumulated rewards goes to regular part as reserve liquidity provider can't earn           \\ increased on try_borrow if regular.deposited - regular.unbonded - regular.borrowed == 0     \\ decreased on try_repay, try_liquidate if reserve.borrowed > 0",
               "allOf": [
@@ -2143,7 +2155,7 @@
               ]
             },
             "deposited": {
-              "description": "increased on try_deposit_reserve_liquidity",
+              "description": "increased on try_deposit_reserve_liquidity                                                  \\ decreased on try_withdraw_reserve_liquidity",
               "allOf": [
                 {
                   "$ref": "#/definitions/Uint128"

@@ -911,6 +911,21 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwWithdrawReserveLiquidity(
+    platformType: PlatformType,
+    amount: number,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        getPlatformComposer(platformType).withdrawReserveLiquidity({
+          amount: amount.toString(),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   async function cwReinforceBglToken(
     platformType: PlatformType,
     amount: number,
@@ -1503,6 +1518,7 @@ async function getCwExecHelpers(
       cwUpdateRateConfig: cwLendingPlatformUpdateRateConfig,
       cwUpdateCommonConfig: cwLendingPlatformUpdateCommonConfig,
       cwDepositReserveLiquidity,
+      cwWithdrawReserveLiquidity,
       cwReinforceBglToken,
       cwLock,
       cwUnlock,

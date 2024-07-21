@@ -601,6 +601,11 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
     unbondingPeriod?: number;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   depositReserveLiquidity: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  withdrawReserveLiquidity: ({
+    amount
+  }: {
+    amount: Uint128;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   reinforceBglToken: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
@@ -656,6 +661,7 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     this.updateRateConfig = this.updateRateConfig.bind(this);
     this.updateCommonConfig = this.updateCommonConfig.bind(this);
     this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
+    this.withdrawReserveLiquidity = this.withdrawReserveLiquidity.bind(this);
     this.reinforceBglToken = this.reinforceBglToken.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
@@ -883,6 +889,17 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
   depositReserveLiquidity = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       deposit_reserve_liquidity: {}
+    }, fee, memo, _funds);
+  };
+  withdrawReserveLiquidity = async ({
+    amount
+  }: {
+    amount: Uint128;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      withdraw_reserve_liquidity: {
+        amount
+      }
     }, fee, memo, _funds);
   };
   reinforceBglToken = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {

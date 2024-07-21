@@ -56,12 +56,7 @@ pub fn try_deposit(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::Excluded {
-            ignorelist: vec![
-                Some(address_config.admin.to_owned()),
-                address_config.worker.to_owned(),
-            ],
-        },
+        AuthType::Any,
     )?;
 
     let block_time = env.block.time.seconds();
@@ -125,12 +120,7 @@ pub fn try_unbond(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::Excluded {
-            ignorelist: vec![
-                Some(address_config.admin.to_owned()),
-                address_config.worker.to_owned(),
-            ],
-        },
+        AuthType::Any,
     )?;
 
     let block_time = env.block.time.seconds();
@@ -159,12 +149,6 @@ pub fn try_unbond(
     balances.regular.unbonded += main_token_amount;
 
     BALANCES.save(deps.storage, &balances)?;
-
-    // check if unbonded bgl amount isn't bigger than regular bgl supply
-    // weak checker to prevent burning reserve pool bgl tokens
-    if asset_amount > balances.regular.bgl_supply {
-        Err(ContractError::ExceededAssetSupply)?;
-    }
 
     // create unbonding position to withdraw main token later
     UNBONDERS.update(deps.storage, &sender_address, |x| -> StdResult<Unbonder> {
@@ -212,12 +196,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::Excluded {
-            ignorelist: vec![
-                Some(address_config.admin.to_owned()),
-                address_config.worker.to_owned(),
-            ],
-        },
+        AuthType::Any,
     )?;
 
     let block_time = env.block.time.seconds();
@@ -1834,7 +1813,7 @@ pub fn try_update_common_config(
 
 pub fn try_deposit_reserve_liquidity(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     sender: Option<String>,
     amount: Option<Uint128>,
@@ -1850,11 +1829,7 @@ pub fn try_deposit_reserve_liquidity(
         AuthType::AdminOrWorker,
     )?;
 
-    let block_time = env.block.time.seconds();
-    let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(address_config.minter, "minter")?;
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
@@ -1864,45 +1839,52 @@ pub fn try_deposit_reserve_liquidity(
         Err(ContractError::WrongAssetType)?;
     }
 
-    // update contract balances
-    let mut balances = BALANCES.load(deps.storage)?;
-
-    let expected_rewards = math::calc_expected_rewards(
-        block_time,
-        balances.regular.borrowed.creation_date,
-        rate_config.borrow_apr,
-        rate_config.borrow_fee_rate,
-        balances.regular.borrowed.amount,
-    );
-    let rewards = balances.regular.accumulated_rewards + expected_rewards;
-
-    let bgl_token_amount = math::calc_minted_bgl_token_amount(
-        asset_amount,
-        balances.regular.main_pool,
-        balances.regular.bgl_supply,
-        rewards,
-    );
-
     // it doesn't affect on deposit APR
-    balances.reserve.deposited += asset_amount;
-    balances.reserve.bgl_supply += bgl_token_amount;
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        x.reserve.deposited += asset_amount;
+        Ok(x)
+    })?;
 
-    BALANCES.save(deps.storage, &balances)?;
+    Ok(Response::new().add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
+}
 
-    // mint bgl_token to sender
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: minter_address.to_string(),
-        msg: to_json_binary(&minter::msg::ExecuteMsg::Mint {
-            token: bgl_currency.token.into(),
-            amount: bgl_token_amount,
-            recipient: sender_address.to_string(),
-        })?,
-        funds: vec![],
-    });
+pub fn try_withdraw_reserve_liquidity(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    amount: Uint128,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
+
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+
+    if amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
+    // update contract balances
+    BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
+        if amount > x.reserve.deposited - x.reserve.borrowed.amount - x.reserve.withdrawn {
+            Err(ContractError::ExceededAvailableAssetAmount)?;
+        }
+        x.reserve.deposited -= amount;
+        Ok(x)
+    })?;
+
+    // send main_token
+    let msg = get_transfer_msg(&sender_address, amount, &common_config.main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
+        .add_attributes(vec![("action", "try_withdraw_reserve_liquidity")]))
 }
 
 pub fn try_reinforce_bgl_token(

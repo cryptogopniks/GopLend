@@ -4,10 +4,10 @@
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "0",
+    "accumulated_loan": "209",
     "loan": {
-      "creation_date": 0,
-      "amount": "0"
+      "creation_date": 1721575592,
+      "amount": "20100000"
     }
   },
   "collateralCost": "0",

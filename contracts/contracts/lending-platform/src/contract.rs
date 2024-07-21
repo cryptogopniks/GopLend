@@ -201,6 +201,10 @@ pub fn execute(
             e::try_deposit_reserve_liquidity(deps, env, info, None, None)
         }
 
+        ExecuteMsg::WithdrawReserveLiquidity { amount } => {
+            e::try_withdraw_reserve_liquidity(deps, env, info, amount)
+        }
+
         ExecuteMsg::ReinforceBglToken {} => e::try_reinforce_bgl_token(deps, env, info, None, None),
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),

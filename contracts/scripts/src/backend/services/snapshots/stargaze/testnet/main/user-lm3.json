@@ -4,16 +4,31 @@
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "0",
+    "accumulated_loan": "179",
     "loan": {
-      "creation_date": 0,
-      "amount": "0"
+      "creation_date": 1721575144,
+      "amount": "13000393"
     }
   },
-  "collateralCost": "0",
-  "collateral": [],
-  "ltv": "0",
-  "availableToBorrow": "0",
+  "collateralCost": "40000000",
+  "collateral": [
+    {
+      "collectionAddress": "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu",
+      "collectionPrice": "20000000",
+      "tokenItemList": [
+        {
+          "id": "2",
+          "creation_date": 1721567106
+        },
+        {
+          "id": "3",
+          "creation_date": 1721570667
+        }
+      ]
+    }
+  ],
+  "ltv": "0.325014168976447155",
+  "availableToBorrow": "16090343",
   "ownBids": [],
   "sideBids": []
 }
