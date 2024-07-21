@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
+    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
 };
 
 use goplend_base::{
@@ -12,7 +12,7 @@ use goplend_base::{
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
-    utils::{check_funds, unwrap_field, AuthType, FundsType},
+    utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
 
 // offchain handler
@@ -92,6 +92,7 @@ pub fn try_accept_admin_role(
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
     let block_time = env.block.time.seconds();
     let TransferAdminState {
         new_admin,
@@ -99,8 +100,9 @@ pub fn try_accept_admin_role(
     } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
 
     check_authorization(
-        deps.as_ref(),
         &sender_address,
+        &admin,
+        &worker,
         AuthType::Specified {
             allowlist: vec![Some(new_admin)],
         },
@@ -139,9 +141,16 @@ pub fn try_update_config(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
+    let current_admin = &config.admin;
+    let current_worker = &config.worker.clone();
 
     if let Some(x) = admin {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
         let block_time = env.block.time.seconds();
         let new_admin = &deps.api.addr_validate(&x)?;
 
@@ -157,25 +166,45 @@ pub fn try_update_config(
     }
 
     if let Some(x) = worker {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
         config.worker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = lending_platform_main {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.lending_platform_main = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = lending_platform_stable {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = offchain_clock {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.offchain_clock = Some(
             x.into_iter()
                 .map(|y| deps.api.addr_validate(&y))
@@ -185,13 +214,23 @@ pub fn try_update_config(
     }
 
     if let Some(x) = clock_source {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.clock_source = x;
         is_config_updated = true;
     }
 
     if let Some(x) = execution_cooldown {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.execution_cooldown = x;
         is_config_updated = true;
     }
@@ -204,70 +243,4 @@ pub fn try_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "try_update_config"))
-}
-
-fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
-    let worker = unwrap_field(worker, "worker");
-
-    match auth_type {
-        AuthType::Any => {}
-        AuthType::Admin => {
-            if sender != admin {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrWorker => {
-            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::Specified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !is_included {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-    };
-
-    Ok(())
 }

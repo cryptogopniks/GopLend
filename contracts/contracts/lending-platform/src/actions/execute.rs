@@ -26,16 +26,16 @@ use goplend_base::{
     },
     minter, oracle,
     utils::{
-        add_funds_to_exec_msg, check_funds, get_collection_operator_approvals, get_transfer_msg,
-        unwrap_field, AuthType, FundsType,
+        add_funds_to_exec_msg, check_authorization, check_funds, get_collection_operator_approvals,
+        get_transfer_msg, unwrap_field, AuthType, FundsType,
     },
 };
 
 use crate::{
     actions::query,
     helpers::{
-        accumulate_expected_rewards, check_authorization, check_collections_holder, check_lockout,
-        choose_price, increase_platform_revenue, update_balances, update_borrowers_storages,
+        accumulate_expected_rewards, check_collections_holder, check_lockout, choose_price,
+        increase_platform_revenue, update_balances, update_borrowers_storages,
         update_liquidation_storages, verify_proposal_status,
     },
     math,
@@ -51,10 +51,20 @@ pub fn try_deposit(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Excluded {
+            ignorelist: vec![
+                Some(address_config.admin.to_owned()),
+                address_config.worker.to_owned(),
+            ],
+        },
+    )?;
 
     let block_time = env.block.time.seconds();
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
     let minter_address = unwrap_field(address_config.minter, "minter")?;
@@ -110,7 +120,18 @@ pub fn try_unbond(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Excluded {
+            ignorelist: vec![
+                Some(address_config.admin.to_owned()),
+                address_config.worker.to_owned(),
+            ],
+        },
+    )?;
 
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
@@ -186,10 +207,20 @@ pub fn try_unbond(
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Excluded {
+            ignorelist: vec![
+                Some(address_config.admin.to_owned()),
+                address_config.worker.to_owned(),
+            ],
+        },
+    )?;
 
     let block_time = env.block.time.seconds();
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
     let minter_address = unwrap_field(address_config.minter, "minter")?;
@@ -285,7 +316,13 @@ pub fn try_deposit_collateral(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
@@ -317,7 +354,6 @@ pub fn try_deposit_collateral(
 
     // query collection prices
     let block_time = env.block.time.seconds();
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
@@ -479,7 +515,13 @@ pub fn try_withdraw_collateral(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
@@ -510,7 +552,6 @@ pub fn try_withdraw_collateral(
     }
 
     // query collection prices
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
@@ -649,7 +690,13 @@ pub fn try_borrow(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -743,7 +790,13 @@ pub fn try_repay(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -857,7 +910,13 @@ pub fn try_place_bid(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -1059,7 +1118,13 @@ pub fn try_update_bid(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -1247,7 +1312,13 @@ pub fn try_remove_bid(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
 
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1340,8 +1411,9 @@ pub fn try_liquidate(
     let adapter_scheduler = unwrap_field(address_config.adapter_scheduler, "adapter_scheduler")?;
 
     check_authorization(
-        deps.as_ref(),
         &sender_address,
+        &address_config.admin,
+        &address_config.worker,
         AuthType::Specified {
             allowlist: vec![Some(adapter_scheduler)],
         },
@@ -1477,6 +1549,7 @@ pub fn try_accept_admin_role(
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let block_time = env.block.time.seconds();
     let TransferAdminState {
         new_admin,
@@ -1484,8 +1557,9 @@ pub fn try_accept_admin_role(
     } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
 
     check_authorization(
-        deps.as_ref(),
         &sender_address,
+        &address_config.admin,
+        &address_config.worker,
         AuthType::Specified {
             allowlist: vec![Some(new_admin)],
         },
@@ -1526,9 +1600,16 @@ pub fn try_update_address_config(
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = ADDRESS_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
+    let current_admin = &config.admin;
+    let current_worker = &config.worker.clone();
 
     if let Some(x) = admin {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
         let block_time = env.block.time.seconds();
         let new_admin = &deps.api.addr_validate(&x)?;
 
@@ -1544,31 +1625,56 @@ pub fn try_update_address_config(
     }
 
     if let Some(x) = worker {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
         config.worker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = oracle {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.oracle = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = minter {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.minter = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = adapter_scheduler {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.adapter_scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = adapter_marketplace {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
         config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
@@ -1597,43 +1703,44 @@ pub fn try_update_rate_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = RATE_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
 
     if let Some(x) = borrow_apr {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.borrow_apr = x;
         is_config_updated = true;
     }
 
     if let Some(x) = borrow_fee_rate {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.borrow_fee_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = liquidation_fee_rate {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.liquidation_fee_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = discount_min_rate {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.discount_min_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = discount_max_rate {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.discount_max_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = bid_min_rate {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.bid_min_rate = x;
         is_config_updated = true;
     }
@@ -1662,6 +1769,7 @@ pub fn try_update_common_config(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
     accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
@@ -1669,7 +1777,7 @@ pub fn try_update_common_config(
     let mut is_config_updated = false;
 
     if let Some(x) = main_currency {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
 
         if !balances.regular.main_pool.is_zero() {
             Err(ContractError::ChangingCurrency)?;
@@ -1680,7 +1788,7 @@ pub fn try_update_common_config(
     }
 
     if let Some(x) = bgl_currency {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
 
         if !balances.regular.bgl_supply.is_zero() {
             Err(ContractError::ChangingCurrency)?;
@@ -1691,25 +1799,25 @@ pub fn try_update_common_config(
     }
 
     if let Some(x) = unbonding_period {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.unbonding_period = x;
         is_config_updated = true;
     }
 
     if let Some(x) = collateral_min_value {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.collateral_min_value = x;
         is_config_updated = true;
     }
 
     if let Some(x) = borrowers_reserve_fraction_ratio {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.borrowers_reserve_fraction_ratio = x;
         is_config_updated = true;
     }
 
     if let Some(x) = is_marketplace_interface_enabled {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::AdminOrWorker)?;
         config.is_marketplace_interface_enabled = x;
         is_config_updated = true;
     }
@@ -1734,10 +1842,15 @@ pub fn try_deposit_reserve_liquidity(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     let block_time = env.block.time.seconds();
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
@@ -1802,7 +1915,13 @@ pub fn try_reinforce_bgl_token(
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1826,7 +1945,13 @@ pub fn try_reinforce_bgl_token(
 
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
 
@@ -1835,7 +1960,13 @@ pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response,
 
 pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
 
@@ -1850,7 +1981,13 @@ pub fn try_distribute_funds(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     // verify weights
     // check if all weights are in range [0, 1]
@@ -1911,7 +2048,13 @@ pub fn try_remove_collection(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     // update state
     let collection_address = &deps.api.addr_validate(&address)?;
@@ -1928,7 +2071,13 @@ pub fn try_create_proposal(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     // verify proposal fields
     let Proposal {
@@ -2022,7 +2171,13 @@ pub fn try_reject_proposal(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::AdminOrWorker,
+    )?;
 
     // update proposal status
     PROPOSALS.update(
@@ -2125,9 +2280,11 @@ pub fn try_accept_proposal(
     };
 
     // verify sender
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
-        deps.as_ref(),
         &sender_address,
+        &address_config.admin,
+        &address_config.worker,
         AuthType::Specified {
             allowlist: vec![Some(collection.owner.clone())],
         },

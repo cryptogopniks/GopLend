@@ -7,16 +7,16 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, IS_LOCKED, LIQUIDATION_BIDS,
-            PLATFORM_REVENUE, RATE_CONFIG,
+            BALANCES, BORROWERS, COLLATERALS, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
+            RATE_CONFIG,
         },
         types::{
-            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, TokenItem, Vault,
+            Balances, BidType, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
+            LiquidationBid, Proposal, ProposalStatus, TokenItem, Vault,
         },
     },
     oracle::types::PriceItem,
-    utils::{unwrap_field, AuthType},
+    utils::unwrap_field,
 };
 
 use crate::math;
@@ -46,72 +46,6 @@ pub fn verify_proposal_status(
     if proposal_status != &expected {
         Err(ContractError::WrongProposalStatus)?;
     }
-
-    Ok(())
-}
-
-pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
-    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
-    let worker = unwrap_field(worker, "worker");
-
-    match auth_type {
-        AuthType::Any => {}
-        AuthType::Admin => {
-            if sender != admin {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrWorker => {
-            if !((sender == admin) || (worker.is_ok() && sender == worker?)) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::Specified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !is_included {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrWorkerOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || (worker.is_ok() && sender == worker?) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-        AuthType::AdminOrSpecified { allowlist } => {
-            let is_included = allowlist.iter().any(|some_address| {
-                if let Some(x) = some_address {
-                    if sender == x {
-                        return true;
-                    }
-                }
-
-                false
-            });
-
-            if !((sender == admin) || is_included) {
-                Err(ContractError::Unauthorized)?;
-            }
-        }
-    };
 
     Ok(())
 }
