@@ -64,6 +64,18 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    await lending.cwQueryBalances("stable", true);
+    await lending.cwQueryConditionalDepositApr("stable", 0, true);
+    return;
+
+    // await lending.cwQueryCollateralByOwner(
+    //   "stable",
+    //   "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+    //   true
+    // );
+    // await oracle.cwQueryPrices(100, undefined, undefined, true);
+    // return;
+
     // await sgSend(
     //   "stars1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8lhzvv",
     //   { amount: "8873880531", denom: TOKEN.BGL_STARS },
