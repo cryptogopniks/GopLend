@@ -1,21 +1,21 @@
 [
   {
-    "address": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+    "address": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     "borrower": {
-      "accumulated_loan": "1099",
+      "accumulated_loan": "855039",
       "loan": {
-        "creation_date": 1721579686,
-        "amount": "63000000"
+        "creation_date": 1721582876,
+        "amount": "123100000"
       }
     }
   },
   {
-    "address": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    "address": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
     "borrower": {
-      "accumulated_loan": "851",
+      "accumulated_loan": "439040",
       "loan": {
-        "creation_date": 1721575592,
-        "amount": "20100000"
+        "creation_date": 1721579686,
+        "amount": "63000000"
       }
     }
   }

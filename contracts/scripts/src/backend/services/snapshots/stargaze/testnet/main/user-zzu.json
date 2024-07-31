@@ -1,19 +1,65 @@
 {
+  "mainTokenBalance": "206888686413",
   "bglTokenBalance": "0",
   "unbonder": {
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "0",
+    "accumulated_loan": "21194",
     "loan": {
-      "creation_date": 0,
-      "amount": "0"
+      "creation_date": 1722193815,
+      "amount": "10000000"
     }
   },
-  "collateralCost": "0",
-  "collateral": [],
-  "ltv": "0",
-  "availableToBorrow": "0",
+  "collateralCost": "120000000",
+  "collateral": [
+    {
+      "collectionAddress": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "collectionPrice": "10000000",
+      "tokenItemList": [
+        {
+          "id": "327",
+          "creation_date": 1722193273
+        },
+        {
+          "id": "4",
+          "creation_date": 1722193295
+        }
+      ]
+    },
+    {
+      "collectionAddress": "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+      "collectionPrice": "50000000",
+      "tokenItemList": [
+        {
+          "id": "10",
+          "creation_date": 1722459293
+        },
+        {
+          "id": "24",
+          "creation_date": 1722461070
+        }
+      ]
+    }
+  ],
+  "ltv": "0.083509912613098258",
+  "availableToBorrow": "77251538",
   "ownBids": [],
-  "sideBids": []
+  "sideBids": [
+    {
+      "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "liquidation_bids": [
+        {
+          "creation_date": 1722348383,
+          "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+          "token_id_list": [
+            "327"
+          ],
+          "amount": "1000000",
+          "discount": "0.01",
+          "bid_type": "liquidation_bid"
+        }
+      ]
+    }
+  ]
 }
