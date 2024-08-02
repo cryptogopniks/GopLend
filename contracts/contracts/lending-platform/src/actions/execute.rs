@@ -391,6 +391,7 @@ pub fn try_deposit_collateral(
                 val: collection_address.to_string(),
             })?;
 
+        // TODO: must return error but doesn't do it
         if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),

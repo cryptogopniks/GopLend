@@ -119,11 +119,17 @@ async function main(userAddress: string) {
   for (const platform of platformList) {
     l("\n", { platform });
 
-    const { is_marketplace_interface_enabled, bgl_currency } =
+    const { is_marketplace_interface_enabled, main_currency, bgl_currency } =
       await lending.cwQueryCommonConfig(platform);
+
+    const mainToken = main_currency?.token;
+    if (!mainToken) throw new Error("mainToken isn't found!");
 
     const bglToken = bgl_currency?.token;
     if (!bglToken) throw new Error("bglToken isn't found!");
+
+    const mainDenom = "native" in mainToken ? mainToken.native.denom : "";
+    const mainTokenBalance = (await getBalance(userAddress, mainDenom)).amount;
 
     const bglDenom = "native" in bglToken ? bglToken.native.denom : "";
     const bglTokenBalance = (await getBalance(userAddress, bglDenom)).amount;
@@ -212,6 +218,7 @@ async function main(userAddress: string) {
     }
 
     const userInfo = {
+      mainTokenBalance,
       bglTokenBalance,
       unbonder,
       borrower,
@@ -239,4 +246,5 @@ async function main(userAddress: string) {
   }
 }
 
-main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");
+main("stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu");
+// main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");
