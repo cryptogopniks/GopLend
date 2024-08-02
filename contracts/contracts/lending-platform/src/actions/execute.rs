@@ -93,9 +93,9 @@ pub fn try_deposit(
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: minter_address.to_string(),
         msg: to_json_binary(&minter::msg::ExecuteMsg::Mint {
-            token: bgl_currency.token.into(),
+            denom_or_address: bgl_currency.token.get_denom_or_address(),
             amount: bgl_token_amount,
-            recipient: sender_address.to_string(),
+            recipient: Some(sender_address.to_string()),
         })?,
         funds: vec![],
     });

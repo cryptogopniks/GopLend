@@ -15,10 +15,6 @@ use goplend_base::{
         state::{BGL_CURRENCY_DECIMALS, CHAIN_ID_STARGAZE_MAIN},
         types::TokenItem,
     },
-    minter::{
-        state::{BGLSTARS_NAME, BGLSTARS_SYMBOL, BGLUSDC_NAME, BGLUSDC_SYMBOL},
-        types::QueryCurrenciesFromCreatorResponse,
-    },
 };
 
 use crate::helpers::{
@@ -38,6 +34,11 @@ use crate::helpers::{
         },
     },
 };
+
+pub const BGLSTARS_NAME: &str = "bonded GopLend STARS";
+pub const BGLSTARS_SYMBOL: &str = "bglSTARS";
+pub const BGLUSDC_NAME: &str = "bonded GopLend USDC";
+pub const BGLUSDC_SYMBOL: &str = "bglUSDC";
 
 pub const INITIAL_LIQUIDITY: u128 = 100_000_000_000;
 
@@ -254,8 +255,14 @@ impl Project {
             &None,
         );
         let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None, &None);
-        let minter_address =
-            project.instantiate_minter(minter_code_id, &None, &Some(cw20_base_code_id));
+        let minter_address = project.instantiate_minter(
+            minter_code_id,
+            &None,
+            &Some(cw20_base_code_id),
+            &None,
+            &None,
+            &None,
+        );
         let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
             adapter_scheduler_common_code_id,
             &None,
@@ -326,7 +333,10 @@ impl Project {
         project
             .minter_try_create_cw20(
                 ProjectAccount::Admin,
-                &project.get_lending_platform_main_address(),
+                &None,
+                &Some(vec![project.get_lending_platform_main_address()]),
+                &None,
+                &None,
                 BGLSTARS_NAME,
                 BGLSTARS_SYMBOL,
                 &Some(BGL_CURRENCY_DECIMALS),
@@ -336,7 +346,10 @@ impl Project {
         project
             .minter_try_create_cw20(
                 ProjectAccount::Admin,
-                &project.get_lending_platform_stable_address(),
+                &None,
+                &Some(vec![project.get_lending_platform_stable_address()]),
+                &None,
+                &None,
                 BGLUSDC_NAME,
                 BGLUSDC_SYMBOL,
                 &Some(BGL_CURRENCY_DECIMALS),
@@ -344,15 +357,11 @@ impl Project {
             )
             .unwrap();
 
-        let QueryCurrenciesFromCreatorResponse { currencies } = project
-            .minter_query_currencies_by_creator(&project.get_lending_platform_main_address())
+        let currency_info_list_by_owner = project
+            .minter_query_currency_info_list_by_owner(ProjectAccount::Admin, 2, &None)
             .unwrap();
-        let bgl_stars_currency = &currencies[0];
-
-        let QueryCurrenciesFromCreatorResponse { currencies } = project
-            .minter_query_currencies_by_creator(&project.get_lending_platform_stable_address())
-            .unwrap();
-        let bgl_usdc_currency = &currencies[0];
+        let bgl_stars_currency = &currency_info_list_by_owner[0].currency;
+        let bgl_usdc_currency = &currency_info_list_by_owner[1].currency;
 
         for platform_type in [PlatformType::Main, PlatformType::Stable] {
             let bgl_currency: Currency<TokenUnverified> = match &platform_type {

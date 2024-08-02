@@ -1,27 +1,28 @@
 use cosmwasm_std::Addr;
 use cw_storage_plus::{Deque, Item, Map};
 
-use crate::{
-    assets::{Currency, Token},
-    minter::types::{Config, TransferAdminState},
-};
+use crate::minter::types::{Config, CurrencyInfo, TransferAdminState};
 
-pub const CONTRACT_NAME: &str = "goplend-minter";
+pub const CONTRACT_NAME: &str = "minter";
 
-pub const CW20_CODE_ID: u64 = 1;
+pub const TRANSFER_ADMIN_TIMEOUT: u64 = 3600;
+
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 
-pub const BGLSTARS_NAME: &str = "bonded GopLend STARS";
-pub const BGLSTARS_SYMBOL: &str = "bglSTARS";
-pub const BGLUSDC_NAME: &str = "bonded GopLend USDC";
-pub const BGLUSDC_SYMBOL: &str = "bglUSDC";
 pub const DEFAULT_DECIMALS: u8 = 6;
+pub const MAX_TOKENS_PER_OWNER: u16 = 10;
 
-pub const TRANSFER_ADMIN_TIMEOUT: u64 = 7 * 24 * 3600;
-
+/// Stores user functions pause flag
+pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer admin state");
 
-pub const OWNERS: Map<&str, (Currency<Token>, Addr)> = Map::new("currency and owner by denom");
+/// Stores the state of changing admin process
+pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
+/// Stores the state of changing token owner process
+pub const TRANSFER_OWNER_STATE: Item<Vec<(String, TransferAdminState)>> =
+    Item::new("denom_or_address_and_transfer_owner_state");
 
-pub const OWNER_AND_DECIMALS: Deque<(Addr, u8)> = Deque::new("owner and decimals");
+pub const CURRENCIES: Map<&str, CurrencyInfo> = Map::new("currency_info_by_denom_or_address");
+pub const TOKEN_COUNT: Map<&Addr, u16> = Map::new("token_count_by_owner");
+
+pub const TEMPORARY_CURRENCY: Deque<CurrencyInfo> = Deque::new("temporary_currency");
