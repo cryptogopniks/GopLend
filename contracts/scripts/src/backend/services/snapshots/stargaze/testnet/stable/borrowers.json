@@ -2,7 +2,7 @@
   {
     "address": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     "borrower": {
-      "accumulated_loan": "855039",
+      "accumulated_loan": "891187",
       "loan": {
         "creation_date": 1721582876,
         "amount": "123100000"
@@ -12,10 +12,20 @@
   {
     "address": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
     "borrower": {
-      "accumulated_loan": "439040",
+      "accumulated_loan": "457540",
       "loan": {
         "creation_date": 1721579686,
         "amount": "63000000"
+      }
+    }
+  },
+  {
+    "address": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+    "borrower": {
+      "accumulated_loan": "3005",
+      "loan": {
+        "creation_date": 1722460952,
+        "amount": "11000000"
       }
     }
   }

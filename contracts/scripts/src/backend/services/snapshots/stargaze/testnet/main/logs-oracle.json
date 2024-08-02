@@ -1,1438 +1,1036 @@
 [
   {
-    "blockTime": "1722462618 (01.08.2024 00:50:18 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 58
-  },
-  {
-    "blockTime": "1722462601 (01.08.2024 00:50:01 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 57
-  },
-  {
-    "blockTime": "1722462579 (01.08.2024 00:49:39 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 56
-  },
-  {
-    "blockTime": "1722462562 (01.08.2024 00:49:22 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 55
-  },
-  {
-    "blockTime": "1722462540 (01.08.2024 00:49:00 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 54
-  },
-  {
-    "blockTime": "1722462517 (01.08.2024 00:48:37 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 53
-  },
-  {
-    "blockTime": "1722462501 (01.08.2024 00:48:21 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 52
-  },
-  {
-    "blockTime": "1722462478 (01.08.2024 00:47:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 51
-  },
-  {
-    "blockTime": "1722462461 (01.08.2024 00:47:41 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 50
-  },
-  {
-    "blockTime": "1722462439 (01.08.2024 00:47:19 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 49
-  },
-  {
-    "blockTime": "1722462422 (01.08.2024 00:47:02 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 48
-  },
-  {
-    "blockTime": "1722462400 (01.08.2024 00:46:40 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 47
-  },
-  {
-    "blockTime": "1722462378 (01.08.2024 00:46:18 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 46
-  },
-  {
-    "blockTime": "1722462361 (01.08.2024 00:46:01 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 45
-  },
-  {
-    "blockTime": "1722462339 (01.08.2024 00:45:39 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 44
-  },
-  {
-    "blockTime": "1722462322 (01.08.2024 00:45:22 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 43
-  },
-  {
-    "blockTime": "1722462300 (01.08.2024 00:45:00 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 42
-  },
-  {
-    "blockTime": "1722462277 (01.08.2024 00:44:37 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 41
-  },
-  {
-    "blockTime": "1722462261 (01.08.2024 00:44:21 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 40
-  },
-  {
-    "blockTime": "1722462238 (01.08.2024 00:43:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 39
-  },
-  {
-    "blockTime": "1722462221 (01.08.2024 00:43:41 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 38
-  },
-  {
-    "blockTime": "1722462204 (01.08.2024 00:43:24 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 37
-  },
-  {
-    "blockTime": "1722462182 (01.08.2024 00:43:02 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 36
-  },
-  {
-    "blockTime": "1722462165 (01.08.2024 00:42:45 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 35
-  },
-  {
-    "blockTime": "1722462142 (01.08.2024 00:42:22 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 34
-  },
-  {
-    "blockTime": "1722462120 (01.08.2024 00:42:00 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 33
-  },
-  {
-    "blockTime": "1722462097 (01.08.2024 00:41:37 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 32
-  },
-  {
-    "blockTime": "1722462081 (01.08.2024 00:41:21 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 31
-  },
-  {
-    "blockTime": "1722462058 (01.08.2024 00:40:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 30
-  },
-  {
-    "blockTime": "1722462041 (01.08.2024 00:40:41 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 29
-  },
-  {
-    "blockTime": "1722462019 (01.08.2024 00:40:19 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 28
-  },
-  {
-    "blockTime": "1722461997 (01.08.2024 00:39:57 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 27
-  },
-  {
-    "blockTime": "1722461980 (01.08.2024 00:39:40 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 26
-  },
-  {
-    "blockTime": "1722461963 (01.08.2024 00:39:23 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 25
-  },
-  {
-    "blockTime": "1722461941 (01.08.2024 00:39:01 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 24
-  },
-  {
-    "blockTime": "1722461919 (01.08.2024 00:38:39 UTC+3)",
+    "blockTime": "1722610459 (02.08.2024 17:54:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 23
   },
   {
-    "blockTime": "1722461902 (01.08.2024 00:38:22 UTC+3)",
+    "blockTime": "1722610448 (02.08.2024 17:54:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 22
   },
   {
-    "blockTime": "1722461880 (01.08.2024 00:38:00 UTC+3)",
+    "blockTime": "1722610435 (02.08.2024 17:53:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 21
   },
   {
-    "blockTime": "1722461863 (01.08.2024 00:37:43 UTC+3)",
+    "blockTime": "1722610423 (02.08.2024 17:53:43 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 20
   },
   {
-    "blockTime": "1722461840 (01.08.2024 00:37:20 UTC+3)",
+    "blockTime": "1722610412 (02.08.2024 17:53:32 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 19
   },
   {
-    "blockTime": "1722461823 (01.08.2024 00:37:03 UTC+3)",
+    "blockTime": "1722610401 (02.08.2024 17:53:21 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 18
   },
   {
-    "blockTime": "1722461801 (01.08.2024 00:36:41 UTC+3)",
+    "blockTime": "1722610389 (02.08.2024 17:53:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 17
   },
   {
-    "blockTime": "1722461779 (01.08.2024 00:36:19 UTC+3)",
+    "blockTime": "1722610378 (02.08.2024 17:52:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 16
   },
   {
-    "blockTime": "1722461762 (01.08.2024 00:36:02 UTC+3)",
+    "blockTime": "1722610367 (02.08.2024 17:52:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 15
   },
   {
-    "blockTime": "1722461740 (01.08.2024 00:35:40 UTC+3)",
+    "blockTime": "1722610355 (02.08.2024 17:52:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 14
   },
   {
-    "blockTime": "1722461718 (01.08.2024 00:35:18 UTC+3)",
+    "blockTime": "1722610344 (02.08.2024 17:52:24 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 13
   },
   {
-    "blockTime": "1722461701 (01.08.2024 00:35:01 UTC+3)",
+    "blockTime": "1722610333 (02.08.2024 17:52:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 12
   },
   {
-    "blockTime": "1722461678 (01.08.2024 00:34:38 UTC+3)",
+    "blockTime": "1722610322 (02.08.2024 17:52:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 11
   },
   {
-    "blockTime": "1722461662 (01.08.2024 00:34:22 UTC+3)",
+    "blockTime": "1722610310 (02.08.2024 17:51:50 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 10
   },
   {
-    "blockTime": "1722461639 (01.08.2024 00:33:59 UTC+3)",
+    "blockTime": "1722610299 (02.08.2024 17:51:39 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 9
   },
   {
-    "blockTime": "1722461622 (01.08.2024 00:33:42 UTC+3)",
+    "blockTime": "1722610288 (02.08.2024 17:51:28 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 8
   },
   {
-    "blockTime": "1722461600 (01.08.2024 00:33:20 UTC+3)",
+    "blockTime": "1722610271 (02.08.2024 17:51:11 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 7
   },
   {
-    "blockTime": "1722461578 (01.08.2024 00:32:58 UTC+3)",
+    "blockTime": "1722610254 (02.08.2024 17:50:54 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 6
   },
   {
-    "blockTime": "1722461561 (01.08.2024 00:32:41 UTC+3)",
+    "blockTime": "1722610237 (02.08.2024 17:50:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 5
   },
   {
-    "blockTime": "1722461544 (01.08.2024 00:32:24 UTC+3)",
+    "blockTime": "1722610226 (02.08.2024 17:50:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 4
   },
   {
-    "blockTime": "1722461522 (01.08.2024 00:32:02 UTC+3)",
+    "blockTime": "1722610215 (02.08.2024 17:50:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 3
   },
   {
-    "blockTime": "1722461499 (01.08.2024 00:31:39 UTC+3)",
+    "blockTime": "1722610204 (02.08.2024 17:50:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 2
   },
   {
-    "blockTime": "1722461483 (01.08.2024 00:31:23 UTC+3)",
+    "blockTime": "1722610193 (02.08.2024 17:49:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 1
   },
   {
-    "blockTime": "1722461460 (01.08.2024 00:31:00 UTC+3)",
+    "blockTime": "1722610181 (02.08.2024 17:49:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 0
   },
   {
-    "blockTime": "1722461438 (01.08.2024 00:30:38 UTC+3)",
+    "blockTime": "1722610170 (02.08.2024 17:49:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 255
   },
   {
-    "blockTime": "1722461421 (01.08.2024 00:30:21 UTC+3)",
+    "blockTime": "1722610159 (02.08.2024 17:49:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 254
   },
   {
-    "blockTime": "1722461399 (01.08.2024 00:29:59 UTC+3)",
+    "blockTime": "1722610147 (02.08.2024 17:49:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 253
   },
   {
-    "blockTime": "1722461382 (01.08.2024 00:29:42 UTC+3)",
+    "blockTime": "1722610136 (02.08.2024 17:48:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 252
   },
   {
-    "blockTime": "1722461359 (01.08.2024 00:29:19 UTC+3)",
+    "blockTime": "1722610125 (02.08.2024 17:48:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 251
   },
   {
-    "blockTime": "1722461337 (01.08.2024 00:28:57 UTC+3)",
+    "blockTime": "1722610114 (02.08.2024 17:48:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 250
   },
   {
-    "blockTime": "1722461320 (01.08.2024 00:28:40 UTC+3)",
+    "blockTime": "1722610103 (02.08.2024 17:48:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 249
   },
   {
-    "blockTime": "1722461298 (01.08.2024 00:28:18 UTC+3)",
+    "blockTime": "1722610092 (02.08.2024 17:48:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 248
   },
   {
-    "blockTime": "1722461281 (01.08.2024 00:28:01 UTC+3)",
+    "blockTime": "1722610080 (02.08.2024 17:48:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 247
   },
   {
-    "blockTime": "1722461259 (01.08.2024 00:27:39 UTC+3)",
+    "blockTime": "1722610069 (02.08.2024 17:47:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 246
   },
   {
-    "blockTime": "1722461242 (01.08.2024 00:27:22 UTC+3)",
+    "blockTime": "1722610058 (02.08.2024 17:47:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 245
   },
   {
-    "blockTime": "1722461225 (01.08.2024 00:27:05 UTC+3)",
+    "blockTime": "1722610047 (02.08.2024 17:47:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 244
   },
   {
-    "blockTime": "1722461198 (01.08.2024 00:26:38 UTC+3)",
+    "blockTime": "1722610036 (02.08.2024 17:47:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 243
   },
   {
-    "blockTime": "1722461181 (01.08.2024 00:26:21 UTC+3)",
+    "blockTime": "1722610024 (02.08.2024 17:47:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 242
   },
   {
-    "blockTime": "1722461159 (01.08.2024 00:25:59 UTC+3)",
+    "blockTime": "1722610013 (02.08.2024 17:46:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 241
   },
   {
-    "blockTime": "1722461142 (01.08.2024 00:25:42 UTC+3)",
+    "blockTime": "1722610002 (02.08.2024 17:46:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 240
   },
   {
-    "blockTime": "1722461120 (01.08.2024 00:25:20 UTC+3)",
+    "blockTime": "1722609991 (02.08.2024 17:46:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 239
   },
   {
-    "blockTime": "1722461097 (01.08.2024 00:24:57 UTC+3)",
+    "blockTime": "1722609979 (02.08.2024 17:46:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
+    "outdatedPriceCollections": [
+      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
+    ],
     "counter": 238
   },
   {
-    "blockTime": "1722461081 (01.08.2024 00:24:41 UTC+3)",
+    "blockTime": "1722609945 (02.08.2024 17:45:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 237
   },
   {
-    "blockTime": "1722461059 (01.08.2024 00:24:19 UTC+3)",
+    "blockTime": "1722609929 (02.08.2024 17:45:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 236
   },
   {
-    "blockTime": "1722461042 (01.08.2024 00:24:02 UTC+3)",
+    "blockTime": "1722609912 (02.08.2024 17:45:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 235
   },
   {
-    "blockTime": "1722461019 (01.08.2024 00:23:39 UTC+3)",
+    "blockTime": "1722609901 (02.08.2024 17:45:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 234
   },
   {
-    "blockTime": "1722461003 (01.08.2024 00:23:23 UTC+3)",
+    "blockTime": "1722609889 (02.08.2024 17:44:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 233
   },
   {
-    "blockTime": "1722460980 (01.08.2024 00:23:00 UTC+3)",
+    "blockTime": "1722609878 (02.08.2024 17:44:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 232
   },
   {
-    "blockTime": "1722460958 (01.08.2024 00:22:38 UTC+3)",
+    "blockTime": "1722609867 (02.08.2024 17:44:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 231
   },
   {
-    "blockTime": "1722460941 (01.08.2024 00:22:21 UTC+3)",
+    "blockTime": "1722609856 (02.08.2024 17:44:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 230
   },
   {
-    "blockTime": "1722460919 (01.08.2024 00:21:59 UTC+3)",
+    "blockTime": "1722609845 (02.08.2024 17:44:05 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 229
   },
   {
-    "blockTime": "1722460902 (01.08.2024 00:21:42 UTC+3)",
+    "blockTime": "1722609833 (02.08.2024 17:43:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 228
   },
   {
-    "blockTime": "1722460880 (01.08.2024 00:21:20 UTC+3)",
+    "blockTime": "1722609822 (02.08.2024 17:43:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 227
   },
   {
-    "blockTime": "1722460863 (01.08.2024 00:21:03 UTC+3)",
+    "blockTime": "1722609811 (02.08.2024 17:43:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 226
   },
   {
-    "blockTime": "1722460841 (01.08.2024 00:20:41 UTC+3)",
+    "blockTime": "1722609799 (02.08.2024 17:43:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 225
   },
   {
-    "blockTime": "1722460818 (01.08.2024 00:20:18 UTC+3)",
+    "blockTime": "1722609788 (02.08.2024 17:43:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 224
   },
   {
-    "blockTime": "1722460801 (01.08.2024 00:20:01 UTC+3)",
+    "blockTime": "1722609777 (02.08.2024 17:42:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 223
   },
   {
-    "blockTime": "1722460779 (01.08.2024 00:19:39 UTC+3)",
+    "blockTime": "1722609765 (02.08.2024 17:42:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 222
   },
   {
-    "blockTime": "1722460762 (01.08.2024 00:19:22 UTC+3)",
+    "blockTime": "1722609754 (02.08.2024 17:42:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 221
   },
   {
-    "blockTime": "1722460740 (01.08.2024 00:19:00 UTC+3)",
+    "blockTime": "1722609743 (02.08.2024 17:42:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 220
   },
   {
-    "blockTime": "1722460718 (01.08.2024 00:18:38 UTC+3)",
+    "blockTime": "1722609731 (02.08.2024 17:42:11 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 219
   },
   {
-    "blockTime": "1722460701 (01.08.2024 00:18:21 UTC+3)",
+    "blockTime": "1722609720 (02.08.2024 17:42:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 218
   },
   {
-    "blockTime": "1722460678 (01.08.2024 00:17:58 UTC+3)",
+    "blockTime": "1722609709 (02.08.2024 17:41:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 217
   },
   {
-    "blockTime": "1722460661 (01.08.2024 00:17:41 UTC+3)",
+    "blockTime": "1722609698 (02.08.2024 17:41:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 216
   },
   {
-    "blockTime": "1722460639 (01.08.2024 00:17:19 UTC+3)",
+    "blockTime": "1722609686 (02.08.2024 17:41:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 215
   },
   {
-    "blockTime": "1722460622 (01.08.2024 00:17:02 UTC+3)",
+    "blockTime": "1722609675 (02.08.2024 17:41:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 214
   },
   {
-    "blockTime": "1722460599 (01.08.2024 00:16:39 UTC+3)",
+    "blockTime": "1722609664 (02.08.2024 17:41:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 213
   },
   {
-    "blockTime": "1722460582 (01.08.2024 00:16:22 UTC+3)",
+    "blockTime": "1722609652 (02.08.2024 17:40:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 212
   },
   {
-    "blockTime": "1722460560 (01.08.2024 00:16:00 UTC+3)",
+    "blockTime": "1722609641 (02.08.2024 17:40:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 211
   },
   {
-    "blockTime": "1722460537 (01.08.2024 00:15:37 UTC+3)",
+    "blockTime": "1722609625 (02.08.2024 17:40:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 210
   },
   {
-    "blockTime": "1722460520 (01.08.2024 00:15:20 UTC+3)",
+    "blockTime": "1722609608 (02.08.2024 17:40:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 209
   },
   {
-    "blockTime": "1722460498 (01.08.2024 00:14:58 UTC+3)",
+    "blockTime": "1722609597 (02.08.2024 17:39:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 208
   },
   {
-    "blockTime": "1722460481 (01.08.2024 00:14:41 UTC+3)",
+    "blockTime": "1722609585 (02.08.2024 17:39:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 207
   },
   {
-    "blockTime": "1722460459 (01.08.2024 00:14:19 UTC+3)",
+    "blockTime": "1722609574 (02.08.2024 17:39:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 206
   },
   {
-    "blockTime": "1722460442 (01.08.2024 00:14:02 UTC+3)",
+    "blockTime": "1722609563 (02.08.2024 17:39:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 205
   },
   {
-    "blockTime": "1722460420 (01.08.2024 00:13:40 UTC+3)",
+    "blockTime": "1722609551 (02.08.2024 17:39:11 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 204
   },
   {
-    "blockTime": "1722460397 (01.08.2024 00:13:17 UTC+3)",
+    "blockTime": "1722609540 (02.08.2024 17:39:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 203
   },
   {
-    "blockTime": "1722460381 (01.08.2024 00:13:01 UTC+3)",
+    "blockTime": "1722609529 (02.08.2024 17:38:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 202
   },
   {
-    "blockTime": "1722460358 (01.08.2024 00:12:38 UTC+3)",
+    "blockTime": "1722609518 (02.08.2024 17:38:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 201
   },
   {
-    "blockTime": "1722460341 (01.08.2024 00:12:21 UTC+3)",
+    "blockTime": "1722609506 (02.08.2024 17:38:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 200
   },
   {
-    "blockTime": "1722460319 (01.08.2024 00:11:59 UTC+3)",
+    "blockTime": "1722609495 (02.08.2024 17:38:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 199
   },
   {
-    "blockTime": "1722460297 (01.08.2024 00:11:37 UTC+3)",
+    "blockTime": "1722609478 (02.08.2024 17:37:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 198
   },
   {
-    "blockTime": "1722460280 (01.08.2024 00:11:20 UTC+3)",
+    "blockTime": "1722609467 (02.08.2024 17:37:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 197
   },
   {
-    "blockTime": "1722460258 (01.08.2024 00:10:58 UTC+3)",
+    "blockTime": "1722609456 (02.08.2024 17:37:36 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 196
   },
   {
-    "blockTime": "1722460219 (01.08.2024 00:10:19 UTC+3)",
+    "blockTime": "1722609445 (02.08.2024 17:37:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 195
   },
   {
-    "blockTime": "1722460202 (01.08.2024 00:10:02 UTC+3)",
+    "blockTime": "1722609434 (02.08.2024 17:37:14 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 194
   },
   {
-    "blockTime": "1722460180 (01.08.2024 00:09:40 UTC+3)",
+    "blockTime": "1722609423 (02.08.2024 17:37:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 193
   },
   {
-    "blockTime": "1722460163 (01.08.2024 00:09:23 UTC+3)",
+    "blockTime": "1722609412 (02.08.2024 17:36:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 192
   },
   {
-    "blockTime": "1722460140 (01.08.2024 00:09:00 UTC+3)",
+    "blockTime": "1722609400 (02.08.2024 17:36:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 191
   },
   {
-    "blockTime": "1722460118 (01.08.2024 00:08:38 UTC+3)",
+    "blockTime": "1722609384 (02.08.2024 17:36:24 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 190
   },
   {
-    "blockTime": "1722460101 (01.08.2024 00:08:21 UTC+3)",
+    "blockTime": "1722609373 (02.08.2024 17:36:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 189
   },
   {
-    "blockTime": "1722460079 (01.08.2024 00:07:59 UTC+3)",
+    "blockTime": "1722609361 (02.08.2024 17:36:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 188
   },
   {
-    "blockTime": "1722460062 (01.08.2024 00:07:42 UTC+3)",
+    "blockTime": "1722609350 (02.08.2024 17:35:50 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 187
   },
   {
-    "blockTime": "1722460040 (01.08.2024 00:07:20 UTC+3)",
+    "blockTime": "1722609339 (02.08.2024 17:35:39 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 186
   },
   {
-    "blockTime": "1722460023 (01.08.2024 00:07:03 UTC+3)",
+    "blockTime": "1722609327 (02.08.2024 17:35:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 185
   },
   {
-    "blockTime": "1722460001 (01.08.2024 00:06:41 UTC+3)",
+    "blockTime": "1722609311 (02.08.2024 17:35:11 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 184
   },
   {
-    "blockTime": "1722459978 (01.08.2024 00:06:18 UTC+3)",
+    "blockTime": "1722609299 (02.08.2024 17:34:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 183
   },
   {
-    "blockTime": "1722459961 (01.08.2024 00:06:01 UTC+3)",
+    "blockTime": "1722609288 (02.08.2024 17:34:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 182
   },
   {
-    "blockTime": "1722459939 (01.08.2024 00:05:39 UTC+3)",
+    "blockTime": "1722609277 (02.08.2024 17:34:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 181
   },
   {
-    "blockTime": "1722459922 (01.08.2024 00:05:22 UTC+3)",
+    "blockTime": "1722609265 (02.08.2024 17:34:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 180
   },
   {
-    "blockTime": "1722459899 (01.08.2024 00:04:59 UTC+3)",
+    "blockTime": "1722609254 (02.08.2024 17:34:14 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 179
   },
   {
-    "blockTime": "1722459882 (01.08.2024 00:04:42 UTC+3)",
+    "blockTime": "1722609238 (02.08.2024 17:33:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 178
   },
   {
-    "blockTime": "1722459860 (01.08.2024 00:04:20 UTC+3)",
+    "blockTime": "1722609226 (02.08.2024 17:33:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 177
   },
   {
-    "blockTime": "1722459837 (01.08.2024 00:03:57 UTC+3)",
+    "blockTime": "1722609215 (02.08.2024 17:33:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 176
   },
   {
-    "blockTime": "1722459821 (01.08.2024 00:03:41 UTC+3)",
+    "blockTime": "1722609204 (02.08.2024 17:33:24 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 175
   },
   {
-    "blockTime": "1722459798 (01.08.2024 00:03:18 UTC+3)",
+    "blockTime": "1722609193 (02.08.2024 17:33:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 174
   },
   {
-    "blockTime": "1722459781 (01.08.2024 00:03:01 UTC+3)",
+    "blockTime": "1722609182 (02.08.2024 17:33:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 173
   },
   {
-    "blockTime": "1722459759 (01.08.2024 00:02:39 UTC+3)",
+    "blockTime": "1722609170 (02.08.2024 17:32:50 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 172
   },
   {
-    "blockTime": "1722459742 (01.08.2024 00:02:22 UTC+3)",
+    "blockTime": "1722609159 (02.08.2024 17:32:39 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 171
   },
   {
-    "blockTime": "1722459720 (01.08.2024 00:02:00 UTC+3)",
+    "blockTime": "1722609148 (02.08.2024 17:32:28 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 170
   },
   {
-    "blockTime": "1722459697 (01.08.2024 00:01:37 UTC+3)",
+    "blockTime": "1722609137 (02.08.2024 17:32:17 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 169
   },
   {
-    "blockTime": "1722459680 (01.08.2024 00:01:20 UTC+3)",
+    "blockTime": "1722609126 (02.08.2024 17:32:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 168
   },
   {
-    "blockTime": "1722459657 (01.08.2024 00:00:57 UTC+3)",
+    "blockTime": "1722609115 (02.08.2024 17:31:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 167
   },
   {
-    "blockTime": "1722459617 (01.08.2024 00:00:17 UTC+3)",
+    "blockTime": "1722609103 (02.08.2024 17:31:43 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 166
   },
   {
-    "blockTime": "1722459600 (01.08.2024 00:00:00 UTC+3)",
+    "blockTime": "1722609087 (02.08.2024 17:31:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 165
   },
   {
-    "blockTime": "1722459578 (31.07.2024 23:59:38 UTC+3)",
+    "blockTime": "1722609076 (02.08.2024 17:31:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 164
   },
   {
-    "blockTime": "1722459561 (31.07.2024 23:59:21 UTC+3)",
+    "blockTime": "1722609064 (02.08.2024 17:31:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 163
   },
   {
-    "blockTime": "1722459538 (31.07.2024 23:58:58 UTC+3)",
+    "blockTime": "1722609053 (02.08.2024 17:30:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 162
   },
   {
-    "blockTime": "1722459522 (31.07.2024 23:58:42 UTC+3)",
+    "blockTime": "1722609042 (02.08.2024 17:30:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 161
   },
   {
-    "blockTime": "1722459499 (31.07.2024 23:58:19 UTC+3)",
+    "blockTime": "1722609031 (02.08.2024 17:30:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 160
   },
   {
-    "blockTime": "1722459482 (31.07.2024 23:58:02 UTC+3)",
+    "blockTime": "1722609020 (02.08.2024 17:30:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 159
   },
   {
-    "blockTime": "1722459460 (31.07.2024 23:57:40 UTC+3)",
+    "blockTime": "1722609009 (02.08.2024 17:30:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 158
   },
   {
-    "blockTime": "1722459438 (31.07.2024 23:57:18 UTC+3)",
+    "blockTime": "1722608997 (02.08.2024 17:29:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 157
   },
   {
-    "blockTime": "1722459421 (31.07.2024 23:57:01 UTC+3)",
+    "blockTime": "1722608986 (02.08.2024 17:29:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 156
   },
   {
-    "blockTime": "1722459410 (31.07.2024 23:56:50 UTC+3)",
+    "blockTime": "1722608975 (02.08.2024 17:29:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 155
   },
   {
-    "blockTime": "1722459238 (31.07.2024 23:53:58 UTC+3)",
+    "blockTime": "1722608964 (02.08.2024 17:29:24 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 154
   },
   {
-    "blockTime": "1722459181 (31.07.2024 23:53:01 UTC+3)",
+    "blockTime": "1722608952 (02.08.2024 17:29:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 153
   },
   {
-    "blockTime": "1722459120 (31.07.2024 23:52:00 UTC+3)",
+    "blockTime": "1722608941 (02.08.2024 17:29:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 152
   },
   {
-    "blockTime": "1722459059 (31.07.2024 23:50:59 UTC+3)",
+    "blockTime": "1722608929 (02.08.2024 17:28:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 151
   },
   {
-    "blockTime": "1722458997 (31.07.2024 23:49:57 UTC+3)",
+    "blockTime": "1722608918 (02.08.2024 17:28:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 150
   },
   {
-    "blockTime": "1722458942 (31.07.2024 23:49:02 UTC+3)",
+    "blockTime": "1722608907 (02.08.2024 17:28:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 149
   },
   {
-    "blockTime": "1722458880 (31.07.2024 23:48:00 UTC+3)",
+    "blockTime": "1722608895 (02.08.2024 17:28:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 148
   },
   {
-    "blockTime": "1722458819 (31.07.2024 23:46:59 UTC+3)",
+    "blockTime": "1722608884 (02.08.2024 17:28:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 147
   },
   {
-    "blockTime": "1722458757 (31.07.2024 23:45:57 UTC+3)",
+    "blockTime": "1722608873 (02.08.2024 17:27:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 146
   },
   {
-    "blockTime": "1722458701 (31.07.2024 23:45:01 UTC+3)",
+    "blockTime": "1722608862 (02.08.2024 17:27:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 145
   },
   {
-    "blockTime": "1722458639 (31.07.2024 23:43:59 UTC+3)",
+    "blockTime": "1722608851 (02.08.2024 17:27:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 144
   },
   {
-    "blockTime": "1722458577 (31.07.2024 23:42:57 UTC+3)",
+    "blockTime": "1722608840 (02.08.2024 17:27:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 143
   },
   {
-    "blockTime": "1722458521 (31.07.2024 23:42:01 UTC+3)",
+    "blockTime": "1722608823 (02.08.2024 17:27:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 142
   },
   {
-    "blockTime": "1722458460 (31.07.2024 23:41:00 UTC+3)",
+    "blockTime": "1722608806 (02.08.2024 17:26:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 141
   },
   {
-    "blockTime": "1722458398 (31.07.2024 23:39:58 UTC+3)",
+    "blockTime": "1722608789 (02.08.2024 17:26:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 140
   },
   {
-    "blockTime": "1722458342 (31.07.2024 23:39:02 UTC+3)",
+    "blockTime": "1722608778 (02.08.2024 17:26:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 139
   },
   {
-    "blockTime": "1722458281 (31.07.2024 23:38:01 UTC+3)",
+    "blockTime": "1722608761 (02.08.2024 17:26:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 138
   },
   {
-    "blockTime": "1722458219 (31.07.2024 23:36:59 UTC+3)",
+    "blockTime": "1722608744 (02.08.2024 17:25:44 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 137
   },
   {
-    "blockTime": "1722458158 (31.07.2024 23:35:58 UTC+3)",
+    "blockTime": "1722608733 (02.08.2024 17:25:33 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 136
   },
   {
-    "blockTime": "1722458101 (31.07.2024 23:35:01 UTC+3)",
+    "blockTime": "1722608722 (02.08.2024 17:25:22 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 135
   },
   {
-    "blockTime": "1722458040 (31.07.2024 23:34:00 UTC+3)",
+    "blockTime": "1722608711 (02.08.2024 17:25:11 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 134
   },
   {
-    "blockTime": "1722457979 (31.07.2024 23:32:59 UTC+3)",
+    "blockTime": "1722608700 (02.08.2024 17:25:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 133
   },
   {
-    "blockTime": "1722457918 (31.07.2024 23:31:58 UTC+3)",
+    "blockTime": "1722608688 (02.08.2024 17:24:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 132
   },
   {
-    "blockTime": "1722457861 (31.07.2024 23:31:01 UTC+3)",
+    "blockTime": "1722608677 (02.08.2024 17:24:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 131
   },
   {
-    "blockTime": "1722457800 (31.07.2024 23:30:00 UTC+3)",
+    "blockTime": "1722608666 (02.08.2024 17:24:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 130
   },
   {
-    "blockTime": "1722457738 (31.07.2024 23:28:58 UTC+3)",
+    "blockTime": "1722608655 (02.08.2024 17:24:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 129
   },
   {
-    "blockTime": "1722457683 (31.07.2024 23:28:03 UTC+3)",
+    "blockTime": "1722608644 (02.08.2024 17:24:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 128
   },
   {
-    "blockTime": "1722457620 (31.07.2024 23:27:00 UTC+3)",
+    "blockTime": "1722608633 (02.08.2024 17:23:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 127
   },
   {
-    "blockTime": "1722457559 (31.07.2024 23:25:59 UTC+3)",
+    "blockTime": "1722608621 (02.08.2024 17:23:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 126
   },
   {
-    "blockTime": "1722457497 (31.07.2024 23:24:57 UTC+3)",
+    "blockTime": "1722608610 (02.08.2024 17:23:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 125
   },
   {
-    "blockTime": "1722457441 (31.07.2024 23:24:01 UTC+3)",
+    "blockTime": "1722608593 (02.08.2024 17:23:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 124
   },
   {
-    "blockTime": "1722457379 (31.07.2024 23:22:59 UTC+3)",
+    "blockTime": "1722608582 (02.08.2024 17:23:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 123
   },
   {
-    "blockTime": "1722457318 (31.07.2024 23:21:58 UTC+3)",
+    "blockTime": "1722608571 (02.08.2024 17:22:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 122
   },
   {
-    "blockTime": "1722457262 (31.07.2024 23:21:02 UTC+3)",
+    "blockTime": "1722608560 (02.08.2024 17:22:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 121
   },
   {
-    "blockTime": "1722457201 (31.07.2024 23:20:01 UTC+3)",
+    "blockTime": "1722608548 (02.08.2024 17:22:28 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 120
   },
   {
-    "blockTime": "1722457138 (31.07.2024 23:18:58 UTC+3)",
+    "blockTime": "1722608537 (02.08.2024 17:22:17 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 119
   },
   {
-    "blockTime": "1722457077 (31.07.2024 23:17:57 UTC+3)",
+    "blockTime": "1722608520 (02.08.2024 17:22:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 118
   },
   {
-    "blockTime": "1722457021 (31.07.2024 23:17:01 UTC+3)",
+    "blockTime": "1722608509 (02.08.2024 17:21:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 117
   },
   {
-    "blockTime": "1722456959 (31.07.2024 23:15:59 UTC+3)",
+    "blockTime": "1722608498 (02.08.2024 17:21:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 116
   },
   {
-    "blockTime": "1722456903 (31.07.2024 23:15:03 UTC+3)",
+    "blockTime": "1722608487 (02.08.2024 17:21:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 115
   },
   {
-    "blockTime": "1722456841 (31.07.2024 23:14:01 UTC+3)",
+    "blockTime": "1722608476 (02.08.2024 17:21:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 114
   },
   {
-    "blockTime": "1722456779 (31.07.2024 23:12:59 UTC+3)",
+    "blockTime": "1722608465 (02.08.2024 17:21:05 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 113
   },
   {
-    "blockTime": "1722456718 (31.07.2024 23:11:58 UTC+3)",
+    "blockTime": "1722608453 (02.08.2024 17:20:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 112
   },
   {
-    "blockTime": "1722456661 (31.07.2024 23:11:01 UTC+3)",
+    "blockTime": "1722608442 (02.08.2024 17:20:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 111
   },
   {
-    "blockTime": "1722456600 (31.07.2024 23:10:00 UTC+3)",
+    "blockTime": "1722608431 (02.08.2024 17:20:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 110
   },
   {
-    "blockTime": "1722456538 (31.07.2024 23:08:58 UTC+3)",
+    "blockTime": "1722608420 (02.08.2024 17:20:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 109
   },
   {
-    "blockTime": "1722456482 (31.07.2024 23:08:02 UTC+3)",
+    "blockTime": "1722608409 (02.08.2024 17:20:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [
       "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
@@ -1442,473 +1040,495 @@
     "counter": 108
   },
   {
-    "blockTime": "1722456420 (31.07.2024 23:07:00 UTC+3)",
+    "blockTime": "1722607821 (02.08.2024 17:10:21 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 107
   },
   {
-    "blockTime": "1722456359 (31.07.2024 23:05:59 UTC+3)",
+    "blockTime": "1722607810 (02.08.2024 17:10:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 106
   },
   {
-    "blockTime": "1722456298 (31.07.2024 23:04:58 UTC+3)",
+    "blockTime": "1722607799 (02.08.2024 17:09:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 105
   },
   {
-    "blockTime": "1722456241 (31.07.2024 23:04:01 UTC+3)",
+    "blockTime": "1722607788 (02.08.2024 17:09:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 104
   },
   {
-    "blockTime": "1722456180 (31.07.2024 23:03:00 UTC+3)",
+    "blockTime": "1722607777 (02.08.2024 17:09:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 103
   },
   {
-    "blockTime": "1722456118 (31.07.2024 23:01:58 UTC+3)",
+    "blockTime": "1722607765 (02.08.2024 17:09:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 102
   },
   {
-    "blockTime": "1722456056 (31.07.2024 23:00:56 UTC+3)",
+    "blockTime": "1722607753 (02.08.2024 17:09:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 101
   },
   {
-    "blockTime": "1722456001 (31.07.2024 23:00:01 UTC+3)",
+    "blockTime": "1722607742 (02.08.2024 17:09:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 100
   },
   {
-    "blockTime": "1722455940 (31.07.2024 22:59:00 UTC+3)",
+    "blockTime": "1722607731 (02.08.2024 17:08:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 99
   },
   {
-    "blockTime": "1722455878 (31.07.2024 22:57:58 UTC+3)",
+    "blockTime": "1722607720 (02.08.2024 17:08:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 98
   },
   {
-    "blockTime": "1722455817 (31.07.2024 22:56:57 UTC+3)",
+    "blockTime": "1722607709 (02.08.2024 17:08:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 97
   },
   {
-    "blockTime": "1722455759 (31.07.2024 22:55:59 UTC+3)",
+    "blockTime": "1722607698 (02.08.2024 17:08:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 96
   },
   {
-    "blockTime": "1722455698 (31.07.2024 22:54:58 UTC+3)",
+    "blockTime": "1722607686 (02.08.2024 17:08:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 95
   },
   {
-    "blockTime": "1722455637 (31.07.2024 22:53:57 UTC+3)",
+    "blockTime": "1722607675 (02.08.2024 17:07:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 94
   },
   {
-    "blockTime": "1722455581 (31.07.2024 22:53:01 UTC+3)",
+    "blockTime": "1722607664 (02.08.2024 17:07:44 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 93
   },
   {
-    "blockTime": "1722455520 (31.07.2024 22:52:00 UTC+3)",
+    "blockTime": "1722607653 (02.08.2024 17:07:33 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 92
   },
   {
-    "blockTime": "1722455459 (31.07.2024 22:50:59 UTC+3)",
+    "blockTime": "1722607642 (02.08.2024 17:07:22 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 91
   },
   {
-    "blockTime": "1722455397 (31.07.2024 22:49:57 UTC+3)",
+    "blockTime": "1722607630 (02.08.2024 17:07:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 90
   },
   {
-    "blockTime": "1722455341 (31.07.2024 22:49:01 UTC+3)",
+    "blockTime": "1722607619 (02.08.2024 17:06:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 89
   },
   {
-    "blockTime": "1722455280 (31.07.2024 22:48:00 UTC+3)",
+    "blockTime": "1722607608 (02.08.2024 17:06:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 88
   },
   {
-    "blockTime": "1722455219 (31.07.2024 22:46:59 UTC+3)",
+    "blockTime": "1722607597 (02.08.2024 17:06:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 87
   },
   {
-    "blockTime": "1722455157 (31.07.2024 22:45:57 UTC+3)",
+    "blockTime": "1722607586 (02.08.2024 17:06:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 86
   },
   {
-    "blockTime": "1722455101 (31.07.2024 22:45:01 UTC+3)",
+    "blockTime": "1722607575 (02.08.2024 17:06:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 85
   },
   {
-    "blockTime": "1722455040 (31.07.2024 22:44:00 UTC+3)",
+    "blockTime": "1722607563 (02.08.2024 17:06:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 84
   },
   {
-    "blockTime": "1722454979 (31.07.2024 22:42:59 UTC+3)",
+    "blockTime": "1722607552 (02.08.2024 17:05:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 83
   },
   {
-    "blockTime": "1722454917 (31.07.2024 22:41:57 UTC+3)",
+    "blockTime": "1722607541 (02.08.2024 17:05:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 82
   },
   {
-    "blockTime": "1722454862 (31.07.2024 22:41:02 UTC+3)",
+    "blockTime": "1722607530 (02.08.2024 17:05:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 81
   },
   {
-    "blockTime": "1722454801 (31.07.2024 22:40:01 UTC+3)",
+    "blockTime": "1722607519 (02.08.2024 17:05:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 80
   },
   {
-    "blockTime": "1722454740 (31.07.2024 22:39:00 UTC+3)",
+    "blockTime": "1722607507 (02.08.2024 17:05:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 79
   },
   {
-    "blockTime": "1722454678 (31.07.2024 22:37:58 UTC+3)",
+    "blockTime": "1722607496 (02.08.2024 17:04:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 78
   },
   {
-    "blockTime": "1722454617 (31.07.2024 22:36:57 UTC+3)",
+    "blockTime": "1722607485 (02.08.2024 17:04:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 77
   },
   {
-    "blockTime": "1722454561 (31.07.2024 22:36:01 UTC+3)",
+    "blockTime": "1722607474 (02.08.2024 17:04:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 76
   },
   {
-    "blockTime": "1722454500 (31.07.2024 22:35:00 UTC+3)",
+    "blockTime": "1722607463 (02.08.2024 17:04:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 75
   },
   {
-    "blockTime": "1722454439 (31.07.2024 22:33:59 UTC+3)",
+    "blockTime": "1722607452 (02.08.2024 17:04:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 74
   },
   {
-    "blockTime": "1722454377 (31.07.2024 22:32:57 UTC+3)",
+    "blockTime": "1722607441 (02.08.2024 17:04:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 73
   },
   {
-    "blockTime": "1722454322 (31.07.2024 22:32:02 UTC+3)",
+    "blockTime": "1722607429 (02.08.2024 17:03:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 72
   },
   {
-    "blockTime": "1722454260 (31.07.2024 22:31:00 UTC+3)",
+    "blockTime": "1722607418 (02.08.2024 17:03:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 71
   },
   {
-    "blockTime": "1722454199 (31.07.2024 22:29:59 UTC+3)",
+    "blockTime": "1722607407 (02.08.2024 17:03:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 70
   },
   {
-    "blockTime": "1722454142 (31.07.2024 22:29:02 UTC+3)",
+    "blockTime": "1722607395 (02.08.2024 17:03:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 69
   },
   {
-    "blockTime": "1722454081 (31.07.2024 22:28:01 UTC+3)",
+    "blockTime": "1722607384 (02.08.2024 17:03:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 68
   },
   {
-    "blockTime": "1722454019 (31.07.2024 22:26:59 UTC+3)",
+    "blockTime": "1722607373 (02.08.2024 17:02:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 67
   },
   {
-    "blockTime": "1722453958 (31.07.2024 22:25:58 UTC+3)",
+    "blockTime": "1722607362 (02.08.2024 17:02:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 66
   },
   {
-    "blockTime": "1722453897 (31.07.2024 22:24:57 UTC+3)",
+    "blockTime": "1722607351 (02.08.2024 17:02:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 65
   },
   {
-    "blockTime": "1722453841 (31.07.2024 22:24:01 UTC+3)",
+    "blockTime": "1722607339 (02.08.2024 17:02:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 64
   },
   {
-    "blockTime": "1722453779 (31.07.2024 22:22:59 UTC+3)",
+    "blockTime": "1722607328 (02.08.2024 17:02:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 63
   },
   {
-    "blockTime": "1722453718 (31.07.2024 22:21:58 UTC+3)",
+    "blockTime": "1722607317 (02.08.2024 17:01:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 62
   },
   {
-    "blockTime": "1722453657 (31.07.2024 22:20:57 UTC+3)",
+    "blockTime": "1722607306 (02.08.2024 17:01:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 61
+  },
+  {
+    "blockTime": "1722607294 (02.08.2024 17:01:34 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 60
+  },
+  {
+    "blockTime": "1722607283 (02.08.2024 17:01:23 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 59
+  },
+  {
+    "blockTime": "1722607272 (02.08.2024 17:01:12 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 58
+  },
+  {
+    "blockTime": "1722607260 (02.08.2024 17:01:00 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 57
+  },
+  {
+    "blockTime": "1722607249 (02.08.2024 17:00:49 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 56
+  },
+  {
+    "blockTime": "1722607238 (02.08.2024 17:00:38 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 55
+  },
+  {
+    "blockTime": "1722607226 (02.08.2024 17:00:26 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 54
+  },
+  {
+    "blockTime": "1722607215 (02.08.2024 17:00:15 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 53
+  },
+  {
+    "blockTime": "1722607203 (02.08.2024 17:00:03 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 52
+  },
+  {
+    "blockTime": "1722607192 (02.08.2024 16:59:52 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 51
+  },
+  {
+    "blockTime": "1722607180 (02.08.2024 16:59:40 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 50
+  },
+  {
+    "blockTime": "1722607169 (02.08.2024 16:59:29 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 49
+  },
+  {
+    "blockTime": "1722607157 (02.08.2024 16:59:17 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 48
+  },
+  {
+    "blockTime": "1722607140 (02.08.2024 16:59:00 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 47
+  },
+  {
+    "blockTime": "1722607129 (02.08.2024 16:58:49 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 46
+  },
+  {
+    "blockTime": "1722607118 (02.08.2024 16:58:38 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 45
+  },
+  {
+    "blockTime": "1722607106 (02.08.2024 16:58:26 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 44
+  },
+  {
+    "blockTime": "1722607095 (02.08.2024 16:58:15 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 43
+  },
+  {
+    "blockTime": "1722607083 (02.08.2024 16:58:03 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 42
+  },
+  {
+    "blockTime": "1722607072 (02.08.2024 16:57:52 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 41
+  },
+  {
+    "blockTime": "1722607060 (02.08.2024 16:57:40 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 40
+  },
+  {
+    "blockTime": "1722607049 (02.08.2024 16:57:29 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 39
+  },
+  {
+    "blockTime": "1722607037 (02.08.2024 16:57:17 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 38
+  },
+  {
+    "blockTime": "1722607026 (02.08.2024 16:57:06 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 37
+  },
+  {
+    "blockTime": "1722607015 (02.08.2024 16:56:55 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 36
+  },
+  {
+    "blockTime": "1722607003 (02.08.2024 16:56:43 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 35
+  },
+  {
+    "blockTime": "1722606992 (02.08.2024 16:56:32 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 34
+  },
+  {
+    "blockTime": "1722606981 (02.08.2024 16:56:21 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 33
+  },
+  {
+    "blockTime": "1722606970 (02.08.2024 16:56:10 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 32
+  },
+  {
+    "blockTime": "1722606959 (02.08.2024 16:55:59 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 31
+  },
+  {
+    "blockTime": "1722606948 (02.08.2024 16:55:48 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 30
+  },
+  {
+    "blockTime": "1722606936 (02.08.2024 16:55:36 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 29
+  },
+  {
+    "blockTime": "1722606925 (02.08.2024 16:55:25 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 28
+  },
+  {
+    "blockTime": "1722606914 (02.08.2024 16:55:14 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 27
+  },
+  {
+    "blockTime": "1722606903 (02.08.2024 16:55:03 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 26
   }
 ]
