@@ -5,80 +5,103 @@
 */
 
 export interface InstantiateMsg {
-  cw20_base_code_id?: number | null;
-  worker?: string | null;
+  cw20_code_id?: number | null;
+  max_tokens_per_owner?: number | null;
+  permissionless_token_creation?: boolean | null;
+  permissionless_token_registration?: boolean | null;
+  whitelist?: string[] | null;
 }
 export type ExecuteMsg = {
-  receive: Cw20ReceiveMsg;
+  accept_admin_role: {};
+} | {
+  accept_token_owner_role: {};
+} | {
+  pause: {};
+} | {
+  unpause: {};
+} | {
+  update_config: {
+    admin?: string | null;
+    cw20_code_id?: number | null;
+    max_tokens_per_owner?: number | null;
+    permissionless_token_creation?: boolean | null;
+    permissionless_token_registration?: boolean | null;
+    whitelist?: string[] | null;
+  };
 } | {
   create_native: {
     decimals?: number | null;
+    owner?: string | null;
+    permissionless_burning?: boolean | null;
     subdenom: string;
-    token_owner: string;
+    whitelist?: string[] | null;
   };
 } | {
   create_cw20: {
+    cw20_code_id?: number | null;
     decimals?: number | null;
     marketing?: InstantiateMarketingInfo | null;
     name: string;
+    owner?: string | null;
+    permissionless_burning?: boolean | null;
     symbol: string;
-    token_owner: string;
+    whitelist?: string[] | null;
+  };
+} | {
+  register_native: {
+    decimals?: number | null;
+    denom: string;
+    owner?: string | null;
+    permissionless_burning?: boolean | null;
+    whitelist?: string[] | null;
+  };
+} | {
+  register_cw20: {
+    address: string;
+    cw20_code_id?: number | null;
+    decimals?: number | null;
+    owner?: string | null;
+    permissionless_burning?: boolean | null;
+    whitelist?: string[] | null;
+  };
+} | {
+  update_currency_info: {
+    denom_or_address: string;
+    owner?: string | null;
+    permissionless_burning?: boolean | null;
+    whitelist?: string[] | null;
+  };
+} | {
+  update_metadata_native: {
+    denom: string;
+    metadata: Metadata;
+  };
+} | {
+  update_metadata_cw20: {
+    address: string;
+    description?: string | null;
+    logo?: Logo | null;
+    project?: string | null;
+  };
+} | {
+  exclude_native: {
+    denom: string;
+  };
+} | {
+  exclude_cw20: {
+    address: string;
   };
 } | {
   mint: {
     amount: Uint128;
-    recipient: string;
-    token: TokenUnverified;
+    denom_or_address: string;
+    recipient?: string | null;
   };
 } | {
   burn: {};
 } | {
-  set_metadata_native: {
-    metadata: Metadata;
-    token: TokenUnverified;
-  };
-} | {
-  update_marketing_cw20: {
-    description?: string | null;
-    marketing?: string | null;
-    project?: string | null;
-    token: TokenUnverified;
-  };
-} | {
-  upload_logo_cw20: {
-    logo: Logo;
-    token: TokenUnverified;
-  };
-} | {
-  change_admin_native: {
-    token: TokenUnverified;
-  };
-} | {
-  update_minter_cw20: {
-    new_minter: string;
-    token: TokenUnverified;
-  };
-} | {
-  accept_admin_role: {};
-} | {
-  register_currency: {
-    creator: string;
-    currency: CurrencyForTokenUnverified;
-  };
-} | {
-  update_config: {
-    admin?: string | null;
-    cw20_base_code_id?: number | null;
-    worker?: string | null;
-  };
-} | {
-  update_token_owner: {
-    denom: string;
-    owner: string;
-  };
+  receive: Cw20ReceiveMsg;
 };
-export type Uint128 = string;
-export type Binary = string;
 export type Logo = {
   url: string;
 } | {
@@ -89,20 +112,8 @@ export type EmbeddedLogo = {
 } | {
   png: Binary;
 };
-export type TokenUnverified = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: string;
-  };
-};
-export interface Cw20ReceiveMsg {
-  amount: Uint128;
-  msg: Binary;
-  sender: string;
-}
+export type Binary = string;
+export type Uint128 = string;
 export interface InstantiateMarketingInfo {
   description?: string | null;
   logo?: Logo | null;
@@ -124,19 +135,32 @@ export interface DenomUnit {
   denom: string;
   exponent: number;
 }
-export interface CurrencyForTokenUnverified {
-  decimals: number;
-  token: TokenUnverified;
+export interface Cw20ReceiveMsg {
+  amount: Uint128;
+  msg: Binary;
+  sender: string;
 }
 export type QueryMsg = {
-  query_currencies_by_creator: {
-    creator: string;
+  config: {};
+} | {
+  currency_info: {
+    denom_or_address: string;
   };
 } | {
-  query_config: {};
+  currency_info_list: {
+    amount: number;
+    start_from?: string | null;
+  };
 } | {
-  query_token_owner: {
-    denom: string;
+  currency_info_list_by_owner: {
+    amount: number;
+    owner: string;
+    start_from?: string | null;
+  };
+} | {
+  token_count_list: {
+    amount: number;
+    start_from?: string | null;
   };
 };
 export interface MigrateMsg {
@@ -145,8 +169,11 @@ export interface MigrateMsg {
 export type Addr = string;
 export interface Config {
   admin: Addr;
-  cw20_base_code_id?: number | null;
-  worker?: Addr | null;
+  cw20_code_id?: number | null;
+  max_tokens_per_owner: number;
+  permissionless_token_creation: boolean;
+  permissionless_token_registration: boolean;
+  whitelist: Addr[];
 }
 export type Token = {
   native: {
@@ -157,10 +184,16 @@ export type Token = {
     address: Addr;
   };
 };
-export interface QueryCurrenciesFromCreatorResponse {
-  currencies: CurrencyForToken[];
+export interface CurrencyInfo {
+  currency: CurrencyForToken;
+  cw20_code_id?: number | null;
+  owner: Addr;
+  permissionless_burning: boolean;
+  whitelist: Addr[];
 }
 export interface CurrencyForToken {
   decimals: number;
   token: Token;
 }
+export type ArrayOfCurrencyInfo = CurrencyInfo[];
+export type ArrayOfTupleOfAddrAndUint16 = [Addr, number][];

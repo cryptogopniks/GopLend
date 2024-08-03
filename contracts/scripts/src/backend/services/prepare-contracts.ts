@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l } from "../../common/utils";
+import { getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { COLLECTION, TOKEN } from "./constants";
@@ -88,19 +88,22 @@ async function main() {
         bglDenom,
         paymentDenom,
       ] of platforms) {
-        await h.minter[name].cwCreateNative(
-          lendingPlatformContract,
+        await h.minter.stargaze.cwCreateNative(
           bglDenom,
-          bglDecimals,
+          {
+            decimals: bglDecimals,
+            whitelist: [lendingPlatformContract],
+          },
           paymentAmount,
           paymentDenom,
           gasPrice
         );
 
-        const [bglCurrency] = (
-          await minter[name].cwQueryCurrenciesByCreator(lendingPlatformContract)
-        ).currencies;
-
+        const bglCurrency = getLast(
+          (await minter.stargaze.cwQueryCurrencyInfoListByOwner(owner)).filter(
+            (x) => x.whitelist.includes(lendingPlatformContract)
+          )
+        );
         const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
         l({ bglDenomFull });
 
