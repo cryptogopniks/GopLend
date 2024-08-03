@@ -27,6 +27,11 @@ function logAndReturn<T>(object: T, isDisplayed: boolean = false): T {
   return object;
 }
 
+function floor(num: number, digits: number = 0): number {
+  const k = 10 ** digits;
+  return Math.floor(k * num) / k;
+}
+
 function getLast<T>(arr: T[]) {
   return arr[arr.length - 1];
 }
@@ -67,4 +72,4 @@ function decrypt(encryptedData: string, key: string): string | undefined {
   }
 }
 
-export { Request, l, li, logAndReturn, getLast, wait, encrypt, decrypt };
+export { Request, l, li, logAndReturn, floor, getLast, wait, encrypt, decrypt };

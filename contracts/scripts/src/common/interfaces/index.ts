@@ -2,6 +2,30 @@ import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
 import { Label, NetworkName, Wasm } from "../config";
 
+interface AssetDescription {
+  symbol: string;
+  amount: number;
+  denom: string;
+  coingecko_id: string;
+  liquidity: number;
+  liquidity_24h_change: number;
+  volume_24h: number;
+  volume_24h_change: number;
+  volume_7d: number;
+  price: number;
+  fees: string;
+  main: boolean;
+}
+
+interface PoolDatabase {
+  [poolNumber: string]: AssetDescription[];
+}
+
+interface Offer {
+  price: number;
+  expires_at: number;
+}
+
 interface QueryContractResponse {
   address: string;
   contract_info: {
@@ -408,4 +432,7 @@ export {
   QueryOwnerOf,
   OwnerOfResponse,
   QueryContractCodesResponse,
+  Offer,
+  AssetDescription,
+  PoolDatabase,
 };
