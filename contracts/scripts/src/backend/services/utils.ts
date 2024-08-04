@@ -156,6 +156,21 @@ function dateStringToEpochUTC(dateString: string): number {
   return Math.floor(timestamp.getTime() / 1000);
 }
 
+async function specifyTimeout(
+  promise: Promise<any>,
+  timeout: number = 5_000,
+  exception: Function = () => {
+    throw new Error("Timeout!");
+  }
+) {
+  let timer: NodeJS.Timeout;
+
+  return Promise.race([
+    promise,
+    new Promise((_r, rej) => (timer = setTimeout(rej, timeout, exception))),
+  ]).finally(() => clearTimeout(timer));
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -168,4 +183,5 @@ export {
   dateStringToEpoch,
   epochToDateStringUTC,
   dateStringToEpochUTC,
+  specifyTimeout,
 };

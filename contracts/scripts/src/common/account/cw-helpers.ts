@@ -23,7 +23,7 @@ import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
 import { FaucetQueryClient } from "../codegen/Faucet.client";
 
 import CONFIG_JSON from "../config/config.json";
-import { getLast, l, logAndReturn } from "../utils";
+import { getLast, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
@@ -78,6 +78,7 @@ import {
   TokensResponse,
   QueryOwnerOf,
   OwnerOfResponse,
+  Offer,
 } from "../interfaces";
 
 function addSingleTokenToComposerObj(
@@ -1877,6 +1878,241 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(royaltyFeeRate, isDisplayed);
   }
 
+  // async function cwQueryMarketplaceBids(
+  //   marketplace: string,
+  //   collection: string,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   interface BidOffset {
+  //     price: string;
+  //     token_id: number;
+  //     bidder: string;
+  //   }
+
+  //   interface QueryReverseBidsSortedByPrice {
+  //     reverse_bids_sorted_by_price: {
+  //       collection: string;
+  //       start_before?: BidOffset;
+  //       limit?: number;
+  //     };
+  //   }
+
+  //   interface Timestamp {
+  //     timestamp: string;
+  //   }
+
+  //   interface Bid {
+  //     collection: string;
+  //     token_id: number;
+  //     bidder: string;
+  //     price: string;
+  //     finders_fee_bps?: number;
+  //     expires_at: Timestamp;
+  //   }
+
+  //   interface BidsResponse {
+  //     bids: Bid[];
+  //   }
+
+  //   const limit: number = 100;
+  //   const defaultItem: BidOffset = { bidder: "", price: "", token_id: 0 };
+  //   let allItems: Bid[] = [];
+  //   let lastItem: BidOffset | undefined = undefined;
+
+  //   while (JSON.stringify(lastItem) !== JSON.stringify(defaultItem)) {
+  //     const queryMsg: QueryReverseBidsSortedByPrice = {
+  //       reverse_bids_sorted_by_price: {
+  //         collection,
+  //         limit,
+  //         start_before: lastItem,
+  //       },
+  //     };
+
+  //     const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
+  //       marketplace,
+  //       queryMsg
+  //     );
+
+  //     const { bidder, price, token_id } = getLast(res.bids) || defaultItem;
+  //     lastItem = { bidder, price, token_id };
+  //     allItems = [...allItems, ...res.bids];
+
+  //     l({ lastOffer: lastItem });
+  //   }
+
+  //   return logAndReturn(allItems, isDisplayed);
+  // }
+
+  // async function cwQueryMarketplaceCollectionBids(
+  //   marketplace: string,
+  //   collection: string,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   interface CollectionBidOffset {
+  //     price: string;
+  //     collection: string;
+  //     bidder: string;
+  //   }
+
+  //   interface QueryReverseCollectionBidsSortedByPrice {
+  //     reverse_collection_bids_sorted_by_price: {
+  //       collection: string;
+  //       start_before?: CollectionBidOffset;
+  //       limit?: number;
+  //     };
+  //   }
+
+  //   interface CollectionBid {
+  //     collection: string;
+  //     bidder: string;
+  //     price: string;
+  //     finders_fee_bps?: number;
+  //     expires_at: string;
+  //   }
+
+  //   interface CollectionBidsResponse {
+  //     bids: CollectionBid[];
+  //   }
+
+  //   const limit: number = 100;
+  //   const defaultItem: CollectionBidOffset = {
+  //     bidder: "",
+  //     price: "",
+  //     collection: "",
+  //   };
+  //   let allItems: CollectionBid[] = [];
+  //   let lastItem: CollectionBidOffset | undefined = undefined;
+
+  //   while (JSON.stringify(lastItem) !== JSON.stringify(defaultItem)) {
+  //     const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
+  //       reverse_collection_bids_sorted_by_price: {
+  //         collection,
+  //         limit,
+  //         start_before: lastItem,
+  //       },
+  //     };
+
+  //     const res: CollectionBidsResponse =
+  //       await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
+
+  //     const {
+  //       bidder,
+  //       price,
+  //       collection: lastCollection,
+  //     } = getLast(res.bids) || defaultItem;
+  //     lastItem = { bidder, price, collection: lastCollection };
+  //     allItems = [...allItems, ...res.bids];
+
+  //     l({ lastOffer: lastItem });
+  //   }
+
+  //   return logAndReturn(allItems, isDisplayed);
+  // }
+
+  async function cwQueryMarketplaceOffers(
+    marketplace: string,
+    collection: string,
+    limit: number = 50,
+    isDisplayed: boolean = false
+  ) {
+    const getBids = async (): Promise<Offer[]> => {
+      interface BidOffset {
+        price: string;
+        token_id: number;
+        bidder: string;
+      }
+
+      interface QueryReverseBidsSortedByPrice {
+        reverse_bids_sorted_by_price: {
+          collection: string;
+          start_before?: BidOffset;
+          limit?: number;
+        };
+      }
+
+      interface Bid {
+        collection: string;
+        token_id: number;
+        bidder: string;
+        price: string;
+        finders_fee_bps?: number;
+        expires_at: string;
+      }
+
+      interface BidsResponse {
+        bids: Bid[];
+      }
+
+      const queryMsg: QueryReverseBidsSortedByPrice = {
+        reverse_bids_sorted_by_price: {
+          collection,
+          limit,
+        },
+      };
+
+      const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
+        marketplace,
+        queryMsg
+      );
+
+      return res.bids.map((x) => ({
+        price: Number(x.price),
+        expires_at: Math.floor(Number(x.expires_at) / 1e9),
+      }));
+    };
+
+    const getCollectionBids = async (): Promise<Offer[]> => {
+      interface CollectionBidOffset {
+        price: string;
+        collection: string;
+        bidder: string;
+      }
+
+      interface QueryReverseCollectionBidsSortedByPrice {
+        reverse_collection_bids_sorted_by_price: {
+          collection: string;
+          start_before?: CollectionBidOffset;
+          limit?: number;
+        };
+      }
+
+      interface CollectionBid {
+        collection: string;
+        bidder: string;
+        price: string;
+        finders_fee_bps?: number;
+        expires_at: string;
+      }
+
+      interface CollectionBidsResponse {
+        bids: CollectionBid[];
+      }
+
+      const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
+        reverse_collection_bids_sorted_by_price: {
+          collection,
+          limit,
+        },
+      };
+
+      const res: CollectionBidsResponse =
+        await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
+
+      return res.bids.map((x) => ({
+        price: Number(x.price),
+        expires_at: Math.floor(Number(x.expires_at) / 1e9),
+      }));
+    };
+
+    const [bids, collectionBids] = await Promise.all([
+      getBids(),
+      getCollectionBids(),
+    ]);
+    const offers = [...bids, ...collectionBids];
+
+    return logAndReturn(offers, isDisplayed);
+  }
+
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -2374,6 +2610,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryNetworkFee,
       cwQueryRoyaltyFee,
       cwQueryFinderFee,
+      // cwQueryMarketplaceBids,
+      // cwQueryMarketplaceCollectionBids,
+      cwQueryMarketplaceOffers,
     },
     adapter: {
       dex: {
