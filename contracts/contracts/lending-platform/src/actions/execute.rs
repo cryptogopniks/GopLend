@@ -287,6 +287,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         .add_attributes(vec![("action", "try_withdraw")]))
 }
 
+// TODO: check total collateral value - use formula from query_conditional_ltv
 pub fn try_deposit_collateral(
     deps: DepsMut,
     env: Env,
@@ -391,7 +392,6 @@ pub fn try_deposit_collateral(
                 val: collection_address.to_string(),
             })?;
 
-        // TODO: must return error but doesn't do it
         if price_item.is_outdated {
             Err(ContractError::OutdatedPrice {
                 val: collection_address.to_string(),

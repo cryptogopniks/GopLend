@@ -466,6 +466,7 @@ pub fn query_conditional_deposit_apr(
     ))
 }
 
+// TODO: return Vec<(Addr, Option<Decimal>)>
 pub fn query_ltv_list(
     deps: Deps,
     env: Env,

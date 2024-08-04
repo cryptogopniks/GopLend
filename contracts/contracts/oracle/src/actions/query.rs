@@ -25,13 +25,18 @@ pub fn query_prices(
         max_price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
+    let decreased_block_time =
+        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
 
     if let Some(x) = collection_addresses {
         return x
             .iter()
             .map(|y| {
                 let address = deps.api.addr_validate(y)?;
-                PRICE_AND_DATE_LIST.load(deps.storage, &address)
+                let mut price_item = PRICE_AND_DATE_LIST.load(deps.storage, &address)?;
+                price_item.is_outdated = decreased_block_time > price_item.update_date;
+
+                Ok(price_item)
             })
             .collect::<StdResult<Vec<PriceItem>>>();
     }
@@ -49,8 +54,6 @@ pub fn query_prices(
         None => None,
     };
 
-    let decreased_block_time =
-        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
     Ok(PRICE_AND_DATE_LIST
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
