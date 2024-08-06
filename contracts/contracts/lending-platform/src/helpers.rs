@@ -376,12 +376,61 @@ pub fn update_balances(
     Ok(())
 }
 
+pub fn get_collaterals_by_borrower(
+    collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
+    borrower_address: &Addr,
+) -> Vec<(Addr, Collateral)> {
+    // get collaterals owned by borrower
+    let mut collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> = vec![];
+
+    for (collection, collaterals) in collection_and_collateral_list {
+        // single collateral per collection
+        if let Some(collateral) = collaterals
+            .iter()
+            .find(|collateral| collateral.owner == borrower_address)
+        {
+            collection_and_collateral_list_by_borrower
+                .push((collection.to_owned(), collateral.to_owned()));
+        }
+    }
+
+    collection_and_collateral_list_by_borrower
+}
+
+pub fn get_collateral_value(
+    main_currency: &Currency<Token>,
+    collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
+    prices: &[PriceItem],
+) -> StdResult<Uint128> {
+    let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
+        Ok(Uint128::zero()),
+        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
+            let price_item = prices
+                .iter()
+                .find(|x| x.address == collection_address)
+                .ok_or(ContractError::PriceIsNotFound {
+                    val: collection_address.to_string(),
+                })?;
+
+            if price_item.is_outdated {
+                Err(ContractError::OutdatedPrice {
+                    val: collection_address.to_string(),
+                })?;
+            }
+
+            let price = choose_price(main_currency, price_item);
+
+            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
+        },
+    )?;
+
+    Ok(collateral_value)
+}
+
 pub mod offchain {
-    use cosmwasm_std::{Addr, QuerierWrapper, StdResult, Uint128};
+    use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 
     use goplend_base::{
-        assets::{Currency, Token},
-        error::ContractError,
         lending_platform::{
             msg::{
                 QueryBorrowersResponseItem, QueryCollateralsResponseItem,
@@ -391,8 +440,6 @@ pub mod offchain {
         },
         oracle::{self, types::PriceItem},
     };
-
-    use super::choose_price;
 
     pub fn get_borrowers(
         querier_wrapper: &QuerierWrapper,
@@ -451,61 +498,6 @@ pub mod offchain {
                 limit: None,
             },
         )
-    }
-
-    pub fn get_collaterals_by_borrower(
-        collection_and_collateral_list: &[(Addr, Vec<Collateral>)],
-        borrower_address: &Addr,
-    ) -> Vec<(Addr, Collateral)> {
-        // get collaterals owned by borrower
-        let mut collection_and_collateral_list_by_borrower: Vec<(Addr, Collateral)> = vec![];
-
-        for (collection, collaterals) in collection_and_collateral_list {
-            // single collateral per collection
-            if let Some(collateral) = collaterals
-                .iter()
-                .find(|collateral| collateral.owner == borrower_address)
-            {
-                collection_and_collateral_list_by_borrower
-                    .push((collection.to_owned(), collateral.to_owned()));
-            }
-        }
-
-        collection_and_collateral_list_by_borrower
-    }
-
-    pub fn get_collateral_value(
-        main_currency: &Currency<Token>,
-        collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
-        prices: &[PriceItem],
-    ) -> StdResult<Option<Uint128>> {
-        let mut is_price_outdated = false;
-
-        let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
-            Ok(Uint128::zero()),
-            |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                let price_item = prices
-                    .iter()
-                    .find(|x| x.address == collection_address)
-                    .ok_or(ContractError::PriceIsNotFound {
-                        val: collection_address.to_string(),
-                    })?;
-
-                if price_item.is_outdated {
-                    is_price_outdated = true;
-                }
-
-                let price = choose_price(main_currency, price_item);
-
-                Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
-            },
-        )?;
-
-        Ok(if is_price_outdated {
-            None
-        } else {
-            Some(collateral_value)
-        })
     }
 
     // find bids containing at least 1 borrower's collateral token

@@ -34,7 +34,7 @@ use goplend_base::{
 use crate::{
     actions::query,
     helpers::{
-        accumulate_expected_rewards, check_collections_holder, check_lockout, choose_price,
+        self, accumulate_expected_rewards, check_collections_holder, check_lockout,
         increase_platform_revenue, update_balances, update_borrowers_storages,
         update_liquidation_storages, verify_proposal_status,
     },
@@ -287,7 +287,6 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         .add_attributes(vec![("action", "try_withdraw")]))
 }
 
-// TODO: check total collateral value - use formula from query_conditional_ltv
 pub fn try_deposit_collateral(
     deps: DepsMut,
     env: Env,
@@ -337,39 +336,24 @@ pub fn try_deposit_collateral(
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
-    let collection_addresses = collections
-        .iter()
-        .map(|x| x.collection_address.to_string())
-        .collect();
-
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            start_after: None,
-            limit: None,
-        },
-    )?;
-
     // check if nfts are on user balance
     check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
 
-    let mut collateral_value = Uint128::zero();
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
     for CollectionInfo {
         collection_address,
         token_id_list,
-    } in collections
+    } in &collections
     {
         // validate collection
-        let collection_address = deps.api.addr_validate(&collection_address)?;
+        let collection_address = deps.api.addr_validate(collection_address)?;
         if !COLLECTIONS.has(deps.storage, &collection_address) {
             Err(ContractError::CollectionIsNotFound)?;
         }
 
         // add transfer msgs
-        for token_id in &token_id_list {
+        for token_id in token_id_list {
             let cw721_msg = Cw721ExecuteMsg::TransferNft {
                 recipient: env.contract.address.to_string(),
                 token_id: token_id.to_string(),
@@ -383,22 +367,6 @@ pub fn try_deposit_collateral(
 
             msg_list.push(msg);
         }
-
-        // get collection price
-        let price_item = prices
-            .iter()
-            .find(|x| x.address == collection_address)
-            .ok_or(ContractError::PriceIsNotFound {
-                val: collection_address.to_string(),
-            })?;
-
-        if price_item.is_outdated {
-            Err(ContractError::OutdatedPrice {
-                val: collection_address.to_string(),
-            })?;
-        }
-
-        let price = choose_price(&common_config.main_currency, price_item);
 
         // update collaterals
         COLLATERALS.update(
@@ -422,7 +390,7 @@ pub fn try_deposit_collateral(
                             .into_iter()
                             .map(|mut collateral| {
                                 if collateral.owner == sender_address {
-                                    for token_id in &token_id_list {
+                                    for token_id in token_id_list {
                                         if collateral
                                             .token_item_list
                                             .iter()
@@ -435,10 +403,6 @@ pub fn try_deposit_collateral(
                                         }
                                     }
 
-                                    // update collateral value
-                                    collateral_value += price
-                                        * Uint128::new(collateral.token_item_list.len() as u128);
-
                                     collateral
                                 } else {
                                     collateral
@@ -449,15 +413,12 @@ pub fn try_deposit_collateral(
                         collaterals
                     }
                     None => {
-                        // update collateral value
-                        collateral_value += price * Uint128::new(token_id_list.len() as u128);
-
                         vec![Collateral {
                             owner: sender_address.clone(),
                             token_item_list: token_id_list
-                                .into_iter()
+                                .iter()
                                 .map(|id| TokenItem {
-                                    id,
+                                    id: id.to_owned(),
                                     creation_date: block_time,
                                 })
                                 .collect(),
@@ -471,15 +432,61 @@ pub fn try_deposit_collateral(
     }
 
     // check collateral value
-    if collateral_value < common_config.collateral_min_value {
-        Err(ContractError::LowCollateral {
-            provided_amount: collateral_value.u128(),
-            min_amount: common_config.collateral_min_value.u128(),
-            denom: match common_config.main_currency.token {
-                Token::Native { denom } => denom,
-                Token::Cw20 { address } => address.to_string(),
-            },
-        })?;
+    let collateral_list = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+
+    let collection_and_collateral_list =
+        helpers::get_collaterals_by_borrower(&collateral_list, &sender_address);
+
+    let collection_addresses_full: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses_full),
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    // don't allow to deposit collateral with outdated price
+    for collection_address in collection_addresses {
+        let price_item = prices
+            .iter()
+            .find(|x| x.address == collection_address)
+            .ok_or(ContractError::PriceIsNotFound {
+                val: collection_address.to_string(),
+            })?;
+
+        if price_item.is_outdated {
+            Err(ContractError::OutdatedPrice {
+                val: collection_address.to_string(),
+            })?;
+        }
+    }
+
+    // don't allow to deposit if final collateral amount will be too low
+    let collateral_value_result = helpers::get_collateral_value(
+        &common_config.main_currency,
+        &collection_and_collateral_list,
+        &prices,
+    );
+
+    if let Ok(collateral_value) = collateral_value_result {
+        if collateral_value < common_config.collateral_min_value {
+            Err(ContractError::LowCollateral {
+                provided_amount: collateral_value.u128(),
+                min_amount: common_config.collateral_min_value.u128(),
+                denom: match common_config.main_currency.token {
+                    Token::Native { denom } => denom,
+                    Token::Cw20 { address } => address.to_string(),
+                },
+            })?;
+        }
     }
 
     Ok(Response::new()
@@ -535,25 +542,10 @@ pub fn try_withdraw_collateral(
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
-    let collection_addresses = collections
-        .iter()
-        .map(|x| x.collection_address.to_string())
-        .collect();
-
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            start_after: None,
-            limit: None,
-        },
-    )?;
-
     // check if nfts are on contract balance
     check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
 
     let mut is_collateral_withdrawn_completely = true;
-    let mut collateral_value = Uint128::zero();
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
     for CollectionInfo {
@@ -583,22 +575,6 @@ pub fn try_withdraw_collateral(
             msg_list.push(msg);
         }
 
-        // get collection price
-        let price_item = prices
-            .iter()
-            .find(|x| x.address == collection_address)
-            .ok_or(ContractError::PriceIsNotFound {
-                val: collection_address.to_string(),
-            })?;
-
-        if price_item.is_outdated {
-            Err(ContractError::OutdatedPrice {
-                val: collection_address.to_string(),
-            })?;
-        }
-
-        let price = choose_price(&common_config.main_currency, price_item);
-
         // update collaterals
         let collaterals: Vec<Collateral> = COLLATERALS
             .load(deps.storage, &collection_address)?
@@ -608,10 +584,6 @@ pub fn try_withdraw_collateral(
                     collateral
                         .token_item_list
                         .retain(|item| !token_id_list.contains(&item.id));
-
-                    // update collateral value
-                    collateral_value +=
-                        price * Uint128::new(collateral.token_item_list.len() as u128);
 
                     collateral
                 } else {
@@ -630,6 +602,33 @@ pub fn try_withdraw_collateral(
     }
 
     // check collateral value
+    let collateral_list = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+
+    let collection_and_collateral_list =
+        helpers::get_collaterals_by_borrower(&collateral_list, &sender_address);
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let collateral_value = helpers::get_collateral_value(
+        &common_config.main_currency,
+        &collection_and_collateral_list,
+        &prices,
+    )?;
+
     if collateral_value < common_config.collateral_min_value && !is_collateral_withdrawn_completely
     {
         Err(ContractError::LowCollateral {

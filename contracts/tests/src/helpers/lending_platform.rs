@@ -369,7 +369,7 @@ pub trait LendingPlatformExtension {
         platform_type: PlatformType,
         start_after: &Option<ProjectAccount>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<(Addr, Decimal)>>;
+    ) -> StdResult<Vec<(Addr, Option<Decimal>)>>;
 
     fn lending_platform_query_conditional_ltv(
         &self,
@@ -1399,7 +1399,7 @@ impl LendingPlatformExtension for Project {
         platform_type: PlatformType,
         start_after: &Option<ProjectAccount>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<(Addr, Decimal)>> {
+    ) -> StdResult<Vec<(Addr, Option<Decimal>)>> {
         let contract_address = match platform_type {
             PlatformType::Main => self.get_lending_platform_main_address(),
             PlatformType::Stable => self.get_lending_platform_stable_address(),

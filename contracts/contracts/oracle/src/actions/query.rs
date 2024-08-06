@@ -1,12 +1,15 @@
 use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 use cw_storage_plus::Bound;
-use goplend_base::oracle::{
-    state::{
-        CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
-        PRICE_RATIO,
+use goplend_base::{
+    error::ContractError,
+    oracle::{
+        state::{
+            CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
+            PRICE_RATIO,
+        },
+        types::{Config, Log, PriceItem, PriceRatioItem},
     },
-    types::{Config, Log, PriceItem, PriceRatioItem},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -33,7 +36,12 @@ pub fn query_prices(
             .iter()
             .map(|y| {
                 let address = deps.api.addr_validate(y)?;
-                let mut price_item = PRICE_AND_DATE_LIST.load(deps.storage, &address)?;
+                let mut price_item =
+                    PRICE_AND_DATE_LIST
+                        .load(deps.storage, &address)
+                        .map_err(|_| ContractError::PriceIsNotFound {
+                            val: address.to_string(),
+                        })?;
                 price_item.is_outdated = decreased_block_time > price_item.update_date;
 
                 Ok(price_item)

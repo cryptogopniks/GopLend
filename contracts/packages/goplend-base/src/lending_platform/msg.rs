@@ -253,7 +253,7 @@ pub enum QueryMsg {
     #[returns(Decimal)]
     QueryConditionalDepositApr { amount_to_deposit: Option<Uint128> },
 
-    #[returns(Vec<(Addr, Decimal)>)]
+    #[returns(Vec<(Addr, Option<Decimal>)>)]
     QueryLtvList {
         start_after: Option<String>,
         limit: Option<u32>,

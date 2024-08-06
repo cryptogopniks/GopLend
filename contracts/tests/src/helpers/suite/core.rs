@@ -153,6 +153,7 @@ impl Project {
                 ProjectAccount::Bob,
                 ProjectAccount::John,
                 ProjectAccount::Kate,
+                ProjectAccount::Ruby,
             ]
             .iter()
             .enumerate()
