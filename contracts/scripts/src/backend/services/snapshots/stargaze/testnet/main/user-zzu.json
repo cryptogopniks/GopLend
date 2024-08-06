@@ -1,11 +1,11 @@
 {
-  "mainTokenBalance": "216870084633",
+  "mainTokenBalance": "216870079144",
   "bglTokenBalance": "0",
   "unbonder": {
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "61525",
+    "accumulated_loan": "61925",
     "loan": {
       "creation_date": 1722193815,
       "amount": "10000000"
@@ -64,7 +64,7 @@
           "bid_type": "liquidation_bid"
         },
         {
-          "creation_date": 1722969859,
+          "creation_date": 1722974913,
           "liquidator": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
           "token_id_list": [
             "66",
@@ -97,7 +97,7 @@
       "collection_address": "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
       "liquidation_bids": [
         {
-          "creation_date": 1722969859,
+          "creation_date": 1722974913,
           "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
           "token_id_list": [
             "34",

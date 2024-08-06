@@ -64,7 +64,7 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    await lending.cwQueryLtvList("main", 100, undefined, true);
+    await lending.cwQueryLtvList("main", 1, undefined, true);
     return;
 
     // await h.faucet.stargaze.cwClaimFor(
