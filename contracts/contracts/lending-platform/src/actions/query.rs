@@ -498,6 +498,7 @@ pub fn query_ltv_list(
         .iter()
         .map(|(address, _)| address.to_string())
         .collect();
+
     let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {

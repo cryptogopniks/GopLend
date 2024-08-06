@@ -2,7 +2,7 @@ use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 use cw_storage_plus::Bound;
 use goplend_base::{
-    error::ContractError,
+    assets::{Currency, Funds, Token},
     oracle::{
         state::{
             CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
@@ -39,9 +39,19 @@ pub fn query_prices(
                 let mut price_item =
                     PRICE_AND_DATE_LIST
                         .load(deps.storage, &address)
-                        .map_err(|_| ContractError::PriceIsNotFound {
-                            val: address.to_string(),
-                        })?;
+                        .unwrap_or(PriceItem {
+                            address: address.to_owned(),
+                            price: Funds::new(
+                                0u128,
+                                &Currency::new(&Token::new_native(&String::default()), 0),
+                            ),
+                            usd_price: Funds::new(
+                                0u128,
+                                &Currency::new(&Token::new_native(&String::default()), 0),
+                            ),
+                            update_date: 0,
+                            is_outdated: true,
+                        });
                 price_item.is_outdated = decreased_block_time > price_item.update_date;
 
                 Ok(price_item)

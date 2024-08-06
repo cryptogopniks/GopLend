@@ -254,5 +254,5 @@ async function main(userAddress: string) {
   }
 }
 
-main("stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu");
+main("stars1vq97vj6hsrvg8569eclpnpsvs6nk7jllkdcx86");
 // main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");

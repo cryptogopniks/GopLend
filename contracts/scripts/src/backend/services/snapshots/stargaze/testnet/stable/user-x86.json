@@ -1,0 +1,20 @@
+{
+  "mainTokenBalance": "10000000000",
+  "bglTokenBalance": "986833686",
+  "unbonder": {
+    "returned_and_unbonded": []
+  },
+  "borrower": {
+    "accumulated_loan": "878361",
+    "loan": {
+      "creation_date": 1722870843,
+      "amount": "1000000000"
+    }
+  },
+  "collateralCost": "0",
+  "collateral": [],
+  "ltv": "0",
+  "availableToBorrow": "0",
+  "ownBids": [],
+  "sideBids": []
+}
