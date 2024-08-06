@@ -100,11 +100,19 @@ async function main(userAddress: string) {
       platformType,
       userAddress
     );
-    const ltv = await lending.cwQueryConditionalLtv(platformType, userAddress);
-    const availableToBorrow = await lending.cwQueryAvailableToBorrow(
-      platformType,
-      userAddress
-    );
+
+    let ltv: string | null = null;
+    try {
+      ltv = await lending.cwQueryConditionalLtv(platformType, userAddress);
+    } catch (_) {}
+
+    let availableToBorrow: string | null = null;
+    try {
+      availableToBorrow = await lending.cwQueryAvailableToBorrow(
+        platformType,
+        userAddress
+      );
+    } catch (_) {}
 
     return {
       unbonder,

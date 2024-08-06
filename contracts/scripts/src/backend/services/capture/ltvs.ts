@@ -31,11 +31,11 @@ async function main() {
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
   const getLtvList = async (platformType: PlatformType) => {
-    let allItems: [Addr, Decimal][] = [];
+    let allItems: [Addr, Decimal | null][] = [];
     let lastItem: string | undefined = undefined;
 
     while (lastItem !== "") {
-      const items: [Addr, Decimal][] = await lending.cwQueryLtvList(
+      const items: [Addr, Decimal | null][] = await lending.cwQueryLtvList(
         platformType,
         PAGINATION_QUERY_AMOUNT,
         lastItem

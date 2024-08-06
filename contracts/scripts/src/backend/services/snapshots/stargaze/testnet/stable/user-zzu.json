@@ -1,11 +1,11 @@
 {
-  "mainTokenBalance": "19011000000",
+  "mainTokenBalance": "29011000000",
   "bglTokenBalance": "0",
   "unbonder": {
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "68",
+    "accumulated_loan": "44433",
     "loan": {
       "creation_date": 1722460952,
       "amount": "11000000"

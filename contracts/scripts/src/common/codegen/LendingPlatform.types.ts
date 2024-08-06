@@ -434,7 +434,7 @@ export interface QueryLiquidatorsResponseItem {
   address: Addr;
   liquidator: Liquidator;
 }
-export type ArrayOfTupleOfAddrAndDecimal = [Addr, Decimal][];
+export type ArrayOfTupleOfAddrAndNullable_Decimal = [Addr, Decimal | null][];
 export type ArrayOfFundsForToken = FundsForToken[];
 export interface FundsForToken {
   amount: Uint128;
