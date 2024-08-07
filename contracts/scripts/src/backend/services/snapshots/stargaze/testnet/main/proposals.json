@@ -50,5 +50,31 @@
         }
       }
     }
+  },
+  {
+    "id": 3,
+    "proposal": {
+      "proposal_status": "accepted",
+      "proposal_type": {
+        "add_collection": {
+          "collection_address": "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+          "collection": {
+            "name": "MOO Testnet",
+            "owner": "stars195uj7x3fst0pxm7vcwxdk8t05w6fnqwwu5hk9t"
+          }
+        }
+      },
+      "listing_price": {
+        "amount": "1",
+        "currency": {
+          "token": {
+            "native": {
+              "denom": "ustars"
+            }
+          },
+          "decimals": 6
+        }
+      }
+    }
   }
 ]

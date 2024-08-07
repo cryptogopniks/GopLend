@@ -1,12 +1,15 @@
 use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 use cw_storage_plus::Bound;
-use goplend_base::oracle::{
-    state::{
-        CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
-        PRICE_RATIO,
+use goplend_base::{
+    assets::{Currency, Funds, Token},
+    oracle::{
+        state::{
+            CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
+            PRICE_RATIO,
+        },
+        types::{Config, Log, PriceItem, PriceRatioItem},
     },
-    types::{Config, Log, PriceItem, PriceRatioItem},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -25,13 +28,33 @@ pub fn query_prices(
         max_price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
+    let decreased_block_time =
+        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
 
     if let Some(x) = collection_addresses {
         return x
             .iter()
             .map(|y| {
                 let address = deps.api.addr_validate(y)?;
-                PRICE_AND_DATE_LIST.load(deps.storage, &address)
+                let mut price_item =
+                    PRICE_AND_DATE_LIST
+                        .load(deps.storage, &address)
+                        .unwrap_or(PriceItem {
+                            address: address.to_owned(),
+                            price: Funds::new(
+                                0u128,
+                                &Currency::new(&Token::new_native(&String::default()), 0),
+                            ),
+                            usd_price: Funds::new(
+                                0u128,
+                                &Currency::new(&Token::new_native(&String::default()), 0),
+                            ),
+                            update_date: 0,
+                            is_outdated: true,
+                        });
+                price_item.is_outdated = decreased_block_time > price_item.update_date;
+
+                Ok(price_item)
             })
             .collect::<StdResult<Vec<PriceItem>>>();
     }
@@ -49,8 +72,6 @@ pub fn query_prices(
         None => None,
     };
 
-    let decreased_block_time =
-        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
     Ok(PRICE_AND_DATE_LIST
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)

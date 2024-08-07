@@ -1,1 +1,64 @@
-[]
+[
+  {
+    "owner": "stars1jlxsc54y3l94q9feez33795tvws5cxjpdrzhwu",
+    "collateral": [
+      {
+        "collection": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "token_item_list": [
+          {
+            "id": "41",
+            "creation_date": 1722581918
+          },
+          {
+            "id": "353",
+            "creation_date": 1722581941
+          },
+          {
+            "id": "662",
+            "creation_date": 1722581963
+          },
+          {
+            "id": "757",
+            "creation_date": 1722581980
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "owner": "stars1cg5p8qtl7xn7tjzm6dejqwl7l07udsxpdpt3x7",
+    "collateral": [
+      {
+        "collection": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "token_item_list": [
+          {
+            "id": "541",
+            "creation_date": 1722501801
+          },
+          {
+            "id": "935",
+            "creation_date": 1722501813
+          },
+          {
+            "id": "457",
+            "creation_date": 1722962676
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "owner": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+    "collateral": [
+      {
+        "collection": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "token_item_list": [
+          {
+            "id": "628",
+            "creation_date": 1721669487
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -100,11 +100,19 @@ async function main(userAddress: string) {
       platformType,
       userAddress
     );
-    const ltv = await lending.cwQueryConditionalLtv(platformType, userAddress);
-    const availableToBorrow = await lending.cwQueryAvailableToBorrow(
-      platformType,
-      userAddress
-    );
+
+    let ltv: string | null = null;
+    try {
+      ltv = await lending.cwQueryConditionalLtv(platformType, userAddress);
+    } catch (_) {}
+
+    let availableToBorrow: string | null = null;
+    try {
+      availableToBorrow = await lending.cwQueryAvailableToBorrow(
+        platformType,
+        userAddress
+      );
+    } catch (_) {}
 
     return {
       unbonder,
@@ -246,5 +254,5 @@ async function main(userAddress: string) {
   }
 }
 
-main("stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu");
+main("stars1vq97vj6hsrvg8569eclpnpsvs6nk7jllkdcx86");
 // main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");

@@ -3133,7 +3133,7 @@
     },
     "query_ltv_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Array_of_Tuple_of_Addr_and_Decimal",
+      "title": "Array_of_Tuple_of_Addr_and_Nullable_Decimal",
       "type": "array",
       "items": {
         "type": "array",
@@ -3142,7 +3142,14 @@
             "$ref": "#/definitions/Addr"
           },
           {
-            "$ref": "#/definitions/Decimal"
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Decimal"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         ],
         "maxItems": 2,

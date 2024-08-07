@@ -64,11 +64,14 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    await h.faucet.stargaze.cwClaimFor(
-      [["stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu", 2]],
-      gasPrice
-    );
+    await lending.cwQueryLtvList("main", 1, undefined, true);
     return;
+
+    // await h.faucet.stargaze.cwClaimFor(
+    //   [["stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu", 2]],
+    //   gasPrice
+    // );
+    // return;
 
     await lending.cwQueryBalances("stable", true);
     await lending.cwQueryConditionalDepositApr("stable", 0, true);

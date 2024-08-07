@@ -3,7 +3,6 @@ use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
 use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Funds, Token},
-    error::ContractError,
     lending_platform::{
         msg::{
             QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
@@ -471,7 +470,7 @@ pub fn query_ltv_list(
     env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
-) -> StdResult<Vec<(Addr, Decimal)>> {
+) -> StdResult<Vec<(Addr, Option<Decimal>)>> {
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -491,18 +490,23 @@ pub fn query_ltv_list(
         None => None,
     };
 
+    let all_collaterals = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+
+    let collection_addresses = all_collaterals
+        .iter()
+        .map(|(address, _)| address.to_string())
+        .collect();
+
     let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: None,
+            collection_addresses: Some(collection_addresses),
             start_after: None,
             limit: None,
         },
     )?;
-
-    let all_collaterals = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
 
     BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -510,55 +514,34 @@ pub fn query_ltv_list(
         .flatten()
         .map(|(borrower_address, borrower)| {
             // get collaterals owned by borrower
-            let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
+            let collection_and_collateral_list =
+                helpers::get_collaterals_by_borrower(&all_collaterals, &borrower_address);
 
-            for (collection, collaterals) in &all_collaterals {
-                // single collateral per collection
-                if let Some(collateral) = collaterals
-                    .iter()
-                    .find(|collateral| collateral.owner == borrower_address)
-                {
-                    collection_and_collateral_list
-                        .push((collection.to_owned(), collateral.to_owned()));
-                }
-            }
-
-            let collateral_value = collection_and_collateral_list.iter().fold(
-                Ok(Uint128::zero()),
-                |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-                    let price_item = prices
-                        .iter()
-                        .find(|x| x.address == collection_address)
-                        .ok_or(ContractError::PriceIsNotFound {
-                            val: collection_address.to_string(),
-                        })?;
-
-                    if price_item.is_outdated {
-                        Err(ContractError::OutdatedPrice {
-                            val: collection_address.to_string(),
-                        })?;
-                    }
-
-                    let price = helpers::choose_price(&common_config.main_currency, price_item);
-
-                    Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
-                },
-            )?;
-
-            let ltv = math::calc_conditional_ltv(
-                rate_config.borrow_apr,
-                Uint128::zero(),
-                borrower.accumulated_loan,
-                borrower.loan.amount,
-                Uint128::zero(),
-                collateral_value,
-                block_time,
-                borrower.loan.creation_date,
+            let collateral_value_option = helpers::get_collateral_value(
+                &common_config.main_currency,
+                &collection_and_collateral_list,
+                &prices,
             );
 
-            Ok((borrower_address, ltv))
+            Ok(match collateral_value_option {
+                Err(_) => (borrower_address, None),
+                Ok(collateral_value) => {
+                    let ltv = math::calc_conditional_ltv(
+                        rate_config.borrow_apr,
+                        Uint128::zero(),
+                        borrower.accumulated_loan,
+                        borrower.loan.amount,
+                        Uint128::zero(),
+                        collateral_value,
+                        block_time,
+                        borrower.loan.creation_date,
+                    );
+
+                    (borrower_address, Some(ltv))
+                }
+            })
         })
-        .collect::<StdResult<Vec<(Addr, Decimal)>>>()
+        .collect::<StdResult<Vec<(Addr, Option<Decimal>)>>>()
 }
 
 pub fn query_conditional_ltv(
@@ -579,19 +562,11 @@ pub fn query_conditional_ltv(
         .unwrap_or_default();
 
     // get collaterals owned by borrower
-    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
-
-    for (collection, collaterals) in COLLATERALS
+    let collection_and_collateral_list = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-    {
-        if let Some(collateral) = collaterals
-            .iter()
-            .find(|collateral| collateral.owner == borrower_address)
-        {
-            collection_and_collateral_list.push((collection, collateral.to_owned()));
-        }
-    }
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+    let collection_and_collateral_list =
+        helpers::get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address);
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -608,33 +583,11 @@ pub fn query_conditional_ltv(
         },
     )?;
 
-    let collateral_value = collection_and_collateral_list.iter().fold(
-        Ok(Uint128::zero()),
-        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let price_item = prices
-                .iter()
-                .find(|x| x.address == collection_address)
-                .ok_or(ContractError::PriceIsNotFound {
-                    val: collection_address.to_string(),
-                })?;
-
-            if price_item.is_outdated {
-                Err(ContractError::OutdatedPrice {
-                    val: collection_address.to_string(),
-                })?;
-            }
-
-            let price = helpers::choose_price(&common_config.main_currency, price_item);
-
-            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
-        },
+    let collateral_value = helpers::get_collateral_value(
+        &common_config.main_currency,
+        &collection_and_collateral_list,
+        &prices,
     )?;
-
-    if collateral_value.is_zero()
-        && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
-    {
-        return Ok(Decimal::zero());
-    }
 
     Ok(math::calc_conditional_ltv(
         rate_config.borrow_apr,
@@ -706,20 +659,11 @@ pub fn query_available_to_borrow(
         .unwrap_or_default();
 
     // get collaterals owned by borrower
-    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
-
-    for (collection, collaterals) in COLLATERALS
+    let collection_and_collateral_list = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-    {
-        // single collateral per collection
-        if let Some(collateral) = collaterals
-            .iter()
-            .find(|collateral| collateral.owner == borrower_address)
-        {
-            collection_and_collateral_list.push((collection.to_owned(), collateral.to_owned()));
-        }
-    }
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+    let collection_and_collateral_list =
+        helpers::get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address);
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -736,33 +680,11 @@ pub fn query_available_to_borrow(
         },
     )?;
 
-    let collateral_value = collection_and_collateral_list.iter().fold(
-        Ok(Uint128::zero()),
-        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let price_item = prices
-                .iter()
-                .find(|x| x.address == collection_address)
-                .ok_or(ContractError::PriceIsNotFound {
-                    val: collection_address.to_string(),
-                })?;
-
-            if price_item.is_outdated {
-                Err(ContractError::OutdatedPrice {
-                    val: collection_address.to_string(),
-                })?;
-            }
-
-            let price = helpers::choose_price(&common_config.main_currency, price_item);
-
-            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
-        },
+    let collateral_value = helpers::get_collateral_value(
+        &common_config.main_currency,
+        &collection_and_collateral_list,
+        &prices,
     )?;
-
-    if collateral_value.is_zero()
-        && !(borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero())
-    {
-        return Ok(Uint128::zero());
-    }
 
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
@@ -882,16 +804,8 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
     // ltv
     //
     // get collaterals owned by borrower
-    let mut collection_and_collateral_list: Vec<(Addr, Collateral)> = vec![];
-
-    for (collection, collaterals) in collateral_list {
-        if let Some(collateral) = collaterals
-            .iter()
-            .find(|collateral| collateral.owner == user)
-        {
-            collection_and_collateral_list.push((collection, collateral.to_owned()));
-        }
-    }
+    let collection_and_collateral_list =
+        helpers::get_collaterals_by_borrower(&collateral_list, user);
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -907,27 +821,8 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
         },
     )?;
 
-    let collateral_value = collection_and_collateral_list.iter().fold(
-        Ok(Uint128::zero()),
-        |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let price_item = prices
-                .iter()
-                .find(|x| x.address == collection_address)
-                .ok_or(ContractError::PriceIsNotFound {
-                    val: collection_address.to_string(),
-                })?;
-
-            if price_item.is_outdated {
-                Err(ContractError::OutdatedPrice {
-                    val: collection_address.to_string(),
-                })?;
-            }
-
-            let price = helpers::choose_price(&main_currency, price_item);
-
-            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
-        },
-    )?;
+    let collateral_value =
+        helpers::get_collateral_value(&main_currency, &collection_and_collateral_list, &prices)?;
 
     let ltv = if collateral_value.is_zero() && !loan.is_zero() {
         Decimal::zero()
