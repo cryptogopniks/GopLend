@@ -9549,3 +9549,242 @@ fn outdated_prices() -> StdResult<()> {
 
     Ok(())
 }
+
+#[test]
+fn ltv_list_for_collections_removed_from_oracle() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 800;
+    const COLLECTION_PRICE_AFTER: u128 = 400;
+    const AMOUNT_TO_BORROW: u128 = 320;
+    const LIQUIDATION_BID: u128 = 8_000;
+    const DISCOUNT: &str = "0.1";
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[
+            RawPriceItem {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
+                    ),
+                ),
+            },
+            RawPriceItem {
+                collection_address: ProjectNft::Pinjeons.to_string(),
+                price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                        ProjectCoin::Stars.get_decimals(),
+                    ),
+                ),
+                usd_price: Funds::new(
+                    Uint128::new(COLLECTION_PRICE_BEFORE),
+                    &Currency::new(
+                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                        ProjectCoin::Usdc.get_decimals(),
+                    ),
+                ),
+            },
+        ],
+    )?;
+
+    project.oracle_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(100),
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal_a: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    let proposal_b: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Pinjeons.to_string(),
+            collection: Collection {
+                name: ProjectNft::Pinjeons.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal_a,
+    )?;
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal_b,
+    )?;
+
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        PlatformType::Main,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        PlatformType::Main,
+        2,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    for user in [ProjectAccount::Alice, ProjectAccount::Bob] {
+        for collection in [ProjectNft::Gopniks, ProjectNft::Pinjeons] {
+            project.increase_allowances_nft(
+                user,
+                project.get_lending_platform_main_address(),
+                collection,
+            );
+        }
+    }
+
+    // deposit collateral
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["1", "2"]),
+        }],
+    )?;
+
+    for collection in [ProjectNft::Gopniks, ProjectNft::Pinjeons] {
+        project.lending_platform_try_deposit_collateral(
+            ProjectAccount::Bob,
+            PlatformType::Main,
+            &[CollectionInfo {
+                collection_address: collection.to_string(),
+                token_id_list: to_string_vec(&["4", "5"]),
+            }],
+        )?;
+    }
+
+    // borrow
+    for user in [ProjectAccount::Alice, ProjectAccount::Bob] {
+        project.lending_platform_try_borrow(user, PlatformType::Main, AMOUNT_TO_BORROW)?;
+    }
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        AMOUNT_TO_BORROW,
+        ProjectCoin::Stars,
+    )?;
+
+    // place bid
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Kate,
+        PlatformType::Main,
+        &[
+            CollectionInfo {
+                collection_address: ProjectNft::Gopniks.to_string(),
+                token_id_list: to_string_vec(&["1", "2", "4", "5"]),
+            },
+            CollectionInfo {
+                collection_address: ProjectNft::Pinjeons.to_string(),
+                token_id_list: to_string_vec(&["4", "5"]),
+            },
+        ],
+        DISCOUNT,
+        LIQUIDATION_BID,
+        ProjectCoin::Stars,
+    )?;
+
+    // wait to get outdated prices
+    project.wait(101);
+
+    // remove pinjeons
+    project.oracle_try_set_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                Uint128::new(COLLECTION_PRICE_AFTER),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // owners of removed from oracle collections will be ignored
+    let ltv_list = project.lending_platform_query_ltv_list(PlatformType::Main, &None, &None)?;
+    assert_that(&ltv_list).is_equal_to(vec![
+        (
+            ProjectAccount::Alice.into(),
+            Some(str_to_dec("0.400000320268899036")),
+        ),
+        (ProjectAccount::Bob.into(), None),
+    ]);
+
+    Ok(())
+}
