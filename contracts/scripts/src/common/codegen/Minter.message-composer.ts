@@ -8,10 +8,138 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Uint128, Binary, Logo, EmbeddedLogo, TokenUnverified, Cw20ReceiveMsg, InstantiateMarketingInfo, Metadata, DenomUnit, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Addr, Config, Token, QueryCurrenciesFromCreatorResponse, CurrencyForToken } from "./Minter.types";
+import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
 export interface MinterMsg {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  acceptTokenOwnerRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  pause: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  unpause: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateConfig: ({
+    admin,
+    cw20CodeId,
+    maxTokensPerOwner,
+    permissionlessTokenCreation,
+    permissionlessTokenRegistration,
+    whitelist
+  }: {
+    admin?: string;
+    cw20CodeId?: number;
+    maxTokensPerOwner?: number;
+    permissionlessTokenCreation?: boolean;
+    permissionlessTokenRegistration?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  createNative: ({
+    decimals,
+    owner,
+    permissionlessBurning,
+    subdenom,
+    whitelist
+  }: {
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    subdenom: string;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  createCw20: ({
+    cw20CodeId,
+    decimals,
+    marketing,
+    name,
+    owner,
+    permissionlessBurning,
+    symbol,
+    whitelist
+  }: {
+    cw20CodeId?: number;
+    decimals?: number;
+    marketing?: InstantiateMarketingInfo;
+    name: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    symbol: string;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  registerNative: ({
+    decimals,
+    denom,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    decimals?: number;
+    denom: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  registerCw20: ({
+    address,
+    cw20CodeId,
+    decimals,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    address: string;
+    cw20CodeId?: number;
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateCurrencyInfo: ({
+    denomOrAddress,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    denomOrAddress: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateMetadataNative: ({
+    denom,
+    metadata
+  }: {
+    denom: string;
+    metadata: Metadata;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateMetadataCw20: ({
+    address,
+    description,
+    logo,
+    project
+  }: {
+    address: string;
+    description?: string;
+    logo?: Logo;
+    project?: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  excludeNative: ({
+    denom
+  }: {
+    denom: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  excludeCw20: ({
+    address
+  }: {
+    address: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  mint: ({
+    amount,
+    denomOrAddress,
+    recipient
+  }: {
+    amount: Uint128;
+    denomOrAddress: string;
+    recipient?: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  burn: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   receive: ({
     amount,
     msg,
@@ -21,99 +149,6 @@ export interface MinterMsg {
     msg: Binary;
     sender: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  createNative: ({
-    decimals,
-    subdenom,
-    tokenOwner
-  }: {
-    decimals?: number;
-    subdenom: string;
-    tokenOwner: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  createCw20: ({
-    decimals,
-    marketing,
-    name,
-    symbol,
-    tokenOwner
-  }: {
-    decimals?: number;
-    marketing?: InstantiateMarketingInfo;
-    name: string;
-    symbol: string;
-    tokenOwner: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  mint: ({
-    amount,
-    recipient,
-    token
-  }: {
-    amount: Uint128;
-    recipient: string;
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  burn: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  setMetadataNative: ({
-    metadata,
-    token
-  }: {
-    metadata: Metadata;
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updateMarketingCw20: ({
-    description,
-    marketing,
-    project,
-    token
-  }: {
-    description?: string;
-    marketing?: string;
-    project?: string;
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  uploadLogoCw20: ({
-    logo,
-    token
-  }: {
-    logo: Logo;
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  changeAdminNative: ({
-    token
-  }: {
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updateMinterCw20: ({
-    newMinter,
-    token
-  }: {
-    newMinter: string;
-    token: TokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  registerCurrency: ({
-    creator,
-    currency
-  }: {
-    creator: string;
-    currency: CurrencyForTokenUnverified;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updateConfig: ({
-    admin,
-    cw20BaseCodeId,
-    worker
-  }: {
-    admin?: string;
-    cw20BaseCodeId?: number;
-    worker?: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updateTokenOwner: ({
-    denom,
-    owner
-  }: {
-    denom: string;
-    owner: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class MinterMsgComposer implements MinterMsg {
   sender: string;
@@ -121,29 +156,90 @@ export class MinterMsgComposer implements MinterMsg {
   constructor(sender: string, contractAddress: string) {
     this.sender = sender;
     this.contractAddress = contractAddress;
-    this.receive = this.receive.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
+    this.acceptTokenOwnerRole = this.acceptTokenOwnerRole.bind(this);
+    this.pause = this.pause.bind(this);
+    this.unpause = this.unpause.bind(this);
+    this.updateConfig = this.updateConfig.bind(this);
     this.createNative = this.createNative.bind(this);
     this.createCw20 = this.createCw20.bind(this);
+    this.registerNative = this.registerNative.bind(this);
+    this.registerCw20 = this.registerCw20.bind(this);
+    this.updateCurrencyInfo = this.updateCurrencyInfo.bind(this);
+    this.updateMetadataNative = this.updateMetadataNative.bind(this);
+    this.updateMetadataCw20 = this.updateMetadataCw20.bind(this);
+    this.excludeNative = this.excludeNative.bind(this);
+    this.excludeCw20 = this.excludeCw20.bind(this);
     this.mint = this.mint.bind(this);
     this.burn = this.burn.bind(this);
-    this.setMetadataNative = this.setMetadataNative.bind(this);
-    this.updateMarketingCw20 = this.updateMarketingCw20.bind(this);
-    this.uploadLogoCw20 = this.uploadLogoCw20.bind(this);
-    this.changeAdminNative = this.changeAdminNative.bind(this);
-    this.updateMinterCw20 = this.updateMinterCw20.bind(this);
-    this.acceptAdminRole = this.acceptAdminRole.bind(this);
-    this.registerCurrency = this.registerCurrency.bind(this);
-    this.updateConfig = this.updateConfig.bind(this);
-    this.updateTokenOwner = this.updateTokenOwner.bind(this);
+    this.receive = this.receive.bind(this);
   }
-  receive = ({
-    amount,
-    msg,
-    sender
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  acceptTokenOwnerRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_token_owner_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  pause = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          pause: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  unpause = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          unpause: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateConfig = ({
+    admin,
+    cw20CodeId,
+    maxTokensPerOwner,
+    permissionlessTokenCreation,
+    permissionlessTokenRegistration,
+    whitelist
   }: {
-    amount: Uint128;
-    msg: Binary;
-    sender: string;
+    admin?: string;
+    cw20CodeId?: number;
+    maxTokensPerOwner?: number;
+    permissionlessTokenCreation?: boolean;
+    permissionlessTokenRegistration?: boolean;
+    whitelist?: string[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -151,10 +247,13 @@ export class MinterMsgComposer implements MinterMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          receive: {
-            amount,
-            msg,
-            sender
+          update_config: {
+            admin,
+            cw20_code_id: cw20CodeId,
+            max_tokens_per_owner: maxTokensPerOwner,
+            permissionless_token_creation: permissionlessTokenCreation,
+            permissionless_token_registration: permissionlessTokenRegistration,
+            whitelist
           }
         })),
         funds: _funds
@@ -163,12 +262,16 @@ export class MinterMsgComposer implements MinterMsg {
   };
   createNative = ({
     decimals,
+    owner,
+    permissionlessBurning,
     subdenom,
-    tokenOwner
+    whitelist
   }: {
     decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
     subdenom: string;
-    tokenOwner: string;
+    whitelist?: string[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -178,8 +281,10 @@ export class MinterMsgComposer implements MinterMsg {
         msg: toUtf8(JSON.stringify({
           create_native: {
             decimals,
+            owner,
+            permissionless_burning: permissionlessBurning,
             subdenom,
-            token_owner: tokenOwner
+            whitelist
           }
         })),
         funds: _funds
@@ -187,17 +292,23 @@ export class MinterMsgComposer implements MinterMsg {
     };
   };
   createCw20 = ({
+    cw20CodeId,
     decimals,
     marketing,
     name,
+    owner,
+    permissionlessBurning,
     symbol,
-    tokenOwner
+    whitelist
   }: {
+    cw20CodeId?: number;
     decimals?: number;
     marketing?: InstantiateMarketingInfo;
     name: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
     symbol: string;
-    tokenOwner: string;
+    whitelist?: string[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -206,11 +317,195 @@ export class MinterMsgComposer implements MinterMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           create_cw20: {
+            cw20_code_id: cw20CodeId,
             decimals,
             marketing,
             name,
+            owner,
+            permissionless_burning: permissionlessBurning,
             symbol,
-            token_owner: tokenOwner
+            whitelist
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  registerNative = ({
+    decimals,
+    denom,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    decimals?: number;
+    denom: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          register_native: {
+            decimals,
+            denom,
+            owner,
+            permissionless_burning: permissionlessBurning,
+            whitelist
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  registerCw20 = ({
+    address,
+    cw20CodeId,
+    decimals,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    address: string;
+    cw20CodeId?: number;
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          register_cw20: {
+            address,
+            cw20_code_id: cw20CodeId,
+            decimals,
+            owner,
+            permissionless_burning: permissionlessBurning,
+            whitelist
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateCurrencyInfo = ({
+    denomOrAddress,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    denomOrAddress: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_currency_info: {
+            denom_or_address: denomOrAddress,
+            owner,
+            permissionless_burning: permissionlessBurning,
+            whitelist
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateMetadataNative = ({
+    denom,
+    metadata
+  }: {
+    denom: string;
+    metadata: Metadata;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_metadata_native: {
+            denom,
+            metadata
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateMetadataCw20 = ({
+    address,
+    description,
+    logo,
+    project
+  }: {
+    address: string;
+    description?: string;
+    logo?: Logo;
+    project?: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_metadata_cw20: {
+            address,
+            description,
+            logo,
+            project
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  excludeNative = ({
+    denom
+  }: {
+    denom: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          exclude_native: {
+            denom
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  excludeCw20 = ({
+    address
+  }: {
+    address: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          exclude_cw20: {
+            address
           }
         })),
         funds: _funds
@@ -219,12 +514,12 @@ export class MinterMsgComposer implements MinterMsg {
   };
   mint = ({
     amount,
-    recipient,
-    token
+    denomOrAddress,
+    recipient
   }: {
     amount: Uint128;
-    recipient: string;
-    token: TokenUnverified;
+    denomOrAddress: string;
+    recipient?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -234,8 +529,8 @@ export class MinterMsgComposer implements MinterMsg {
         msg: toUtf8(JSON.stringify({
           mint: {
             amount,
-            recipient,
-            token
+            denom_or_address: denomOrAddress,
+            recipient
           }
         })),
         funds: _funds
@@ -255,12 +550,14 @@ export class MinterMsgComposer implements MinterMsg {
       })
     };
   };
-  setMetadataNative = ({
-    metadata,
-    token
+  receive = ({
+    amount,
+    msg,
+    sender
   }: {
-    metadata: Metadata;
-    token: TokenUnverified;
+    amount: Uint128;
+    msg: Binary;
+    sender: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -268,182 +565,10 @@ export class MinterMsgComposer implements MinterMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          set_metadata_native: {
-            metadata,
-            token
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  updateMarketingCw20 = ({
-    description,
-    marketing,
-    project,
-    token
-  }: {
-    description?: string;
-    marketing?: string;
-    project?: string;
-    token: TokenUnverified;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          update_marketing_cw20: {
-            description,
-            marketing,
-            project,
-            token
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  uploadLogoCw20 = ({
-    logo,
-    token
-  }: {
-    logo: Logo;
-    token: TokenUnverified;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          upload_logo_cw20: {
-            logo,
-            token
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  changeAdminNative = ({
-    token
-  }: {
-    token: TokenUnverified;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          change_admin_native: {
-            token
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  updateMinterCw20 = ({
-    newMinter,
-    token
-  }: {
-    newMinter: string;
-    token: TokenUnverified;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          update_minter_cw20: {
-            new_minter: newMinter,
-            token
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          accept_admin_role: {}
-        })),
-        funds: _funds
-      })
-    };
-  };
-  registerCurrency = ({
-    creator,
-    currency
-  }: {
-    creator: string;
-    currency: CurrencyForTokenUnverified;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          register_currency: {
-            creator,
-            currency
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  updateConfig = ({
-    admin,
-    cw20BaseCodeId,
-    worker
-  }: {
-    admin?: string;
-    cw20BaseCodeId?: number;
-    worker?: string;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          update_config: {
-            admin,
-            cw20_base_code_id: cw20BaseCodeId,
-            worker
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  updateTokenOwner = ({
-    denom,
-    owner
-  }: {
-    denom: string;
-    owner: string;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          update_token_owner: {
-            denom,
-            owner
+          receive: {
+            amount,
+            msg,
+            sender
           }
         })),
         funds: _funds

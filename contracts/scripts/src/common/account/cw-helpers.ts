@@ -23,7 +23,7 @@ import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
 import { FaucetQueryClient } from "../codegen/Faucet.client";
 
 import CONFIG_JSON from "../config/config.json";
-import { getLast, l, li, logAndReturn } from "../utils";
+import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
@@ -1030,10 +1030,77 @@ async function getCwExecHelpers(
 
   // minter
 
+  async function cwMinterAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
+  async function cwMinterAcceptTokenOwnerRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.acceptTokenOwnerRole()],
+      gasPrice
+    );
+  }
+
+  async function cwMinterPause(gasPrice: string) {
+    return await _msgWrapperWithGasPrice([minterMsgComposer.pause()], gasPrice);
+  }
+
+  async function cwMinterUnpause(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.unpause()],
+      gasPrice
+    );
+  }
+
+  async function cwMinterUpdateConfig(
+    {
+      admin,
+      cw20CodeId,
+      maxTokensPerOwner,
+      permissionlessTokenCreation,
+      permissionlessTokenRegistration,
+      whitelist,
+    }: {
+      admin?: string;
+      cw20CodeId?: number;
+      maxTokensPerOwner?: number;
+      permissionlessTokenCreation?: boolean;
+      permissionlessTokenRegistration?: boolean;
+      whitelist?: string[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateConfig({
+          admin,
+          cw20CodeId,
+          maxTokensPerOwner,
+          permissionlessTokenCreation,
+          permissionlessTokenRegistration,
+          whitelist,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   async function cwCreateNative(
-    tokenOwner: string,
     subdenom: string,
-    decimals: number,
+    {
+      decimals,
+      owner,
+      permissionlessBurning,
+      whitelist,
+    }: {
+      decimals?: number;
+      owner?: string;
+      permissionlessBurning?: boolean;
+      whitelist?: string[];
+    },
     paymentAmount: number,
     paymentDenom: string,
     gasPrice: string
@@ -1041,7 +1108,13 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         addSingleTokenToComposerObj(
-          minterMsgComposer.createNative({ tokenOwner, subdenom, decimals }),
+          minterMsgComposer.createNative({
+            subdenom,
+            decimals,
+            owner,
+            permissionlessBurning,
+            whitelist,
+          }),
           paymentAmount,
           {
             native: { denom: paymentDenom },
@@ -1053,37 +1126,195 @@ async function getCwExecHelpers(
   }
 
   async function cwCreateCw20(
-    tokenOwner: string,
     name: string,
     symbol: string,
-    marketing: InstantiateMarketingInfo,
-    decimals: number = 6,
+    {
+      cw20CodeId,
+      decimals,
+      marketing,
+      owner,
+      permissionlessBurning,
+      whitelist,
+    }: {
+      cw20CodeId?: number;
+      decimals?: number;
+      marketing?: InstantiateMarketingInfo;
+      owner?: string;
+      permissionlessBurning?: boolean;
+      whitelist?: string[];
+    },
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterMsgComposer.createCw20({
-          tokenOwner,
           name,
           symbol,
+          cw20CodeId,
           decimals,
           marketing,
+          owner,
+          permissionlessBurning,
+          whitelist,
         }),
       ],
       gasPrice
     );
   }
 
+  async function cwRegisterNative(
+    denom: string,
+    {
+      decimals,
+      owner,
+      permissionlessBurning,
+      whitelist,
+    }: {
+      decimals?: number;
+      owner?: string;
+      permissionlessBurning?: boolean;
+      whitelist?: string[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.registerNative({
+          denom,
+          decimals,
+          owner,
+          permissionlessBurning,
+          whitelist,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwRegisterCw20(
+    address: string,
+    {
+      cw20CodeId,
+      decimals,
+      owner,
+      permissionlessBurning,
+      whitelist,
+    }: {
+      cw20CodeId?: number;
+      decimals?: number;
+      owner?: string;
+      permissionlessBurning?: boolean;
+      whitelist?: string[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.registerCw20({
+          address,
+          cw20CodeId,
+          decimals,
+          owner,
+          permissionlessBurning,
+          whitelist,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateCurrencyInfo(
+    denomOrAddress: string,
+    {
+      owner,
+      permissionlessBurning,
+      whitelist,
+    }: {
+      owner?: string;
+      permissionlessBurning?: boolean;
+      whitelist?: string[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateCurrencyInfo({
+          denomOrAddress,
+          owner,
+          permissionlessBurning,
+          whitelist,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateMetadataNative(
+    denom: string,
+    metadata: Metadata,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateMetadataNative({
+          denom,
+          metadata,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateMetadataCw20(
+    address: string,
+    {
+      description,
+      logo,
+      project,
+    }: {
+      description?: string;
+      logo?: Logo;
+      project?: string;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.updateMetadataCw20({
+          address,
+          description,
+          logo,
+          project,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwExcludeNative(denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.excludeNative({ denom })],
+      gasPrice
+    );
+  }
+
+  async function cwExcludeCw20(address: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [minterMsgComposer.excludeCw20({ address })],
+      gasPrice
+    );
+  }
+
   async function cwMint(
     amount: number,
-    recipient: string,
-    token: TokenUnverified,
+    denomOrAddress: string,
+    recipient: string | undefined = undefined,
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         minterMsgComposer.mint({
-          token,
+          denomOrAddress,
           amount: amount.toString(),
           recipient,
         }),
@@ -1099,134 +1330,6 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [addSingleTokenToComposerObj(minterMsgComposer.burn(), amount, token)],
-      gasPrice
-    );
-  }
-
-  async function cwSetMetadataNative(
-    token: TokenUnverified,
-    metadata: Metadata,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        minterMsgComposer.setMetadataNative({
-          token,
-          metadata,
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwUpdateMarketingCw20(
-    token: TokenUnverified,
-    description: string,
-    marketing: string,
-    project: string,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        minterMsgComposer.updateMarketingCw20({
-          token,
-          project,
-          description,
-          marketing,
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwUploadLogoCw20(
-    token: TokenUnverified,
-    logo: Logo,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [minterMsgComposer.uploadLogoCw20({ token, logo })],
-      gasPrice
-    );
-  }
-
-  async function cwChangeAdminNative(token: TokenUnverified, gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [minterMsgComposer.changeAdminNative({ token })],
-      gasPrice
-    );
-  }
-
-  async function cwUpdateMinterCw20(
-    token: TokenUnverified,
-    newMinter: string,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        minterMsgComposer.updateMinterCw20({
-          token,
-          newMinter,
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwRegisterCurrency(
-    currency: CurrencyForTokenUnverified,
-    creator: string,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        minterMsgComposer.registerCurrency({
-          currency,
-          creator,
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwMinterAcceptAdminRole(gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [minterMsgComposer.acceptAdminRole()],
-      gasPrice
-    );
-  }
-
-  async function cwMinterUpdateConfig(
-    {
-      admin,
-      worker,
-      cw20BaseCodeId,
-    }: {
-      admin?: string;
-      worker?: string;
-      cw20BaseCodeId?: number;
-    },
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        minterMsgComposer.updateConfig({
-          admin,
-          worker,
-          cw20BaseCodeId,
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwMinterUpdateTokenOwner(
-    denom: string,
-    owner: string,
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [minterMsgComposer.updateTokenOwner({ denom, owner })],
       gasPrice
     );
   }
@@ -1540,19 +1643,22 @@ async function getCwExecHelpers(
         cwUpdateTokenOwner: cwMinterKujiraUpdateTokenOwner,
       },
       stargaze: {
+        cwAcceptAdminRole: cwMinterAcceptAdminRole,
+        cwAcceptTokenOwnerRole: cwMinterAcceptTokenOwnerRole,
+        cwMinterPause: cwMinterPause,
+        cwMinterUnpause: cwMinterUnpause,
+        cwUpdateConfig: cwMinterUpdateConfig,
         cwCreateNative,
         cwCreateCw20,
+        cwRegisterNative,
+        cwRegisterCw20,
+        cwUpdateCurrencyInfo,
+        cwUpdateMetadataNative,
+        cwUpdateMetadataCw20,
+        cwExcludeNative,
+        cwExcludeCw20,
         cwMint,
         cwBurn,
-        cwSetMetadataNative,
-        cwUpdateMarketingCw20,
-        cwUploadLogoCw20,
-        cwChangeAdminNative,
-        cwUpdateMinterCw20,
-        cwRegisterCurrency,
-        cwAcceptAdminRole: cwMinterAcceptAdminRole,
-        cwUpdateConfig: cwMinterUpdateConfig,
-        cwUpdateTokenOwner: cwMinterUpdateTokenOwner,
       },
     },
     oracle: {
@@ -2495,24 +2601,54 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   // minter
 
-  async function cwQueryCurrenciesByCreator(
-    creator: string,
-    isDisplayed: boolean = false
-  ) {
-    const res = await minterQueryClient.queryCurrenciesByCreator({ creator });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function cwMinterQueryConfig(isDisplayed: boolean = false) {
-    const res = await minterQueryClient.queryConfig();
+    const res = await minterQueryClient.config();
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwMinterQueryTokenOwner(
-    denom: string,
+  async function cwQueryCurrencyInfo(
+    denomOrAddress: string,
     isDisplayed: boolean = false
   ) {
-    const res = await minterQueryClient.queryTokenOwner({ denom });
+    const res = await minterQueryClient.currencyInfo({ denomOrAddress });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwQueryCurrencyInfoList(
+    limit: number = 100,
+    startAfter: string | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const res = await minterQueryClient.currencyInfoList({
+      amount: limit,
+      startFrom: startAfter,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwQueryCurrencyInfoListByOwner(
+    owner: string,
+    limit: number = 100,
+    startAfter: string | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const res = await minterQueryClient.currencyInfoListByOwner({
+      owner,
+      amount: limit,
+      startFrom: startAfter,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwQueryTokenCountList(
+    limit: number = 100,
+    startAfter: string | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const res = await minterQueryClient.tokenCountList({
+      amount: limit,
+      startFrom: startAfter,
+    });
     return logAndReturn(res, isDisplayed);
   }
 
@@ -2678,9 +2814,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         cwQueryTokenOwner: cwMinterKujiraQueryTokenOwner,
       },
       stargaze: {
-        cwQueryCurrenciesByCreator,
         cwQueryConfig: cwMinterQueryConfig,
-        cwQueryTokenOwner: cwMinterQueryTokenOwner,
+        cwQueryCurrencyInfo,
+        cwQueryCurrencyInfoList,
+        cwQueryCurrencyInfoListByOwner,
+        cwQueryTokenCountList,
       },
     },
     oracle: {

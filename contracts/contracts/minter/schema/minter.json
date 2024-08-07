@@ -1,13 +1,13 @@
 {
   "contract_name": "minter",
-  "contract_version": "1.0.0",
+  "contract_version": "1.2.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
     "type": "object",
     "properties": {
-      "cw20_base_code_id": {
+      "cw20_code_id": {
         "type": [
           "integer",
           "null"
@@ -15,11 +15,34 @@
         "format": "uint64",
         "minimum": 0.0
       },
-      "worker": {
+      "max_tokens_per_owner": {
         "type": [
-          "string",
+          "integer",
+          "null"
+        ],
+        "format": "uint16",
+        "minimum": 0.0
+      },
+      "permissionless_token_creation": {
+        "type": [
+          "boolean",
           "null"
         ]
+      },
+      "permissionless_token_registration": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "whitelist": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        }
       }
     },
     "additionalProperties": false
@@ -31,11 +54,111 @@
       {
         "type": "object",
         "required": [
-          "receive"
+          "accept_admin_role"
         ],
         "properties": {
-          "receive": {
-            "$ref": "#/definitions/Cw20ReceiveMsg"
+          "accept_admin_role": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "accept_token_owner_role"
+        ],
+        "properties": {
+          "accept_token_owner_role": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "disable user actions",
+        "type": "object",
+        "required": [
+          "pause"
+        ],
+        "properties": {
+          "pause": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "enable user actions",
+        "type": "object",
+        "required": [
+          "unpause"
+        ],
+        "properties": {
+          "unpause": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_config"
+        ],
+        "properties": {
+          "update_config": {
+            "type": "object",
+            "properties": {
+              "admin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cw20_code_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "max_tokens_per_owner": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint16",
+                "minimum": 0.0
+              },
+              "permissionless_token_creation": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "permissionless_token_registration": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -49,8 +172,7 @@
           "create_native": {
             "type": "object",
             "required": [
-              "subdenom",
-              "token_owner"
+              "subdenom"
             ],
             "properties": {
               "decimals": {
@@ -61,11 +183,29 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "permissionless_burning": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
               "subdenom": {
                 "type": "string"
               },
-              "token_owner": {
-                "type": "string"
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "additionalProperties": false
@@ -83,10 +223,17 @@
             "type": "object",
             "required": [
               "name",
-              "symbol",
-              "token_owner"
+              "symbol"
             ],
             "properties": {
+              "cw20_code_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
               "decimals": {
                 "type": [
                   "integer",
@@ -108,10 +255,288 @@
               "name": {
                 "type": "string"
               },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "permissionless_burning": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
               "symbol": {
                 "type": "string"
               },
-              "token_owner": {
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "register_native"
+        ],
+        "properties": {
+          "register_native": {
+            "type": "object",
+            "required": [
+              "denom"
+            ],
+            "properties": {
+              "decimals": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "denom": {
+                "type": "string"
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "permissionless_burning": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "register_cw20"
+        ],
+        "properties": {
+          "register_cw20": {
+            "type": "object",
+            "required": [
+              "address"
+            ],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "cw20_code_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "decimals": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "permissionless_burning": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_currency_info"
+        ],
+        "properties": {
+          "update_currency_info": {
+            "type": "object",
+            "required": [
+              "denom_or_address"
+            ],
+            "properties": {
+              "denom_or_address": {
+                "type": "string"
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "permissionless_burning": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "whitelist": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_metadata_native"
+        ],
+        "properties": {
+          "update_metadata_native": {
+            "type": "object",
+            "required": [
+              "denom",
+              "metadata"
+            ],
+            "properties": {
+              "denom": {
+                "type": "string"
+              },
+              "metadata": {
+                "$ref": "#/definitions/Metadata"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_metadata_cw20"
+        ],
+        "properties": {
+          "update_metadata_cw20": {
+            "type": "object",
+            "required": [
+              "address"
+            ],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "logo": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Logo"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "project": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "exclude_native"
+        ],
+        "properties": {
+          "exclude_native": {
+            "type": "object",
+            "required": [
+              "denom"
+            ],
+            "properties": {
+              "denom": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "exclude_cw20"
+        ],
+        "properties": {
+          "exclude_cw20": {
+            "type": "object",
+            "required": [
+              "address"
+            ],
+            "properties": {
+              "address": {
                 "type": "string"
               }
             },
@@ -130,18 +555,20 @@
             "type": "object",
             "required": [
               "amount",
-              "recipient",
-              "token"
+              "denom_or_address"
             ],
             "properties": {
               "amount": {
                 "$ref": "#/definitions/Uint128"
               },
-              "recipient": {
+              "denom_or_address": {
                 "type": "string"
               },
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
+              "recipient": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -165,232 +592,11 @@
       {
         "type": "object",
         "required": [
-          "set_metadata_native"
+          "receive"
         ],
         "properties": {
-          "set_metadata_native": {
-            "type": "object",
-            "required": [
-              "metadata",
-              "token"
-            ],
-            "properties": {
-              "metadata": {
-                "$ref": "#/definitions/Metadata"
-              },
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "update_marketing_cw20"
-        ],
-        "properties": {
-          "update_marketing_cw20": {
-            "type": "object",
-            "required": [
-              "token"
-            ],
-            "properties": {
-              "description": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "marketing": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "project": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "upload_logo_cw20"
-        ],
-        "properties": {
-          "upload_logo_cw20": {
-            "type": "object",
-            "required": [
-              "logo",
-              "token"
-            ],
-            "properties": {
-              "logo": {
-                "$ref": "#/definitions/Logo"
-              },
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "change_admin_native"
-        ],
-        "properties": {
-          "change_admin_native": {
-            "type": "object",
-            "required": [
-              "token"
-            ],
-            "properties": {
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "update_minter_cw20"
-        ],
-        "properties": {
-          "update_minter_cw20": {
-            "type": "object",
-            "required": [
-              "new_minter",
-              "token"
-            ],
-            "properties": {
-              "new_minter": {
-                "type": "string"
-              },
-              "token": {
-                "$ref": "#/definitions/TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "accept_admin_role"
-        ],
-        "properties": {
-          "accept_admin_role": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "register_currency"
-        ],
-        "properties": {
-          "register_currency": {
-            "type": "object",
-            "required": [
-              "creator",
-              "currency"
-            ],
-            "properties": {
-              "creator": {
-                "type": "string"
-              },
-              "currency": {
-                "$ref": "#/definitions/Currency_for_TokenUnverified"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "update_config"
-        ],
-        "properties": {
-          "update_config": {
-            "type": "object",
-            "properties": {
-              "admin": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "cw20_base_code_id": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint64",
-                "minimum": 0.0
-              },
-              "worker": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "update_token_owner"
-        ],
-        "properties": {
-          "update_token_owner": {
-            "type": "object",
-            "required": [
-              "denom",
-              "owner"
-            ],
-            "properties": {
-              "denom": {
-                "type": "string"
-              },
-              "owner": {
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
+          "receive": {
+            "$ref": "#/definitions/Cw20ReceiveMsg"
           }
         },
         "additionalProperties": false
@@ -400,24 +606,6 @@
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
         "type": "string"
-      },
-      "Currency_for_TokenUnverified": {
-        "type": "object",
-        "required": [
-          "decimals",
-          "token"
-        ],
-        "properties": {
-          "decimals": {
-            "type": "integer",
-            "format": "uint8",
-            "minimum": 0.0
-          },
-          "token": {
-            "$ref": "#/definitions/TokenUnverified"
-          }
-        },
-        "additionalProperties": false
       },
       "Cw20ReceiveMsg": {
         "description": "Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
@@ -608,52 +796,6 @@
         },
         "additionalProperties": false
       },
-      "TokenUnverified": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "native"
-            ],
-            "properties": {
-              "native": {
-                "type": "object",
-                "required": [
-                  "denom"
-                ],
-                "properties": {
-                  "denom": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "cw20"
-            ],
-            "properties": {
-              "cw20": {
-                "type": "object",
-                "required": [
-                  "address"
-                ],
-                "properties": {
-                  "address": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
       "Uint128": {
         "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
         "type": "string"
@@ -667,16 +809,29 @@
       {
         "type": "object",
         "required": [
-          "query_currencies_by_creator"
+          "config"
         ],
         "properties": {
-          "query_currencies_by_creator": {
+          "config": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "currency_info"
+        ],
+        "properties": {
+          "currency_info": {
             "type": "object",
             "required": [
-              "creator"
+              "denom_or_address"
             ],
             "properties": {
-              "creator": {
+              "denom_or_address": {
                 "type": "string"
               }
             },
@@ -688,11 +843,27 @@
       {
         "type": "object",
         "required": [
-          "query_config"
+          "currency_info_list"
         ],
         "properties": {
-          "query_config": {
+          "currency_info_list": {
             "type": "object",
+            "required": [
+              "amount"
+            ],
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "start_from": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
             "additionalProperties": false
           }
         },
@@ -701,17 +872,58 @@
       {
         "type": "object",
         "required": [
-          "query_token_owner"
+          "currency_info_list_by_owner"
         ],
         "properties": {
-          "query_token_owner": {
+          "currency_info_list_by_owner": {
             "type": "object",
             "required": [
-              "denom"
+              "amount",
+              "owner"
             ],
             "properties": {
-              "denom": {
+              "amount": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "owner": {
                 "type": "string"
+              },
+              "start_from": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "token_count_list"
+        ],
+        "properties": {
+          "token_count_list": {
+            "type": "object",
+            "required": [
+              "amount"
+            ],
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "start_from": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -737,18 +949,27 @@
   },
   "sudo": null,
   "responses": {
-    "query_config": {
+    "config": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Config",
       "type": "object",
       "required": [
-        "admin"
+        "admin",
+        "max_tokens_per_owner",
+        "permissionless_token_creation",
+        "permissionless_token_registration",
+        "whitelist"
       ],
       "properties": {
         "admin": {
-          "$ref": "#/definitions/Addr"
+          "description": "can update Config",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
         },
-        "cw20_base_code_id": {
+        "cw20_code_id": {
           "type": [
             "integer",
             "null"
@@ -756,15 +977,24 @@
           "format": "uint64",
           "minimum": 0.0
         },
-        "worker": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Addr"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        "max_tokens_per_owner": {
+          "description": "max amount of tokens for non-whitelisted owner",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "permissionless_token_creation": {
+          "type": "boolean"
+        },
+        "permissionless_token_registration": {
+          "type": "boolean"
+        },
+        "whitelist": {
+          "description": "can create and register tokens",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Addr"
+          }
         }
       },
       "additionalProperties": false,
@@ -775,18 +1005,46 @@
         }
       }
     },
-    "query_currencies_by_creator": {
+    "currency_info": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "QueryCurrenciesFromCreatorResponse",
+      "title": "CurrencyInfo",
       "type": "object",
       "required": [
-        "currencies"
+        "currency",
+        "owner",
+        "permissionless_burning",
+        "whitelist"
       ],
       "properties": {
-        "currencies": {
+        "currency": {
+          "$ref": "#/definitions/Currency_for_Token"
+        },
+        "cw20_code_id": {
+          "description": "for cw20 based tokens",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "owner": {
+          "description": "can update the token CurrencyInfo",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
+        },
+        "permissionless_burning": {
+          "description": "if true any token holder can burn his tokens in minter",
+          "type": "boolean"
+        },
+        "whitelist": {
+          "description": "can mint/burn",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Currency_for_Token"
+            "$ref": "#/definitions/Addr"
           }
         }
       },
@@ -862,11 +1120,273 @@
         }
       }
     },
-    "query_token_owner": {
+    "currency_info_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Addr",
-      "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
-      "type": "string"
+      "title": "Array_of_CurrencyInfo",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CurrencyInfo"
+      },
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "CurrencyInfo": {
+          "type": "object",
+          "required": [
+            "currency",
+            "owner",
+            "permissionless_burning",
+            "whitelist"
+          ],
+          "properties": {
+            "currency": {
+              "$ref": "#/definitions/Currency_for_Token"
+            },
+            "cw20_code_id": {
+              "description": "for cw20 based tokens",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "owner": {
+              "description": "can update the token CurrencyInfo",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "permissionless_burning": {
+              "description": "if true any token holder can burn his tokens in minter",
+              "type": "boolean"
+            },
+            "whitelist": {
+              "description": "can mint/burn",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Addr"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Currency_for_Token": {
+          "type": "object",
+          "required": [
+            "decimals",
+            "token"
+          ],
+          "properties": {
+            "decimals": {
+              "type": "integer",
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "token": {
+              "$ref": "#/definitions/Token"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Token": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "object",
+                  "required": [
+                    "denom"
+                  ],
+                  "properties": {
+                    "denom": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "type": "object",
+                  "required": [
+                    "address"
+                  ],
+                  "properties": {
+                    "address": {
+                      "$ref": "#/definitions/Addr"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "currency_info_list_by_owner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Array_of_CurrencyInfo",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CurrencyInfo"
+      },
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "CurrencyInfo": {
+          "type": "object",
+          "required": [
+            "currency",
+            "owner",
+            "permissionless_burning",
+            "whitelist"
+          ],
+          "properties": {
+            "currency": {
+              "$ref": "#/definitions/Currency_for_Token"
+            },
+            "cw20_code_id": {
+              "description": "for cw20 based tokens",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "owner": {
+              "description": "can update the token CurrencyInfo",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "permissionless_burning": {
+              "description": "if true any token holder can burn his tokens in minter",
+              "type": "boolean"
+            },
+            "whitelist": {
+              "description": "can mint/burn",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Addr"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Currency_for_Token": {
+          "type": "object",
+          "required": [
+            "decimals",
+            "token"
+          ],
+          "properties": {
+            "decimals": {
+              "type": "integer",
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "token": {
+              "$ref": "#/definitions/Token"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Token": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "object",
+                  "required": [
+                    "denom"
+                  ],
+                  "properties": {
+                    "denom": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "type": "object",
+                  "required": [
+                    "address"
+                  ],
+                  "properties": {
+                    "address": {
+                      "$ref": "#/definitions/Addr"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "token_count_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Array_of_Tuple_of_Addr_and_uint16",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/Addr"
+          },
+          {
+            "type": "integer",
+            "format": "uint16",
+            "minimum": 0.0
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      },
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        }
+      }
     }
   }
 }

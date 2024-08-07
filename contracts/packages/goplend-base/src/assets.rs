@@ -43,6 +43,13 @@ impl Token {
             Self::Cw20 { address } => Ok(address.to_owned()),
         }
     }
+
+    pub fn get_denom_or_address(&self) -> String {
+        match self {
+            Self::Native { denom } => denom.to_string(),
+            Self::Cw20 { address } => address.to_string(),
+        }
+    }
 }
 
 impl From<String> for Token {
