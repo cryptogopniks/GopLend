@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l, li, wait } from "../../common/utils";
+import { getLast, l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
@@ -43,11 +43,15 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-    // const LENDING_PLATFORM_CONTRACT = getContractByWasm(
-    //   CONTRACTS,
-    //   "lending_platform.wasm"
-    // );
-    // const ORACLE_CONTRACT = getContractByWasm(CONTRACTS, "oracle.wasm");
+    const LENDING_PLATFORM_MAIN_CONTRACT = getContractByLabel(
+      CONTRACTS,
+      "lending_platform_main"
+    );
+    const LENDING_PLATFORM_STABLE_CONTRACT = getContractByLabel(
+      CONTRACTS,
+      "lending_platform_stable"
+    );
+    // const ORACLE_CONTRACT = getContractByLabel(CONTRACTS, "oracle");
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const testWallets = await getWallets(TYPE);
     const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
@@ -63,6 +67,34 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
 
     const name = NAME as "kujira" | "stargaze";
+
+    await h.adapter.marketplace.stargaze.cwUpdateConfig(
+      {
+        lendingPlatformMain: LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
+        lendingPlatformStable: LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
+      },
+      gasPrice
+    );
+    await h.adapter.scheduler.stargaze.cwUpdateConfig(
+      {
+        lendingPlatformMain: LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
+        lendingPlatformStable: LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
+      },
+      gasPrice
+    );
+    return;
+
+    await adapter.marketplace.stargaze.cwQueryConfig(true);
+    await adapter.scheduler[name].cwQueryConfig(true);
+    // const platforms: PlatformType[] = ["main", "stable"];
+    // for (const platformType of platforms) {
+    //   await lending.cwQueryAddressConfig(platformType, true);
+    //   await lending.cwQueryRateConfig(platformType, true);
+    //   await lending.cwQueryCommonConfig(platformType, true);
+    // }
+    // await minter[name].cwQueryConfig(true);
+    // await oracle.cwQueryConfig(true);
+    return;
 
     await lending.cwQueryLtvList("main", 1, undefined, true);
     return;

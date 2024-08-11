@@ -99,7 +99,7 @@ async function main() {
           gasPrice
         );
 
-        const bglCurrency = getLast(
+        const { currency: bglCurrency } = getLast(
           (await minter.stargaze.cwQueryCurrencyInfoListByOwner(owner)).filter(
             (x) => x.whitelist.includes(lendingPlatformContract)
           )
@@ -150,8 +150,15 @@ async function main() {
               [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
             ]
           : [
+              [COLLECTION.STARGAZE.MOO, "MOO"],
               [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
               [COLLECTION.STARGAZE.SHANE, "SHANE"],
+
+              [COLLECTION.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
+              [COLLECTION.STARGAZE.PLASTELINE, "PLASTELINE"],
+              [COLLECTION.STARGAZE.BIT_KIDS, "BIT_KIDS"],
+              [COLLECTION.STARGAZE.BAD_KIDS, "BAD_KIDS"],
+              [COLLECTION.STARGAZE.SLOTHS, "SLOTHS"],
             ];
 
         let i = 0;
