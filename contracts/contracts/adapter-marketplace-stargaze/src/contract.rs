@@ -71,15 +71,21 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOffersByCollectionAddressList {
+        QueryMsg::QueryOffersByCollectionAddress {
             platform_type,
-            start_after,
+            collection_address,
+            expiration_delay,
+            start_after_collection_offer,
+            start_after_token_offer,
             limit,
-        } => to_json_binary(&q::query_offers_by_collection_address_list(
+        } => to_json_binary(&q::query_offers_by_collection_address(
             deps,
             env,
             platform_type,
-            start_after,
+            collection_address,
+            expiration_delay,
+            start_after_collection_offer,
+            start_after_token_offer,
             limit,
         )?),
     }

@@ -50,10 +50,14 @@ pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<crate::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
-    QueryOffersByCollectionAddressList {
+    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    QueryOffersByCollectionAddress {
         platform_type: PlatformType,
-        start_after: Option<String>,
+        collection_address: String,
+        /// to skip all offers that will be expired during paginated queries
+        expiration_delay: u64,
+        start_after_collection_offer: Option<String>,
+        start_after_token_offer: Option<String>,
         limit: Option<u32>,
     },
 }

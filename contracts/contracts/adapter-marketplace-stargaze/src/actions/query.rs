@@ -3,7 +3,10 @@ use cosmwasm_std::{Decimal, Deps, Env, StdResult, Uint128};
 use sg721_base::msg::{CollectionInfoResponse, QueryMsg as Sg721QueryMsg};
 
 use sg_marketplace::{
-    msg::{BidsResponse, CollectionBidsResponse, ParamsResponse, QueryMsg as MarketplaceQueryMsg},
+    msg::{
+        BidOffset, BidsResponse, CollectionBidsResponse, ParamsResponse,
+        QueryMsg as MarketplaceQueryMsg,
+    },
     state::{Bid, CollectionBid, Order},
 };
 
@@ -29,13 +32,16 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
 }
 
-pub fn query_offers_by_collection_address_list(
+pub fn query_offers_by_collection_address(
     deps: Deps,
     env: Env,
     platform_type: PlatformType,
-    start_after: Option<String>,
+    collection_address: String,
+    expiration_delay: u64,
+    start_after_collection_offer: Option<String>,
+    start_after_token_offer: Option<String>,
     limit: Option<u32>,
-) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
+) -> StdResult<Vec<LiquidationBid>> {
     let block_time = env.block.time.seconds();
     let Config {
         lending_platform_main,
@@ -52,6 +58,7 @@ pub fn query_offers_by_collection_address_list(
         PlatformType::Stable => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
     };
 
+    // TODO: is it proper handling?
     let price_ratio = match platform_type {
         PlatformType::Main => Decimal::one(),
         PlatformType::Stable => {
@@ -77,11 +84,6 @@ pub fn query_offers_by_collection_address_list(
         .querier
         .query_wasm_smart(marketplace, &MarketplaceQueryMsg::Params {})?;
     let network_fee_rate = params_response.params.trading_fee_percent / u128_to_dec(100u128);
-
-    let collection_list: Vec<QueryCollectionsResponseItem> = deps.querier.query_wasm_smart(
-        &lending_platform,
-        &LendingPlatformQueryMsg::QueryCollectionList { start_after, limit },
-    )?;
 
     let mut total_offers: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem> = vec![];
 
@@ -112,7 +114,7 @@ pub fn query_offers_by_collection_address_list(
             marketplace,
             &MarketplaceQueryMsg::ReverseBidsSortedByPrice {
                 collection: collection_address.to_string(),
-                start_before: None,
+                start_before: Some(BidOffset {}),
                 limit: Some(PAGINATION_DEFAULT_LIMIT), // max amount per single query
             },
         )?;
