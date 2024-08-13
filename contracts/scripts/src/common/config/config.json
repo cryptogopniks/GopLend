@@ -9,6 +9,7 @@
           "DENOM": "ustars",
           "CHAIN_ID": "elgafar-1",
           "RPC_LIST": [
+            "https://stargaze-testnet-rpc.ibs.team:443",
             "https://rpc.elgafar-1.stargaze-apis.com:443"
           ],
           "GAS_PRICE_AMOUNT": 0.04,
