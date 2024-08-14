@@ -39,6 +39,9 @@ const PAGINATION_QUERY_AMOUNT = 100;
 const SIGNERS_AMOUNT = 50;
 const PUSH_TIMEOUT_S = 10;
 
+// TODO: Sort targets by ltv
+// TODO: Liquidate multiple users per account if tokens amount is low - must be found via e2e
+// TODO: Remove execution cooldown - check logs to decide if we need to send txs
 // TODO: sort accounts by balance
 // TODO: remove accounts with failed txs
 // TODO: use multiple RPC
@@ -57,7 +60,10 @@ async function getPushFnList(
     const signingClient = cwClient.client as SigningCosmWasmClient;
     const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
 
-    const pushFn = async (route: Route, liquidationItem: LiquidationItem) => {
+    const pushFn = async (
+      route: Route,
+      liquidationItemList: LiquidationItem[]
+    ) => {
       const msg: MsgExecuteContractEncodeObject = {
         typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
         value: MsgExecuteContract.fromPartial({
@@ -67,7 +73,7 @@ async function getPushFnList(
             JSON.stringify({
               push: {
                 route,
-                targets: [liquidationItem],
+                targets: liquidationItemList,
               },
             })
           ),
@@ -93,7 +99,7 @@ async function liquidate(
   ) => Promise<QueryBorrowersResponseItem[]>,
   pushFnList: ((
     route: Route,
-    liquidationItem: LiquidationItem
+    liquidationItemList: LiquidationItem[]
   ) => Promise<void>)[]
 ) {
   try {
@@ -126,7 +132,7 @@ async function liquidate(
       (async () => {
         try {
           await specifyTimeout(
-            pushFnList[i](route, liquidationItem),
+            pushFnList[i](route, [liquidationItem]),
             PUSH_TIMEOUT_S * 1e3
           );
         } catch (_) {}
