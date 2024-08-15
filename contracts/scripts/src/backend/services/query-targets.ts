@@ -28,6 +28,7 @@ import {
 } from "../../common/codegen/LendingPlatform.types";
 
 const PAGINATION_AMOUNT = 100;
+const PAGINATION_AMOUNT_SMALL = 3;
 
 export async function queryTargets(
   platformType: PlatformType,
@@ -184,7 +185,7 @@ export async function queryTargets(
         const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
           await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
             platformType,
-            PAGINATION_AMOUNT,
+            PAGINATION_AMOUNT_SMALL,
             lastItem,
             true
           );
