@@ -68,32 +68,16 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    await h.adapter.marketplace.stargaze.cwUpdateConfig(
-      {
-        lendingPlatformMain: LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
-        lendingPlatformStable: LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
-      },
-      gasPrice
-    );
-    await h.adapter.scheduler.stargaze.cwUpdateConfig(
-      {
-        lendingPlatformMain: LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
-        lendingPlatformStable: LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
-      },
-      gasPrice
-    );
-    return;
-
     await adapter.marketplace.stargaze.cwQueryConfig(true);
     await adapter.scheduler[name].cwQueryConfig(true);
-    // const platforms: PlatformType[] = ["main", "stable"];
-    // for (const platformType of platforms) {
-    //   await lending.cwQueryAddressConfig(platformType, true);
-    //   await lending.cwQueryRateConfig(platformType, true);
-    //   await lending.cwQueryCommonConfig(platformType, true);
-    // }
-    // await minter[name].cwQueryConfig(true);
-    // await oracle.cwQueryConfig(true);
+    const platforms: PlatformType[] = ["main", "stable"];
+    for (const platformType of platforms) {
+      await lending.cwQueryAddressConfig(platformType, true);
+      await lending.cwQueryRateConfig(platformType, true);
+      await lending.cwQueryCommonConfig(platformType, true);
+    }
+    await minter[name].cwQueryConfig(true);
+    await oracle.cwQueryConfig(true);
     return;
 
     await lending.cwQueryLtvList("main", 1, undefined, true);
