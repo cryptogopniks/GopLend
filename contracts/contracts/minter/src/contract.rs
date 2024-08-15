@@ -1,8 +1,7 @@
-use cosmwasm_std::from_json;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult,
+    entry_point, from_json, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply,
+    Response, StdResult,
 };
 
 use goplend_base::{
@@ -14,7 +13,7 @@ use goplend_base::{
 };
 
 use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+    execute as e, instantiate::try_instantiate, migrate::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -47,14 +46,55 @@ pub fn execute(
             _ => Err(ContractError::WrongMessageType)?,
         },
 
+        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
+        ExecuteMsg::AcceptTokenOwnerRole {} => e::try_accept_token_owner_role(deps, env, info),
+
+        ExecuteMsg::Pause {} => e::try_pause(deps, env, info),
+
+        ExecuteMsg::Unpause {} => e::try_unpause(deps, env, info),
+
+        ExecuteMsg::UpdateConfig {
+            admin,
+            whitelist,
+            cw20_code_id,
+            permissionless_token_creation,
+            permissionless_token_registration,
+            max_tokens_per_owner,
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            whitelist,
+            cw20_code_id,
+            permissionless_token_creation,
+            permissionless_token_registration,
+            max_tokens_per_owner,
+        ),
+
         ExecuteMsg::CreateNative {
-            token_owner,
+            owner,
+            whitelist,
+            permissionless_burning,
             subdenom,
             decimals,
-        } => e::try_create_native(deps, env, info, token_owner, subdenom, decimals),
+        } => e::try_create_native(
+            deps,
+            env,
+            info,
+            owner,
+            whitelist,
+            permissionless_burning,
+            subdenom,
+            decimals,
+        ),
 
         ExecuteMsg::CreateCw20 {
-            token_owner,
+            owner,
+            whitelist,
+            permissionless_burning,
+            cw20_code_id,
             name,
             symbol,
             decimals,
@@ -63,59 +103,89 @@ pub fn execute(
             deps,
             env,
             info,
-            token_owner,
+            owner,
+            whitelist,
+            permissionless_burning,
+            cw20_code_id,
             name,
             symbol,
             decimals,
             marketing,
         ),
 
-        ExecuteMsg::Mint {
-            token,
-            amount,
-            recipient,
-        } => e::try_mint(deps, env, info, token, amount, recipient),
+        ExecuteMsg::RegisterNative {
+            denom,
+            owner,
+            whitelist,
+            permissionless_burning,
+            decimals,
+        } => e::try_register_native(
+            deps,
+            env,
+            info,
+            denom,
+            owner,
+            whitelist,
+            permissionless_burning,
+            decimals,
+        ),
 
-        ExecuteMsg::Burn {} => e::try_burn(deps, env, info, None, None),
+        ExecuteMsg::RegisterCw20 {
+            address,
+            owner,
+            whitelist,
+            permissionless_burning,
+            cw20_code_id,
+            decimals,
+        } => e::try_register_cw20(
+            deps,
+            env,
+            info,
+            address,
+            owner,
+            whitelist,
+            permissionless_burning,
+            cw20_code_id,
+            decimals,
+        ),
 
-        ExecuteMsg::SetMetadataNative { token, metadata } => {
-            e::try_set_metadata_native(deps, env, info, token, metadata)
+        ExecuteMsg::UpdateCurrencyInfo {
+            denom_or_address,
+            owner,
+            whitelist,
+            permissionless_burning,
+        } => e::try_update_currency_info(
+            deps,
+            env,
+            info,
+            denom_or_address,
+            owner,
+            whitelist,
+            permissionless_burning,
+        ),
+
+        ExecuteMsg::UpdateMetadataNative { denom, metadata } => {
+            e::try_update_metadata_native(deps, env, info, denom, metadata)
         }
 
-        ExecuteMsg::UpdateMarketingCw20 {
-            token,
+        ExecuteMsg::UpdateMetadataCw20 {
+            address,
             project,
             description,
-            marketing,
-        } => e::try_update_marketing_cw20(deps, env, info, token, project, description, marketing),
+            logo,
+        } => e::try_update_metadata_cw20(deps, env, info, address, project, description, logo),
 
-        ExecuteMsg::UploadLogoCw20 { token, logo } => {
-            e::try_upload_logo_cw20(deps, env, info, token, logo)
-        }
+        ExecuteMsg::ExcludeNative { denom } => e::try_exclude_native(deps, env, info, denom),
 
-        ExecuteMsg::ChangeAdminNative { token } => {
-            e::try_change_admin_native(deps, env, info, token)
-        }
+        ExecuteMsg::ExcludeCw20 { address } => e::try_exclude_cw20(deps, env, info, address),
 
-        ExecuteMsg::UpdateMinterCw20 { token, new_minter } => {
-            e::try_update_minter_cw20(deps, env, info, token, new_minter)
-        }
+        ExecuteMsg::Mint {
+            denom_or_address,
+            amount,
+            recipient,
+        } => e::try_mint(deps, env, info, denom_or_address, amount, recipient),
 
-        ExecuteMsg::RegisterCurrency { currency, creator } => {
-            e::try_register_currency(deps, env, info, currency, creator)
-        }
-
-        ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
-
-        ExecuteMsg::UpdateConfig {
-            admin,
-            worker,
-            cw20_base_code_id,
-        } => e::try_update_config(deps, env, info, admin, worker, cw20_base_code_id),
-
-        ExecuteMsg::UpdateTokenOwner { denom, owner } => {
-            e::try_update_token_owner(deps, env, info, denom, owner)
-        }
+        ExecuteMsg::Burn {} => e::try_burn(deps, env, info, None, None),
     }
 }
 
@@ -123,14 +193,26 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryCurrenciesByCreator { creator } => {
-            to_json_binary(&q::query_currencies_by_creator(deps, env, creator)?)
+        QueryMsg::Config {} => to_json_binary(&q::query_config(deps, env)?),
+
+        QueryMsg::CurrencyInfo { denom_or_address } => {
+            to_json_binary(&q::query_currency_info(deps, env, denom_or_address)?)
         }
 
-        QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+        QueryMsg::CurrencyInfoList { amount, start_from } => {
+            to_json_binary(&q::query_currency_info_list(deps, env, amount, start_from)?)
+        }
 
-        QueryMsg::QueryTokenOwner { denom } => {
-            to_json_binary(&q::query_token_owner(deps, env, denom)?)
+        QueryMsg::CurrencyInfoListByOwner {
+            owner,
+            amount,
+            start_from,
+        } => to_json_binary(&q::query_currency_info_list_by_owner(
+            deps, env, owner, amount, start_from,
+        )?),
+
+        QueryMsg::TokenCountList { amount, start_from } => {
+            to_json_binary(&q::query_token_count_list(deps, env, amount, start_from)?)
         }
     }
 }

@@ -205,7 +205,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4416,
+              CODE: 4425,
               ADDRESS:
                 "stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93",
             },
@@ -241,7 +241,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4416,
+              CODE: 4425,
               ADDRESS:
                 "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
             },
@@ -255,10 +255,10 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
-                  worker: ADDRESS.STARGAZE.WORKER,
+                  whitelist: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
                 },
               }),
-              CODE: 4316,
+              CODE: 4426,
               ADDRESS:
                 "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk",
             },
@@ -360,8 +360,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 303,
+              ADDRESS:
+                "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
             },
 
             {
@@ -529,7 +530,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
-                  worker: ADDRESS.STARGAZE.WORKER,
+                  whitelist: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
                 },
               }),
               CODE: 0,

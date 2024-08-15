@@ -94,8 +94,11 @@ pub trait WithCodes {
     fn instantiate_minter(
         &mut self,
         minter_code_id: u64,
-        worker: &Option<ProjectAccount>,
-        cw20_base_code_id: &Option<u64>,
+        whitelist: &Option<Vec<Addr>>,
+        cw20_code_id: &Option<u64>,
+        permissionless_token_creation: &Option<bool>,
+        permissionless_token_registration: &Option<bool>,
+        max_tokens_per_owner: &Option<u16>,
     ) -> Addr;
 
     #[allow(clippy::too_many_arguments)]
@@ -455,15 +458,23 @@ impl WithCodes for Project {
     fn instantiate_minter(
         &mut self,
         minter_code_id: u64,
-        worker: &Option<ProjectAccount>,
-        cw20_base_code_id: &Option<u64>,
+        whitelist: &Option<Vec<Addr>>,
+        cw20_code_id: &Option<u64>,
+        permissionless_token_creation: &Option<bool>,
+        permissionless_token_registration: &Option<bool>,
+        max_tokens_per_owner: &Option<u16>,
     ) -> Addr {
         self.instantiate_contract(
             minter_code_id,
             "minter",
             &goplend_base::minter::msg::InstantiateMsg {
-                worker: worker.as_ref().map(|x| x.to_string()),
-                cw20_base_code_id: cw20_base_code_id.to_owned(),
+                whitelist: whitelist
+                    .as_ref()
+                    .map(|x| x.iter().map(|y| y.to_string()).collect::<Vec<String>>()),
+                cw20_code_id: cw20_code_id.to_owned(),
+                permissionless_token_creation: permissionless_token_creation.to_owned(),
+                permissionless_token_registration: permissionless_token_registration.to_owned(),
+                max_tokens_per_owner: max_tokens_per_owner.to_owned(),
             },
         )
     }

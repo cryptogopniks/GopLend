@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l } from "../../common/utils";
+import { getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { COLLECTION, TOKEN } from "./constants";
@@ -88,19 +88,22 @@ async function main() {
         bglDenom,
         paymentDenom,
       ] of platforms) {
-        await h.minter[name].cwCreateNative(
-          lendingPlatformContract,
+        await h.minter.stargaze.cwCreateNative(
           bglDenom,
-          bglDecimals,
+          {
+            decimals: bglDecimals,
+            whitelist: [lendingPlatformContract],
+          },
           paymentAmount,
           paymentDenom,
           gasPrice
         );
 
-        const [bglCurrency] = (
-          await minter[name].cwQueryCurrenciesByCreator(lendingPlatformContract)
-        ).currencies;
-
+        const { currency: bglCurrency } = getLast(
+          (await minter.stargaze.cwQueryCurrencyInfoListByOwner(owner)).filter(
+            (x) => x.whitelist.includes(lendingPlatformContract)
+          )
+        );
         const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
         l({ bglDenomFull });
 
@@ -147,8 +150,15 @@ async function main() {
               [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
             ]
           : [
+              [COLLECTION.STARGAZE.MOO, "MOO"],
               [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
               [COLLECTION.STARGAZE.SHANE, "SHANE"],
+
+              [COLLECTION.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
+              [COLLECTION.STARGAZE.PLASTELINE, "PLASTELINE"],
+              [COLLECTION.STARGAZE.BIT_KIDS, "BIT_KIDS"],
+              [COLLECTION.STARGAZE.BAD_KIDS, "BAD_KIDS"],
+              [COLLECTION.STARGAZE.SLOTHS, "SLOTHS"],
             ];
 
         let i = 0;

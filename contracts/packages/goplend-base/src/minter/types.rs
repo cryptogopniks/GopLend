@@ -4,6 +4,19 @@ use cosmwasm_std::Addr;
 use crate::assets::{Currency, Token};
 
 #[cw_serde]
+pub struct CurrencyInfo {
+    pub currency: Currency<Token>,
+    /// for cw20 based tokens
+    pub cw20_code_id: Option<u64>,
+    /// can update the token CurrencyInfo
+    pub owner: Addr,
+    /// can mint/burn
+    pub whitelist: Vec<Addr>,
+    /// if true any token holder can burn his tokens in minter
+    pub permissionless_burning: bool,
+}
+
+#[cw_serde]
 pub struct DenomUnit {
     pub denom: String,
     pub exponent: u32,
@@ -24,18 +37,19 @@ pub struct Metadata {
 
 #[cw_serde]
 pub struct Config {
+    /// can update Config
     pub admin: Addr,
-    pub worker: Option<Addr>,
-    pub cw20_base_code_id: Option<u64>,
+    /// can create and register tokens
+    pub whitelist: Vec<Addr>,
+    pub cw20_code_id: Option<u64>,
+    pub permissionless_token_creation: bool,
+    pub permissionless_token_registration: bool,
+    /// max amount of tokens for non-whitelisted owner
+    pub max_tokens_per_owner: u16,
 }
 
 #[cw_serde]
 pub struct TransferAdminState {
     pub new_admin: Addr,
     pub deadline: u64,
-}
-
-#[cw_serde]
-pub struct QueryCurrenciesFromCreatorResponse {
-    pub currencies: Vec<Currency<Token>>,
 }

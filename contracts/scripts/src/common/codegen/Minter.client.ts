@@ -6,20 +6,38 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Uint128, Binary, Logo, EmbeddedLogo, TokenUnverified, Cw20ReceiveMsg, InstantiateMarketingInfo, Metadata, DenomUnit, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Addr, Config, Token, QueryCurrenciesFromCreatorResponse, CurrencyForToken } from "./Minter.types";
+import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
 export interface MinterReadOnlyInterface {
   contractAddress: string;
-  queryCurrenciesByCreator: ({
-    creator
+  config: () => Promise<Config>;
+  currencyInfo: ({
+    denomOrAddress
   }: {
-    creator: string;
-  }) => Promise<QueryCurrenciesFromCreatorResponse>;
-  queryConfig: () => Promise<Config>;
-  queryTokenOwner: ({
-    denom
+    denomOrAddress: string;
+  }) => Promise<CurrencyInfo>;
+  currencyInfoList: ({
+    amount,
+    startFrom
   }: {
-    denom: string;
-  }) => Promise<Addr>;
+    amount: number;
+    startFrom?: string;
+  }) => Promise<ArrayOfCurrencyInfo>;
+  currencyInfoListByOwner: ({
+    amount,
+    owner,
+    startFrom
+  }: {
+    amount: number;
+    owner: string;
+    startFrom?: string;
+  }) => Promise<ArrayOfCurrencyInfo>;
+  tokenCountList: ({
+    amount,
+    startFrom
+  }: {
+    amount: number;
+    startFrom?: string;
+  }) => Promise<ArrayOfTupleOfAddrAndUint16>;
 }
 export class MinterQueryClient implements MinterReadOnlyInterface {
   client: CosmWasmClient;
@@ -27,34 +45,70 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
   constructor(client: CosmWasmClient, contractAddress: string) {
     this.client = client;
     this.contractAddress = contractAddress;
-    this.queryCurrenciesByCreator = this.queryCurrenciesByCreator.bind(this);
-    this.queryConfig = this.queryConfig.bind(this);
-    this.queryTokenOwner = this.queryTokenOwner.bind(this);
+    this.config = this.config.bind(this);
+    this.currencyInfo = this.currencyInfo.bind(this);
+    this.currencyInfoList = this.currencyInfoList.bind(this);
+    this.currencyInfoListByOwner = this.currencyInfoListByOwner.bind(this);
+    this.tokenCountList = this.tokenCountList.bind(this);
   }
-  queryCurrenciesByCreator = async ({
-    creator
-  }: {
-    creator: string;
-  }): Promise<QueryCurrenciesFromCreatorResponse> => {
+  config = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_currencies_by_creator: {
-        creator
+      config: {}
+    });
+  };
+  currencyInfo = async ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }): Promise<CurrencyInfo> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      currency_info: {
+        denom_or_address: denomOrAddress
       }
     });
   };
-  queryConfig = async (): Promise<Config> => {
+  currencyInfoList = async ({
+    amount,
+    startFrom
+  }: {
+    amount: number;
+    startFrom?: string;
+  }): Promise<ArrayOfCurrencyInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_config: {}
+      currency_info_list: {
+        amount,
+        start_from: startFrom
+      }
     });
   };
-  queryTokenOwner = async ({
-    denom
+  currencyInfoListByOwner = async ({
+    amount,
+    owner,
+    startFrom
   }: {
-    denom: string;
-  }): Promise<Addr> => {
+    amount: number;
+    owner: string;
+    startFrom?: string;
+  }): Promise<ArrayOfCurrencyInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_token_owner: {
-        denom
+      currency_info_list_by_owner: {
+        amount,
+        owner,
+        start_from: startFrom
+      }
+    });
+  };
+  tokenCountList = async ({
+    amount,
+    startFrom
+  }: {
+    amount: number;
+    startFrom?: string;
+  }): Promise<ArrayOfTupleOfAddrAndUint16> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      token_count_list: {
+        amount,
+        start_from: startFrom
       }
     });
   };
@@ -62,6 +116,134 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
 export interface MinterInterface extends MinterReadOnlyInterface {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  acceptTokenOwnerRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  pause: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  unpause: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateConfig: ({
+    admin,
+    cw20CodeId,
+    maxTokensPerOwner,
+    permissionlessTokenCreation,
+    permissionlessTokenRegistration,
+    whitelist
+  }: {
+    admin?: string;
+    cw20CodeId?: number;
+    maxTokensPerOwner?: number;
+    permissionlessTokenCreation?: boolean;
+    permissionlessTokenRegistration?: boolean;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  createNative: ({
+    decimals,
+    owner,
+    permissionlessBurning,
+    subdenom,
+    whitelist
+  }: {
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    subdenom: string;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  createCw20: ({
+    cw20CodeId,
+    decimals,
+    marketing,
+    name,
+    owner,
+    permissionlessBurning,
+    symbol,
+    whitelist
+  }: {
+    cw20CodeId?: number;
+    decimals?: number;
+    marketing?: InstantiateMarketingInfo;
+    name: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    symbol: string;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  registerNative: ({
+    decimals,
+    denom,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    decimals?: number;
+    denom: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  registerCw20: ({
+    address,
+    cw20CodeId,
+    decimals,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    address: string;
+    cw20CodeId?: number;
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateCurrencyInfo: ({
+    denomOrAddress,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    denomOrAddress: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateMetadataNative: ({
+    denom,
+    metadata
+  }: {
+    denom: string;
+    metadata: Metadata;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateMetadataCw20: ({
+    address,
+    description,
+    logo,
+    project
+  }: {
+    address: string;
+    description?: string;
+    logo?: Logo;
+    project?: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  excludeNative: ({
+    denom
+  }: {
+    denom: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  excludeCw20: ({
+    address
+  }: {
+    address: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  mint: ({
+    amount,
+    denomOrAddress,
+    recipient
+  }: {
+    amount: Uint128;
+    denomOrAddress: string;
+    recipient?: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  burn: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   receive: ({
     amount,
     msg,
@@ -70,99 +252,6 @@ export interface MinterInterface extends MinterReadOnlyInterface {
     amount: Uint128;
     msg: Binary;
     sender: string;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  createNative: ({
-    decimals,
-    subdenom,
-    tokenOwner
-  }: {
-    decimals?: number;
-    subdenom: string;
-    tokenOwner: string;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  createCw20: ({
-    decimals,
-    marketing,
-    name,
-    symbol,
-    tokenOwner
-  }: {
-    decimals?: number;
-    marketing?: InstantiateMarketingInfo;
-    name: string;
-    symbol: string;
-    tokenOwner: string;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  mint: ({
-    amount,
-    recipient,
-    token
-  }: {
-    amount: Uint128;
-    recipient: string;
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  burn: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  setMetadataNative: ({
-    metadata,
-    token
-  }: {
-    metadata: Metadata;
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateMarketingCw20: ({
-    description,
-    marketing,
-    project,
-    token
-  }: {
-    description?: string;
-    marketing?: string;
-    project?: string;
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  uploadLogoCw20: ({
-    logo,
-    token
-  }: {
-    logo: Logo;
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  changeAdminNative: ({
-    token
-  }: {
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateMinterCw20: ({
-    newMinter,
-    token
-  }: {
-    newMinter: string;
-    token: TokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  registerCurrency: ({
-    creator,
-    currency
-  }: {
-    creator: string;
-    currency: CurrencyForTokenUnverified;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateConfig: ({
-    admin,
-    cw20BaseCodeId,
-    worker
-  }: {
-    admin?: string;
-    cw20BaseCodeId?: number;
-    worker?: string;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateTokenOwner: ({
-    denom,
-    owner
-  }: {
-    denom: string;
-    owner: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class MinterClient extends MinterQueryClient implements MinterInterface {
@@ -174,21 +263,272 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
     this.client = client;
     this.sender = sender;
     this.contractAddress = contractAddress;
-    this.receive = this.receive.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
+    this.acceptTokenOwnerRole = this.acceptTokenOwnerRole.bind(this);
+    this.pause = this.pause.bind(this);
+    this.unpause = this.unpause.bind(this);
+    this.updateConfig = this.updateConfig.bind(this);
     this.createNative = this.createNative.bind(this);
     this.createCw20 = this.createCw20.bind(this);
+    this.registerNative = this.registerNative.bind(this);
+    this.registerCw20 = this.registerCw20.bind(this);
+    this.updateCurrencyInfo = this.updateCurrencyInfo.bind(this);
+    this.updateMetadataNative = this.updateMetadataNative.bind(this);
+    this.updateMetadataCw20 = this.updateMetadataCw20.bind(this);
+    this.excludeNative = this.excludeNative.bind(this);
+    this.excludeCw20 = this.excludeCw20.bind(this);
     this.mint = this.mint.bind(this);
     this.burn = this.burn.bind(this);
-    this.setMetadataNative = this.setMetadataNative.bind(this);
-    this.updateMarketingCw20 = this.updateMarketingCw20.bind(this);
-    this.uploadLogoCw20 = this.uploadLogoCw20.bind(this);
-    this.changeAdminNative = this.changeAdminNative.bind(this);
-    this.updateMinterCw20 = this.updateMinterCw20.bind(this);
-    this.acceptAdminRole = this.acceptAdminRole.bind(this);
-    this.registerCurrency = this.registerCurrency.bind(this);
-    this.updateConfig = this.updateConfig.bind(this);
-    this.updateTokenOwner = this.updateTokenOwner.bind(this);
+    this.receive = this.receive.bind(this);
   }
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
+  acceptTokenOwnerRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_token_owner_role: {}
+    }, fee, memo, _funds);
+  };
+  pause = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      pause: {}
+    }, fee, memo, _funds);
+  };
+  unpause = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      unpause: {}
+    }, fee, memo, _funds);
+  };
+  updateConfig = async ({
+    admin,
+    cw20CodeId,
+    maxTokensPerOwner,
+    permissionlessTokenCreation,
+    permissionlessTokenRegistration,
+    whitelist
+  }: {
+    admin?: string;
+    cw20CodeId?: number;
+    maxTokensPerOwner?: number;
+    permissionlessTokenCreation?: boolean;
+    permissionlessTokenRegistration?: boolean;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_config: {
+        admin,
+        cw20_code_id: cw20CodeId,
+        max_tokens_per_owner: maxTokensPerOwner,
+        permissionless_token_creation: permissionlessTokenCreation,
+        permissionless_token_registration: permissionlessTokenRegistration,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  createNative = async ({
+    decimals,
+    owner,
+    permissionlessBurning,
+    subdenom,
+    whitelist
+  }: {
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    subdenom: string;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      create_native: {
+        decimals,
+        owner,
+        permissionless_burning: permissionlessBurning,
+        subdenom,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  createCw20 = async ({
+    cw20CodeId,
+    decimals,
+    marketing,
+    name,
+    owner,
+    permissionlessBurning,
+    symbol,
+    whitelist
+  }: {
+    cw20CodeId?: number;
+    decimals?: number;
+    marketing?: InstantiateMarketingInfo;
+    name: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    symbol: string;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      create_cw20: {
+        cw20_code_id: cw20CodeId,
+        decimals,
+        marketing,
+        name,
+        owner,
+        permissionless_burning: permissionlessBurning,
+        symbol,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  registerNative = async ({
+    decimals,
+    denom,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    decimals?: number;
+    denom: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      register_native: {
+        decimals,
+        denom,
+        owner,
+        permissionless_burning: permissionlessBurning,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  registerCw20 = async ({
+    address,
+    cw20CodeId,
+    decimals,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    address: string;
+    cw20CodeId?: number;
+    decimals?: number;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      register_cw20: {
+        address,
+        cw20_code_id: cw20CodeId,
+        decimals,
+        owner,
+        permissionless_burning: permissionlessBurning,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  updateCurrencyInfo = async ({
+    denomOrAddress,
+    owner,
+    permissionlessBurning,
+    whitelist
+  }: {
+    denomOrAddress: string;
+    owner?: string;
+    permissionlessBurning?: boolean;
+    whitelist?: string[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_currency_info: {
+        denom_or_address: denomOrAddress,
+        owner,
+        permissionless_burning: permissionlessBurning,
+        whitelist
+      }
+    }, fee, memo, _funds);
+  };
+  updateMetadataNative = async ({
+    denom,
+    metadata
+  }: {
+    denom: string;
+    metadata: Metadata;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_metadata_native: {
+        denom,
+        metadata
+      }
+    }, fee, memo, _funds);
+  };
+  updateMetadataCw20 = async ({
+    address,
+    description,
+    logo,
+    project
+  }: {
+    address: string;
+    description?: string;
+    logo?: Logo;
+    project?: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_metadata_cw20: {
+        address,
+        description,
+        logo,
+        project
+      }
+    }, fee, memo, _funds);
+  };
+  excludeNative = async ({
+    denom
+  }: {
+    denom: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      exclude_native: {
+        denom
+      }
+    }, fee, memo, _funds);
+  };
+  excludeCw20 = async ({
+    address
+  }: {
+    address: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      exclude_cw20: {
+        address
+      }
+    }, fee, memo, _funds);
+  };
+  mint = async ({
+    amount,
+    denomOrAddress,
+    recipient
+  }: {
+    amount: Uint128;
+    denomOrAddress: string;
+    recipient?: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      mint: {
+        amount,
+        denom_or_address: denomOrAddress,
+        recipient
+      }
+    }, fee, memo, _funds);
+  };
+  burn = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      burn: {}
+    }, fee, memo, _funds);
+  };
   receive = async ({
     amount,
     msg,
@@ -203,191 +543,6 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
         amount,
         msg,
         sender
-      }
-    }, fee, memo, _funds);
-  };
-  createNative = async ({
-    decimals,
-    subdenom,
-    tokenOwner
-  }: {
-    decimals?: number;
-    subdenom: string;
-    tokenOwner: string;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      create_native: {
-        decimals,
-        subdenom,
-        token_owner: tokenOwner
-      }
-    }, fee, memo, _funds);
-  };
-  createCw20 = async ({
-    decimals,
-    marketing,
-    name,
-    symbol,
-    tokenOwner
-  }: {
-    decimals?: number;
-    marketing?: InstantiateMarketingInfo;
-    name: string;
-    symbol: string;
-    tokenOwner: string;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      create_cw20: {
-        decimals,
-        marketing,
-        name,
-        symbol,
-        token_owner: tokenOwner
-      }
-    }, fee, memo, _funds);
-  };
-  mint = async ({
-    amount,
-    recipient,
-    token
-  }: {
-    amount: Uint128;
-    recipient: string;
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      mint: {
-        amount,
-        recipient,
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  burn = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      burn: {}
-    }, fee, memo, _funds);
-  };
-  setMetadataNative = async ({
-    metadata,
-    token
-  }: {
-    metadata: Metadata;
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      set_metadata_native: {
-        metadata,
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  updateMarketingCw20 = async ({
-    description,
-    marketing,
-    project,
-    token
-  }: {
-    description?: string;
-    marketing?: string;
-    project?: string;
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_marketing_cw20: {
-        description,
-        marketing,
-        project,
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  uploadLogoCw20 = async ({
-    logo,
-    token
-  }: {
-    logo: Logo;
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      upload_logo_cw20: {
-        logo,
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  changeAdminNative = async ({
-    token
-  }: {
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      change_admin_native: {
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  updateMinterCw20 = async ({
-    newMinter,
-    token
-  }: {
-    newMinter: string;
-    token: TokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_minter_cw20: {
-        new_minter: newMinter,
-        token
-      }
-    }, fee, memo, _funds);
-  };
-  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      accept_admin_role: {}
-    }, fee, memo, _funds);
-  };
-  registerCurrency = async ({
-    creator,
-    currency
-  }: {
-    creator: string;
-    currency: CurrencyForTokenUnverified;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      register_currency: {
-        creator,
-        currency
-      }
-    }, fee, memo, _funds);
-  };
-  updateConfig = async ({
-    admin,
-    cw20BaseCodeId,
-    worker
-  }: {
-    admin?: string;
-    cw20BaseCodeId?: number;
-    worker?: string;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_config: {
-        admin,
-        cw20_base_code_id: cw20BaseCodeId,
-        worker
-      }
-    }, fee, memo, _funds);
-  };
-  updateTokenOwner = async ({
-    denom,
-    owner
-  }: {
-    denom: string;
-    owner: string;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_token_owner: {
-        denom,
-        owner
       }
     }, fee, memo, _funds);
   };

@@ -178,6 +178,9 @@ pub enum ContractError {
     #[error("Denom already exists!")]
     DenomExists,
 
+    #[error("Exceeded tokens per owner limit!")]
+    TokenLimit,
+
     #[error("Parsing previous version error!")]
     ParsingPrevVersion,
 
