@@ -135,15 +135,22 @@ pub fn get_targets(
             )?;
 
         if common_config.is_marketplace_interface_enabled {
-            let liquidation_bids_from_marketplace: Vec<
-                QueryLiquidationBidsByCollectionAddressListResponseItem,
-            > = project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-                platform_type.clone(),
-                &None,
-                &None,
-            )?;
+            for (collection_address, _) in &collection_and_collateral_list_by_borrower {
+                let liquidation_bids_from_marketplace = project
+                    .adapter_marketplace_stargaze_query_offers_by_collection_address(
+                        platform_type.clone(),
+                        collection_address.clone(),
+                        0,
+                        &None,
+                        &None,
+                        &None,
+                    )?;
 
-            liquidation_bids = [liquidation_bids, liquidation_bids_from_marketplace].concat();
+                liquidation_bids.push(QueryLiquidationBidsByCollectionAddressListResponseItem {
+                    collection_address: collection_address.to_owned(),
+                    liquidation_bids: liquidation_bids_from_marketplace.offers,
+                });
+            }
         }
 
         let collection_and_bid_list = helpers::offchain::get_collection_and_bid_list(
@@ -7506,12 +7513,16 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
 
     // check marketplace offers
-    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-        PlatformType::Main,
-        &None,
-        &None,
-    )?[0]
-        .liquidation_bids
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
+            PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
+            &None,
+            &None,
+        )?
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -7555,12 +7566,16 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     let collateral_by_owner = project
         .lending_platform_query_collateral_by_owner(PlatformType::Main, ProjectAccount::Bob)?;
 
-    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-        PlatformType::Main,
-        &None,
-        &None,
-    )?[0]
-        .liquidation_bids
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
+            PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
+            &None,
+            &None,
+        )?
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -7814,29 +7829,29 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
 
     // check marketplace offers
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Pinjeons,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -7885,29 +7900,29 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         project.lending_platform_query_collateral(PlatformType::Main, ProjectNft::Pinjeons)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Pinjeons,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -8136,15 +8151,15 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         .lending_platform_query_collateral_by_owner(PlatformType::Main, ProjectAccount::Bob)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -8430,29 +8445,29 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
 
     // check marketplace offers
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Pinjeons,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -8501,29 +8516,29 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         project.lending_platform_query_collateral(PlatformType::Main, ProjectNft::Pinjeons)?;
 
     let offers_gopniks = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Gopniks,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Gopniks.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
         .collect::<Vec<_>>();
     let offers_pingeons = &project
-        .adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
             PlatformType::Main,
+            ProjectNft::Pinjeons,
+            0,
+            &None,
             &None,
             &None,
         )?
-        .into_iter()
-        .find(|x| x.collection_address == ProjectNft::Pinjeons.to_string())
-        .ok_or(ContractError::CollectionIsNotFound)?
-        .liquidation_bids
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -8793,12 +8808,16 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
     assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
 
     // check marketplace offers
-    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-        PlatformType::Stable,
-        &None,
-        &None,
-    )?[0]
-        .liquidation_bids
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
+            PlatformType::Stable,
+            ProjectNft::Gopniks,
+            0,
+            &None,
+            &None,
+            &None,
+        )?
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))
@@ -8846,12 +8865,16 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
     let collateral_by_owner = project
         .lending_platform_query_collateral_by_owner(PlatformType::Stable, ProjectAccount::Bob)?;
 
-    let offers = &project.adapter_marketplace_stargaze_query_offers_by_collection_address_list(
-        PlatformType::Stable,
-        &None,
-        &None,
-    )?[0]
-        .liquidation_bids
+    let offers = &project
+        .adapter_marketplace_stargaze_query_offers_by_collection_address(
+            PlatformType::Stable,
+            ProjectNft::Gopniks,
+            0,
+            &None,
+            &None,
+            &None,
+        )?
+        .offers
         .iter()
         .cloned()
         .filter(|x| matches!(x.bid_type, BidType::CollectionOffer))

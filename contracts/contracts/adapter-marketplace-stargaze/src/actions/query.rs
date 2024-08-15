@@ -4,7 +4,7 @@ use sg721_base::msg::{CollectionInfoResponse, QueryMsg as Sg721QueryMsg};
 
 use sg_marketplace::{
     msg::{
-        BidOffset, BidsResponse, CollectionBidsResponse, ParamsResponse,
+        BidOffset, BidsResponse, CollectionBidOffset, CollectionBidsResponse, ParamsResponse,
         QueryMsg as MarketplaceQueryMsg,
     },
     state::{Bid, CollectionBid, Order},
@@ -12,16 +12,14 @@ use sg_marketplace::{
 
 use goplend_base::{
     adapters::marketplace::stargaze::{
+        msg::QueryOffersByCollectionAddressResponse,
         state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
         types::{Config, PlatformType},
     },
     converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
-        msg::{
-            QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
-            QueryMsg as LendingPlatformQueryMsg,
-        },
+        msg::QueryMsg as LendingPlatformQueryMsg,
         types::{BidType, Collateral, LiquidationBid},
     },
     oracle::types::PriceRatioItem,
@@ -32,16 +30,17 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn query_offers_by_collection_address(
     deps: Deps,
     env: Env,
     platform_type: PlatformType,
     collection_address: String,
     expiration_delay: u64,
-    start_after_collection_offer: Option<String>,
-    start_after_token_offer: Option<String>,
+    start_after_collection_offer: Option<CollectionBidOffset>,
+    start_after_token_offer: Option<BidOffset>,
     limit: Option<u32>,
-) -> StdResult<Vec<LiquidationBid>> {
+) -> StdResult<QueryOffersByCollectionAddressResponse> {
     let block_time = env.block.time.seconds();
     let Config {
         lending_platform_main,
@@ -52,13 +51,15 @@ pub fn query_offers_by_collection_address(
     } = CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
+    let limit = limit.unwrap_or(PAGINATION_DEFAULT_LIMIT);
+    let mut block = env.block;
+    block.time = block.time.plus_seconds(expiration_delay);
 
     let lending_platform = match platform_type {
         PlatformType::Main => unwrap_field(lending_platform_main, "lending_platform_main")?,
         PlatformType::Stable => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
     };
 
-    // TODO: is it proper handling?
     let price_ratio = match platform_type {
         PlatformType::Main => Decimal::one(),
         PlatformType::Stable => {
@@ -85,133 +86,133 @@ pub fn query_offers_by_collection_address(
         .query_wasm_smart(marketplace, &MarketplaceQueryMsg::Params {})?;
     let network_fee_rate = params_response.params.trading_fee_percent / u128_to_dec(100u128);
 
-    let mut total_offers: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem> = vec![];
+    let mut offers: Vec<LiquidationBid> = vec![];
 
-    for QueryCollectionsResponseItem {
-        address: collection_address,
-        ..
-    } in collection_list
-    {
-        // TODO: check if it's sorted in proper order
+    // get collection royalty
+    let collection_info = deps.querier.query_wasm_smart::<CollectionInfoResponse>(
+        collection_address.clone(),
+        &Sg721QueryMsg::CollectionInfo {},
+    );
+    let royalty_fee_rate = match collection_info {
+        // cw721
+        Err(_) => Decimal::zero(),
+        // sg721
+        Ok(x) => x.royalty_info.map(|x| x.share).unwrap_or_default(),
+    };
+    let discount_base = royalty_fee_rate + network_fee_rate;
 
-        // get collection royalty
-        let collection_info = deps.querier.query_wasm_smart::<CollectionInfoResponse>(
-            collection_address.clone(),
-            &Sg721QueryMsg::CollectionInfo {},
-        );
-        let royalty_fee_rate = match collection_info {
-            // cw721
-            Err(_) => Decimal::zero(),
-            // sg721
-            Ok(x) => x.royalty_info.map(|x| x.share).unwrap_or_default(),
-        };
-        let discount_base = royalty_fee_rate + network_fee_rate;
+    // try to query amount of token offers limited by PAGINATION_DEFAULT_LIMIT
+    // sorted by price in descending order
+    // it's important to query token offers first to get better offers
+    let BidsResponse { bids } = deps.querier.query_wasm_smart(
+        marketplace,
+        &MarketplaceQueryMsg::ReverseBidsSortedByPrice {
+            collection: collection_address.to_string(),
+            start_before: start_after_token_offer,
+            limit: Some(limit), // max amount per single query
+        },
+    )?;
 
-        // try to query amount of token offers limited by PAGINATION_DEFAULT_LIMIT
-        // sorted by price in descending order
-        // it's important to query token offers first to get better offers
-        let BidsResponse { bids } = deps.querier.query_wasm_smart(
-            marketplace,
-            &MarketplaceQueryMsg::ReverseBidsSortedByPrice {
-                collection: collection_address.to_string(),
-                start_before: Some(BidOffset {}),
-                limit: Some(PAGINATION_DEFAULT_LIMIT), // max amount per single query
-            },
-        )?;
+    let CollectionBidsResponse {
+        bids: collection_bids,
+    } = deps.querier.query_wasm_smart(
+        marketplace,
+        &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
+            collection: collection_address.to_string(),
+            start_before: start_after_collection_offer,
+            limit: Some(limit),
+        },
+    )?;
 
-        let CollectionBidsResponse {
-            bids: collection_bids,
-        } = deps.querier.query_wasm_smart(
-            marketplace,
-            &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
-                collection: collection_address.to_string(),
-                start_before: None,
-                limit: Some(PAGINATION_DEFAULT_LIMIT),
-            },
-        )?;
+    let last_token_offer = bids.iter().last().map(|x| BidOffset {
+        bidder: x.bidder.to_owned(),
+        token_id: x.token_id,
+        price: x.price,
+    });
 
-        let mut offers: Vec<LiquidationBid> = vec![];
+    let last_collection_offer = collection_bids.iter().last().map(|x| CollectionBidOffset {
+        bidder: x.bidder.to_string(),
+        collection: x.collection.to_string(),
+        price: x.price,
+    });
 
-        for bid in bids {
-            // TODO: do we need to query more offers if we got too much expired offers?
-            // skip expired bids
-            if bid.is_expired(&env.block) {
-                continue;
-            }
-
-            let Bid {
-                price,
-                bidder,
-                token_id,
-                finders_fee_bps,
-                ..
-            } = bid;
-
-            // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
-            let finders_fee_rate = u128_to_dec(finders_fee_bps.unwrap_or_default() / 100);
-
-            offers.push(LiquidationBid {
-                creation_date: block_time,
-                liquidator: bidder,
-                token_id_list: vec![token_id.to_string()],
-                amount: calc_price(price, price_ratio),
-                discount: discount_base + finders_fee_rate,
-                bid_type: BidType::TokenOffer,
-            })
+    for bid in bids {
+        // skip expired bids
+        if bid.is_expired(&block) {
+            continue;
         }
 
-        for collection_bid in collection_bids {
-            // skip expired bids
-            if collection_bid.is_expired(&env.block) {
-                continue;
-            }
+        let Bid {
+            price,
+            bidder,
+            token_id,
+            finders_fee_bps,
+            ..
+        } = bid;
 
-            let CollectionBid {
-                price,
-                bidder,
-                finders_fee_bps,
-                ..
-            } = collection_bid;
+        // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
+        let finders_fee_rate = u128_to_dec(finders_fee_bps.unwrap_or_default() / 100);
 
-            let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
-                &lending_platform,
-                &LendingPlatformQueryMsg::QueryCollateral {
-                    collection_address: collection_address.to_string(),
-                },
-            )?;
-
-            // it's fine to pass all tokens including tokens owned by liquidators
-            // as we need offers capacity as much as possible
-            let token_id_list = collateral
-                .into_iter()
-                .flat_map(|x| {
-                    x.token_item_list
-                        .into_iter()
-                        .map(|x| x.id)
-                        .collect::<Vec<String>>()
-                })
-                .collect();
-
-            // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
-            let finders_fee_rate = u128_to_dec(finders_fee_bps.unwrap_or_default() / 100);
-
-            offers.push(LiquidationBid {
-                creation_date: block_time,
-                liquidator: bidder,
-                token_id_list,
-                amount: calc_price(price, price_ratio),
-                discount: discount_base + finders_fee_rate,
-                bid_type: BidType::CollectionOffer,
-            })
-        }
-
-        total_offers.push(QueryLiquidationBidsByCollectionAddressListResponseItem {
-            collection_address,
-            liquidation_bids: offers,
-        });
+        offers.push(LiquidationBid {
+            creation_date: block_time,
+            liquidator: bidder,
+            token_id_list: vec![token_id.to_string()],
+            amount: calc_price(price, price_ratio),
+            discount: discount_base + finders_fee_rate,
+            bid_type: BidType::TokenOffer,
+        })
     }
 
-    Ok(total_offers)
+    for collection_bid in collection_bids {
+        // skip expired bids
+        if collection_bid.is_expired(&block) {
+            continue;
+        }
+
+        let CollectionBid {
+            price,
+            bidder,
+            finders_fee_bps,
+            ..
+        } = collection_bid;
+
+        let collateral: Vec<Collateral> = deps.querier.query_wasm_smart(
+            &lending_platform,
+            &LendingPlatformQueryMsg::QueryCollateral {
+                collection_address: collection_address.to_string(),
+            },
+        )?;
+
+        // it's fine to pass all tokens including tokens owned by liquidators
+        // as we need offers capacity as much as possible
+        let token_id_list = collateral
+            .into_iter()
+            .flat_map(|x| {
+                x.token_item_list
+                    .into_iter()
+                    .map(|x| x.id)
+                    .collect::<Vec<String>>()
+            })
+            .collect();
+
+        // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
+        let finders_fee_rate = u128_to_dec(finders_fee_bps.unwrap_or_default() / 100);
+
+        offers.push(LiquidationBid {
+            creation_date: block_time,
+            liquidator: bidder,
+            token_id_list,
+            amount: calc_price(price, price_ratio),
+            discount: discount_base + finders_fee_rate,
+            bid_type: BidType::CollectionOffer,
+        })
+    }
+
+    Ok(QueryOffersByCollectionAddressResponse {
+        offers,
+        last_collection_offer,
+        last_token_offer,
+    })
 }
 
 // imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
