@@ -23,7 +23,7 @@ import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
 import { FaucetQueryClient } from "../codegen/Faucet.client";
 
 import CONFIG_JSON from "../config/config.json";
-import { getLast, l, li, logAndReturn } from "../utils";
+import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
@@ -47,12 +47,15 @@ import {
   MsgExecuteContractEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
 import {
+  Addr,
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   BiddedCollateralItem,
   CollectionInfoForString,
   CurrencyForTokenUnverified,
+  Decimal,
   LiquidationItem,
   ProposalForStringAndTokenUnverified,
+  QueryBorrowersResponseItem,
   QueryLiquidationBidsByCollectionAddressListResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
 } from "../codegen/LendingPlatform.types";
@@ -2196,6 +2199,28 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(allItems, isDisplayed);
   }
 
+  // async function getLtvList(platformType: PlatformType) {
+  //   const PAGINATION_QUERY_AMOUNT = 200;
+
+  //   let allItems: [Addr, Decimal | null][] = [];
+  //   let lastItem: string | undefined = undefined;
+
+  //   while (lastItem !== "") {
+  //     const items: [Addr, Decimal | null][] = await cwQueryLtvList(
+  //       platformType,
+  //       PAGINATION_QUERY_AMOUNT,
+  //       lastItem
+  //     );
+
+  //     lastItem = getLast(items)?.[0] || "";
+  //     allItems = [...allItems, ...items];
+
+  //     l({ lastLtv: lastItem });
+  //   }
+
+  //   return allItems;
+  // }
+
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -2330,6 +2355,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       limit,
     });
     return logAndReturn(res, isDisplayed);
+  }
+
+  async function pQueryBorrowerList(
+    platformType: PlatformType,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<QueryBorrowersResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: QueryBorrowersResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryBorrowersResponseItem[] = await cwQueryBorrowerList(
+        platformType,
+        paginationAmount,
+        lastItem
+      );
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryBorrower(
@@ -2743,6 +2799,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryUnbonderList,
       cwQueryUnbonder,
       cwQueryBorrowerList,
+      pQueryBorrowerList,
       cwQueryBorrower,
       cwQueryLiquidatorList,
       cwQueryLiquidator,

@@ -32,7 +32,7 @@ const PAGINATION_AMOUNT = 100;
 // TODO: can multiple users share same collection offer?
 export async function queryTargets(
   platformType: PlatformType,
-  borrowers: string[]
+  borrowers: string[] // TODO: remove
 ): Promise<LiquidationItem[]> {
   // configs
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
@@ -48,6 +48,7 @@ export async function queryTargets(
 
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, RPC);
 
+  // TODO: remove
   // helpers
   const getBorrowers = async (
     borrowers: string[]

@@ -72,4 +72,31 @@ function decrypt(encryptedData: string, key: string): string | undefined {
   }
 }
 
-export { Request, l, li, logAndReturn, floor, getLast, wait, encrypt, decrypt };
+function getPaginationAmount(
+  maxPaginationAmount: number,
+  maxCount: number
+): number {
+  // limit maxPaginationAmount
+  maxPaginationAmount = Math.min(
+    maxPaginationAmount,
+    maxCount || maxPaginationAmount
+  );
+
+  // update maxPaginationAmount to balance the load
+  return maxCount
+    ? Math.ceil(maxCount / Math.ceil(maxCount / maxPaginationAmount))
+    : maxPaginationAmount;
+}
+
+export {
+  Request,
+  l,
+  li,
+  logAndReturn,
+  floor,
+  getLast,
+  wait,
+  encrypt,
+  decrypt,
+  getPaginationAmount,
+};
