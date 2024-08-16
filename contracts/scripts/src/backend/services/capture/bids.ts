@@ -30,65 +30,66 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getBids = async (platformType: PlatformType) => {
-    let allItems: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
-      [];
-    let lastItem: string | undefined = undefined;
+  const writeBids = async (platformType: PlatformType) => {
+    try {
+      let allItems: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
+        [];
+      let lastItem: string | undefined = undefined;
 
-    while (lastItem !== "") {
-      const items: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
-        await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
+      while (lastItem !== "") {
+        const items: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
+          await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
+            platformType,
+            PAGINATION_QUERY_AMOUNT,
+            lastItem
+          );
 
-      lastItem = getLast(items)?.liquidator_address || "";
-      allItems = [...allItems, ...items];
+        lastItem = getLast(items)?.liquidator_address || "";
+        allItems = [...allItems, ...items];
+      }
 
-      l({ lastBid: lastItem });
+      let bids = allItems;
+
+      // sort by amount descending
+      bids = bids.sort(
+        (a, b) =>
+          b.collection_and_liquidation_bids_list.reduce(
+            (acc1, cur1) =>
+              acc1 +
+              cur1.liquidation_bids.reduce(
+                (acc2, cur2) => acc2 + Number(cur2.amount),
+                0
+              ),
+            0
+          ) -
+          a.collection_and_liquidation_bids_list.reduce(
+            (acc1, cur1) =>
+              acc1 +
+              cur1.liquidation_bids.reduce(
+                (acc2, cur2) => acc2 + Number(cur2.amount),
+                0
+              ),
+            0
+          )
+      );
+
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "bids.json"),
+        JSON.stringify(bids, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-
-    return allItems;
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    let bids = await getBids(platform);
-
-    // sort by amount descending
-    bids = bids.sort(
-      (a, b) =>
-        b.collection_and_liquidation_bids_list.reduce(
-          (acc1, cur1) =>
-            acc1 +
-            cur1.liquidation_bids.reduce(
-              (acc2, cur2) => acc2 + Number(cur2.amount),
-              0
-            ),
-          0
-        ) -
-        a.collection_and_liquidation_bids_list.reduce(
-          (acc1, cur1) =>
-            acc1 +
-            cur1.liquidation_bids.reduce(
-              (acc2, cur2) => acc2 + Number(cur2.amount),
-              0
-            ),
-          0
-        )
-    );
-
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "bids.json"),
-      JSON.stringify(bids, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
-  }
+  await Promise.all(
+    platformList.map((platformType) => writeBids(platformType))
+  );
 }
 
 main();

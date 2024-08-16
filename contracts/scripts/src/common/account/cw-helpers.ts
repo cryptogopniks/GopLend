@@ -57,6 +57,7 @@ import {
   ProposalForStringAndTokenUnverified,
   QueryBorrowersResponseItem,
   QueryCollateralsResponseItem,
+  QueryCollectionsResponseItem,
   QueryLiquidationBidsByCollectionAddressListResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
 } from "../codegen/LendingPlatform.types";
@@ -2601,6 +2602,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryCollectionList(
+    platformType: PlatformType,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<QueryCollectionsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: QueryCollectionsResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryCollectionsResponseItem[] = await cwQueryCollectionList(
+        platformType,
+        paginationAmount,
+        lastItem
+      );
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryCollection(
     platformType: PlatformType,
     address: string,
@@ -2886,6 +2918,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
       cwQueryCollection,
       cwQueryCollectionList,
+      pQueryCollectionList,
 
       cwQueryConditionalLtv,
       cwQueryLtvList,
