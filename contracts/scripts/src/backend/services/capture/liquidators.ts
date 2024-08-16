@@ -1,10 +1,9 @@
-import { getLast, l } from "../../../common/utils";
+import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryLiquidatorsResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -30,34 +29,11 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getLiquidators = async (platformType: PlatformType) => {
-    let allItems: QueryLiquidatorsResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryLiquidatorsResponseItem[] =
-        await lending.cwQueryLiquidatorList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
-
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastLiquidator: lastItem });
-    }
-
-    return allItems;
-  };
-
-  const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    let liquidators = await getLiquidators(platform);
-
+  const writeLiquidators = async (platformType: PlatformType) => {
     // sort by collection amount descending
-    liquidators = liquidators.sort(
+    const liquidators = (
+      await lending.pQueryLiquidatorList(platformType, PAGINATION_QUERY_AMOUNT)
+    ).sort(
       (a, b) =>
         b.liquidator.collection_addresses.length -
         a.liquidator.collection_addresses.length
@@ -65,13 +41,18 @@ async function main() {
 
     // write files
     await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "liquidators.json"),
+      getSnapshotPath(NAME, TYPE, platformType, "liquidators.json"),
       JSON.stringify(liquidators, null, 2),
       {
         encoding: ENCODING,
       }
     );
-  }
+  };
+
+  const platformList: PlatformType[] = ["main", "stable"];
+  await Promise.all(
+    platformList.map((platformType) => writeLiquidators(platformType))
+  );
 }
 
 main();
