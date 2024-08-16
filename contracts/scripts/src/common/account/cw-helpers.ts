@@ -26,7 +26,7 @@ import CONFIG_JSON from "../config/config.json";
 import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
-import { RawPriceItem } from "../codegen/Oracle.types";
+import { PriceItem, RawPriceItem } from "../codegen/Oracle.types";
 import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
   BidOffset,
@@ -47,12 +47,10 @@ import {
   MsgExecuteContractEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
 import {
-  Addr,
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   BiddedCollateralItem,
   CollectionInfoForString,
   CurrencyForTokenUnverified,
-  Decimal,
   LiquidationItem,
   ProposalForStringAndTokenUnverified,
   QueryBorrowersResponseItem,
@@ -2908,6 +2906,35 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryPrices(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<PriceItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: PriceItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: PriceItem[] = await cwQueryPrices(
+        paginationAmount,
+        lastItem
+      );
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryPriceRatio(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryPriceRatio();
     return logAndReturn(res, isDisplayed);
@@ -3045,7 +3072,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,
+
       cwQueryPrices,
+      pQueryPrices,
+
       cwQueryPriceRatio,
       cwQueryBlockTime,
       cwQueryLog: cwOracleQueryLog,
