@@ -61,6 +61,7 @@ import {
   QueryLiquidationBidsByCollectionAddressListResponseItem,
   QueryLiquidatorsResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
+  QueryProposalsResponseItem,
 } from "../codegen/LendingPlatform.types";
 import {
   DirectSecp256k1HdWallet,
@@ -2621,6 +2622,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryProposals(
+    platformType: PlatformType,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<QueryProposalsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: QueryProposalsResponseItem[] = [];
+    let firstItem: number | undefined = undefined;
+    let count: number = 0;
+
+    while (firstItem !== 0 && count < (maxCount || count + 1)) {
+      const items: QueryProposalsResponseItem[] = await cwQueryProposals(
+        platformType,
+        paginationAmount,
+        firstItem
+      );
+
+      firstItem = getLast(items)?.id || 0;
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryCollectionList(
     platformType: PlatformType,
     limit: number = 100,
@@ -2957,6 +2989,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryLtvList,
 
       cwQueryProposals,
+      pQueryProposals,
+
       cwQueryBglCurrencyToMainCurrencyPrice,
       cwQueryConditionalDepositApr,
       cwQueryTotalAvailableToBorrowLiquidity,
