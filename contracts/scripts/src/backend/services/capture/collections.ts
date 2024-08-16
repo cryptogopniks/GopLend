@@ -1,10 +1,9 @@
-import { getLast, l } from "../../../common/utils";
+import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryCollectionsResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -30,46 +29,33 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getCollections = async (platformType: PlatformType) => {
-    let allItems: QueryCollectionsResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryCollectionsResponseItem[] =
-        await lending.cwQueryCollectionList(
+  const writeCollections = async (platformType: PlatformType) => {
+    try {
+      // sort by name ascending
+      const collections = (
+        await lending.pQueryCollectionList(
           platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
+          PAGINATION_QUERY_AMOUNT
+        )
+      ).sort((a, b) => a.collection.name.localeCompare(b.collection.name));
 
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastCollection: lastItem });
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "collections.json"),
+        JSON.stringify(collections, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-
-    return allItems;
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    let collections = await getCollections(platform);
-
-    // sort by name ascending
-    collections = collections.sort((a, b) =>
-      a.collection.name.localeCompare(b.collection.name)
-    );
-
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "collections.json"),
-      JSON.stringify(collections, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
-  }
+  await Promise.all(
+    platformList.map((platformType) => writeCollections(platformType))
+  );
 }
 
 main();
