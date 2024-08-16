@@ -30,23 +30,30 @@ async function main() {
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
   const writeLiquidators = async (platformType: PlatformType) => {
-    // sort by collection amount descending
-    const liquidators = (
-      await lending.pQueryLiquidatorList(platformType, PAGINATION_QUERY_AMOUNT)
-    ).sort(
-      (a, b) =>
-        b.liquidator.collection_addresses.length -
-        a.liquidator.collection_addresses.length
-    );
+    try {
+      // sort by collection amount descending
+      const liquidators = (
+        await lending.pQueryLiquidatorList(
+          platformType,
+          PAGINATION_QUERY_AMOUNT
+        )
+      ).sort(
+        (a, b) =>
+          b.liquidator.collection_addresses.length -
+          a.liquidator.collection_addresses.length
+      );
 
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platformType, "liquidators.json"),
-      JSON.stringify(liquidators, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "liquidators.json"),
+        JSON.stringify(liquidators, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
+    }
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
