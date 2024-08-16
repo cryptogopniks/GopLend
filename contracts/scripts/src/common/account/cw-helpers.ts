@@ -56,6 +56,7 @@ import {
   LiquidationItem,
   ProposalForStringAndTokenUnverified,
   QueryBorrowersResponseItem,
+  QueryCollateralsResponseItem,
   QueryLiquidationBidsByCollectionAddressListResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
 } from "../codegen/LendingPlatform.types";
@@ -2436,6 +2437,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryCollateralList(
+    platformType: PlatformType,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<QueryCollateralsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: QueryCollateralsResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryCollateralsResponseItem[] = await cwQueryCollateralList(
+        platformType,
+        paginationAmount,
+        lastItem
+      );
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryCollateral(
     platformType: PlatformType,
     collectionAddress: string,
@@ -2829,32 +2861,38 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryCommonConfig: cwLendingPlatformQueryCommonConfig,
       cwQueryPlatformRevenue,
       cwQueryBalances,
-      cwQueryUnbonderList,
-      cwQueryUnbonder,
 
+      cwQueryUnbonder,
+      cwQueryUnbonderList,
+
+      cwQueryBorrower,
       cwQueryBorrowerList,
       pQueryBorrowerList,
 
-      cwQueryBorrower,
-      cwQueryLiquidatorList,
       cwQueryLiquidator,
-      cwQueryCollateralList,
-      cwQueryCollateral,
-      cwQueryCollateralByOwner,
+      cwQueryLiquidatorList,
 
+      cwQueryCollateralByOwner,
+      cwQueryCollateral,
+      cwQueryCollateralList,
+      pQueryCollateralList,
+
+      cwQueryLiquidationBidsByCollectionAddress,
       cwQueryLiquidationBidsByCollectionAddressList,
       pQueryLiquidationBidsByCollectionAddressList,
 
-      cwQueryLiquidationBidsByCollectionAddress,
-      cwQueryLiquidationBidsByLiquidatorAddressList,
       cwQueryLiquidationBidsByLiquidatorAddress,
-      cwQueryProposals,
-      cwQueryCollectionList,
+      cwQueryLiquidationBidsByLiquidatorAddressList,
+
       cwQueryCollection,
+      cwQueryCollectionList,
+
+      cwQueryConditionalLtv,
+      cwQueryLtvList,
+
+      cwQueryProposals,
       cwQueryBglCurrencyToMainCurrencyPrice,
       cwQueryConditionalDepositApr,
-      cwQueryLtvList,
-      cwQueryConditionalLtv,
       cwQueryTotalAvailableToBorrowLiquidity,
       cwQueryAvailableToBorrow,
       cwQueryAmounts,

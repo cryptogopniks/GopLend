@@ -60,5 +60,19 @@
         ]
       }
     ]
+  },
+  {
+    "owner": "stars1ken2g7ynqcf6ruux7cjgc9dzv4tvu0n39j7rtw",
+    "collateral": [
+      {
+        "collection": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "token_item_list": [
+          {
+            "id": "454",
+            "creation_date": 1723386904
+          }
+        ]
+      }
+    ]
   }
 ]
