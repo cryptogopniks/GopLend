@@ -28,8 +28,8 @@ import {
 } from "../../common/codegen/LendingPlatform.types";
 
 const PAGINATION_AMOUNT = 100;
-const PAGINATION_AMOUNT_SMALL = 3;
 
+// TODO: can multiple users share same collection offer?
 export async function queryTargets(
   platformType: PlatformType,
   borrowers: string[]
@@ -46,7 +46,7 @@ export async function queryTargets(
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending, oracle, adapter } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, utils } = await getCwQueryHelpers(chainId, RPC);
 
   // helpers
   const getBorrowers = async (
@@ -149,6 +149,7 @@ export async function queryTargets(
   };
 
   const queryLiquidationBids = async (
+    collectionAddressList: string[],
     isMarketplaceInterfaceEnabled: boolean
   ): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     // query liquidation bids
@@ -176,28 +177,12 @@ export async function queryTargets(
     })();
 
     // query marketplace offers
-    if (isMarketplaceInterfaceEnabled) {
-      let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        [];
-      let lastItem: string | undefined = undefined;
-
-      while (lastItem !== "") {
-        const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-          await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
-            platformType,
-            PAGINATION_AMOUNT_SMALL,
-            lastItem,
-            true
-          );
-
-        lastItem = getLast(items)?.collection_address || "";
-        allItems = [...allItems, ...items];
-
-        l({ lastOffer: lastItem });
-      }
-
-      liquidationBids = [...liquidationBids, ...allItems];
-    }
+    const offers = await utils.cwGetMarketplaceOffers(
+      platformType,
+      collectionAddressList,
+      isMarketplaceInterfaceEnabled
+    );
+    liquidationBids = [...liquidationBids, ...offers];
 
     return liquidationBids;
   };
@@ -295,6 +280,7 @@ export async function queryTargets(
       Number(rateConfig.discount_min_rate)
     );
 
+    // TODO: filter borrowers by LTV
     const ltv = calcConditionalLtv(
       Number(rateConfig.borrow_apr),
       0,
@@ -312,7 +298,11 @@ export async function queryTargets(
     }
 
     // find bids containing at least 1 borrower's collateral token
+    const collectionAddressList = collectionAndCollateralListByBorrower.map(
+      ([address, _]) => address
+    );
     const liquidationBids = await queryLiquidationBids(
+      collectionAddressList,
       commonConfig.is_marketplace_interface_enabled
     );
     const collectionAndBidList = getCollectionAndBidList(

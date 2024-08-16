@@ -22,7 +22,7 @@ import {
 } from "./utils";
 
 const PAGINATION_QUERY_AMOUNT = 100;
-const PAGINATION_EXECUTE_AMOUNT = 10;
+const PAGINATION_EXECUTE_AMOUNT = 3;
 
 async function liquidate(
   route: Route,

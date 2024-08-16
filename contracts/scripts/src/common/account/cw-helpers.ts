@@ -29,8 +29,12 @@ import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import { RawPriceItem } from "../codegen/Oracle.types";
 import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
+  BidOffset,
+  CollectionBidOffset,
+  LiquidationBid,
   MarketplaceVersion,
   PlatformType,
+  QueryOffersByCollectionAddressResponse,
 } from "../codegen/AdapterMarketplaceStargaze.types";
 import {
   getCwClient,
@@ -49,6 +53,7 @@ import {
   CurrencyForTokenUnverified,
   LiquidationItem,
   ProposalForStringAndTokenUnverified,
+  QueryLiquidationBidsByCollectionAddressListResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
 } from "../codegen/LendingPlatform.types";
 import {
@@ -2009,10 +2014,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   //   return logAndReturn(allItems, isDisplayed);
   // }
 
+  // query first 10 token offers and 10 collection offers
   async function cwQueryMarketplaceOffers(
     marketplace: string,
     collection: string,
-    limit: number = 50,
+    limit: number = 10, // the value will be limited by 10 in marketplace contract
     isDisplayed: boolean = false
   ) {
     const getBids = async (): Promise<Offer[]> => {
@@ -2113,6 +2119,83 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(offers, isDisplayed);
   }
 
+  // query ALL token and collection offers
+  async function cwGetMarketplaceOffers(
+    platformType: PlatformType,
+    collectionAddressList: string[],
+    is_marketplace_interface_enabled: boolean,
+    isDisplayed: boolean = false
+  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
+    const EXPIRATION_DELAY_S = 30;
+    const ASYNC_QUERY_AMOUNT = 5;
+
+    if (!is_marketplace_interface_enabled) {
+      return [];
+    }
+
+    const tokenOfferDefault: BidOffset = { bidder: "", price: "", token_id: 0 };
+    const collectionOfferDefault: CollectionBidOffset = {
+      bidder: "",
+      price: "",
+      collection: "",
+    };
+
+    const tokenOfferDefaultString = JSON.stringify(tokenOfferDefault);
+    const collectionOfferDefaultString = JSON.stringify(collectionOfferDefault);
+
+    let promiseList: Promise<void>[] = [];
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+      [];
+
+    for (const collectionAddress of collectionAddressList) {
+      const fn = async () => {
+        try {
+          let offers: LiquidationBid[] = [];
+          let lastTokenOfferItem: BidOffset | undefined = undefined;
+          let lastCollectionOfferItem: CollectionBidOffset | undefined =
+            undefined;
+
+          while (
+            !(
+              JSON.stringify(lastTokenOfferItem) === tokenOfferDefaultString &&
+              JSON.stringify(lastCollectionOfferItem) ===
+                collectionOfferDefaultString
+            )
+          ) {
+            const items: QueryOffersByCollectionAddressResponse =
+              await cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
+                platformType,
+                collectionAddress,
+                EXPIRATION_DELAY_S,
+                lastCollectionOfferItem,
+                lastTokenOfferItem
+              );
+
+            lastTokenOfferItem = items.last_token_offer || tokenOfferDefault;
+            lastCollectionOfferItem =
+              items.last_collection_offer || collectionOfferDefault;
+
+            offers = [...offers, ...items.offers];
+          }
+
+          allItems.push({
+            collection_address: collectionAddress,
+            liquidation_bids: offers,
+          });
+        } catch (_) {}
+      };
+
+      if (promiseList.length >= ASYNC_QUERY_AMOUNT) {
+        await Promise.all(promiseList);
+        promiseList = [];
+      }
+
+      promiseList.push(fn());
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -2129,15 +2212,25 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList(
+  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    collectionAddress: string,
+    expirationDelay: number,
+    startAfterCollectionOffer?: CollectionBidOffset,
+    startAfterTokenOffer?: BidOffset,
+    limit: number = 10,
     isDisplayed: boolean = false
   ) {
     const res =
-      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddressList(
-        { platformType, startAfter, limit }
+      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddress(
+        {
+          platformType,
+          collectionAddress,
+          expirationDelay,
+          startAfterCollectionOffer,
+          startAfterTokenOffer,
+          limit,
+        }
       );
     return logAndReturn(res, isDisplayed);
   }
@@ -2613,6 +2706,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       // cwQueryMarketplaceBids,
       // cwQueryMarketplaceCollectionBids,
       cwQueryMarketplaceOffers,
+      cwGetMarketplaceOffers,
     },
     adapter: {
       dex: {
@@ -2625,8 +2719,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         kujira: {},
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
-          cwQueryOffersByCollectionAddressList:
-            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList,
+          cwQueryOffersByCollectionAddress:
+            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress,
         },
       },
       scheduler: {

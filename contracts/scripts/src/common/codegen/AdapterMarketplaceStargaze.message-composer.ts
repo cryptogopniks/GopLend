@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, MigrateMsg, Config, ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
+import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, CollectionBidOffset, BidOffset, MigrateMsg, Config, QueryOffersByCollectionAddressResponse, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeMsg {
   contractAddress: string;
   sender: string;

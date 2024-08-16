@@ -39,7 +39,7 @@ async function main(userAddress: string) {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { adapter, lending, oracle } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, utils } = await getCwQueryHelpers(chainId, RPC);
   const { getBalance } = await getSgQueryHelpers(RPC);
 
   const getBids = async (platformType: PlatformType) => {
@@ -59,35 +59,6 @@ async function main(userAddress: string) {
       allItems = [...allItems, ...items];
 
       l({ lastBid: lastItem });
-    }
-
-    return allItems;
-  };
-
-  const getOffers = async (
-    platformType: PlatformType,
-    is_marketplace_interface_enabled: boolean
-  ) => {
-    if (!is_marketplace_interface_enabled) {
-      return [];
-    }
-
-    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-      [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
-
-      lastItem = getLast(items)?.collection_address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastOffer: lastItem });
     }
 
     return allItems;
@@ -142,13 +113,6 @@ async function main(userAddress: string) {
     const bglDenom = "native" in bglToken ? bglToken.native.denom : "";
     const bglTokenBalance = (await getBalance(userAddress, bglDenom)).amount;
 
-    let bidList = await getBids(platform);
-    const offerList = await getOffers(
-      platform,
-      is_marketplace_interface_enabled
-    );
-    bidList = [...bidList, ...offerList];
-
     const { unbonder, borrower, collateral, ltv, availableToBorrow } =
       await getUser(platform);
 
@@ -159,6 +123,14 @@ async function main(userAddress: string) {
       undefined,
       collectionAddresses
     );
+
+    let bidList = await getBids(platform);
+    const offerList = await utils.cwGetMarketplaceOffers(
+      platform,
+      collectionAddresses,
+      is_marketplace_interface_enabled
+    );
+    bidList = [...bidList, ...offerList];
 
     const collateralWithPrices: CollateralsResponseItem[] = collateral.map(
       ({ address, collateral }) => {
