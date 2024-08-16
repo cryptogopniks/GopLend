@@ -1,5 +1,352 @@
 [
   {
+    "liquidator_address": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1acje4pcrh8vgff8plwhmkgkssll45vxk3850tplqsdzhnc5lavkstyptfr",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371676,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "205"
+            ],
+            "amount": "350000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376064,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376469,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "199"
+            ],
+            "amount": "500000000",
+            "discount": "0.05",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1ey7dgnxfcjlz4pgn47k4ygjl3q445vvnr2x6qttnew7wlrkyqeysutm2cv",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371709,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "2801"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376126,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "6462"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376659,
+            "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+            "token_id_list": [
+              "4048"
+            ],
+            "amount": "400000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1pfv9a78y99ek6nezc9zq5f2u0kcwgh0ty0y3dh6wn2lgk27qs9hqefncau",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723376194,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "2533"
+            ],
+            "amount": "300000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "liquidation_bids": [
+          {
+            "creation_date": 1722348383,
+            "liquidator": "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+            "token_id_list": [
+              "327"
+            ],
+            "amount": "1000000",
+            "discount": "0.01",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1722502395,
+            "liquidator": "stars14hj3ecw0wfaylqm4uakgnq48hvzwqxfdqk33l9",
+            "token_id_list": [
+              "66"
+            ],
+            "amount": "20000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1722727620,
+            "liquidator": "stars1wvngef3ml68ss8dma9ake0mcwa2qje56mxxwn7",
+            "token_id_list": [
+              "66"
+            ],
+            "amount": "350000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376772,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "634"
+            ],
+            "amount": "500000000",
+            "discount": "0.1",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1rw4na99eqtlyslahrvg6t6ujkjf4lajvagtq6gzyted3yu5f74uqwuy6za",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723376412,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "634"
+            ],
+            "amount": "500000000",
+            "discount": "0.1",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1acje4pcrh8vgff8plwhmkgkssll45vxk3850tplqsdzhnc5lavkstyptfr",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371676,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "205"
+            ],
+            "amount": "350000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376064,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "2"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376469,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "199"
+            ],
+            "amount": "500000000",
+            "discount": "0.05",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1ey7dgnxfcjlz4pgn47k4ygjl3q445vvnr2x6qttnew7wlrkyqeysutm2cv",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371709,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "2801"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376126,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "6462"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376659,
+            "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+            "token_id_list": [
+              "4048"
+            ],
+            "amount": "400000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1hfkhpdjm6vjywgkphw9a83ayr9fqs84efepqkfl3ejy6rs4hxjkqwp575a",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371732,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [],
+            "amount": "41994000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723371749,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "624"
+            ],
+            "amount": "100000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723371760,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [],
+            "amount": "41994000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723371771,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [],
+            "amount": "41994000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723371783,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [],
+            "amount": "43190000",
+            "discount": "0.05",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371917,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "105"
+            ],
+            "amount": "300000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723381339,
+            "liquidator": "stars1cyvgmfa394pvkm6jvwzm8lyx3vr00wqwnms9ct",
+            "token_id_list": [
+              "31"
+            ],
+            "amount": "280000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723381496,
+            "liquidator": "stars1cyvgmfa394pvkm6jvwzm8lyx3vr00wqwnms9ct",
+            "token_id_list": [
+              "24"
+            ],
+            "amount": "2000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1ey7dgnxfcjlz4pgn47k4ygjl3q445vvnr2x6qttnew7wlrkyqeysutm2cv",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371709,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "2801"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376126,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "6462"
+            ],
+            "amount": "500000000",
+            "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376659,
+            "liquidator": "stars133xakkrfksq39wxy575unve2nyehg5npka2vsp",
+            "token_id_list": [
+              "4048"
+            ],
+            "amount": "400000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "liquidator_address": "stars14hj3ecw0wfaylqm4uakgnq48hvzwqxfdqk33l9",
     "collection_and_liquidation_bids_list": [
       {
@@ -33,6 +380,16 @@
             ],
             "amount": "350000000",
             "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376772,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "634"
+            ],
+            "amount": "500000000",
+            "discount": "0.1",
             "bid_type": "liquidation_bid"
           }
         ]
@@ -74,6 +431,16 @@
             "amount": "350000000",
             "discount": "0.03",
             "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376772,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "634"
+            ],
+            "amount": "500000000",
+            "discount": "0.1",
+            "bid_type": "liquidation_bid"
           }
         ]
       }
@@ -113,6 +480,56 @@
             ],
             "amount": "350000000",
             "discount": "0.03",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723376772,
+            "liquidator": "stars19043cgqlq4hje2kksp2v2n7f6naeludd8d22wr",
+            "token_id_list": [
+              "634"
+            ],
+            "amount": "500000000",
+            "discount": "0.1",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "stars1cyvgmfa394pvkm6jvwzm8lyx3vr00wqwnms9ct",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723371917,
+            "liquidator": "stars163l5hfgh8he2u3kylhlghjml8kjflxxetvuayd",
+            "token_id_list": [
+              "105"
+            ],
+            "amount": "300000000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723381339,
+            "liquidator": "stars1cyvgmfa394pvkm6jvwzm8lyx3vr00wqwnms9ct",
+            "token_id_list": [
+              "31"
+            ],
+            "amount": "280000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1723381496,
+            "liquidator": "stars1cyvgmfa394pvkm6jvwzm8lyx3vr00wqwnms9ct",
+            "token_id_list": [
+              "24"
+            ],
+            "amount": "2000000",
+            "discount": "0",
             "bid_type": "liquidation_bid"
           }
         ]

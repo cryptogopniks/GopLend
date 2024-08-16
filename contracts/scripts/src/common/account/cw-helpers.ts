@@ -2472,6 +2472,39 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryLiquidationBidsByCollectionAddressList(
+    platformType: PlatformType,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+      [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+        await cwQueryLiquidationBidsByCollectionAddressList(
+          platformType,
+          paginationAmount,
+          lastItem
+        );
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryLiquidationBidsByCollectionAddress(
     platformType: PlatformType,
     address: string,
@@ -2798,15 +2831,20 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryBalances,
       cwQueryUnbonderList,
       cwQueryUnbonder,
+
       cwQueryBorrowerList,
       pQueryBorrowerList,
+
       cwQueryBorrower,
       cwQueryLiquidatorList,
       cwQueryLiquidator,
       cwQueryCollateralList,
       cwQueryCollateral,
       cwQueryCollateralByOwner,
+
       cwQueryLiquidationBidsByCollectionAddressList,
+      pQueryLiquidationBidsByCollectionAddressList,
+
       cwQueryLiquidationBidsByCollectionAddress,
       cwQueryLiquidationBidsByLiquidatorAddressList,
       cwQueryLiquidationBidsByLiquidatorAddress,
