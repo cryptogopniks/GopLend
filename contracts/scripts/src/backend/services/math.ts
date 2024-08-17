@@ -538,3 +538,17 @@ export function reduceBids(
     return acc;
   }, [] as QueryLiquidationBidsByCollectionAddressListResponseItem[]);
 }
+
+export function getCollectionsFromLtvAndCollateralList(
+  ltvAndCollateralList: TargetBorrower[]
+): string[] {
+  return ltvAndCollateralList.reduce((acc, { collectionAndCollateralList }) => {
+    collectionAndCollateralList.forEach(([collectionAddress]) => {
+      if (!acc.includes(collectionAddress)) {
+        acc.push(collectionAddress);
+      }
+    });
+
+    return acc;
+  }, [] as string[]);
+}

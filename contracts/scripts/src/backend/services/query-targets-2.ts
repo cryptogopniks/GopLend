@@ -10,25 +10,13 @@ import {
   calcLiquidationSet,
   calcLiquidationValue,
   getCollectionAndBidList,
+  getCollectionsFromLtvAndCollateralList,
   getTargetBorrowers,
   matchCollateralsAndBids,
   reduceBids,
 } from "./math";
 
-// TODO: single query
-//  const [rateConfig, commonConfig] = await Promise.all([
-//   lending.cwQueryRateConfig(platformType, true),
-//   lending.cwQueryCommonConfig(platformType, true),
-// ]);
-
-// const ltvMax = calcLtvMax(
-//   Number(rateConfig.bid_min_rate),
-//   Number(rateConfig.discount_max_rate),
-//   Number(rateConfig.discount_min_rate)
-// );
-
-const PAGINATION_AMOUNT = 100;
-
+// TODO: check it's safe to use utils.cwGetMarketplaceOffers
 // TODO: handle both platforms
 // TODO: migrate marketplace adapter
 // TODO: remove execution cooldown from scheduller controller
@@ -41,19 +29,23 @@ export async function queryTargets(
   rateConfig: RateConfig,
   commonConfig: CommonConfig,
   ltvMax: number,
-  blockTime: number // must be increased by several seconds to consider query delays
+  blockTime: number, // must be increased by several seconds to consider query delays
+  colateralPaginationAmount: number,
+  borrowersPaginationAmount: number,
+  pricesPaginationAmount: number,
+  bidsPaginationAmount: number
 ): Promise<LiquidationItem[]> {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
   const collateralList = await lending.pQueryCollateralList(
     platformType,
-    PAGINATION_AMOUNT
+    colateralPaginationAmount
   );
   const borrowerList = await lending.pQueryBorrowerList(
     platformType,
-    PAGINATION_AMOUNT
+    borrowersPaginationAmount
   );
-  const priceList = await oracle.pQueryPrices(PAGINATION_AMOUNT);
+  const priceList = await oracle.pQueryPrices(pricesPaginationAmount);
 
   // get borrowers with ltv > ltvMax, sort by ltv descending
   const ltvAndCollateralList = getTargetBorrowers(
@@ -70,23 +62,13 @@ export async function queryTargets(
     return [];
   }
 
-  const collectionAddressList = ltvAndCollateralList.reduce(
-    (acc, { collectionAndCollateralList }) => {
-      collectionAndCollateralList.forEach(([collectionAddress]) => {
-        if (!acc.includes(collectionAddress)) {
-          acc.push(collectionAddress);
-        }
-      });
-
-      return acc;
-    },
-    [] as string[]
-  );
+  const collectionAddressList =
+    getCollectionsFromLtvAndCollateralList(ltvAndCollateralList);
 
   const liquidationBids =
     await lending.pQueryLiquidationBidsByCollectionAddressList(
       platformType,
-      PAGINATION_AMOUNT
+      bidsPaginationAmount
     );
   const marketplaceOffers = await utils.cwGetMarketplaceOffers(
     platformType,

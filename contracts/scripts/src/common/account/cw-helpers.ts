@@ -2323,19 +2323,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryUnbonderList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryUnbonderList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryUnbonderList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2343,17 +2330,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryUnbondersResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryUnbondersResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: QueryUnbondersResponseItem[] = await cwQueryUnbonderList(
-        platformType,
-        paginationAmount,
-        lastItem
-      );
+      const items: QueryUnbondersResponseItem[] =
+        await client.queryUnbonderList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -2378,19 +2366,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBorrowerList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryBorrowerList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryBorrowerList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2398,17 +2373,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryBorrowersResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryBorrowersResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: QueryBorrowersResponseItem[] = await cwQueryBorrowerList(
-        platformType,
-        paginationAmount,
-        lastItem
-      );
+      const items: QueryBorrowersResponseItem[] =
+        await client.queryBorrowerList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -2433,19 +2409,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryLiquidatorList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryLiquidatorList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryLiquidatorList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2453,17 +2416,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryLiquidatorsResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryLiquidatorsResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: QueryLiquidatorsResponseItem[] = await cwQueryLiquidatorList(
-        platformType,
-        paginationAmount,
-        lastItem
-      );
+      const items: QueryLiquidatorsResponseItem[] =
+        await client.queryLiquidatorList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -2488,19 +2452,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryCollateralList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryCollateralList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryCollateralList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2508,17 +2459,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryCollateralsResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryCollateralsResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: QueryCollateralsResponseItem[] = await cwQueryCollateralList(
-        platformType,
-        paginationAmount,
-        lastItem
-      );
+      const items: QueryCollateralsResponseItem[] =
+        await client.queryCollateralList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -2556,18 +2508,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryLiquidationBidsByCollectionAddressList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(
-      platformType
-    ).queryLiquidationBidsByCollectionAddressList({ startAfter, limit });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryLiquidationBidsByCollectionAddressList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2575,6 +2515,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
       [];
@@ -2583,11 +2524,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
       const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        await cwQueryLiquidationBidsByCollectionAddressList(
-          platformType,
-          paginationAmount,
-          lastItem
-        );
+        await client.queryLiquidationBidsByCollectionAddressList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.collection_address || "";
       allItems = [...allItems, ...items];
@@ -2639,19 +2579,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryProposals(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: number | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryProposals({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryProposals(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2659,17 +2586,17 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryProposalsResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryProposalsResponseItem[] = [];
     let firstItem: number | undefined = undefined;
     let count: number = 0;
 
     while (firstItem !== 0 && count < (maxCount || count + 1)) {
-      const items: QueryProposalsResponseItem[] = await cwQueryProposals(
-        platformType,
-        paginationAmount,
-        firstItem
-      );
+      const items: QueryProposalsResponseItem[] = await client.queryProposals({
+        limit: paginationAmount,
+        startAfter: firstItem,
+      });
 
       firstItem = getLast(items)?.id || 0;
       allItems = [...allItems, ...items];
@@ -2683,19 +2610,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(allItems, isDisplayed);
   }
 
-  async function cwQueryCollectionList(
-    platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
-    isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryCollectionList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
   async function pQueryCollectionList(
     platformType: PlatformType,
     maxPaginationAmount: number,
@@ -2703,17 +2617,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ): Promise<QueryCollectionsResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
 
     let allItems: QueryCollectionsResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: QueryCollectionsResponseItem[] = await cwQueryCollectionList(
-        platformType,
-        paginationAmount,
-        lastItem
-      );
+      const items: QueryCollectionsResponseItem[] =
+        await client.queryCollectionList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -2918,10 +2833,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: PriceItem[] = await cwQueryPrices(
-        paginationAmount,
-        lastItem
-      );
+      const items: PriceItem[] = await oracleQueryClient.queryPrices({
+        limit: paginationAmount,
+        startAfter: lastItem,
+      });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];
@@ -3018,37 +2933,30 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryBalances,
 
       cwQueryUnbonder,
-      cwQueryUnbonderList,
       pQueryUnbonderList,
 
       cwQueryBorrower,
-      cwQueryBorrowerList,
       pQueryBorrowerList,
 
       cwQueryLiquidator,
-      cwQueryLiquidatorList,
       pQueryLiquidatorList,
 
       cwQueryCollateralByOwner,
       cwQueryCollateral,
-      cwQueryCollateralList,
       pQueryCollateralList,
 
       cwQueryLiquidationBidsByCollectionAddress,
-      cwQueryLiquidationBidsByCollectionAddressList,
       pQueryLiquidationBidsByCollectionAddressList,
 
       cwQueryLiquidationBidsByLiquidatorAddress,
       cwQueryLiquidationBidsByLiquidatorAddressList,
 
       cwQueryCollection,
-      cwQueryCollectionList,
       pQueryCollectionList,
 
       cwQueryConditionalLtv,
       cwQueryLtvList,
 
-      cwQueryProposals,
       pQueryProposals,
 
       cwQueryBglCurrencyToMainCurrencyPrice,
