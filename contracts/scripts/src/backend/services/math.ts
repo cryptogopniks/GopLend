@@ -1,10 +1,16 @@
 import { PriceItem } from "../../common/codegen/Oracle.types";
 import {
   Addr,
+  ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   BiddedCollateralItem,
   Collateral,
+  CommonConfig,
   CurrencyForToken,
   LiquidationBid,
+  QueryBorrowersResponseItem,
+  QueryCollateralsResponseItem,
+  QueryLiquidationBidsByCollectionAddressListResponseItem,
+  RateConfig,
 } from "../../common/codegen/LendingPlatform.types";
 
 export const YEAR_IN_SECONDS = 31536000;
@@ -345,4 +351,190 @@ export function calcLiquidationSet(
   );
 
   return result[1] || biddedCollateralList;
+}
+
+export function getCollateralsByBorrower(
+  collateralList: QueryCollateralsResponseItem[],
+  borrowerAddress: Addr
+): [Addr, Collateral][] {
+  return collateralList.reduce((acc, { address: collection, collateral }) => {
+    const ownedCollateral = collateral.find(
+      ({ owner }) => owner === borrowerAddress
+    );
+
+    if (ownedCollateral) {
+      acc.push([collection, ownedCollateral]);
+    }
+
+    return acc;
+  }, [] as [Addr, Collateral][]);
+}
+
+export function getCollateralValue(
+  mainCurrency: CurrencyForToken,
+  collectionAndCollateralListByBorrower: [Addr, Collateral][],
+  prices: PriceItem[]
+): number | undefined {
+  let isPriceOutdated = false;
+
+  const collateralValue = collectionAndCollateralListByBorrower.reduce(
+    (acc, [collectionAddress, collateral]) => {
+      const priceItem = prices.find((x) => x.address === collectionAddress);
+      if (!priceItem) return acc;
+
+      if (priceItem.is_outdated) {
+        isPriceOutdated = true;
+      }
+
+      const price = choosePrice(mainCurrency, priceItem);
+
+      return acc + Number(price) * collateral.token_item_list.length;
+    },
+    0
+  );
+
+  return !isPriceOutdated ? collateralValue : undefined;
+}
+
+interface TargetBorrower {
+  borrowerAddress: string;
+  ltv: number;
+  loanAmount: number;
+  loanCreationDate: number;
+  accumulatedLoan: number;
+  collateralValue: number;
+  collectionAndCollateralList: [string, Collateral][];
+}
+
+// get borrowers with ltv > ltvMax, sort by ltv descending
+export function getTargetBorrowers(
+  borrowerList: QueryBorrowersResponseItem[],
+  collateralList: QueryCollateralsResponseItem[],
+  priceList: PriceItem[],
+  rateConfig: RateConfig,
+  commonConfig: CommonConfig,
+  ltvMax: number,
+  blockTime: number
+): TargetBorrower[] {
+  return borrowerList
+    .reduce(
+      (
+        acc,
+        { address: borrowerAddress, borrower: { loan, accumulated_loan } }
+      ) => {
+        const collectionAndCollateralListByBorrower = getCollateralsByBorrower(
+          collateralList,
+          borrowerAddress
+        );
+
+        const collateralValue =
+          getCollateralValue(
+            commonConfig.main_currency,
+            collectionAndCollateralListByBorrower,
+            priceList
+          ) || 0;
+
+        const loanAmount = Number(loan.amount);
+        const accumulatedLoan = Number(accumulated_loan);
+        const ltv = calcConditionalLtv(
+          Number(rateConfig.borrow_apr),
+          0,
+          accumulatedLoan,
+          loanAmount,
+          0,
+          collateralValue,
+          blockTime,
+          loan.creation_date
+        );
+
+        if (ltv > ltvMax) {
+          acc.push({
+            borrowerAddress,
+            ltv,
+            loanAmount,
+            loanCreationDate: loan.creation_date,
+            accumulatedLoan,
+            collateralValue,
+            collectionAndCollateralList: collectionAndCollateralListByBorrower,
+          });
+        }
+
+        return acc;
+      },
+      [] as TargetBorrower[]
+    )
+    .sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
+}
+
+// find bids containing at least 1 borrower's collateral token
+export function getCollectionAndBidList(
+  liquidationBids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
+  collectionAndCollateralListByBorrower: [Addr, Collateral][]
+): [Addr, LiquidationBid][] {
+  let collectionAndBidList: [Addr, LiquidationBid][] = [];
+
+  for (const { collection_address, liquidation_bids } of liquidationBids) {
+    for (const bid of liquidation_bids) {
+      const matchingCollateral = collectionAndCollateralListByBorrower.some(
+        ([collection, collateral]) =>
+          collection === collection_address &&
+          bid.token_id_list.some((bidTokenId) =>
+            collateral.token_item_list.some(({ id }) => id === bidTokenId)
+          )
+      );
+
+      if (matchingCollateral) {
+        collectionAndBidList.push([collection_address, bid]);
+      }
+    }
+  }
+
+  return collectionAndBidList;
+}
+
+export function reduceBids(
+  totalBids: QueryLiquidationBidsByCollectionAddressListResponseItem[],
+  liquidationSet: BiddedCollateralItem[]
+): QueryLiquidationBidsByCollectionAddressListResponseItem[] {
+  return totalBids.reduce((acc, { collection_address, liquidation_bids }) => {
+    const liquidationSetByCollection = liquidationSet.filter(
+      (x) => x.collection === collection_address
+    );
+
+    if (!liquidationSetByCollection.length) {
+      acc.push({ collection_address, liquidation_bids });
+      return acc;
+    }
+
+    const liquidationBids = liquidation_bids.reduce((acc, cur) => {
+      let bidAmount = Number(cur.amount);
+      let tokenIdList = cur.token_id_list;
+
+      liquidationSetByCollection.forEach(
+        ({ token_item, liquidation_price }) => {
+          if (tokenIdList.includes(token_item.id)) {
+            bidAmount -= Math.min(Number(liquidation_price), bidAmount);
+            tokenIdList = tokenIdList.filter((id) => id !== token_item.id);
+          }
+        }
+      );
+
+      if (tokenIdList.length && !bidAmount) {
+        acc.push({
+          ...cur,
+          amount: bidAmount.toString(),
+          token_id_list: tokenIdList,
+        });
+      }
+
+      return acc;
+    }, [] as LiquidationBid[]);
+
+    if (!liquidationBids.length) {
+      return acc;
+    }
+
+    acc.push({ collection_address, liquidation_bids: liquidationBids });
+    return acc;
+  }, [] as QueryLiquidationBidsByCollectionAddressListResponseItem[]);
 }
