@@ -30,7 +30,6 @@ pub fn try_push(
         lending_platform_stable,
         offchain_clock,
         clock_source,
-        execution_cooldown,
         ..
     } = CONFIG.load(deps.storage)?;
 
@@ -44,18 +43,14 @@ pub fn try_push(
         }
     }
 
-    let Log {
-        block_time: block_time_prev,
-        counter,
-        ..
-    } = unwrap_field(LOG.back(deps.storage)?, "log")?;
+    let Log { counter, .. } = unwrap_field(LOG.back(deps.storage)?, "log")?;
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
-    if block_time < block_time_prev + execution_cooldown {
-        Err(ContractError::EarlyExecution)?;
-    }
+    // if block_time < block_time_prev + execution_cooldown {
+    //     Err(ContractError::EarlyExecution)?;
+    // }
 
-    if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
+    if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
         LOG.pop_front(deps.storage)?;
     }
     LOG.push_back(

@@ -16,12 +16,15 @@ import {
   reduceBids,
 } from "./math";
 
-// TODO: check it's safe to use utils.cwGetMarketplaceOffers
-// TODO: handle both platforms
-// TODO: migrate marketplace adapter
-// TODO: remove execution cooldown from scheduller controller
-// TODO: add query frequency limiter
-// TODO: can multiple users share same collection offer?
+// TODO:
+// +check it's safe to use utils.cwGetMarketplaceOffers
+// handle both platforms
+// +migrate oracle
+// +migrate scheduler adapter
+// migrate marketplace adapter
+// +remove execution cooldown from scheduller adapter
+// add query frequency limiter
+// can multiple users share same collection offer?
 export async function queryTargets(
   chainId: string,
   rpc: string,

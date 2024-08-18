@@ -13,7 +13,6 @@ use goplend_base::{
         },
     },
     assets::{Currency, Funds, TokenUnverified},
-    error::ContractError,
     lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
     oracle::types::RawPriceItem,
 };
@@ -24,7 +23,7 @@ use crate::{
         lending_platform::LendingPlatformExtension,
         oracle::OracleExtension,
         suite::{
-            core::{assert_error, to_string_vec, Project},
+            core::{to_string_vec, Project},
             types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },
@@ -210,15 +209,15 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     )?;
 
     project.wait(DELAY);
-    let res = project
-        .adapter_scheduler_common_try_push(
-            ProjectAccount::Bob,
-            ClockSource::Offchain,
-            &[],
-            &Route::Empty,
-        )
-        .unwrap_err();
-    assert_error(&res, ContractError::EarlyExecution);
+    // let res = project
+    //     .adapter_scheduler_common_try_push(
+    //         ProjectAccount::Bob,
+    //         ClockSource::Offchain,
+    //         &[],
+    //         &Route::Empty,
+    //     )
+    //     .unwrap_err();
+    // assert_error(&res, ContractError::EarlyExecution);
 
     project.wait(CLOCK_PERIOD - DELAY);
 

@@ -29,7 +29,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93\",\"lending_platform_stable\":\"stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8\",\"adapter_dex\":\"stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y\",\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\"}}",
-              "CODE": 4379,
+              "CODE": 4457,
               "ADDRESS": "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93"
             },
             {
@@ -38,7 +38,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93\",\"lending_platform_stable\":\"stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8\"}}",
-              "CODE": 4395,
+              "CODE": 4458,
               "ADDRESS": "stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k"
             },
             {
@@ -74,7 +74,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 4422,
+              "CODE": 4459,
               "ADDRESS": "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7"
             },
             {
