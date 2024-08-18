@@ -324,7 +324,7 @@ async function main(isInfiniteLoop: boolean) {
     const nextUpdateMinTime = lastUpdateTime + executionCooldown;
     const timeToWait =
       nextUpdateMinTime - Math.min(blockTime, nextUpdateMinTime);
-    await wait(timeToWait);
+    await wait(timeToWait * 1e3);
 
     // send tx
     await h.oracle.cwSetPrices(priceRatio, priceData, gasPrice);
