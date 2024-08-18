@@ -1,5 +1,5 @@
 import { access, readFile } from "fs/promises";
-import { decrypt, getLast } from "../../common/utils";
+import { decrypt, floor, getLast } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 import { Label } from "../../common/config";
@@ -171,6 +171,14 @@ async function specifyTimeout(
   ]).finally(() => clearTimeout(timer));
 }
 
+function getLocalBlockTime(): number {
+  return floor(Date.now() / 1e3);
+}
+
+function getBlockTime(blockTimeOffset: number): number {
+  return blockTimeOffset + getLocalBlockTime();
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -184,4 +192,6 @@ export {
   epochToDateStringUTC,
   dateStringToEpochUTC,
   specifyTimeout,
+  getLocalBlockTime,
+  getBlockTime,
 };

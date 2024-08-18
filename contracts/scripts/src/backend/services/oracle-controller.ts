@@ -20,6 +20,8 @@ import {
   getWallets,
   parseStoreArgs,
   specifyTimeout,
+  getLocalBlockTime,
+  getBlockTime,
 } from "./utils";
 import {
   CurrencyForToken,
@@ -29,14 +31,6 @@ import {
 const PRICE_RATIO_MULTIPLIER = 0.97;
 const PAGINATION_QUERY_AMOUNT = 50;
 const QUERY_OFFERS_BATCH_SIZE = 3;
-
-function getLocalBlockTime(): number {
-  return floor(Date.now() / 1e3);
-}
-
-function getBlockTime(blockTimeOffset: number): number {
-  return blockTimeOffset + getLocalBlockTime();
-}
 
 function calcAverage(list: number[]): number {
   return list.reduce((acc, cur) => acc + cur, 0) / list.length;
@@ -287,7 +281,7 @@ async function main(isInfiniteLoop: boolean) {
     );
 
     // remove expired offers and collections w/o offers, calc collection prices
-    const blockTime = getBlockTime(blockTimeOffset);
+    let blockTime = getBlockTime(blockTimeOffset);
     const collectionAndPriceList = (
       collectionAndOffersList.map(([collection, offers]) => {
         const priceList = offers
@@ -324,6 +318,14 @@ async function main(isInfiniteLoop: boolean) {
 
     // li({ priceRatio, priceData });
 
+    // limit execution frequency
+    const [{ block_time: lastUpdateTime }] = await oracle.cwQueryLog();
+    blockTime = getBlockTime(blockTimeOffset);
+    const nextUpdateMinTime = lastUpdateTime + executionCooldown;
+    const timeToWait =
+      nextUpdateMinTime - Math.min(blockTime, nextUpdateMinTime);
+    await wait(timeToWait);
+
     // send tx
     await h.oracle.cwSetPrices(priceRatio, priceData, gasPrice);
   };
@@ -352,7 +354,7 @@ async function main(isInfiniteLoop: boolean) {
       );
     } catch (error) {
       l(error, "\n");
-      await wait(executionCooldown * 1e3);
+      // await wait(executionCooldown * 1e3);
     }
     l({ cycleLength: getLocalBlockTime() - date });
 

@@ -5,10 +5,20 @@ import { getChainOptionById } from "../../common/config/config-utils";
 import { queryTargets } from "./query-targets-2";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
-import { ENCODING, PATH_TO_CONFIG_JSON, parseStoreArgs } from "./utils";
+import {
+  ENCODING,
+  PATH_TO_CONFIG_JSON,
+  parseStoreArgs,
+  getLocalBlockTime,
+} from "./utils";
 import { calcLtvMax } from "./math";
 
-// const PAGINATION_QUERY_AMOUNT = 100;
+const PAGINATION = {
+  COLLATERAL: 100,
+  BORROWERS: 100,
+  PRICES: 100,
+  BIDS: 100,
+};
 
 async function main(platformType: PlatformType) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
@@ -25,9 +35,9 @@ async function main(platformType: PlatformType) {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
 
-  // TODO: single query
+  // initialization part - run it single time on script start
   const [rateConfig, commonConfig] = await Promise.all([
     lending.cwQueryRateConfig(platformType, true),
     lending.cwQueryCommonConfig(platformType, true),
@@ -39,9 +49,35 @@ async function main(platformType: PlatformType) {
     Number(rateConfig.discount_min_rate)
   );
 
-  // get targets
-  // const targets = await queryTargets(platformType, borrowerAddressList);
-  // li({ targets });
+  // get blockTimeOffset to fix difference between local and network time
+  const blockTime = await oracle.cwQueryBlockTime();
+  const localBlockTime = getLocalBlockTime();
+  const blockTimeOffset = blockTime - localBlockTime + 10;
+
+  // loop
+  while (true) {
+    const date = getLocalBlockTime();
+    try {
+      // get targets
+      const targets = await queryTargets(
+        chainId,
+        RPC,
+        platformType,
+        rateConfig,
+        commonConfig,
+        ltvMax,
+        blockTimeOffset,
+        PAGINATION.COLLATERAL,
+        PAGINATION.BORROWERS,
+        PAGINATION.PRICES,
+        PAGINATION.BIDS
+      );
+
+      li({ targets });
+    } catch (error) {
+      l(error, "\n");
+    }
+  }
 }
 
 // TODO: use both platforms

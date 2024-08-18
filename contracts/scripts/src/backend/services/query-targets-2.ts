@@ -15,6 +15,7 @@ import {
   matchCollateralsAndBids,
   reduceBids,
 } from "./math";
+import { getBlockTime } from "./utils";
 
 // TODO:
 // +check it's safe to use utils.cwGetMarketplaceOffers
@@ -32,7 +33,7 @@ export async function queryTargets(
   rateConfig: RateConfig,
   commonConfig: CommonConfig,
   ltvMax: number,
-  blockTime: number, // must be increased by several seconds to consider query delays
+  blockTimeOffset: number, // several seconds to consider query delays
   colateralPaginationAmount: number,
   borrowersPaginationAmount: number,
   pricesPaginationAmount: number,
@@ -49,6 +50,7 @@ export async function queryTargets(
     borrowersPaginationAmount
   );
   const priceList = await oracle.pQueryPrices(pricesPaginationAmount);
+  const blockTime = getBlockTime(blockTimeOffset);
 
   // get borrowers with ltv > ltvMax, sort by ltv descending
   const ltvAndCollateralList = getTargetBorrowers(
