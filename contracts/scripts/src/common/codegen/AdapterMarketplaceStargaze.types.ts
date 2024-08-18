@@ -57,13 +57,26 @@ export interface TokenItem {
 export type QueryMsg = {
   query_config: {};
 } | {
-  query_offers_by_collection_address_list: {
+  query_offers_by_collection_address: {
+    collection_address: string;
+    expiration_delay: number;
     limit?: number | null;
     platform_type: PlatformType;
-    start_after?: string | null;
+    start_after_collection_offer?: CollectionBidOffset | null;
+    start_after_token_offer?: BidOffset | null;
   };
 };
 export type PlatformType = "main" | "stable";
+export interface CollectionBidOffset {
+  bidder: string;
+  collection: string;
+  price: Uint128;
+}
+export interface BidOffset {
+  bidder: Addr;
+  price: Uint128;
+  token_id: number;
+}
 export interface MigrateMsg {
   version: string;
 }
@@ -77,10 +90,10 @@ export interface Config {
   oracle?: Addr | null;
   worker?: Addr | null;
 }
-export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];
-export interface QueryLiquidationBidsByCollectionAddressListResponseItem {
-  collection_address: Addr;
-  liquidation_bids: LiquidationBid[];
+export interface QueryOffersByCollectionAddressResponse {
+  last_collection_offer?: CollectionBidOffset | null;
+  last_token_offer?: BidOffset | null;
+  offers: LiquidationBid[];
 }
 export interface LiquidationBid {
   amount: Uint128;

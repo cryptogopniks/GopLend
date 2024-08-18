@@ -1,10 +1,9 @@
-import { getLast, l } from "../../../common/utils";
+import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryUnbondersResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -30,54 +29,40 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getUnbonders = async (platformType: PlatformType) => {
-    let allItems: QueryUnbondersResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
+  const writeUnbonders = async (platformType: PlatformType) => {
+    try {
+      // sort by returned amount descending
+      const unbonders = (
+        await lending.pQueryUnbonderList(platformType, PAGINATION_QUERY_AMOUNT)
+      ).sort(
+        (a, b) =>
+          b.unbonder.returned_and_unbonded.reduce(
+            (acc, cur) => acc + Number(cur[0]),
+            0
+          ) -
+          a.unbonder.returned_and_unbonded.reduce(
+            (acc, cur) => acc + Number(cur[0]),
+            0
+          )
+      );
 
-    while (lastItem !== "") {
-      const items: QueryUnbondersResponseItem[] =
-        await lending.cwQueryUnbonderList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
-
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastUnbonder: lastItem });
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "unbonders.json"),
+        JSON.stringify(unbonders, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-
-    return allItems;
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    let unbonders = await getUnbonders(platform);
-
-    // sort by returned amount descending
-    unbonders = unbonders.sort(
-      (a, b) =>
-        b.unbonder.returned_and_unbonded.reduce(
-          (acc, cur) => acc + Number(cur[0]),
-          0
-        ) -
-        a.unbonder.returned_and_unbonded.reduce(
-          (acc, cur) => acc + Number(cur[0]),
-          0
-        )
-    );
-
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "unbonders.json"),
-      JSON.stringify(unbonders, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
-  }
+  await Promise.all(
+    platformList.map((platformType) => writeUnbonders(platformType))
+  );
 }
 
 main();

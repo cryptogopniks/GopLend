@@ -1,10 +1,9 @@
-import { getLast, l } from "../../../common/utils";
+import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { QueryProposalsResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -30,41 +29,30 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getProposals = async (platformType: PlatformType) => {
-    let allItems: QueryProposalsResponseItem[] = [];
-    let firstItem: number | undefined = undefined;
+  const writeProposals = async (platformType: PlatformType) => {
+    try {
+      const proposals = await lending.pQueryProposals(
+        platformType,
+        PAGINATION_QUERY_AMOUNT
+      );
 
-    while (firstItem !== 0) {
-      const items: QueryProposalsResponseItem[] =
-        await lending.cwQueryProposals(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          firstItem
-        );
-
-      firstItem = getLast(items)?.id || 0;
-      allItems = [...allItems, ...items];
-
-      l({ firstProposal: firstItem });
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "proposals.json"),
+        JSON.stringify(proposals, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-
-    return allItems;
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    const proposals = await getProposals(platform);
-
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "proposals.json"),
-      JSON.stringify(proposals, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
-  }
+  await Promise.all(
+    platformList.map((platformType) => writeProposals(platformType))
+  );
 }
 
 main();

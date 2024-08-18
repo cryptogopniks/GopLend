@@ -1,3 +1,4 @@
+import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
@@ -52,39 +53,55 @@ async function main() {
     adapter: { scheduler },
   } = await getCwQueryHelpers(chainId, RPC);
 
-  const oracleLogs: Log[] = (await oracle.cwQueryLog(false)).map(
-    ({ block_time, sender, outdated_price_collections, counter }) => ({
-      blockTime: getBlockTime(block_time, TIMEZONE),
-      sender,
-      outdatedPriceCollections: outdated_price_collections,
-      counter,
-    })
-  );
-  const schedulerLogs: Log[] = (await scheduler[name].cwQueryLog(false)).map(
-    ({ block_time, sender, route, counter }) => ({
-      blockTime: getBlockTime(block_time, TIMEZONE),
-      sender,
-      route,
-      counter,
-    })
-  );
+  const writeOracleLogs = async () => {
+    try {
+      const oracleLogs: Log[] = (await oracle.cwQueryLog(false)).map(
+        ({ block_time, sender, outdated_price_collections, counter }) => ({
+          blockTime: getBlockTime(block_time, TIMEZONE),
+          sender,
+          outdatedPriceCollections: outdated_price_collections,
+          counter,
+        })
+      );
 
-  // write files
-  await writeFile(
-    getSnapshotPath(NAME, TYPE, "main", "logs-oracle.json"),
-    JSON.stringify(oracleLogs, null, 2),
-    {
-      encoding: ENCODING,
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, "main", "logs-oracle.json"),
+        JSON.stringify(oracleLogs, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-  );
+  };
 
-  await writeFile(
-    getSnapshotPath(NAME, TYPE, "main", "logs-scheduler.json"),
-    JSON.stringify(schedulerLogs, null, 2),
-    {
-      encoding: ENCODING,
+  const writeSchedulerLogs = async () => {
+    try {
+      const schedulerLogs: Log[] = (
+        await scheduler[name].cwQueryLog(false)
+      ).map(({ block_time, sender, route, counter }) => ({
+        blockTime: getBlockTime(block_time, TIMEZONE),
+        sender,
+        route,
+        counter,
+      }));
+
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, "main", "logs-scheduler.json"),
+        JSON.stringify(schedulerLogs, null, 2),
+        {
+          encoding: ENCODING,
+        }
+      );
+    } catch (error) {
+      l(error);
     }
-  );
+  };
+
+  await Promise.all([writeOracleLogs(), writeSchedulerLogs()]);
 }
 
 main();

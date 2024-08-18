@@ -23,3 +23,4 @@ cw20-base = { workspace = true }
 cw721 = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+sg-marketplace = { workspace = true }

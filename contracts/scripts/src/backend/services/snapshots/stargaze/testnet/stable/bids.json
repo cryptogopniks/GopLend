@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "liquidator_address": "stars1ken2g7ynqcf6ruux7cjgc9dzv4tvu0n39j7rtw",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
+        "liquidation_bids": [
+          {
+            "creation_date": 1723385323,
+            "liquidator": "stars1ken2g7ynqcf6ruux7cjgc9dzv4tvu0n39j7rtw",
+            "token_id_list": [],
+            "amount": "9552065203",
+            "discount": "0.05",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  }
+]

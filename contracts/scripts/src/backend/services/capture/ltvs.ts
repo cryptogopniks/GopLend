@@ -30,43 +30,44 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const getLtvList = async (platformType: PlatformType) => {
-    let allItems: [Addr, Decimal | null][] = [];
-    let lastItem: string | undefined = undefined;
+  const writeLtvList = async (platformType: PlatformType) => {
+    try {
+      let allItems: [Addr, Decimal | null][] = [];
+      let lastItem: string | undefined = undefined;
 
-    while (lastItem !== "") {
-      const items: [Addr, Decimal | null][] = await lending.cwQueryLtvList(
-        platformType,
-        PAGINATION_QUERY_AMOUNT,
-        lastItem
+      while (lastItem !== "") {
+        const items: [Addr, Decimal | null][] = await lending.cwQueryLtvList(
+          platformType,
+          PAGINATION_QUERY_AMOUNT,
+          lastItem
+        );
+
+        lastItem = getLast(items)?.[0] || "";
+        allItems = [...allItems, ...items];
+      }
+
+      let ltvs = allItems;
+
+      // sort by ltv descending
+      ltvs = ltvs.sort((a, b) => Number(b[1]) - Number(a[1]));
+
+      // write files
+      await writeFile(
+        getSnapshotPath(NAME, TYPE, platformType, "ltvs.json"),
+        JSON.stringify(ltvs, null, 2),
+        {
+          encoding: ENCODING,
+        }
       );
-
-      lastItem = getLast(items)?.[0] || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastLtv: lastItem });
+    } catch (error) {
+      l(error);
     }
-
-    return allItems;
   };
 
   const platformList: PlatformType[] = ["main", "stable"];
-  for (const platform of platformList) {
-    l("\n", { platform });
-    let ltvs = await getLtvList(platform);
-
-    // sort by ltv descending
-    ltvs = ltvs.sort((a, b) => Number(b[1]) - Number(a[1]));
-
-    // write files
-    await writeFile(
-      getSnapshotPath(NAME, TYPE, platform, "ltvs.json"),
-      JSON.stringify(ltvs, null, 2),
-      {
-        encoding: ENCODING,
-      }
-    );
-  }
+  await Promise.all(
+    platformList.map((platformType) => writeLtvList(platformType))
+  );
 }
 
 main();

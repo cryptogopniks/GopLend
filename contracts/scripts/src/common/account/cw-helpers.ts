@@ -23,14 +23,18 @@ import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
 import { FaucetQueryClient } from "../codegen/Faucet.client";
 
 import CONFIG_JSON from "../config/config.json";
-import { getLast, l, logAndReturn } from "../utils";
+import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
-import { RawPriceItem } from "../codegen/Oracle.types";
+import { PriceItem, RawPriceItem } from "../codegen/Oracle.types";
 import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
+  BidOffset,
+  CollectionBidOffset,
+  LiquidationBid,
   MarketplaceVersion,
   PlatformType,
+  QueryOffersByCollectionAddressResponse,
 } from "../codegen/AdapterMarketplaceStargaze.types";
 import {
   getCwClient,
@@ -49,7 +53,14 @@ import {
   CurrencyForTokenUnverified,
   LiquidationItem,
   ProposalForStringAndTokenUnverified,
+  QueryBorrowersResponseItem,
+  QueryCollateralsResponseItem,
+  QueryCollectionsResponseItem,
+  QueryLiquidationBidsByCollectionAddressListResponseItem,
+  QueryLiquidatorsResponseItem,
   QueryMsg as LendingPlatformQueryMsg,
+  QueryProposalsResponseItem,
+  QueryUnbondersResponseItem,
 } from "../codegen/LendingPlatform.types";
 import {
   DirectSecp256k1HdWallet,
@@ -2115,10 +2126,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   //   return logAndReturn(allItems, isDisplayed);
   // }
 
+  // query first 10 token offers and 10 collection offers
   async function cwQueryMarketplaceOffers(
     marketplace: string,
     collection: string,
-    limit: number = 50,
+    limit: number = 10, // the value will be limited by 10 in marketplace contract
     isDisplayed: boolean = false
   ) {
     const getBids = async (): Promise<Offer[]> => {
@@ -2219,6 +2231,105 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(offers, isDisplayed);
   }
 
+  // query ALL token and collection offers
+  async function cwGetMarketplaceOffers(
+    platformType: PlatformType,
+    collectionAddressList: string[],
+    is_marketplace_interface_enabled: boolean,
+    isDisplayed: boolean = false
+  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
+    const EXPIRATION_DELAY_S = 30;
+    const ASYNC_QUERY_AMOUNT = 5;
+
+    if (!is_marketplace_interface_enabled) {
+      return [];
+    }
+
+    const tokenOfferDefault: BidOffset = { bidder: "", price: "", token_id: 0 };
+    const collectionOfferDefault: CollectionBidOffset = {
+      bidder: "",
+      price: "",
+      collection: "",
+    };
+
+    const tokenOfferDefaultString = JSON.stringify(tokenOfferDefault);
+    const collectionOfferDefaultString = JSON.stringify(collectionOfferDefault);
+
+    let promiseList: Promise<void>[] = [];
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+      [];
+
+    for (const collectionAddress of collectionAddressList) {
+      const fn = async () => {
+        try {
+          let offers: LiquidationBid[] = [];
+          let lastTokenOfferItem: BidOffset | undefined = undefined;
+          let lastCollectionOfferItem: CollectionBidOffset | undefined =
+            undefined;
+
+          while (
+            !(
+              JSON.stringify(lastTokenOfferItem) === tokenOfferDefaultString &&
+              JSON.stringify(lastCollectionOfferItem) ===
+                collectionOfferDefaultString
+            )
+          ) {
+            const items: QueryOffersByCollectionAddressResponse =
+              await cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
+                platformType,
+                collectionAddress,
+                EXPIRATION_DELAY_S,
+                lastCollectionOfferItem,
+                lastTokenOfferItem
+              );
+
+            lastTokenOfferItem = items.last_token_offer || tokenOfferDefault;
+            lastCollectionOfferItem =
+              items.last_collection_offer || collectionOfferDefault;
+
+            offers = [...offers, ...items.offers];
+          }
+
+          allItems.push({
+            collection_address: collectionAddress,
+            liquidation_bids: offers,
+          });
+        } catch (_) {}
+      };
+
+      if (promiseList.length >= ASYNC_QUERY_AMOUNT) {
+        await Promise.all(promiseList);
+        promiseList = [];
+      }
+
+      promiseList.push(fn());
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  // async function getLtvList(platformType: PlatformType) {
+  //   const PAGINATION_QUERY_AMOUNT = 200;
+
+  //   let allItems: [Addr, Decimal | null][] = [];
+  //   let lastItem: string | undefined = undefined;
+
+  //   while (lastItem !== "") {
+  //     const items: [Addr, Decimal | null][] = await cwQueryLtvList(
+  //       platformType,
+  //       PAGINATION_QUERY_AMOUNT,
+  //       lastItem
+  //     );
+
+  //     lastItem = getLast(items)?.[0] || "";
+  //     allItems = [...allItems, ...items];
+
+  //     l({ lastLtv: lastItem });
+  //   }
+
+  //   return allItems;
+  // }
+
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -2235,15 +2346,25 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList(
+  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    collectionAddress: string,
+    expirationDelay: number,
+    startAfterCollectionOffer?: CollectionBidOffset,
+    startAfterTokenOffer?: BidOffset,
+    limit: number = 10,
     isDisplayed: boolean = false
   ) {
     const res =
-      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddressList(
-        { platformType, startAfter, limit }
+      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddress(
+        {
+          platformType,
+          collectionAddress,
+          expirationDelay,
+          startAfterCollectionOffer,
+          startAfterTokenOffer,
+          limit,
+        }
       );
     return logAndReturn(res, isDisplayed);
   }
@@ -2308,17 +2429,36 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryUnbonderList(
+  async function pQueryUnbonderList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryUnbonderList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryUnbondersResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryUnbondersResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryUnbondersResponseItem[] =
+        await client.queryUnbonderList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryUnbonder(
@@ -2332,17 +2472,36 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBorrowerList(
+  async function pQueryBorrowerList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryBorrowerList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryBorrowersResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryBorrowersResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryBorrowersResponseItem[] =
+        await client.queryBorrowerList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryBorrower(
@@ -2356,17 +2515,36 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryLiquidatorList(
+  async function pQueryLiquidatorList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryLiquidatorList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryLiquidatorsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryLiquidatorsResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryLiquidatorsResponseItem[] =
+        await client.queryLiquidatorList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryLiquidator(
@@ -2380,17 +2558,36 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryCollateralList(
+  async function pQueryCollateralList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryCollateralList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryCollateralsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryCollateralsResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryCollateralsResponseItem[] =
+        await client.queryCollateralList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryCollateral(
@@ -2417,16 +2614,37 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryLiquidationBidsByCollectionAddressList(
+  async function pQueryLiquidationBidsByCollectionAddressList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(
-      platformType
-    ).queryLiquidationBidsByCollectionAddressList({ startAfter, limit });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+      [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+        await client.queryLiquidationBidsByCollectionAddressList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryLiquidationBidsByCollectionAddress(
@@ -2467,30 +2685,67 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryProposals(
+  async function pQueryProposals(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: number | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryProposals({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryProposalsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryProposalsResponseItem[] = [];
+    let firstItem: number | undefined = undefined;
+    let count: number = 0;
+
+    while (firstItem !== 0 && count < (maxCount || count + 1)) {
+      const items: QueryProposalsResponseItem[] = await client.queryProposals({
+        limit: paginationAmount,
+        startAfter: firstItem,
+      });
+
+      firstItem = getLast(items)?.id || 0;
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
-  async function cwQueryCollectionList(
+  async function pQueryCollectionList(
     platformType: PlatformType,
-    limit: number = 100,
-    startAfter: string | undefined = undefined,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
-  ) {
-    const res = await getPlatformQueryClient(platformType).queryCollectionList({
-      startAfter,
-      limit,
-    });
-    return logAndReturn(res, isDisplayed);
+  ): Promise<QueryCollectionsResponseItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+    const client = getPlatformQueryClient(platformType);
+
+    let allItems: QueryCollectionsResponseItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: QueryCollectionsResponseItem[] =
+        await client.queryCollectionList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
   }
 
   async function cwQueryCollection(
@@ -2702,6 +2957,35 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryPrices(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<PriceItem[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: PriceItem[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: PriceItem[] = await oracleQueryClient.queryPrices({
+        limit: paginationAmount,
+        startAfter: lastItem,
+      });
+
+      lastItem = getLast(items)?.address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
   async function cwQueryPriceRatio(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryPriceRatio();
     return logAndReturn(res, isDisplayed);
@@ -2749,6 +3033,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       // cwQueryMarketplaceBids,
       // cwQueryMarketplaceCollectionBids,
       cwQueryMarketplaceOffers,
+      cwGetMarketplaceOffers,
     },
     adapter: {
       dex: {
@@ -2761,8 +3046,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         kujira: {},
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
-          cwQueryOffersByCollectionAddressList:
-            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddressList,
+          cwQueryOffersByCollectionAddress:
+            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress,
         },
       },
       scheduler: {
@@ -2782,26 +3067,36 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryCommonConfig: cwLendingPlatformQueryCommonConfig,
       cwQueryPlatformRevenue,
       cwQueryBalances,
-      cwQueryUnbonderList,
+
       cwQueryUnbonder,
-      cwQueryBorrowerList,
+      pQueryUnbonderList,
+
       cwQueryBorrower,
-      cwQueryLiquidatorList,
+      pQueryBorrowerList,
+
       cwQueryLiquidator,
-      cwQueryCollateralList,
-      cwQueryCollateral,
+      pQueryLiquidatorList,
+
       cwQueryCollateralByOwner,
-      cwQueryLiquidationBidsByCollectionAddressList,
+      cwQueryCollateral,
+      pQueryCollateralList,
+
       cwQueryLiquidationBidsByCollectionAddress,
-      cwQueryLiquidationBidsByLiquidatorAddressList,
+      pQueryLiquidationBidsByCollectionAddressList,
+
       cwQueryLiquidationBidsByLiquidatorAddress,
-      cwQueryProposals,
-      cwQueryCollectionList,
+      cwQueryLiquidationBidsByLiquidatorAddressList,
+
       cwQueryCollection,
+      pQueryCollectionList,
+
+      cwQueryConditionalLtv,
+      cwQueryLtvList,
+
+      pQueryProposals,
+
       cwQueryBglCurrencyToMainCurrencyPrice,
       cwQueryConditionalDepositApr,
-      cwQueryLtvList,
-      cwQueryConditionalLtv,
       cwQueryTotalAvailableToBorrowLiquidity,
       cwQueryAvailableToBorrow,
       cwQueryAmounts,
@@ -2823,7 +3118,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,
+
       cwQueryPrices,
+      pQueryPrices,
+
       cwQueryPriceRatio,
       cwQueryBlockTime,
       cwQueryLog: cwOracleQueryLog,

@@ -5,17 +5,15 @@ use goplend_base::{
     adapters::{
         dex::stargaze::types::Route,
         marketplace::stargaze::{
-            msg::{ExecuteMsg, QueryMsg},
+            msg::{ExecuteMsg, QueryMsg, QueryOffersByCollectionAddressResponse},
             types::{Config, MarketplaceVersion, PlatformType},
         },
     },
     error::parse_err,
 };
+use sg_marketplace::msg::{BidOffset, CollectionBidOffset};
 
-use crate::helpers::suite::{
-    core::Project,
-    types::{ProjectAccount, ProjectNft},
-};
+use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait AdapterMarketplaceStargazeExtension {
     fn adapter_marketplace_stargaze_try_accept_admin_role(
@@ -46,12 +44,15 @@ pub trait AdapterMarketplaceStargazeExtension {
 
     fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config>;
 
-    fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+    fn adapter_marketplace_stargaze_query_offers_by_collection_address(
         &self,
         platform_type: PlatformType,
-        start_after: &Option<ProjectNft>,
+        collection_address: impl ToString,
+        expiration_delay: u64,
+        start_after_collection_offer: &Option<CollectionBidOffset>,
+        start_after_token_offer: &Option<BidOffset>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>;
+    ) -> StdResult<QueryOffersByCollectionAddressResponse>;
 }
 
 impl AdapterMarketplaceStargazeExtension for Project {
@@ -133,17 +134,23 @@ impl AdapterMarketplaceStargazeExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_marketplace_stargaze_query_offers_by_collection_address_list(
+    fn adapter_marketplace_stargaze_query_offers_by_collection_address(
         &self,
         platform_type: PlatformType,
-        start_after: &Option<ProjectNft>,
+        collection_address: impl ToString,
+        expiration_delay: u64,
+        start_after_collection_offer: &Option<CollectionBidOffset>,
+        start_after_token_offer: &Option<BidOffset>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<goplend_base::lending_platform::msg::QueryLiquidationBidsByCollectionAddressListResponseItem>>{
+    ) -> StdResult<QueryOffersByCollectionAddressResponse> {
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryOffersByCollectionAddressList {
+            &QueryMsg::QueryOffersByCollectionAddress {
                 platform_type,
-                start_after: start_after.as_ref().map(|x| x.to_string()),
+                collection_address: collection_address.to_string(),
+                expiration_delay,
+                start_after_collection_offer: start_after_collection_offer.to_owned(),
+                start_after_token_offer: start_after_token_offer.to_owned(),
                 limit: limit.to_owned(),
             },
         )

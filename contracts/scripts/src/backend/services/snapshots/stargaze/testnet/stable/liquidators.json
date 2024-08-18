@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "address": "stars1ken2g7ynqcf6ruux7cjgc9dzv4tvu0n39j7rtw",
+    "liquidator": {
+      "collection_addresses": [
+        "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw"
+      ]
+    }
+  }
+]

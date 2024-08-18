@@ -58,7 +58,7 @@ pub fn try_set_prices(
         .map(|(collection_address, _)| collection_address)
         .collect();
 
-    if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
+    if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
         LOG.pop_front(deps.storage)?;
     }
     LOG.push_back(
@@ -171,7 +171,7 @@ pub fn try_update_prices(
         .map(|(collection_address, _)| collection_address)
         .collect();
 
-    if LOG.len(deps.storage)? == (u8::MAX - 1) as u32 {
+    if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
         LOG.pop_front(deps.storage)?;
     }
     LOG.push_back(

@@ -186,34 +186,13 @@ async function main(isInfiniteLoop: boolean) {
   const h = await getCwExecHelpers(chainId, RPC, owner, signer);
   const req = new Request();
 
-  const queryCollectionList = async (platformType: PlatformType) => {
-    let allItems: QueryCollectionsResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryCollectionsResponseItem[] =
-        await lending.cwQueryCollectionList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT,
-          lastItem
-        );
-
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      // l({ lastCollection: lastItem });
-    }
-
-    return allItems;
-  };
-
   const getCollectionList = async () => {
-    const collectionListMain = (await queryCollectionList("main")).map(
-      (x) => x.address
-    );
-    const collectionListStable = (await queryCollectionList("stable")).map(
-      (x) => x.address
-    );
+    const collectionListMain = (
+      await lending.pQueryCollectionList("main", PAGINATION_QUERY_AMOUNT)
+    ).map((x) => x.address);
+    const collectionListStable = (
+      await lending.pQueryCollectionList("stable", PAGINATION_QUERY_AMOUNT)
+    ).map((x) => x.address);
 
     return Array.from(
       new Set([...collectionListMain, ...collectionListStable])

@@ -1,4 +1,4 @@
-import { getLast, l } from "../../common/utils";
+import { l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ENCODING, PATH_TO_CONFIG_JSON, parseStoreArgs } from "./utils";
@@ -22,17 +22,14 @@ import {
   CurrencyForToken,
   LiquidationBid,
   LiquidationItem,
-  QueryBorrowersResponseItem,
-  QueryCollateralsResponseItem,
-  QueryLiquidationBidsByCollectionAddressListResponseItem,
 } from "../../common/codegen/LendingPlatform.types";
 
 const PAGINATION_AMOUNT = 100;
-const PAGINATION_AMOUNT_SMALL = 3;
 
+// TODO: can multiple users share same collection offer?
 export async function queryTargets(
   platformType: PlatformType,
-  borrowers: string[]
+  borrowers: string[] // TODO: remove
 ): Promise<LiquidationItem[]> {
   // configs
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
@@ -46,31 +43,15 @@ export async function queryTargets(
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending, oracle, adapter } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, utils } = await getCwQueryHelpers(chainId, RPC);
 
   // helpers
   const getBorrowers = async (
     borrowers: string[]
   ): Promise<[Addr, Borrower][]> => {
-    let allItems: QueryBorrowersResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryBorrowersResponseItem[] =
-        await lending.cwQueryBorrowerList(
-          platformType,
-          PAGINATION_AMOUNT,
-          lastItem,
-          true
-        );
-
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastBorrower: lastItem });
-    }
-
-    return allItems
+    return (
+      await lending.pQueryBorrowerList(platformType, PAGINATION_AMOUNT, 0, true)
+    )
       .filter(({ address }) => borrowers.includes(address))
       .map(({ address, borrower }) => [address, borrower]);
   };
@@ -149,55 +130,25 @@ export async function queryTargets(
   };
 
   const queryLiquidationBids = async (
+    collectionAddressList: string[],
     isMarketplaceInterfaceEnabled: boolean
   ): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     // query liquidation bids
-    let liquidationBids = await (async () => {
-      let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        [];
-      let lastItem: string | undefined = undefined;
-
-      while (lastItem !== "") {
-        const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-          await lending.cwQueryLiquidationBidsByCollectionAddressList(
-            platformType,
-            PAGINATION_AMOUNT,
-            lastItem,
-            true
-          );
-
-        lastItem = getLast(items)?.collection_address || "";
-        allItems = [...allItems, ...items];
-
-        l({ lastLiquidationBid: lastItem });
-      }
-
-      return allItems;
-    })();
+    let liquidationBids =
+      await lending.pQueryLiquidationBidsByCollectionAddressList(
+        platformType,
+        PAGINATION_AMOUNT,
+        0,
+        true
+      );
 
     // query marketplace offers
-    if (isMarketplaceInterfaceEnabled) {
-      let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-        [];
-      let lastItem: string | undefined = undefined;
-
-      while (lastItem !== "") {
-        const items: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-          await adapter.marketplace.stargaze.cwQueryOffersByCollectionAddressList(
-            platformType,
-            PAGINATION_AMOUNT_SMALL,
-            lastItem,
-            true
-          );
-
-        lastItem = getLast(items)?.collection_address || "";
-        allItems = [...allItems, ...items];
-
-        l({ lastOffer: lastItem });
-      }
-
-      liquidationBids = [...liquidationBids, ...allItems];
-    }
+    const offers = await utils.cwGetMarketplaceOffers(
+      platformType,
+      collectionAddressList,
+      isMarketplaceInterfaceEnabled
+    );
+    liquidationBids = [...liquidationBids, ...offers];
 
     return liquidationBids;
   };
@@ -234,28 +185,9 @@ export async function queryTargets(
   const borrowerList = await getBorrowers(borrowers);
 
   // get all collaterals
-  const collectionAndCollateralList: [Addr, Collateral[]][] =
-    await (async () => {
-      let allItems: QueryCollateralsResponseItem[] = [];
-      let lastItem: string | undefined = undefined;
-
-      while (lastItem !== "") {
-        const items: QueryCollateralsResponseItem[] =
-          await lending.cwQueryCollateralList(
-            platformType,
-            PAGINATION_AMOUNT,
-            lastItem,
-            true
-          );
-
-        lastItem = getLast(items)?.address || "";
-        allItems = [...allItems, ...items];
-
-        l({ lastCollateral: lastItem });
-      }
-
-      return allItems.map(({ address, collateral }) => [address, collateral]);
-    })();
+  const collectionAndCollateralList: [Addr, Collateral[]][] = (
+    await lending.pQueryCollateralList(platformType, PAGINATION_AMOUNT, 0, true)
+  ).map(({ address, collateral }) => [address, collateral]);
 
   // get collection prices
   const prices = await getCollectionPrices(
@@ -312,7 +244,11 @@ export async function queryTargets(
     }
 
     // find bids containing at least 1 borrower's collateral token
+    const collectionAddressList = collectionAndCollateralListByBorrower.map(
+      ([address, _]) => address
+    );
     const liquidationBids = await queryLiquidationBids(
+      collectionAddressList,
       commonConfig.is_marketplace_interface_enabled
     );
     const collectionAndBidList = getCollectionAndBidList(

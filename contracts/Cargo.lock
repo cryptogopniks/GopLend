@@ -847,6 +847,7 @@ dependencies = [
  "cw20-base",
  "cw721 0.18.0",
  "serde",
+ "sg-marketplace",
  "thiserror",
 ]
 

@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { getLast, l, li, wait } from "../../common/utils";
+import { l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { getChainOptionById } from "../../common/config/config-utils";
@@ -22,14 +22,13 @@ import {
 } from "./utils";
 
 const PAGINATION_QUERY_AMOUNT = 100;
-const PAGINATION_EXECUTE_AMOUNT = 10;
+const PAGINATION_EXECUTE_AMOUNT = 3;
 
 async function liquidate(
   route: Route,
   queryBorrowerListFn: (
     platformType: PlatformType,
-    paginationQueryAmount: number,
-    lastItem?: string
+    paginationQueryAmount: number
   ) => Promise<QueryBorrowersResponseItem[]>,
   pushFn: (
     route: Route,
@@ -40,23 +39,9 @@ async function liquidate(
     const platformType: PlatformType = route === "empty" ? "main" : "stable";
 
     // query all borrowers
-    let allItems: QueryBorrowersResponseItem[] = [];
-    let lastItem: string | undefined = undefined;
-
-    while (lastItem !== "") {
-      const items: QueryBorrowersResponseItem[] = await queryBorrowerListFn(
-        platformType,
-        PAGINATION_QUERY_AMOUNT,
-        lastItem
-      );
-
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-
-      l({ lastBorrower: lastItem });
-    }
-
-    const borrowerAddressList = allItems.map((x) => x.address);
+    const borrowerAddressList = (
+      await queryBorrowerListFn(platformType, PAGINATION_QUERY_AMOUNT)
+    ).map((x) => x.address);
 
     // get targets
     const targets = await queryTargets(platformType, borrowerAddressList);
@@ -106,13 +91,12 @@ async function main() {
 
   const cwQueryBorrowerList = async (
     platformType: PlatformType,
-    paginationQueryAmount: number,
-    lastItem?: string
+    paginationQueryAmount: number
   ): Promise<QueryBorrowersResponseItem[]> => {
-    return await lending.cwQueryBorrowerList(
+    return await lending.pQueryBorrowerList(
       platformType,
       paginationQueryAmount,
-      lastItem,
+      0,
       true
     );
   };

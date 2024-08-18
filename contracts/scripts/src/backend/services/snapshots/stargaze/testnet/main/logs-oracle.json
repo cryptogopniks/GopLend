@@ -1,1546 +1,1526 @@
 [
   {
-    "blockTime": "1722721710 (04.08.2024 00:48:30 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 105
-  },
-  {
-    "blockTime": "1722721698 (04.08.2024 00:48:18 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 104
-  },
-  {
-    "blockTime": "1722721687 (04.08.2024 00:48:07 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 103
-  },
-  {
-    "blockTime": "1722721670 (04.08.2024 00:47:50 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 102
-  },
-  {
-    "blockTime": "1722721659 (04.08.2024 00:47:39 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 101
-  },
-  {
-    "blockTime": "1722721648 (04.08.2024 00:47:28 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 100
-  },
-  {
-    "blockTime": "1722721637 (04.08.2024 00:47:17 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 99
-  },
-  {
-    "blockTime": "1722721626 (04.08.2024 00:47:06 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 98
-  },
-  {
-    "blockTime": "1722721614 (04.08.2024 00:46:54 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 97
-  },
-  {
-    "blockTime": "1722721603 (04.08.2024 00:46:43 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad"
-    ],
-    "counter": 96
-  },
-  {
-    "blockTime": "1722720758 (04.08.2024 00:32:38 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 95
-  },
-  {
-    "blockTime": "1722720740 (04.08.2024 00:32:20 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 94
-  },
-  {
-    "blockTime": "1722720729 (04.08.2024 00:32:09 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 93
-  },
-  {
-    "blockTime": "1722720712 (04.08.2024 00:31:52 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 92
-  },
-  {
-    "blockTime": "1722720701 (04.08.2024 00:31:41 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 91
-  },
-  {
-    "blockTime": "1722720690 (04.08.2024 00:31:30 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 90
-  },
-  {
-    "blockTime": "1722720668 (04.08.2024 00:31:08 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 89
-  },
-  {
-    "blockTime": "1722720657 (04.08.2024 00:30:57 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 88
-  },
-  {
-    "blockTime": "1722720645 (04.08.2024 00:30:45 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 87
-  },
-  {
-    "blockTime": "1722720634 (04.08.2024 00:30:34 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad"
-    ],
-    "counter": 86
-  },
-  {
-    "blockTime": "1722720449 (04.08.2024 00:27:29 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 85
-  },
-  {
-    "blockTime": "1722720432 (04.08.2024 00:27:12 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 84
-  },
-  {
-    "blockTime": "1722720415 (04.08.2024 00:26:55 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 83
-  },
-  {
-    "blockTime": "1722720399 (04.08.2024 00:26:39 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 82
-  },
-  {
-    "blockTime": "1722720382 (04.08.2024 00:26:22 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad"
-    ],
-    "counter": 81
-  },
-  {
-    "blockTime": "1722720332 (04.08.2024 00:25:32 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [],
-    "counter": 80
-  },
-  {
-    "blockTime": "1722720315 (04.08.2024 00:25:15 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad"
-    ],
-    "counter": 79
-  },
-  {
-    "blockTime": "1722720113 (04.08.2024 00:21:53 UTC+3)",
-    "sender": "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
-    "counter": 78
-  },
-  {
-    "blockTime": "1722712643 (03.08.2024 22:17:23 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 77
-  },
-  {
-    "blockTime": "1722712632 (03.08.2024 22:17:12 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 76
-  },
-  {
-    "blockTime": "1722712621 (03.08.2024 22:17:01 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 75
-  },
-  {
-    "blockTime": "1722712610 (03.08.2024 22:16:50 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 74
-  },
-  {
-    "blockTime": "1722712599 (03.08.2024 22:16:39 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 73
-  },
-  {
-    "blockTime": "1722712587 (03.08.2024 22:16:27 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 72
-  },
-  {
-    "blockTime": "1722712576 (03.08.2024 22:16:16 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 71
-  },
-  {
-    "blockTime": "1722712565 (03.08.2024 22:16:05 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 70
-  },
-  {
-    "blockTime": "1722712554 (03.08.2024 22:15:54 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 69
-  },
-  {
-    "blockTime": "1722712542 (03.08.2024 22:15:42 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 68
-  },
-  {
-    "blockTime": "1722712531 (03.08.2024 22:15:31 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 67
-  },
-  {
-    "blockTime": "1722712520 (03.08.2024 22:15:20 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 66
-  },
-  {
-    "blockTime": "1722712509 (03.08.2024 22:15:09 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 65
-  },
-  {
-    "blockTime": "1722712498 (03.08.2024 22:14:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 64
-  },
-  {
-    "blockTime": "1722712486 (03.08.2024 22:14:46 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 63
-  },
-  {
-    "blockTime": "1722712475 (03.08.2024 22:14:35 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 62
-  },
-  {
-    "blockTime": "1722712464 (03.08.2024 22:14:24 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 61
-  },
-  {
-    "blockTime": "1722712452 (03.08.2024 22:14:12 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 60
-  },
-  {
-    "blockTime": "1722712441 (03.08.2024 22:14:01 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 59
-  },
-  {
-    "blockTime": "1722712430 (03.08.2024 22:13:50 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 58
-  },
-  {
-    "blockTime": "1722712419 (03.08.2024 22:13:39 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 57
-  },
-  {
-    "blockTime": "1722712408 (03.08.2024 22:13:28 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 56
-  },
-  {
-    "blockTime": "1722712397 (03.08.2024 22:13:17 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 55
-  },
-  {
-    "blockTime": "1722712385 (03.08.2024 22:13:05 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 54
-  },
-  {
-    "blockTime": "1722712374 (03.08.2024 22:12:54 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 53
-  },
-  {
-    "blockTime": "1722712363 (03.08.2024 22:12:43 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 52
-  },
-  {
-    "blockTime": "1722712352 (03.08.2024 22:12:32 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 51
-  },
-  {
-    "blockTime": "1722712341 (03.08.2024 22:12:21 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 50
-  },
-  {
-    "blockTime": "1722712329 (03.08.2024 22:12:09 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 49
-  },
-  {
-    "blockTime": "1722712318 (03.08.2024 22:11:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 48
-  },
-  {
-    "blockTime": "1722712307 (03.08.2024 22:11:47 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 47
-  },
-  {
-    "blockTime": "1722712296 (03.08.2024 22:11:36 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 46
-  },
-  {
-    "blockTime": "1722712284 (03.08.2024 22:11:24 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 45
-  },
-  {
-    "blockTime": "1722712273 (03.08.2024 22:11:13 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 44
-  },
-  {
-    "blockTime": "1722712262 (03.08.2024 22:11:02 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 43
-  },
-  {
-    "blockTime": "1722712251 (03.08.2024 22:10:51 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 42
-  },
-  {
-    "blockTime": "1722712239 (03.08.2024 22:10:39 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 41
-  },
-  {
-    "blockTime": "1722712228 (03.08.2024 22:10:28 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 40
-  },
-  {
-    "blockTime": "1722712217 (03.08.2024 22:10:17 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 39
-  },
-  {
-    "blockTime": "1722712206 (03.08.2024 22:10:06 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 38
-  },
-  {
-    "blockTime": "1722712195 (03.08.2024 22:09:55 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 37
-  },
-  {
-    "blockTime": "1722712183 (03.08.2024 22:09:43 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 36
-  },
-  {
-    "blockTime": "1722712172 (03.08.2024 22:09:32 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 35
-  },
-  {
-    "blockTime": "1722712160 (03.08.2024 22:09:20 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 34
-  },
-  {
-    "blockTime": "1722712149 (03.08.2024 22:09:09 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 33
-  },
-  {
-    "blockTime": "1722712138 (03.08.2024 22:08:58 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 32
-  },
-  {
-    "blockTime": "1722712127 (03.08.2024 22:08:47 UTC+3)",
-    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [],
-    "counter": 31
-  },
-  {
-    "blockTime": "1722712116 (03.08.2024 22:08:36 UTC+3)",
+    "blockTime": "1723839811 (16.08.2024 23:23:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 30
   },
   {
-    "blockTime": "1722712105 (03.08.2024 22:08:25 UTC+3)",
+    "blockTime": "1723839800 (16.08.2024 23:23:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 29
   },
   {
-    "blockTime": "1722712093 (03.08.2024 22:08:13 UTC+3)",
+    "blockTime": "1723839789 (16.08.2024 23:23:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 28
   },
   {
-    "blockTime": "1722712082 (03.08.2024 22:08:02 UTC+3)",
+    "blockTime": "1723839777 (16.08.2024 23:22:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 27
   },
   {
-    "blockTime": "1722712071 (03.08.2024 22:07:51 UTC+3)",
+    "blockTime": "1723839766 (16.08.2024 23:22:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 26
   },
   {
-    "blockTime": "1722712060 (03.08.2024 22:07:40 UTC+3)",
+    "blockTime": "1723839755 (16.08.2024 23:22:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 25
   },
   {
-    "blockTime": "1722712049 (03.08.2024 22:07:29 UTC+3)",
+    "blockTime": "1723839743 (16.08.2024 23:22:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 24
   },
   {
-    "blockTime": "1722712038 (03.08.2024 22:07:18 UTC+3)",
+    "blockTime": "1723839732 (16.08.2024 23:22:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 23
   },
   {
-    "blockTime": "1722712027 (03.08.2024 22:07:07 UTC+3)",
+    "blockTime": "1723839721 (16.08.2024 23:22:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 22
   },
   {
-    "blockTime": "1722712015 (03.08.2024 22:06:55 UTC+3)",
+    "blockTime": "1723839710 (16.08.2024 23:21:50 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 21
   },
   {
-    "blockTime": "1722712004 (03.08.2024 22:06:44 UTC+3)",
+    "blockTime": "1723839699 (16.08.2024 23:21:39 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 20
   },
   {
-    "blockTime": "1722711993 (03.08.2024 22:06:33 UTC+3)",
+    "blockTime": "1723839687 (16.08.2024 23:21:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 19
   },
   {
-    "blockTime": "1722711982 (03.08.2024 22:06:22 UTC+3)",
+    "blockTime": "1723839676 (16.08.2024 23:21:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 18
   },
   {
-    "blockTime": "1722711971 (03.08.2024 22:06:11 UTC+3)",
+    "blockTime": "1723839665 (16.08.2024 23:21:05 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 17
   },
   {
-    "blockTime": "1722711959 (03.08.2024 22:05:59 UTC+3)",
+    "blockTime": "1723839654 (16.08.2024 23:20:54 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 16
   },
   {
-    "blockTime": "1722711948 (03.08.2024 22:05:48 UTC+3)",
+    "blockTime": "1723839642 (16.08.2024 23:20:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 15
   },
   {
-    "blockTime": "1722711937 (03.08.2024 22:05:37 UTC+3)",
+    "blockTime": "1723839631 (16.08.2024 23:20:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 14
   },
   {
-    "blockTime": "1722711926 (03.08.2024 22:05:26 UTC+3)",
+    "blockTime": "1723839620 (16.08.2024 23:20:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 13
   },
   {
-    "blockTime": "1722711915 (03.08.2024 22:05:15 UTC+3)",
+    "blockTime": "1723839608 (16.08.2024 23:20:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 12
   },
   {
-    "blockTime": "1722711904 (03.08.2024 22:05:04 UTC+3)",
+    "blockTime": "1723839597 (16.08.2024 23:19:57 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 11
   },
   {
-    "blockTime": "1722711892 (03.08.2024 22:04:52 UTC+3)",
+    "blockTime": "1723839586 (16.08.2024 23:19:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 10
   },
   {
-    "blockTime": "1722711881 (03.08.2024 22:04:41 UTC+3)",
+    "blockTime": "1723839575 (16.08.2024 23:19:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 9
   },
   {
-    "blockTime": "1722711870 (03.08.2024 22:04:30 UTC+3)",
+    "blockTime": "1723839563 (16.08.2024 23:19:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 8
   },
   {
-    "blockTime": "1722711859 (03.08.2024 22:04:19 UTC+3)",
+    "blockTime": "1723839552 (16.08.2024 23:19:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 7
   },
   {
-    "blockTime": "1722711848 (03.08.2024 22:04:08 UTC+3)",
+    "blockTime": "1723839541 (16.08.2024 23:19:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 6
   },
   {
-    "blockTime": "1722711837 (03.08.2024 22:03:57 UTC+3)",
+    "blockTime": "1723839530 (16.08.2024 23:18:50 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 5
   },
   {
-    "blockTime": "1722711826 (03.08.2024 22:03:46 UTC+3)",
+    "blockTime": "1723839518 (16.08.2024 23:18:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 4
   },
   {
-    "blockTime": "1722711814 (03.08.2024 22:03:34 UTC+3)",
+    "blockTime": "1723839507 (16.08.2024 23:18:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 3
   },
   {
-    "blockTime": "1722711803 (03.08.2024 22:03:23 UTC+3)",
+    "blockTime": "1723839495 (16.08.2024 23:18:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 2
   },
   {
-    "blockTime": "1722711792 (03.08.2024 22:03:12 UTC+3)",
+    "blockTime": "1723839483 (16.08.2024 23:18:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 1
   },
   {
-    "blockTime": "1722711781 (03.08.2024 22:03:01 UTC+3)",
+    "blockTime": "1723839471 (16.08.2024 23:17:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 0
   },
   {
-    "blockTime": "1722711769 (03.08.2024 22:02:49 UTC+3)",
+    "blockTime": "1723839460 (16.08.2024 23:17:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 255
   },
   {
-    "blockTime": "1722711758 (03.08.2024 22:02:38 UTC+3)",
+    "blockTime": "1723839449 (16.08.2024 23:17:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 254
   },
   {
-    "blockTime": "1722711747 (03.08.2024 22:02:27 UTC+3)",
+    "blockTime": "1723839438 (16.08.2024 23:17:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 253
   },
   {
-    "blockTime": "1722711736 (03.08.2024 22:02:16 UTC+3)",
+    "blockTime": "1723839427 (16.08.2024 23:17:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 252
   },
   {
-    "blockTime": "1722711725 (03.08.2024 22:02:05 UTC+3)",
+    "blockTime": "1723839416 (16.08.2024 23:16:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
-    "outdatedPriceCollections": [
-      "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
-      "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      "stars1y4rdsxrll80mdkr4zlelpcztw9z2k79h0na49yqjyq5ny95dz7rqey47qu"
-    ],
+    "outdatedPriceCollections": [],
     "counter": 251
   },
   {
-    "blockTime": "1722711651 (03.08.2024 22:00:51 UTC+3)",
+    "blockTime": "1723839404 (16.08.2024 23:16:44 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 250
   },
   {
-    "blockTime": "1722711640 (03.08.2024 22:00:40 UTC+3)",
+    "blockTime": "1723839393 (16.08.2024 23:16:33 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 249
   },
   {
-    "blockTime": "1722711628 (03.08.2024 22:00:28 UTC+3)",
+    "blockTime": "1723839382 (16.08.2024 23:16:22 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 248
   },
   {
-    "blockTime": "1722711617 (03.08.2024 22:00:17 UTC+3)",
+    "blockTime": "1723839370 (16.08.2024 23:16:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 247
   },
   {
-    "blockTime": "1722711606 (03.08.2024 22:00:06 UTC+3)",
+    "blockTime": "1723839359 (16.08.2024 23:15:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 246
   },
   {
-    "blockTime": "1722711595 (03.08.2024 21:59:55 UTC+3)",
+    "blockTime": "1723839348 (16.08.2024 23:15:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 245
   },
   {
-    "blockTime": "1722711583 (03.08.2024 21:59:43 UTC+3)",
+    "blockTime": "1723839337 (16.08.2024 23:15:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 244
   },
   {
-    "blockTime": "1722711572 (03.08.2024 21:59:32 UTC+3)",
+    "blockTime": "1723839326 (16.08.2024 23:15:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 243
   },
   {
-    "blockTime": "1722711561 (03.08.2024 21:59:21 UTC+3)",
+    "blockTime": "1723839315 (16.08.2024 23:15:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 242
   },
   {
-    "blockTime": "1722711550 (03.08.2024 21:59:10 UTC+3)",
+    "blockTime": "1723839303 (16.08.2024 23:15:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 241
   },
   {
-    "blockTime": "1722711539 (03.08.2024 21:58:59 UTC+3)",
+    "blockTime": "1723839292 (16.08.2024 23:14:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 240
   },
   {
-    "blockTime": "1722711528 (03.08.2024 21:58:48 UTC+3)",
+    "blockTime": "1723839281 (16.08.2024 23:14:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 239
   },
   {
-    "blockTime": "1722711516 (03.08.2024 21:58:36 UTC+3)",
+    "blockTime": "1723839270 (16.08.2024 23:14:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 238
   },
   {
-    "blockTime": "1722711505 (03.08.2024 21:58:25 UTC+3)",
+    "blockTime": "1723839259 (16.08.2024 23:14:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 237
   },
   {
-    "blockTime": "1722711493 (03.08.2024 21:58:13 UTC+3)",
+    "blockTime": "1723839248 (16.08.2024 23:14:08 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 236
   },
   {
-    "blockTime": "1722711482 (03.08.2024 21:58:02 UTC+3)",
+    "blockTime": "1723839236 (16.08.2024 23:13:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 235
   },
   {
-    "blockTime": "1722711471 (03.08.2024 21:57:51 UTC+3)",
+    "blockTime": "1723839225 (16.08.2024 23:13:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 234
   },
   {
-    "blockTime": "1722711459 (03.08.2024 21:57:39 UTC+3)",
+    "blockTime": "1723839214 (16.08.2024 23:13:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 233
   },
   {
-    "blockTime": "1722711448 (03.08.2024 21:57:28 UTC+3)",
+    "blockTime": "1723839203 (16.08.2024 23:13:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 232
   },
   {
-    "blockTime": "1722711437 (03.08.2024 21:57:17 UTC+3)",
+    "blockTime": "1723839192 (16.08.2024 23:13:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 231
   },
   {
-    "blockTime": "1722711426 (03.08.2024 21:57:06 UTC+3)",
+    "blockTime": "1723839180 (16.08.2024 23:13:00 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 230
   },
   {
-    "blockTime": "1722711414 (03.08.2024 21:56:54 UTC+3)",
+    "blockTime": "1723839169 (16.08.2024 23:12:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 229
   },
   {
-    "blockTime": "1722711403 (03.08.2024 21:56:43 UTC+3)",
+    "blockTime": "1723839158 (16.08.2024 23:12:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 228
   },
   {
-    "blockTime": "1722711392 (03.08.2024 21:56:32 UTC+3)",
+    "blockTime": "1723839147 (16.08.2024 23:12:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 227
   },
   {
-    "blockTime": "1722711373 (03.08.2024 21:56:13 UTC+3)",
+    "blockTime": "1723839136 (16.08.2024 23:12:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 226
   },
   {
-    "blockTime": "1722711362 (03.08.2024 21:56:02 UTC+3)",
+    "blockTime": "1723839119 (16.08.2024 23:11:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 225
   },
   {
-    "blockTime": "1722711350 (03.08.2024 21:55:50 UTC+3)",
+    "blockTime": "1723839107 (16.08.2024 23:11:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 224
   },
   {
-    "blockTime": "1722711339 (03.08.2024 21:55:39 UTC+3)",
+    "blockTime": "1723839096 (16.08.2024 23:11:36 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 223
   },
   {
-    "blockTime": "1722711328 (03.08.2024 21:55:28 UTC+3)",
+    "blockTime": "1723839085 (16.08.2024 23:11:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 222
   },
   {
-    "blockTime": "1722711317 (03.08.2024 21:55:17 UTC+3)",
+    "blockTime": "1723839074 (16.08.2024 23:11:14 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 221
   },
   {
-    "blockTime": "1722711306 (03.08.2024 21:55:06 UTC+3)",
+    "blockTime": "1723839062 (16.08.2024 23:11:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 220
   },
   {
-    "blockTime": "1722711295 (03.08.2024 21:54:55 UTC+3)",
+    "blockTime": "1723839051 (16.08.2024 23:10:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 219
   },
   {
-    "blockTime": "1722711284 (03.08.2024 21:54:44 UTC+3)",
+    "blockTime": "1723839040 (16.08.2024 23:10:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 218
   },
   {
-    "blockTime": "1722711273 (03.08.2024 21:54:33 UTC+3)",
+    "blockTime": "1723839029 (16.08.2024 23:10:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 217
   },
   {
-    "blockTime": "1722711262 (03.08.2024 21:54:22 UTC+3)",
+    "blockTime": "1723839018 (16.08.2024 23:10:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 216
   },
   {
-    "blockTime": "1722711250 (03.08.2024 21:54:10 UTC+3)",
+    "blockTime": "1723839006 (16.08.2024 23:10:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 215
   },
   {
-    "blockTime": "1722711239 (03.08.2024 21:53:59 UTC+3)",
+    "blockTime": "1723838995 (16.08.2024 23:09:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 214
   },
   {
-    "blockTime": "1722711228 (03.08.2024 21:53:48 UTC+3)",
+    "blockTime": "1723838984 (16.08.2024 23:09:44 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 213
   },
   {
-    "blockTime": "1722711216 (03.08.2024 21:53:36 UTC+3)",
+    "blockTime": "1723838972 (16.08.2024 23:09:32 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 212
   },
   {
-    "blockTime": "1722711205 (03.08.2024 21:53:25 UTC+3)",
+    "blockTime": "1723838961 (16.08.2024 23:09:21 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 211
   },
   {
-    "blockTime": "1722711194 (03.08.2024 21:53:14 UTC+3)",
+    "blockTime": "1723838950 (16.08.2024 23:09:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 210
   },
   {
-    "blockTime": "1722711183 (03.08.2024 21:53:03 UTC+3)",
+    "blockTime": "1723838938 (16.08.2024 23:08:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 209
   },
   {
-    "blockTime": "1722711171 (03.08.2024 21:52:51 UTC+3)",
+    "blockTime": "1723838927 (16.08.2024 23:08:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 208
   },
   {
-    "blockTime": "1722711160 (03.08.2024 21:52:40 UTC+3)",
+    "blockTime": "1723838915 (16.08.2024 23:08:35 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 207
   },
   {
-    "blockTime": "1722711149 (03.08.2024 21:52:29 UTC+3)",
+    "blockTime": "1723838904 (16.08.2024 23:08:24 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 206
   },
   {
-    "blockTime": "1722711138 (03.08.2024 21:52:18 UTC+3)",
+    "blockTime": "1723838893 (16.08.2024 23:08:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 205
   },
   {
-    "blockTime": "1722711126 (03.08.2024 21:52:06 UTC+3)",
+    "blockTime": "1723838882 (16.08.2024 23:08:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 204
   },
   {
-    "blockTime": "1722711115 (03.08.2024 21:51:55 UTC+3)",
+    "blockTime": "1723838871 (16.08.2024 23:07:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 203
   },
   {
-    "blockTime": "1722711104 (03.08.2024 21:51:44 UTC+3)",
+    "blockTime": "1723838860 (16.08.2024 23:07:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 202
   },
   {
-    "blockTime": "1722711093 (03.08.2024 21:51:33 UTC+3)",
+    "blockTime": "1723838848 (16.08.2024 23:07:28 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 201
   },
   {
-    "blockTime": "1722711081 (03.08.2024 21:51:21 UTC+3)",
+    "blockTime": "1723838837 (16.08.2024 23:07:17 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 200
   },
   {
-    "blockTime": "1722711070 (03.08.2024 21:51:10 UTC+3)",
+    "blockTime": "1723838826 (16.08.2024 23:07:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 199
   },
   {
-    "blockTime": "1722711059 (03.08.2024 21:50:59 UTC+3)",
+    "blockTime": "1723838815 (16.08.2024 23:06:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 198
   },
   {
-    "blockTime": "1722711048 (03.08.2024 21:50:48 UTC+3)",
+    "blockTime": "1723838803 (16.08.2024 23:06:43 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 197
   },
   {
-    "blockTime": "1722711036 (03.08.2024 21:50:36 UTC+3)",
+    "blockTime": "1723838786 (16.08.2024 23:06:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 196
   },
   {
-    "blockTime": "1722711025 (03.08.2024 21:50:25 UTC+3)",
+    "blockTime": "1723838775 (16.08.2024 23:06:15 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 195
   },
   {
-    "blockTime": "1722711014 (03.08.2024 21:50:14 UTC+3)",
+    "blockTime": "1723838764 (16.08.2024 23:06:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 194
   },
   {
-    "blockTime": "1722711002 (03.08.2024 21:50:02 UTC+3)",
+    "blockTime": "1723838747 (16.08.2024 23:05:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 193
   },
   {
-    "blockTime": "1722710991 (03.08.2024 21:49:51 UTC+3)",
+    "blockTime": "1723838736 (16.08.2024 23:05:36 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 192
   },
   {
-    "blockTime": "1722710980 (03.08.2024 21:49:40 UTC+3)",
+    "blockTime": "1723838713 (16.08.2024 23:05:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 191
   },
   {
-    "blockTime": "1722710969 (03.08.2024 21:49:29 UTC+3)",
+    "blockTime": "1723838702 (16.08.2024 23:05:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 190
   },
   {
-    "blockTime": "1722710958 (03.08.2024 21:49:18 UTC+3)",
+    "blockTime": "1723838691 (16.08.2024 23:04:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 189
   },
   {
-    "blockTime": "1722710946 (03.08.2024 21:49:06 UTC+3)",
+    "blockTime": "1723838679 (16.08.2024 23:04:39 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 188
   },
   {
-    "blockTime": "1722710935 (03.08.2024 21:48:55 UTC+3)",
+    "blockTime": "1723838668 (16.08.2024 23:04:28 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 187
   },
   {
-    "blockTime": "1722710924 (03.08.2024 21:48:44 UTC+3)",
+    "blockTime": "1723838656 (16.08.2024 23:04:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 186
   },
   {
-    "blockTime": "1722710913 (03.08.2024 21:48:33 UTC+3)",
+    "blockTime": "1723838645 (16.08.2024 23:04:05 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 185
   },
   {
-    "blockTime": "1722710901 (03.08.2024 21:48:21 UTC+3)",
+    "blockTime": "1723838634 (16.08.2024 23:03:54 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 184
   },
   {
-    "blockTime": "1722710890 (03.08.2024 21:48:10 UTC+3)",
+    "blockTime": "1723838623 (16.08.2024 23:03:43 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 183
   },
   {
-    "blockTime": "1722710879 (03.08.2024 21:47:59 UTC+3)",
+    "blockTime": "1723838612 (16.08.2024 23:03:32 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 182
   },
   {
-    "blockTime": "1722710867 (03.08.2024 21:47:47 UTC+3)",
+    "blockTime": "1723838600 (16.08.2024 23:03:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 181
   },
   {
-    "blockTime": "1722710856 (03.08.2024 21:47:36 UTC+3)",
+    "blockTime": "1723838589 (16.08.2024 23:03:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 180
   },
   {
-    "blockTime": "1722710844 (03.08.2024 21:47:24 UTC+3)",
+    "blockTime": "1723838578 (16.08.2024 23:02:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 179
   },
   {
-    "blockTime": "1722710832 (03.08.2024 21:47:12 UTC+3)",
+    "blockTime": "1723838567 (16.08.2024 23:02:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 178
   },
   {
-    "blockTime": "1722710820 (03.08.2024 21:47:00 UTC+3)",
+    "blockTime": "1723838556 (16.08.2024 23:02:36 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 177
   },
   {
-    "blockTime": "1722710809 (03.08.2024 21:46:49 UTC+3)",
+    "blockTime": "1723838545 (16.08.2024 23:02:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 176
   },
   {
-    "blockTime": "1722710798 (03.08.2024 21:46:38 UTC+3)",
+    "blockTime": "1723838533 (16.08.2024 23:02:13 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 175
   },
   {
-    "blockTime": "1722710787 (03.08.2024 21:46:27 UTC+3)",
+    "blockTime": "1723838522 (16.08.2024 23:02:02 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 174
   },
   {
-    "blockTime": "1722710775 (03.08.2024 21:46:15 UTC+3)",
+    "blockTime": "1723838511 (16.08.2024 23:01:51 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 173
   },
   {
-    "blockTime": "1722710764 (03.08.2024 21:46:04 UTC+3)",
+    "blockTime": "1723838500 (16.08.2024 23:01:40 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 172
   },
   {
-    "blockTime": "1722710753 (03.08.2024 21:45:53 UTC+3)",
+    "blockTime": "1723838489 (16.08.2024 23:01:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 171
   },
   {
-    "blockTime": "1722710742 (03.08.2024 21:45:42 UTC+3)",
+    "blockTime": "1723838478 (16.08.2024 23:01:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 170
   },
   {
-    "blockTime": "1722710730 (03.08.2024 21:45:30 UTC+3)",
+    "blockTime": "1723838466 (16.08.2024 23:01:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 169
   },
   {
-    "blockTime": "1722710719 (03.08.2024 21:45:19 UTC+3)",
+    "blockTime": "1723838455 (16.08.2024 23:00:55 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 168
   },
   {
-    "blockTime": "1722710708 (03.08.2024 21:45:08 UTC+3)",
+    "blockTime": "1723838444 (16.08.2024 23:00:44 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 167
   },
   {
-    "blockTime": "1722710697 (03.08.2024 21:44:57 UTC+3)",
+    "blockTime": "1723838432 (16.08.2024 23:00:32 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 166
   },
   {
-    "blockTime": "1722710686 (03.08.2024 21:44:46 UTC+3)",
+    "blockTime": "1723838421 (16.08.2024 23:00:21 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 165
   },
   {
-    "blockTime": "1722710675 (03.08.2024 21:44:35 UTC+3)",
+    "blockTime": "1723838410 (16.08.2024 23:00:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 164
   },
   {
-    "blockTime": "1722710664 (03.08.2024 21:44:24 UTC+3)",
+    "blockTime": "1723838399 (16.08.2024 22:59:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 163
   },
   {
-    "blockTime": "1722710652 (03.08.2024 21:44:12 UTC+3)",
+    "blockTime": "1723838387 (16.08.2024 22:59:47 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 162
   },
   {
-    "blockTime": "1722710640 (03.08.2024 21:44:00 UTC+3)",
+    "blockTime": "1723838376 (16.08.2024 22:59:36 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 161
   },
   {
-    "blockTime": "1722710629 (03.08.2024 21:43:49 UTC+3)",
+    "blockTime": "1723838365 (16.08.2024 22:59:25 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 160
   },
   {
-    "blockTime": "1722710618 (03.08.2024 21:43:38 UTC+3)",
+    "blockTime": "1723838354 (16.08.2024 22:59:14 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 159
   },
   {
-    "blockTime": "1722710606 (03.08.2024 21:43:26 UTC+3)",
+    "blockTime": "1723838343 (16.08.2024 22:59:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 158
   },
   {
-    "blockTime": "1722710595 (03.08.2024 21:43:15 UTC+3)",
+    "blockTime": "1723838332 (16.08.2024 22:58:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 157
   },
   {
-    "blockTime": "1722710584 (03.08.2024 21:43:04 UTC+3)",
+    "blockTime": "1723838321 (16.08.2024 22:58:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 156
   },
   {
-    "blockTime": "1722710573 (03.08.2024 21:42:53 UTC+3)",
+    "blockTime": "1723838310 (16.08.2024 22:58:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 155
   },
   {
-    "blockTime": "1722710562 (03.08.2024 21:42:42 UTC+3)",
+    "blockTime": "1723838299 (16.08.2024 22:58:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 154
   },
   {
-    "blockTime": "1722710550 (03.08.2024 21:42:30 UTC+3)",
+    "blockTime": "1723838287 (16.08.2024 22:58:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 153
   },
   {
-    "blockTime": "1722710539 (03.08.2024 21:42:19 UTC+3)",
+    "blockTime": "1723838276 (16.08.2024 22:57:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 152
   },
   {
-    "blockTime": "1722710528 (03.08.2024 21:42:08 UTC+3)",
+    "blockTime": "1723838265 (16.08.2024 22:57:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 151
   },
   {
-    "blockTime": "1722710517 (03.08.2024 21:41:57 UTC+3)",
+    "blockTime": "1723838254 (16.08.2024 22:57:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 150
   },
   {
-    "blockTime": "1722710505 (03.08.2024 21:41:45 UTC+3)",
+    "blockTime": "1723838243 (16.08.2024 22:57:23 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 149
   },
   {
-    "blockTime": "1722710494 (03.08.2024 21:41:34 UTC+3)",
+    "blockTime": "1723838232 (16.08.2024 22:57:12 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 148
   },
   {
-    "blockTime": "1722710483 (03.08.2024 21:41:23 UTC+3)",
+    "blockTime": "1723838221 (16.08.2024 22:57:01 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 147
   },
   {
-    "blockTime": "1722710472 (03.08.2024 21:41:12 UTC+3)",
+    "blockTime": "1723838209 (16.08.2024 22:56:49 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 146
   },
   {
-    "blockTime": "1722710461 (03.08.2024 21:41:01 UTC+3)",
+    "blockTime": "1723838198 (16.08.2024 22:56:38 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 145
   },
   {
-    "blockTime": "1722710450 (03.08.2024 21:40:50 UTC+3)",
+    "blockTime": "1723838187 (16.08.2024 22:56:27 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 144
   },
   {
-    "blockTime": "1722710438 (03.08.2024 21:40:38 UTC+3)",
+    "blockTime": "1723838176 (16.08.2024 22:56:16 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 143
   },
   {
-    "blockTime": "1722710427 (03.08.2024 21:40:27 UTC+3)",
+    "blockTime": "1723838164 (16.08.2024 22:56:04 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 142
   },
   {
-    "blockTime": "1722710416 (03.08.2024 21:40:16 UTC+3)",
+    "blockTime": "1723838153 (16.08.2024 22:55:53 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 141
   },
   {
-    "blockTime": "1722710405 (03.08.2024 21:40:05 UTC+3)",
+    "blockTime": "1723838142 (16.08.2024 22:55:42 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 140
   },
   {
-    "blockTime": "1722710394 (03.08.2024 21:39:54 UTC+3)",
+    "blockTime": "1723838131 (16.08.2024 22:55:31 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 139
   },
   {
-    "blockTime": "1722710383 (03.08.2024 21:39:43 UTC+3)",
+    "blockTime": "1723838120 (16.08.2024 22:55:20 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 138
   },
   {
-    "blockTime": "1722710371 (03.08.2024 21:39:31 UTC+3)",
+    "blockTime": "1723838109 (16.08.2024 22:55:09 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 137
   },
   {
-    "blockTime": "1722710360 (03.08.2024 21:39:20 UTC+3)",
+    "blockTime": "1723838098 (16.08.2024 22:54:58 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 136
   },
   {
-    "blockTime": "1722710349 (03.08.2024 21:39:09 UTC+3)",
+    "blockTime": "1723838086 (16.08.2024 22:54:46 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 135
   },
   {
-    "blockTime": "1722710338 (03.08.2024 21:38:58 UTC+3)",
+    "blockTime": "1723838069 (16.08.2024 22:54:29 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 134
   },
   {
-    "blockTime": "1722710326 (03.08.2024 21:38:46 UTC+3)",
+    "blockTime": "1723838058 (16.08.2024 22:54:18 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 133
   },
   {
-    "blockTime": "1722710315 (03.08.2024 21:38:35 UTC+3)",
+    "blockTime": "1723838047 (16.08.2024 22:54:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 132
   },
   {
-    "blockTime": "1722710304 (03.08.2024 21:38:24 UTC+3)",
+    "blockTime": "1723838036 (16.08.2024 22:53:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 131
   },
   {
-    "blockTime": "1722710293 (03.08.2024 21:38:13 UTC+3)",
+    "blockTime": "1723838025 (16.08.2024 22:53:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 130
   },
   {
-    "blockTime": "1722710281 (03.08.2024 21:38:01 UTC+3)",
+    "blockTime": "1723838013 (16.08.2024 22:53:33 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 129
   },
   {
-    "blockTime": "1722710270 (03.08.2024 21:37:50 UTC+3)",
+    "blockTime": "1723838002 (16.08.2024 22:53:22 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 128
   },
   {
-    "blockTime": "1722710259 (03.08.2024 21:37:39 UTC+3)",
+    "blockTime": "1723837990 (16.08.2024 22:53:10 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 127
   },
   {
-    "blockTime": "1722710248 (03.08.2024 21:37:28 UTC+3)",
+    "blockTime": "1723837979 (16.08.2024 22:52:59 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 126
   },
   {
-    "blockTime": "1722710237 (03.08.2024 21:37:17 UTC+3)",
+    "blockTime": "1723837968 (16.08.2024 22:52:48 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 125
   },
   {
-    "blockTime": "1722710226 (03.08.2024 21:37:06 UTC+3)",
+    "blockTime": "1723837957 (16.08.2024 22:52:37 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 124
   },
   {
-    "blockTime": "1722710214 (03.08.2024 21:36:54 UTC+3)",
+    "blockTime": "1723837946 (16.08.2024 22:52:26 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 123
   },
   {
-    "blockTime": "1722710203 (03.08.2024 21:36:43 UTC+3)",
+    "blockTime": "1723837934 (16.08.2024 22:52:14 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 122
   },
   {
-    "blockTime": "1722710192 (03.08.2024 21:36:32 UTC+3)",
+    "blockTime": "1723837923 (16.08.2024 22:52:03 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 121
   },
   {
-    "blockTime": "1722710181 (03.08.2024 21:36:21 UTC+3)",
+    "blockTime": "1723837912 (16.08.2024 22:51:52 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 120
   },
   {
-    "blockTime": "1722710169 (03.08.2024 21:36:09 UTC+3)",
+    "blockTime": "1723837901 (16.08.2024 22:51:41 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 119
   },
   {
-    "blockTime": "1722710159 (03.08.2024 21:35:59 UTC+3)",
+    "blockTime": "1723837890 (16.08.2024 22:51:30 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 118
   },
   {
-    "blockTime": "1722710147 (03.08.2024 21:35:47 UTC+3)",
+    "blockTime": "1723837879 (16.08.2024 22:51:19 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 117
   },
   {
-    "blockTime": "1722710136 (03.08.2024 21:35:36 UTC+3)",
+    "blockTime": "1723837867 (16.08.2024 22:51:07 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 116
   },
   {
-    "blockTime": "1722710125 (03.08.2024 21:35:25 UTC+3)",
+    "blockTime": "1723837856 (16.08.2024 22:50:56 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 115
   },
   {
-    "blockTime": "1722710114 (03.08.2024 21:35:14 UTC+3)",
+    "blockTime": "1723837845 (16.08.2024 22:50:45 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 114
   },
   {
-    "blockTime": "1722710103 (03.08.2024 21:35:03 UTC+3)",
+    "blockTime": "1723837834 (16.08.2024 22:50:34 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 113
   },
   {
-    "blockTime": "1722710092 (03.08.2024 21:34:52 UTC+3)",
+    "blockTime": "1723837822 (16.08.2024 22:50:22 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 112
   },
   {
-    "blockTime": "1722710081 (03.08.2024 21:34:41 UTC+3)",
+    "blockTime": "1723837806 (16.08.2024 22:50:06 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 111
   },
   {
-    "blockTime": "1722710069 (03.08.2024 21:34:29 UTC+3)",
+    "blockTime": "1723837794 (16.08.2024 22:49:54 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 110
   },
   {
-    "blockTime": "1722710058 (03.08.2024 21:34:18 UTC+3)",
+    "blockTime": "1723837783 (16.08.2024 22:49:43 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 109
   },
   {
-    "blockTime": "1722710047 (03.08.2024 21:34:07 UTC+3)",
+    "blockTime": "1723837772 (16.08.2024 22:49:32 UTC+3)",
     "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     "outdatedPriceCollections": [],
     "counter": 108
+  },
+  {
+    "blockTime": "1723837760 (16.08.2024 22:49:20 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 107
+  },
+  {
+    "blockTime": "1723837749 (16.08.2024 22:49:09 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 106
+  },
+  {
+    "blockTime": "1723837738 (16.08.2024 22:48:58 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 105
+  },
+  {
+    "blockTime": "1723837727 (16.08.2024 22:48:47 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 104
+  },
+  {
+    "blockTime": "1723837716 (16.08.2024 22:48:36 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 103
+  },
+  {
+    "blockTime": "1723837705 (16.08.2024 22:48:25 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 102
+  },
+  {
+    "blockTime": "1723837693 (16.08.2024 22:48:13 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 101
+  },
+  {
+    "blockTime": "1723837682 (16.08.2024 22:48:02 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 100
+  },
+  {
+    "blockTime": "1723837671 (16.08.2024 22:47:51 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 99
+  },
+  {
+    "blockTime": "1723837660 (16.08.2024 22:47:40 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 98
+  },
+  {
+    "blockTime": "1723837648 (16.08.2024 22:47:28 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 97
+  },
+  {
+    "blockTime": "1723837637 (16.08.2024 22:47:17 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 96
+  },
+  {
+    "blockTime": "1723837626 (16.08.2024 22:47:06 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 95
+  },
+  {
+    "blockTime": "1723837609 (16.08.2024 22:46:49 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 94
+  },
+  {
+    "blockTime": "1723837598 (16.08.2024 22:46:38 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 93
+  },
+  {
+    "blockTime": "1723837587 (16.08.2024 22:46:27 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 92
+  },
+  {
+    "blockTime": "1723837576 (16.08.2024 22:46:16 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 91
+  },
+  {
+    "blockTime": "1723837564 (16.08.2024 22:46:04 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 90
+  },
+  {
+    "blockTime": "1723837553 (16.08.2024 22:45:53 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 89
+  },
+  {
+    "blockTime": "1723837542 (16.08.2024 22:45:42 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 88
+  },
+  {
+    "blockTime": "1723837531 (16.08.2024 22:45:31 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 87
+  },
+  {
+    "blockTime": "1723837519 (16.08.2024 22:45:19 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 86
+  },
+  {
+    "blockTime": "1723837508 (16.08.2024 22:45:08 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 85
+  },
+  {
+    "blockTime": "1723837497 (16.08.2024 22:44:57 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 84
+  },
+  {
+    "blockTime": "1723837486 (16.08.2024 22:44:46 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 83
+  },
+  {
+    "blockTime": "1723837475 (16.08.2024 22:44:35 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 82
+  },
+  {
+    "blockTime": "1723837464 (16.08.2024 22:44:24 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 81
+  },
+  {
+    "blockTime": "1723837453 (16.08.2024 22:44:13 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 80
+  },
+  {
+    "blockTime": "1723837441 (16.08.2024 22:44:01 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 79
+  },
+  {
+    "blockTime": "1723837430 (16.08.2024 22:43:50 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 78
+  },
+  {
+    "blockTime": "1723837419 (16.08.2024 22:43:39 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 77
+  },
+  {
+    "blockTime": "1723837408 (16.08.2024 22:43:28 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 76
+  },
+  {
+    "blockTime": "1723837396 (16.08.2024 22:43:16 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 75
+  },
+  {
+    "blockTime": "1723837385 (16.08.2024 22:43:05 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 74
+  },
+  {
+    "blockTime": "1723837374 (16.08.2024 22:42:54 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 73
+  },
+  {
+    "blockTime": "1723837363 (16.08.2024 22:42:43 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 72
+  },
+  {
+    "blockTime": "1723837352 (16.08.2024 22:42:32 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 71
+  },
+  {
+    "blockTime": "1723837341 (16.08.2024 22:42:21 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 70
+  },
+  {
+    "blockTime": "1723837329 (16.08.2024 22:42:09 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 69
+  },
+  {
+    "blockTime": "1723837318 (16.08.2024 22:41:58 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 68
+  },
+  {
+    "blockTime": "1723837307 (16.08.2024 22:41:47 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 67
+  },
+  {
+    "blockTime": "1723837296 (16.08.2024 22:41:36 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 66
+  },
+  {
+    "blockTime": "1723837284 (16.08.2024 22:41:24 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 65
+  },
+  {
+    "blockTime": "1723837273 (16.08.2024 22:41:13 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 64
+  },
+  {
+    "blockTime": "1723837262 (16.08.2024 22:41:02 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 63
+  },
+  {
+    "blockTime": "1723837251 (16.08.2024 22:40:51 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 62
+  },
+  {
+    "blockTime": "1723837239 (16.08.2024 22:40:39 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 61
+  },
+  {
+    "blockTime": "1723837223 (16.08.2024 22:40:23 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 60
+  },
+  {
+    "blockTime": "1723837211 (16.08.2024 22:40:11 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 59
+  },
+  {
+    "blockTime": "1723837195 (16.08.2024 22:39:55 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 58
+  },
+  {
+    "blockTime": "1723837183 (16.08.2024 22:39:43 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 57
+  },
+  {
+    "blockTime": "1723837172 (16.08.2024 22:39:32 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 56
+  },
+  {
+    "blockTime": "1723837161 (16.08.2024 22:39:21 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 55
+  },
+  {
+    "blockTime": "1723837150 (16.08.2024 22:39:10 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 54
+  },
+  {
+    "blockTime": "1723837139 (16.08.2024 22:38:59 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 53
+  },
+  {
+    "blockTime": "1723837127 (16.08.2024 22:38:47 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 52
+  },
+  {
+    "blockTime": "1723837116 (16.08.2024 22:38:36 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 51
+  },
+  {
+    "blockTime": "1723837104 (16.08.2024 22:38:24 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 50
+  },
+  {
+    "blockTime": "1723837093 (16.08.2024 22:38:13 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 49
+  },
+  {
+    "blockTime": "1723837082 (16.08.2024 22:38:02 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 48
+  },
+  {
+    "blockTime": "1723837070 (16.08.2024 22:37:50 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 47
+  },
+  {
+    "blockTime": "1723837059 (16.08.2024 22:37:39 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 46
+  },
+  {
+    "blockTime": "1723837048 (16.08.2024 22:37:28 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 45
+  },
+  {
+    "blockTime": "1723837037 (16.08.2024 22:37:17 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 44
+  },
+  {
+    "blockTime": "1723837020 (16.08.2024 22:37:00 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 43
+  },
+  {
+    "blockTime": "1723837009 (16.08.2024 22:36:49 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 42
+  },
+  {
+    "blockTime": "1723836997 (16.08.2024 22:36:37 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 41
+  },
+  {
+    "blockTime": "1723836987 (16.08.2024 22:36:27 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 40
+  },
+  {
+    "blockTime": "1723836975 (16.08.2024 22:36:15 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 39
+  },
+  {
+    "blockTime": "1723836964 (16.08.2024 22:36:04 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 38
+  },
+  {
+    "blockTime": "1723836953 (16.08.2024 22:35:53 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 37
+  },
+  {
+    "blockTime": "1723836942 (16.08.2024 22:35:42 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 36
+  },
+  {
+    "blockTime": "1723836931 (16.08.2024 22:35:31 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 35
+  },
+  {
+    "blockTime": "1723836920 (16.08.2024 22:35:20 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 34
+  },
+  {
+    "blockTime": "1723836908 (16.08.2024 22:35:08 UTC+3)",
+    "sender": "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    "outdatedPriceCollections": [],
+    "counter": 33
   }
 ]
