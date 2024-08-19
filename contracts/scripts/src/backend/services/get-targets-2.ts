@@ -20,7 +20,9 @@ const PAGINATION = {
   BIDS: 100,
 };
 
-async function main(platformType: PlatformType) {
+const platformList: PlatformType[] = ["main", "stable"];
+
+async function main() {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
   });
@@ -38,15 +40,25 @@ async function main(platformType: PlatformType) {
   const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
 
   // initialization part - run it single time on script start
-  const [rateConfig, commonConfig] = await Promise.all([
-    lending.cwQueryRateConfig(platformType, true),
-    lending.cwQueryCommonConfig(platformType, true),
-  ]);
+  const [rateConfigMain, rateConfigStable] = await Promise.all(
+    platformList.map((platformType) =>
+      (async () => await lending.cwQueryRateConfig(platformType))()
+    )
+  );
 
-  const ltvMax = calcLtvMax(
-    Number(rateConfig.bid_min_rate),
-    Number(rateConfig.discount_max_rate),
-    Number(rateConfig.discount_min_rate)
+  const [commonConfigMain, commonConfigStable] = await Promise.all(
+    platformList.map((platformType) =>
+      (async () => await lending.cwQueryCommonConfig(platformType))()
+    )
+  );
+
+  const [ltvMaxMain, ltvMaxStable] = [rateConfigMain, rateConfigStable].map(
+    (rateConfig) =>
+      calcLtvMax(
+        Number(rateConfig.bid_min_rate),
+        Number(rateConfig.discount_max_rate),
+        Number(rateConfig.discount_min_rate)
+      )
   );
 
   // get blockTimeOffset to fix difference between local and network time
@@ -62,10 +74,12 @@ async function main(platformType: PlatformType) {
       const targets = await queryTargets(
         chainId,
         RPC,
-        platformType,
-        rateConfig,
-        commonConfig,
-        ltvMax,
+        rateConfigMain,
+        rateConfigStable,
+        commonConfigMain,
+        commonConfigStable,
+        ltvMaxMain,
+        ltvMaxStable,
         blockTimeOffset,
         PAGINATION.COLLATERAL,
         PAGINATION.BORROWERS,
@@ -81,4 +95,4 @@ async function main(platformType: PlatformType) {
 }
 
 // TODO: use both platforms
-main("main");
+main();

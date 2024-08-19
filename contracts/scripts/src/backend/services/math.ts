@@ -1,4 +1,5 @@
 import { PriceItem } from "../../common/codegen/Oracle.types";
+import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   Addr,
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -397,6 +398,7 @@ export function getCollateralValue(
 }
 
 interface TargetBorrower {
+  platformType: PlatformType;
   borrowerAddress: string;
   ltv: number;
   loanAmount: number;
@@ -406,8 +408,9 @@ interface TargetBorrower {
   collectionAndCollateralList: [string, Collateral][];
 }
 
-// get borrowers with ltv > ltvMax, sort by ltv descending
+// get borrowers with ltv > ltvMax
 export function getTargetBorrowers(
+  platformType: PlatformType,
   borrowerList: QueryBorrowersResponseItem[],
   collateralList: QueryCollateralsResponseItem[],
   priceList: PriceItem[],
@@ -416,54 +419,53 @@ export function getTargetBorrowers(
   ltvMax: number,
   blockTime: number
 ): TargetBorrower[] {
-  return borrowerList
-    .reduce(
-      (
-        acc,
-        { address: borrowerAddress, borrower: { loan, accumulated_loan } }
-      ) => {
-        const collectionAndCollateralListByBorrower = getCollateralsByBorrower(
-          collateralList,
-          borrowerAddress
-        );
+  return borrowerList.reduce(
+    (
+      acc,
+      { address: borrowerAddress, borrower: { loan, accumulated_loan } }
+    ) => {
+      const collectionAndCollateralListByBorrower = getCollateralsByBorrower(
+        collateralList,
+        borrowerAddress
+      );
 
-        const collateralValue =
-          getCollateralValue(
-            commonConfig.main_currency,
-            collectionAndCollateralListByBorrower,
-            priceList
-          ) || 0;
+      const collateralValue =
+        getCollateralValue(
+          commonConfig.main_currency,
+          collectionAndCollateralListByBorrower,
+          priceList
+        ) || 0;
 
-        const loanAmount = Number(loan.amount);
-        const accumulatedLoan = Number(accumulated_loan);
-        const ltv = calcConditionalLtv(
-          Number(rateConfig.borrow_apr),
-          0,
-          accumulatedLoan,
+      const loanAmount = Number(loan.amount);
+      const accumulatedLoan = Number(accumulated_loan);
+      const ltv = calcConditionalLtv(
+        Number(rateConfig.borrow_apr),
+        0,
+        accumulatedLoan,
+        loanAmount,
+        0,
+        collateralValue,
+        blockTime,
+        loan.creation_date
+      );
+
+      if (ltv > ltvMax) {
+        acc.push({
+          platformType,
+          borrowerAddress,
+          ltv,
           loanAmount,
-          0,
+          loanCreationDate: loan.creation_date,
+          accumulatedLoan,
           collateralValue,
-          blockTime,
-          loan.creation_date
-        );
+          collectionAndCollateralList: collectionAndCollateralListByBorrower,
+        });
+      }
 
-        if (ltv > ltvMax) {
-          acc.push({
-            borrowerAddress,
-            ltv,
-            loanAmount,
-            loanCreationDate: loan.creation_date,
-            accumulatedLoan,
-            collateralValue,
-            collectionAndCollateralList: collectionAndCollateralListByBorrower,
-          });
-        }
-
-        return acc;
-      },
-      [] as TargetBorrower[]
-    )
-    .sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
+      return acc;
+    },
+    [] as TargetBorrower[]
+  );
 }
 
 // find bids containing at least 1 borrower's collateral token
@@ -492,6 +494,7 @@ export function getCollectionAndBidList(
   return collectionAndBidList;
 }
 
+// TODO: collection offer must be consumed completely from both offer lists
 export function reduceBids(
   totalBids: QueryLiquidationBidsByCollectionAddressListResponseItem[],
   liquidationSet: BiddedCollateralItem[]
