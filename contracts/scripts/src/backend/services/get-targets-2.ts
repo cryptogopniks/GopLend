@@ -18,11 +18,16 @@ const PAGINATION = {
   BORROWERS: 100,
   PRICES: 100,
   BIDS: 100,
+  OFFERS: {
+    BATCH: 5,
+    LIMIT: 10,
+    COUNT: 20,
+  },
 };
 
 const platformList: PlatformType[] = ["main", "stable"];
 
-async function main() {
+async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
   });
@@ -37,7 +42,7 @@ async function main() {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, adapter } = await getCwQueryHelpers(chainId, RPC);
 
   // initialization part - run it single time on script start
   const [rateConfigMain, rateConfigStable] = await Promise.all(
@@ -51,6 +56,9 @@ async function main() {
       (async () => await lending.cwQueryCommonConfig(platformType))()
     )
   );
+
+  const { marketplace } = await adapter.marketplace.stargaze.cwQueryConfig();
+  if (!marketplace) throw new Error("Marketplace isn't found!");
 
   const [ltvMaxMain, ltvMaxStable] = [rateConfigMain, rateConfigStable].map(
     (rateConfig) =>
@@ -74,6 +82,7 @@ async function main() {
       const targets = await queryTargets(
         chainId,
         RPC,
+        marketplace,
         rateConfigMain,
         rateConfigStable,
         commonConfigMain,
@@ -84,15 +93,21 @@ async function main() {
         PAGINATION.COLLATERAL,
         PAGINATION.BORROWERS,
         PAGINATION.PRICES,
-        PAGINATION.BIDS
+        PAGINATION.BIDS,
+        PAGINATION.OFFERS.BATCH,
+        PAGINATION.OFFERS.LIMIT,
+        PAGINATION.OFFERS.COUNT
       );
 
       li({ targets });
     } catch (error) {
       l(error, "\n");
     }
+    l({ cycleLength: getLocalBlockTime() - date });
+
+    if (!isInfiniteLoop) break;
   }
 }
 
-// TODO: use both platforms
-main();
+// TODO: set true for production
+main(false);

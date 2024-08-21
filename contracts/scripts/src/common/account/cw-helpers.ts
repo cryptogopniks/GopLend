@@ -75,6 +75,18 @@ import {
   Metadata,
 } from "../codegen/Minter.types";
 import {
+  Bid,
+  BidsResponse,
+  CollectionBid,
+  CollectionBidsResponse,
+  CollectionInfoResponse,
+  ParamsResponse,
+  QueryCollectionInfo,
+  QueryParams,
+  QueryReverseBidsSortedByPrice,
+  QueryReverseCollectionBidsSortedByPrice,
+} from "../interfaces/stargaze-marketplace";
+import {
   Cw20SendMsg,
   TokenUnverified,
   ChainConfig,
@@ -90,6 +102,8 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
   Offer,
+  LiquidationBidExtended,
+  MarketplaceData,
 } from "../interfaces";
 
 function addSingleTokenToComposerObj(
@@ -1866,43 +1880,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     stargazeMarketplace: string,
     isDisplayed: boolean = false
   ) {
-    type Duration = { height: number } | { time: number };
-
-    interface ExpiryRange {
-      min: number;
-      max: number;
-    }
-
-    interface QueryParams {
-      params: {};
-    }
-
-    interface ParamsResponse {
-      params: {
-        /// Fair Burn fee for winning bids
-        trading_fee_percent: String;
-        /// Valid time range for Asks
-        /// (min, max) in seconds
-        ask_expiry: ExpiryRange;
-        /// Valid time range for Bids
-        /// (min, max) in seconds
-        bid_expiry: ExpiryRange;
-        /// Operators are entites that are responsible for maintaining the active state of Asks
-        /// They listen to NFT transfer events, and update the active state of Asks
-        operators: string[];
-        /// Max value for the finders fee
-        max_finders_fee_percent: string;
-        /// Min value for a bid
-        min_price: string;
-        /// Duration after expiry when a bid becomes stale
-        stale_bid_duration: Duration;
-        /// Stale bid removal reward
-        bid_removal_reward_percent: string;
-        /// Listing fee to reduce spam
-        listing_fee: string;
-      };
-    }
-
     const queryMsg: QueryParams = {
       params: {},
     };
@@ -1911,7 +1888,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       stargazeMarketplace,
       queryMsg
     );
-
     const networkFeeRate = Number(res.params.trading_fee_percent) / 100;
 
     return logAndReturn(networkFeeRate, isDisplayed);
@@ -1921,210 +1897,173 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     collectionAddress: string,
     isDisplayed: boolean = false
   ) {
-    interface QueryCollectionInfo {
-      collection_info: {};
-    }
-
     const queryMsg: QueryCollectionInfo = {
       collection_info: {},
     };
 
-    interface RoyaltyInfoResponse {
-      payment_address: string;
-      share: string;
-    }
-
-    interface Timestamp {
-      timestamp: number;
-    }
-
-    interface CollectionInfoResponse {
-      creator: String;
-      description: String;
-      image: String;
-      external_link?: string;
-      explicit_content?: boolean;
-      start_trading_time?: Timestamp;
-      royalty_info?: RoyaltyInfoResponse;
-    }
-
     const res: CollectionInfoResponse =
       await cosmwasmQueryClient.queryContractSmart(collectionAddress, queryMsg);
-
-    const royaltyFeeRate = Number(res.royalty_info?.share || "0") / 100;
+    const royaltyFeeRate = Number(res.royalty_info?.share);
 
     return logAndReturn(royaltyFeeRate, isDisplayed);
   }
 
-  async function cwQueryFinderFee(
-    collectionAddress: string,
+  async function pQueryMarketplaceTokenOffers(
+    marketplace: string,
+    collection: string,
+    blockTime: number,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
     isDisplayed: boolean = false
   ) {
-    interface QueryCollectionInfo {
-      collection_info: {};
+    const defaultItem: BidOffset = { bidder: "", price: "", token_id: 0 };
+
+    let allItems: Bid[] = [];
+    let lastItem: BidOffset | undefined = undefined;
+    let count: number = 0;
+
+    while (
+      JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
+      count < (maxCount || count + 1)
+    ) {
+      const queryMsg: QueryReverseBidsSortedByPrice = {
+        reverse_bids_sorted_by_price: {
+          collection,
+          limit: maxPaginationAmount,
+          start_before: lastItem,
+        },
+      };
+
+      const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
+        marketplace,
+        queryMsg
+      );
+
+      const { bidder, price, token_id } = getLast(res.bids) || defaultItem;
+      lastItem = { bidder, price, token_id };
+      const items = res.bids.filter(
+        (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
+      );
+      allItems = [...allItems, ...items];
+      count += items.length;
     }
 
-    const queryMsg: QueryCollectionInfo = {
-      collection_info: {},
-    };
-
-    interface RoyaltyInfoResponse {
-      payment_address: string;
-      share: string;
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
     }
 
-    interface Timestamp {
-      timestamp: number;
-    }
-
-    interface CollectionInfoResponse {
-      creator: String;
-      description: String;
-      image: String;
-      external_link?: string;
-      explicit_content?: boolean;
-      start_trading_time?: Timestamp;
-      royalty_info?: RoyaltyInfoResponse;
-    }
-
-    const res: CollectionInfoResponse =
-      await cosmwasmQueryClient.queryContractSmart(collectionAddress, queryMsg);
-
-    const royaltyFeeRate = Number(res.royalty_info?.share || "0") / 100;
-
-    return logAndReturn(royaltyFeeRate, isDisplayed);
+    return logAndReturn(allItems, isDisplayed);
   }
 
-  // async function cwQueryMarketplaceBids(
-  //   marketplace: string,
-  //   collection: string,
-  //   isDisplayed: boolean = false
-  // ) {
-  //   interface BidOffset {
-  //     price: string;
-  //     token_id: number;
-  //     bidder: string;
-  //   }
+  async function pQueryMarketplaceCollectionOffers(
+    marketplace: string,
+    collection: string,
+    blockTime: number,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ) {
+    const defaultItem: CollectionBidOffset = {
+      bidder: "",
+      price: "",
+      collection: "",
+    };
+    let allItems: CollectionBid[] = [];
+    let lastItem: CollectionBidOffset | undefined = undefined;
+    let count: number = 0;
 
-  //   interface QueryReverseBidsSortedByPrice {
-  //     reverse_bids_sorted_by_price: {
-  //       collection: string;
-  //       start_before?: BidOffset;
-  //       limit?: number;
-  //     };
-  //   }
+    while (
+      JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
+      count < (maxCount || count + 1)
+    ) {
+      const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
+        reverse_collection_bids_sorted_by_price: {
+          collection,
+          limit: maxPaginationAmount,
+          start_before: lastItem,
+        },
+      };
 
-  //   interface Timestamp {
-  //     timestamp: string;
-  //   }
+      const res: CollectionBidsResponse =
+        await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
 
-  //   interface Bid {
-  //     collection: string;
-  //     token_id: number;
-  //     bidder: string;
-  //     price: string;
-  //     finders_fee_bps?: number;
-  //     expires_at: Timestamp;
-  //   }
+      const {
+        bidder,
+        price,
+        collection: lastCollection,
+      } = getLast(res.bids) || defaultItem;
+      lastItem = { bidder, price, collection: lastCollection };
+      const items = res.bids.filter(
+        (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
+      );
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
 
-  //   interface BidsResponse {
-  //     bids: Bid[];
-  //   }
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
 
-  //   const limit: number = 100;
-  //   const defaultItem: BidOffset = { bidder: "", price: "", token_id: 0 };
-  //   let allItems: Bid[] = [];
-  //   let lastItem: BidOffset | undefined = undefined;
+    return logAndReturn(allItems, isDisplayed);
+  }
 
-  //   while (JSON.stringify(lastItem) !== JSON.stringify(defaultItem)) {
-  //     const queryMsg: QueryReverseBidsSortedByPrice = {
-  //       reverse_bids_sorted_by_price: {
-  //         collection,
-  //         limit,
-  //         start_before: lastItem,
-  //       },
-  //     };
+  async function cwGetMarketplaceData(
+    marketplace: string,
+    collectionList: string[],
+    blockTime: number,
+    batchPaginationAmount: number,
+    maxPaginationAmount: number,
+    maxCount: number
+  ): Promise<MarketplaceData> {
+    let promiseList: Promise<void>[] = [];
+    let tokenOfferList: [string, Bid[]][] = [];
+    let collectionOfferList: [string, CollectionBid[]][] = [];
+    let royaltyFeeList: [string, number][] = [];
 
-  //     const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
-  //       marketplace,
-  //       queryMsg
-  //     );
+    const fn = async (collection: string) => {
+      try {
+        const royaltyFee = await cwQueryRoyaltyFee(collection);
+        const marketplaceTokenOffers = await pQueryMarketplaceTokenOffers(
+          marketplace,
+          collection,
+          blockTime,
+          maxPaginationAmount,
+          maxCount
+        );
+        const marketplaceCollectionOffers =
+          await pQueryMarketplaceCollectionOffers(
+            marketplace,
+            collection,
+            blockTime,
+            maxPaginationAmount,
+            maxCount
+          );
 
-  //     const { bidder, price, token_id } = getLast(res.bids) || defaultItem;
-  //     lastItem = { bidder, price, token_id };
-  //     allItems = [...allItems, ...res.bids];
+        royaltyFeeList.push([collection, royaltyFee]);
+        tokenOfferList.push([collection, marketplaceTokenOffers]);
+        collectionOfferList.push([collection, marketplaceCollectionOffers]);
+      } catch (error) {
+        l(error);
+      }
+    };
 
-  //     l({ lastOffer: lastItem });
-  //   }
+    for (let i = 0; i < collectionList.length; i++) {
+      if (promiseList.length >= batchPaginationAmount) {
+        await Promise.all(promiseList);
+        promiseList = [];
+      }
 
-  //   return logAndReturn(allItems, isDisplayed);
-  // }
+      promiseList.push(fn(collectionList[i]));
+    }
 
-  // async function cwQueryMarketplaceCollectionBids(
-  //   marketplace: string,
-  //   collection: string,
-  //   isDisplayed: boolean = false
-  // ) {
-  //   interface CollectionBidOffset {
-  //     price: string;
-  //     collection: string;
-  //     bidder: string;
-  //   }
+    await Promise.all(promiseList);
 
-  //   interface QueryReverseCollectionBidsSortedByPrice {
-  //     reverse_collection_bids_sorted_by_price: {
-  //       collection: string;
-  //       start_before?: CollectionBidOffset;
-  //       limit?: number;
-  //     };
-  //   }
-
-  //   interface CollectionBid {
-  //     collection: string;
-  //     bidder: string;
-  //     price: string;
-  //     finders_fee_bps?: number;
-  //     expires_at: string;
-  //   }
-
-  //   interface CollectionBidsResponse {
-  //     bids: CollectionBid[];
-  //   }
-
-  //   const limit: number = 100;
-  //   const defaultItem: CollectionBidOffset = {
-  //     bidder: "",
-  //     price: "",
-  //     collection: "",
-  //   };
-  //   let allItems: CollectionBid[] = [];
-  //   let lastItem: CollectionBidOffset | undefined = undefined;
-
-  //   while (JSON.stringify(lastItem) !== JSON.stringify(defaultItem)) {
-  //     const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
-  //       reverse_collection_bids_sorted_by_price: {
-  //         collection,
-  //         limit,
-  //         start_before: lastItem,
-  //       },
-  //     };
-
-  //     const res: CollectionBidsResponse =
-  //       await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
-
-  //     const {
-  //       bidder,
-  //       price,
-  //       collection: lastCollection,
-  //     } = getLast(res.bids) || defaultItem;
-  //     lastItem = { bidder, price, collection: lastCollection };
-  //     allItems = [...allItems, ...res.bids];
-
-  //     l({ lastOffer: lastItem });
-  //   }
-
-  //   return logAndReturn(allItems, isDisplayed);
-  // }
+    return {
+      tokenOfferList,
+      collectionOfferList,
+      royaltyFeeList,
+    };
+  }
 
   // query first 10 token offers and 10 collection offers
   async function cwQueryMarketplaceOffers(
@@ -2134,33 +2073,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     isDisplayed: boolean = false
   ) {
     const getBids = async (): Promise<Offer[]> => {
-      interface BidOffset {
-        price: string;
-        token_id: number;
-        bidder: string;
-      }
-
-      interface QueryReverseBidsSortedByPrice {
-        reverse_bids_sorted_by_price: {
-          collection: string;
-          start_before?: BidOffset;
-          limit?: number;
-        };
-      }
-
-      interface Bid {
-        collection: string;
-        token_id: number;
-        bidder: string;
-        price: string;
-        finders_fee_bps?: number;
-        expires_at: string;
-      }
-
-      interface BidsResponse {
-        bids: Bid[];
-      }
-
       const queryMsg: QueryReverseBidsSortedByPrice = {
         reverse_bids_sorted_by_price: {
           collection,
@@ -2180,32 +2092,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     };
 
     const getCollectionBids = async (): Promise<Offer[]> => {
-      interface CollectionBidOffset {
-        price: string;
-        collection: string;
-        bidder: string;
-      }
-
-      interface QueryReverseCollectionBidsSortedByPrice {
-        reverse_collection_bids_sorted_by_price: {
-          collection: string;
-          start_before?: CollectionBidOffset;
-          limit?: number;
-        };
-      }
-
-      interface CollectionBid {
-        collection: string;
-        bidder: string;
-        price: string;
-        finders_fee_bps?: number;
-        expires_at: string;
-      }
-
-      interface CollectionBidsResponse {
-        bids: CollectionBid[];
-      }
-
       const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
         reverse_collection_bids_sorted_by_price: {
           collection,
@@ -3029,11 +2915,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryNftOwner,
       cwQueryNetworkFee,
       cwQueryRoyaltyFee,
-      cwQueryFinderFee,
-      // cwQueryMarketplaceBids,
-      // cwQueryMarketplaceCollectionBids,
-      cwQueryMarketplaceOffers,
-      cwGetMarketplaceOffers,
+      pQueryMarketplaceTokenOffers,
+      pQueryMarketplaceCollectionOffers,
+      cwGetMarketplaceData,
+      cwQueryMarketplaceOffers, // TODO: replace
+      cwGetMarketplaceOffers, // TODO: replace
     },
     adapter: {
       dex: {

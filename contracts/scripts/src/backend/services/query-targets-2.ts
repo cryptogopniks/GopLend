@@ -1,6 +1,7 @@
-import { l } from "../../common/utils";
+import { l, li } from "../../common/utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import { getBlockTime, wrapListQuerier } from "./utils";
 import {
   CommonConfig,
   LiquidationItem,
@@ -9,13 +10,14 @@ import {
 import {
   calcLiquidationSet,
   calcLiquidationValue,
+  distributeOffers,
   getCollectionAndBidList,
   getCollectionsFromLtvAndCollateralList,
   getTargetBorrowers,
   matchCollateralsAndBids,
+  mergeBidsAndOffers,
   reduceBids,
 } from "./math";
-import { getBlockTime, wrapListQuerier } from "./utils";
 
 const platformList: PlatformType[] = ["main", "stable"];
 
@@ -24,13 +26,14 @@ const platformList: PlatformType[] = ["main", "stable"];
 // handle both platforms
 // +migrate oracle
 // +migrate scheduler adapter
-// migrate marketplace adapter
+// +migrate marketplace adapter
 // +remove execution cooldown from scheduller adapter
 // +-add query frequency limiter
 // can multiple users share same collection offer?
 export async function queryTargets(
   chainId: string,
   rpc: string,
+  marketplace: string,
   rateConfigMain: RateConfig,
   rateConfigStable: RateConfig,
   commonConfigMain: CommonConfig,
@@ -41,7 +44,10 @@ export async function queryTargets(
   colateralPaginationAmount: number,
   borrowersPaginationAmount: number,
   pricesPaginationAmount: number,
-  bidsPaginationAmount: number
+  bidsPaginationAmount: number,
+  offersBatchPaginationAmount: number, // 5
+  offersMaxPaginationAmount: number, // 10
+  offersMaxCount: number // 20
 ): Promise<LiquidationItem[]> {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
@@ -91,6 +97,9 @@ export async function queryTargets(
     return [];
   }
 
+  const collectionList =
+    getCollectionsFromLtvAndCollateralList(ltvAndCollateralList);
+
   const [liquidationBidsMain, liquidationBidsStable] = await Promise.all(
     platformList.map((platformType) =>
       wrapListQuerier(
@@ -101,24 +110,39 @@ export async function queryTargets(
     )
   );
 
-  const [marketplaceOffersMain, marketplaceOffersStable] = await Promise.all(
-    platformList.map((platformType) =>
-      wrapListQuerier(
-        utils.cwGetMarketplaceOffers,
-        platformType,
-        getCollectionsFromLtvAndCollateralList(
-          platformType === "main"
-            ? ltvAndCollateralListMain
-            : ltvAndCollateralListStable
-        ),
-        (platformType === "main" ? commonConfigMain : commonConfigStable)
-          .is_marketplace_interface_enabled
-      )
-    )
+  // TODO: token querier may not be efficient
+  const { royaltyFeeList, tokenOfferList, collectionOfferList } =
+    await utils.cwGetMarketplaceData(
+      marketplace,
+      collectionList,
+      blockTime,
+      offersBatchPaginationAmount,
+      offersMaxPaginationAmount,
+      offersMaxCount
+    );
+
+  const networkFee = await utils.cwQueryNetworkFee(marketplace);
+  const { value: priceRatio } = await oracle.cwQueryPriceRatio();
+  const offers = distributeOffers(
+    collectionList,
+    collateralListMain,
+    collateralListStable,
+    tokenOfferList,
+    collectionOfferList,
+    royaltyFeeList,
+    networkFee,
+    Number(priceRatio),
+    blockTime,
+    platformList
   );
 
-  let totalBidsMain = [...liquidationBidsMain, ...marketplaceOffersMain];
-  let totalBidsStable = [...liquidationBidsStable, ...marketplaceOffersStable];
+  let totalBids = mergeBidsAndOffers(
+    liquidationBidsMain,
+    liquidationBidsStable,
+    offers
+  );
+
+  li(totalBids);
 
   // const liquidationTargets = ltvAndCollateralList.reduce(
   //   (

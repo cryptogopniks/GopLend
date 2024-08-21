@@ -1,5 +1,10 @@
 import { PriceItem } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import { LiquidationBidExtended } from "../../common/interfaces";
+import {
+  Bid,
+  CollectionBid,
+} from "../../common/interfaces/stargaze-marketplace";
 import {
   Addr,
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -554,4 +559,158 @@ export function getCollectionsFromLtvAndCollateralList(
 
     return acc;
   }, [] as string[]);
+}
+
+// imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
+// if we will assume the offer is 5 USDC we will lose some funds due to
+// swap fee, price impact, price ratio fluctuation
+// expecting 2 % losses we can accept 4.9 USDC offer
+//
+// price = base_price * price_ratio * (1 - price_impact)
+// as price_impact comes with price_ratio
+// price = base_price * price_ratio
+function calcPrice(basePrice: number, priceRatio: number): number {
+  return basePrice * priceRatio;
+}
+
+export function distributeOffers(
+  collectionList: string[],
+  collateralListMain: QueryCollateralsResponseItem[],
+  collateralListStable: QueryCollateralsResponseItem[],
+  tokenOfferList: [string, Bid[]][],
+  collectionOfferList: [string, CollectionBid[]][],
+  royaltyFeeList: [string, number][],
+  networkFee: number,
+  priceRatio: number,
+  blockTime: number,
+  platformList: PlatformType[]
+): LiquidationBidExtended[] {
+  let offers: LiquidationBidExtended[] = [];
+  let collectionOfferId = 0;
+
+  for (const collection of collectionList) {
+    const tokenOffers =
+      tokenOfferList.find(([address]) => address === collection)?.[1] || [];
+    const collectionOffers =
+      collectionOfferList.find(([address]) => address === collection)?.[1] ||
+      [];
+    if (!tokenOffers.length && !collectionOffers.length) continue;
+
+    const royaltyFee = Number(
+      royaltyFeeList.find(([address]) => address === collection)?.[1]
+    );
+    const discountBase = networkFee + royaltyFee;
+
+    const collateralMain =
+      collateralListMain.find((x) => x.address === collection)?.collateral ||
+      [];
+    const collateralStable =
+      collateralListStable.find((x) => x.address === collection)?.collateral ||
+      [];
+
+    const tokenListMain = collateralMain.flatMap((x) =>
+      x.token_item_list.map((y) => y.id)
+    );
+    const tokenListStable = collateralStable.flatMap((x) =>
+      x.token_item_list.map((y) => y.id)
+    );
+    if (!tokenListMain.length && !tokenListStable.length) continue;
+
+    for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
+      // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
+      let finders_fee_rate = Number(finders_fee_bps) / 100;
+      const tokenId = token_id.toString();
+
+      const isMain = collateralMain.find((x) =>
+        x.token_item_list.some((y) => y.id === tokenId)
+      );
+      const isStable = collateralStable.find((x) =>
+        x.token_item_list.some((y) => y.id === tokenId)
+      );
+      if (!isMain && !isStable) continue;
+
+      offers.push({
+        creationDate: blockTime,
+        liquidator: bidder,
+        tokenIdList: [tokenId],
+        amount: calcPrice(Number(price), isMain ? 1 : priceRatio),
+        discount: discountBase + finders_fee_rate,
+        bidType: "token_offer",
+        platformType: isMain ? "main" : "stable",
+        collectionOfferId: -1,
+        collectionAddress: collection,
+      });
+    }
+
+    for (const { price, bidder, finders_fee_bps } of collectionOffers) {
+      // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
+      let finders_fee_rate = Number(finders_fee_bps) / 100;
+
+      for (const platformType of platformList) {
+        const isMain = platformType === "main";
+        const tokenIdList = isMain ? tokenListMain : tokenListStable;
+        if (!tokenIdList.length) continue;
+
+        offers.push({
+          creationDate: blockTime,
+          liquidator: bidder,
+          tokenIdList,
+          amount: calcPrice(Number(price), isMain ? 1 : priceRatio),
+          discount: discountBase + finders_fee_rate,
+          bidType: "collection_offer",
+          platformType,
+          collectionOfferId,
+          collectionAddress: collection,
+        });
+      }
+
+      collectionOfferId++;
+    }
+  }
+
+  return offers;
+}
+
+export function mergeBidsAndOffers(
+  liquidationBidsMain: QueryLiquidationBidsByCollectionAddressListResponseItem[],
+  liquidationBidsStable: QueryLiquidationBidsByCollectionAddressListResponseItem[],
+  offers: LiquidationBidExtended[]
+): LiquidationBidExtended[] {
+  const liquidationBidsMainExtended: LiquidationBidExtended[] =
+    liquidationBidsMain.flatMap(({ collection_address, liquidation_bids }) => {
+      return liquidation_bids.map((x) => ({
+        creationDate: x.creation_date,
+        liquidator: x.liquidator,
+        tokenIdList: x.token_id_list,
+        amount: Number(x.amount),
+        discount: Number(x.discount),
+        bidType: x.bid_type,
+        platformType: "main",
+        collectionOfferId: -1,
+        collectionAddress: collection_address,
+      }));
+    });
+
+  const liquidationBidsStableExtended: LiquidationBidExtended[] =
+    liquidationBidsStable.flatMap(
+      ({ collection_address, liquidation_bids }) => {
+        return liquidation_bids.map((x) => ({
+          creationDate: x.creation_date,
+          liquidator: x.liquidator,
+          tokenIdList: x.token_id_list,
+          amount: Number(x.amount),
+          discount: Number(x.discount),
+          bidType: x.bid_type,
+          platformType: "stable",
+          collectionOfferId: -1,
+          collectionAddress: collection_address,
+        }));
+      }
+    );
+
+  return [
+    ...liquidationBidsMainExtended,
+    ...liquidationBidsStableExtended,
+    ...offers,
+  ];
 }
