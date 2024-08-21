@@ -18,9 +18,16 @@ const PAGINATION = {
   BORROWERS: 100,
   PRICES: 100,
   BIDS: 100,
+  OFFERS: {
+    BATCH: 5,
+    LIMIT: 10,
+    COUNT: 20,
+  },
 };
 
-async function main(platformType: PlatformType) {
+const platformList: PlatformType[] = ["main", "stable"];
+
+async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
   });
@@ -35,18 +42,31 @@ async function main(platformType: PlatformType) {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
+  const { lending, oracle, adapter } = await getCwQueryHelpers(chainId, RPC);
 
   // initialization part - run it single time on script start
-  const [rateConfig, commonConfig] = await Promise.all([
-    lending.cwQueryRateConfig(platformType, true),
-    lending.cwQueryCommonConfig(platformType, true),
-  ]);
+  const [rateConfigMain, rateConfigStable] = await Promise.all(
+    platformList.map((platformType) =>
+      (async () => await lending.cwQueryRateConfig(platformType))()
+    )
+  );
 
-  const ltvMax = calcLtvMax(
-    Number(rateConfig.bid_min_rate),
-    Number(rateConfig.discount_max_rate),
-    Number(rateConfig.discount_min_rate)
+  const [commonConfigMain, commonConfigStable] = await Promise.all(
+    platformList.map((platformType) =>
+      (async () => await lending.cwQueryCommonConfig(platformType))()
+    )
+  );
+
+  const { marketplace } = await adapter.marketplace.stargaze.cwQueryConfig();
+  if (!marketplace) throw new Error("Marketplace isn't found!");
+
+  const [ltvMaxMain, ltvMaxStable] = [rateConfigMain, rateConfigStable].map(
+    (rateConfig) =>
+      calcLtvMax(
+        Number(rateConfig.bid_min_rate),
+        Number(rateConfig.discount_max_rate),
+        Number(rateConfig.discount_min_rate)
+      )
   );
 
   // get blockTimeOffset to fix difference between local and network time
@@ -62,23 +82,32 @@ async function main(platformType: PlatformType) {
       const targets = await queryTargets(
         chainId,
         RPC,
-        platformType,
-        rateConfig,
-        commonConfig,
-        ltvMax,
+        marketplace,
+        rateConfigMain,
+        rateConfigStable,
+        commonConfigMain,
+        commonConfigStable,
+        ltvMaxMain,
+        ltvMaxStable,
         blockTimeOffset,
         PAGINATION.COLLATERAL,
         PAGINATION.BORROWERS,
         PAGINATION.PRICES,
-        PAGINATION.BIDS
+        PAGINATION.BIDS,
+        PAGINATION.OFFERS.BATCH,
+        PAGINATION.OFFERS.LIMIT,
+        PAGINATION.OFFERS.COUNT
       );
 
       li({ targets });
     } catch (error) {
       l(error, "\n");
     }
+    l({ cycleLength: getLocalBlockTime() - date });
+
+    if (!isInfiniteLoop) break;
   }
 }
 
-// TODO: use both platforms
-main("main");
+// TODO: set true for production
+main(false);

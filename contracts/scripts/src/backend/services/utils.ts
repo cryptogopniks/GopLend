@@ -1,5 +1,5 @@
 import { access, readFile } from "fs/promises";
-import { decrypt, floor, getLast } from "../../common/utils";
+import { decrypt, floor, getLast, l } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 import { Label } from "../../common/config";
@@ -179,6 +179,19 @@ function getBlockTime(blockTimeOffset: number): number {
   return blockTimeOffset + getLocalBlockTime();
 }
 
+async function wrapListQuerier<T>(
+  fn: (platformType: PlatformType, ...args: any) => Promise<T[]>,
+  platformType: PlatformType,
+  ...args: any
+): Promise<T[]> {
+  try {
+    return await fn(platformType, ...args);
+  } catch (error) {
+    l(error);
+    return [];
+  }
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -194,4 +207,5 @@ export {
   specifyTimeout,
   getLocalBlockTime,
   getBlockTime,
+  wrapListQuerier,
 };

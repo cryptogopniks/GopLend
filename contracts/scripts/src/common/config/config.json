@@ -94,7 +94,7 @@
           "DENOM": "ustars",
           "CHAIN_ID": "stargaze-1",
           "RPC_LIST": [
-            "https://stargaze-rpc.reece.sh:443"
+            "https://rpc.stargaze-apis.com:443"
           ],
           "GAS_PRICE_AMOUNT": 1.1,
           "STORE_CODE_GAS_MULTIPLIER": 19.5,
