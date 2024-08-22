@@ -95,25 +95,21 @@ export function choosePrice(
 export function matchCollateralsAndBids(
   mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  collectionAndBidList: [Addr, LiquidationBid][],
+  collectionAndBidList: LiquidationBidExtended[],
   priceList: PriceItem[]
 ): BiddedCollateralItem[] {
   // set bids priority
   collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.amount) - Number(bidB.amount)
+    (bidA, bidB) => Number(bidA.amount) - Number(bidB.amount)
   );
   collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.creation_date) - Number(bidB.creation_date)
+    (bidA, bidB) => Number(bidA.creationDate) - Number(bidB.creationDate)
   );
   collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.discount) - Number(bidB.discount)
+    (bidA, bidB) => Number(bidA.discount) - Number(bidB.discount)
   );
   collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.bid_type) - Number(bidB.bid_type)
+    (bidA, bidB) => Number(bidA.bidType) - Number(bidB.bidType)
   );
 
   // add best bid for each collateral token
@@ -132,10 +128,10 @@ export function matchCollateralsAndBids(
 
     for (const tokenItem of collateral.token_item_list) {
       for (let i = 0; i < collectionAndBidList.length; i++) {
-        const [_bid_collection, bid] = collectionAndBidList[i];
+        const bid = collectionAndBidList[i];
 
         const { bidAmount, discountedPrice, liquidationPrice } =
-          bid.bid_type === "liquidation_bid"
+          bid.bidType === "liquidation_bid"
             ? (() => {
                 // bids
                 const bidAmount = Number(bid.amount);
@@ -160,7 +156,7 @@ export function matchCollateralsAndBids(
               })();
 
         if (
-          bid.token_id_list.includes(tokenItem.id) &&
+          bid.tokenIdList.includes(tokenItem.id) &&
           bidAmount >= discountedPrice
         ) {
           const biddedCollateralItem: BiddedCollateralItem = {
@@ -168,19 +164,17 @@ export function matchCollateralsAndBids(
             token_item: tokenItem,
             owner: collateral.owner,
             liquidator: bid.liquidator,
-            bid_creation_date: bid.creation_date,
+            bid_creation_date: bid.creationDate,
             liquidation_price: liquidationPrice.toString(),
             collateral_price: price,
-            bid_amount: bid.amount,
-            bid_discount: bid.discount,
-            bid_type: bid.bid_type,
+            bid_amount: bid.amount.toString(),
+            bid_discount: bid.discount.toString(),
+            bid_type: bid.bidType,
           };
 
           biddedCollateralList.push(biddedCollateralItem);
 
-          collectionAndBidList[i][1].amount = (
-            bidAmount - discountedPrice
-          ).toString();
+          collectionAndBidList[i].amount = bidAmount - discountedPrice;
           break;
         }
       }
@@ -475,76 +469,69 @@ export function getTargetBorrowers(
 
 // find bids containing at least 1 borrower's collateral token
 export function getCollectionAndBidList(
-  liquidationBids: ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
+  liquidationBids: LiquidationBidExtended[],
   collectionAndCollateralListByBorrower: [Addr, Collateral][]
-): [Addr, LiquidationBid][] {
-  let collectionAndBidList: [Addr, LiquidationBid][] = [];
+): LiquidationBidExtended[] {
+  let collectionAndBidList: LiquidationBidExtended[] = [];
 
-  for (const { collection_address, liquidation_bids } of liquidationBids) {
-    for (const bid of liquidation_bids) {
-      const matchingCollateral = collectionAndCollateralListByBorrower.some(
-        ([collection, collateral]) =>
-          collection === collection_address &&
-          bid.token_id_list.some((bidTokenId) =>
-            collateral.token_item_list.some(({ id }) => id === bidTokenId)
-          )
-      );
+  for (const bid of liquidationBids) {
+    const matchingCollateral = collectionAndCollateralListByBorrower.some(
+      ([collection, collateral]) =>
+        collection === bid.collectionAddress &&
+        bid.tokenIdList.some((bidTokenId) =>
+          collateral.token_item_list.some(({ id }) => id === bidTokenId)
+        )
+    );
 
-      if (matchingCollateral) {
-        collectionAndBidList.push([collection_address, bid]);
-      }
+    if (matchingCollateral) {
+      collectionAndBidList.push(bid);
     }
   }
 
   return collectionAndBidList;
 }
 
-// TODO: collection offer must be consumed completely from both offer lists
 export function reduceBids(
-  totalBids: QueryLiquidationBidsByCollectionAddressListResponseItem[],
+  platformType: PlatformType,
+  totalBidsMain: LiquidationBidExtended[],
+  totalBidsStable: LiquidationBidExtended[],
   liquidationSet: BiddedCollateralItem[]
-): QueryLiquidationBidsByCollectionAddressListResponseItem[] {
-  return totalBids.reduce((acc, { collection_address, liquidation_bids }) => {
-    const liquidationSetByCollection = liquidationSet.filter(
-      (x) => x.collection === collection_address
-    );
+): {
+  totalBidsMain: LiquidationBidExtended[];
+  totalBidsStable: LiquidationBidExtended[];
+} {
+  let [totalBidsPrimary, totalBidsSecondary] =
+    platformType === "main"
+      ? [totalBidsMain, totalBidsStable]
+      : [totalBidsStable, totalBidsMain];
 
-    if (!liquidationSetByCollection.length) {
-      acc.push({ collection_address, liquidation_bids });
-      return acc;
-    }
-
-    const liquidationBids = liquidation_bids.reduce((acc, cur) => {
-      let bidAmount = Number(cur.amount);
-      let tokenIdList = cur.token_id_list;
-
-      liquidationSetByCollection.forEach(
-        ({ token_item, liquidation_price }) => {
-          if (tokenIdList.includes(token_item.id)) {
-            bidAmount -= Math.min(Number(liquidation_price), bidAmount);
-            tokenIdList = tokenIdList.filter((id) => id !== token_item.id);
-          }
-        }
-      );
-
-      if (tokenIdList.length && !bidAmount) {
-        acc.push({
-          ...cur,
-          amount: bidAmount.toString(),
-          token_id_list: tokenIdList,
-        });
+  for (const { collection, token_item, liquidation_price } of liquidationSet) {
+    totalBidsPrimary = totalBidsPrimary.reduce((acc, bid) => {
+      if (
+        bid.collectionAddress !== collection ||
+        !bid.tokenIdList.includes(token_item.id)
+      ) {
+        acc.push(bid);
+        return acc;
       }
 
-      return acc;
-    }, [] as LiquidationBid[]);
+      if (bid.bidType === "collection_offer") {
+        totalBidsSecondary = totalBidsSecondary.filter(
+          (x) => x.collectionOfferId !== bid.collectionOfferId
+        );
+        return acc;
+      }
 
-    if (!liquidationBids.length) {
+      bid.amount -= Math.min(Number(liquidation_price), bid.amount);
+      bid.tokenIdList = bid.tokenIdList.filter((id) => id !== token_item.id);
+      if (bid.tokenIdList.length && !bid.amount) {
+        acc.push(bid);
+      }
       return acc;
-    }
+    }, [] as LiquidationBidExtended[]);
+  }
 
-    acc.push({ collection_address, liquidation_bids: liquidationBids });
-    return acc;
-  }, [] as QueryLiquidationBidsByCollectionAddressListResponseItem[]);
+  return { totalBidsMain, totalBidsStable };
 }
 
 export function getCollectionsFromLtvAndCollateralList(

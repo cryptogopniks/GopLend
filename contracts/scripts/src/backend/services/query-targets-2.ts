@@ -23,7 +23,7 @@ const platformList: PlatformType[] = ["main", "stable"];
 
 // TODO:
 // +check it's safe to use utils.cwGetMarketplaceOffers
-// handle both platforms
+// +handle both platforms
 // +migrate oracle
 // +migrate scheduler adapter
 // +migrate marketplace adapter
@@ -136,79 +136,96 @@ export async function queryTargets(
     platformList
   );
 
-  let totalBids = mergeBidsAndOffers(
+  // TODO: replace with splitter
+  const totalBidsCommon = mergeBidsAndOffers(
     liquidationBidsMain,
     liquidationBidsStable,
     offers
   );
 
-  li(totalBids);
+  let totalBidsMain = totalBidsCommon.filter((x) => x.platformType === "main");
+  let totalBidsStable = totalBidsCommon.filter(
+    (x) => x.platformType === "stable"
+  );
 
-  // const liquidationTargets = ltvAndCollateralList.reduce(
-  //   (
-  //     acc,
-  //     {
-  //       platformType,
-  //       borrowerAddress,
-  //       ltv,
-  //       loanAmount,
-  //       loanCreationDate,
-  //       accumulatedLoan,
-  //       collateralValue,
-  //       collectionAndCollateralList,
-  //     }
-  //   ) => {
-  //     const collectionAndBidList = getCollectionAndBidList(
-  //       totalBids,
-  //       collectionAndCollateralList
-  //     );
+  const liquidationTargets = ltvAndCollateralList.reduce(
+    (
+      acc,
+      {
+        platformType,
+        borrowerAddress,
+        ltv,
+        loanAmount,
+        loanCreationDate,
+        accumulatedLoan,
+        collateralValue,
+        collectionAndCollateralList,
+      }
+    ) => {
+      const isMain = platformType === "main";
+      const { main_currency } = isMain ? commonConfigMain : commonConfigStable;
+      const { discount_max_rate, borrow_apr } = isMain
+        ? rateConfigMain
+        : rateConfigStable;
+      const ltvMax = isMain ? ltvMaxMain : ltvMaxStable;
+      const totalBids = isMain ? totalBidsMain : totalBidsStable;
 
-  //     const biddedCollateralList = matchCollateralsAndBids(
-  //       commonConfig.main_currency,
-  //       collectionAndCollateralList,
-  //       collectionAndBidList,
-  //       priceList
-  //     );
+      const collectionAndBidList = getCollectionAndBidList(
+        totalBids,
+        collectionAndCollateralList
+      );
 
-  //     // calculate how much tokens and what collection must be liquidated to get proper ltv
-  //     // for worst case (max discount)
-  //     const maxLiquidationValue = calcLiquidationValue(
-  //       collateralValue,
-  //       Number(rateConfig.discount_max_rate),
-  //       ltv,
-  //       ltvMax
-  //     );
+      const biddedCollateralList = matchCollateralsAndBids(
+        main_currency,
+        collectionAndCollateralList,
+        collectionAndBidList,
+        priceList
+      );
 
-  //     const liquidationSet = calcLiquidationSet(
-  //       biddedCollateralList,
-  //       maxLiquidationValue,
-  //       ltvMax,
-  //       Number(rateConfig.borrow_apr),
-  //       accumulatedLoan,
-  //       loanAmount,
-  //       collateralValue,
-  //       blockTime,
-  //       loanCreationDate
-  //     );
+      // calculate how much tokens and what collection must be liquidated to get proper ltv
+      // for worst case (max discount)
+      const maxLiquidationValue = calcLiquidationValue(
+        collateralValue,
+        Number(discount_max_rate),
+        ltv,
+        ltvMax
+      );
 
-  //     if (liquidationSet.length) {
-  //       // remove used bids from totalBids
-  //       totalBids = reduceBids(totalBids, liquidationSet);
+      const liquidationSet = calcLiquidationSet(
+        biddedCollateralList,
+        maxLiquidationValue,
+        ltvMax,
+        Number(borrow_apr),
+        accumulatedLoan,
+        loanAmount,
+        collateralValue,
+        blockTime,
+        loanCreationDate
+      );
 
-  //       acc.push({
-  //         borrower: borrowerAddress,
-  //         liquidation_set: liquidationSet,
-  //       });
-  //     } else {
-  //       l(
-  //         `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
-  //       );
-  //     }
+      if (liquidationSet.length) {
+        // remove used bids
+        ({ totalBidsMain, totalBidsStable } = reduceBids(
+          platformType,
+          totalBidsMain,
+          totalBidsStable,
+          liquidationSet
+        ));
 
-  //     return acc;
-  //   },
-  //   [] as LiquidationItem[]
-  // );
+        acc.push({
+          borrower: borrowerAddress,
+          liquidation_set: liquidationSet,
+        });
+      } else {
+        l(
+          `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
+        );
+      }
 
-  return [];
+      return acc;
+    },
+    [] as LiquidationItem[]
+  );
+
+  return liquidationTargets;
 }
