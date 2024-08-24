@@ -2232,6 +2232,33 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function cwAdapterMarketplaceStargazeQueryTokenOffers(
+    collectionAddress: string,
+    tokenList: string[],
+    limit: number = 100,
+    isDisplayed: boolean = false
+  ) {
+    const res = await adapterMarketplaceStargazeQueryClient.queryTokenOffers({
+      collectionAddress,
+      tokenList: tokenList.map(Number),
+      limit,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwAdapterMarketplaceStargazeQueryCollectionOffers(
+    collectionAddress: string,
+    limit: number = 100,
+    isDisplayed: boolean = false
+  ) {
+    const res =
+      await adapterMarketplaceStargazeQueryClient.queryCollectionOffers({
+        collectionAddress,
+        limit,
+      });
+    return logAndReturn(res, isDisplayed);
+  }
+
   async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
     platformType: PlatformType,
     collectionAddress: string,
@@ -2932,6 +2959,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         kujira: {},
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
+          cwAdapterMarketplaceStargazeQueryTokenOffers,
+          cwAdapterMarketplaceStargazeQueryCollectionOffers,
           cwQueryOffersByCollectionAddress:
             cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress,
         },

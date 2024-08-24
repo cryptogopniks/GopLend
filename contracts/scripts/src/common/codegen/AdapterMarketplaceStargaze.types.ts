@@ -57,6 +57,17 @@ export interface TokenItem {
 export type QueryMsg = {
   query_config: {};
 } | {
+  query_token_offers: {
+    collection_address: string;
+    limit: number;
+    token_list: number[];
+  };
+} | {
+  query_collection_offers: {
+    collection_address: string;
+    limit: number;
+  };
+} | {
   query_offers_by_collection_address: {
     collection_address: string;
     expiration_delay: number;
@@ -80,6 +91,20 @@ export interface BidOffset {
 export interface MigrateMsg {
   version: string;
 }
+export type Timestamp = Uint64;
+export type Uint64 = string;
+export interface QueryCollectionOffersResponse {
+  collection_bids: CollectionBid[];
+  discount_base: Decimal;
+  price_ratio_stable: Decimal;
+}
+export interface CollectionBid {
+  bidder: Addr;
+  collection: Addr;
+  expires_at: Timestamp;
+  finders_fee_bps?: number | null;
+  price: Uint128;
+}
 export interface Config {
   adapter_dex?: Addr | null;
   admin: Addr;
@@ -102,4 +127,13 @@ export interface LiquidationBid {
   discount: Decimal;
   liquidator: Addr;
   token_id_list: string[];
+}
+export type ArrayOfTupleOfuint32AndArrayOfBid = [number, Bid[]][];
+export interface Bid {
+  bidder: Addr;
+  collection: Addr;
+  expires_at: Timestamp;
+  finders_fee_bps?: number | null;
+  price: Uint128;
+  token_id: number;
 }

@@ -12,7 +12,7 @@ use sg_marketplace::{
 
 use goplend_base::{
     adapters::marketplace::stargaze::{
-        msg::QueryOffersByCollectionAddressResponse,
+        msg::{QueryCollectionOffersResponse, QueryOffersByCollectionAddressResponse},
         state::{CONFIG, PAGINATION_DEFAULT_LIMIT},
         types::{Config, PlatformType},
     },
@@ -28,6 +28,99 @@ use goplend_base::{
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
+}
+
+pub fn query_token_offers(
+    deps: Deps,
+    _env: Env,
+    collection_address: String,
+    token_list: Vec<u32>,
+    limit: u32, // max 100
+) -> StdResult<Vec<(u32, Vec<Bid>)>> {
+    let marketplace = &unwrap_field(CONFIG.load(deps.storage)?.marketplace, "marketplace")?;
+
+    token_list
+        .into_iter()
+        .map(|token_id| -> StdResult<(u32, Vec<Bid>)> {
+            let BidsResponse { bids } = deps.querier.query_wasm_smart(
+                marketplace,
+                &MarketplaceQueryMsg::Bids {
+                    collection: collection_address.clone(),
+                    token_id,
+                    start_after: None,
+                    limit: Some(limit),
+                },
+            )?;
+
+            Ok((token_id, bids))
+        })
+        .collect::<StdResult<Vec<_>>>()
+}
+
+pub fn query_collection_offers(
+    deps: Deps,
+    _env: Env,
+    collection_address: String,
+    limit: u32,
+) -> StdResult<QueryCollectionOffersResponse> {
+    let Config {
+        oracle,
+        marketplace,
+        ..
+    } = CONFIG.load(deps.storage)?;
+    let oracle = &unwrap_field(oracle, "oracle")?;
+    let marketplace = &unwrap_field(marketplace, "marketplace")?;
+
+    let PriceRatioItem {
+        value: price_ratio_stable,
+        is_outdated,
+        ..
+    } = deps.querier.query_wasm_smart(
+        oracle,
+        &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+    )?;
+
+    if is_outdated {
+        Err(ContractError::OutdatedPrice {
+            val: price_ratio_stable.to_string(),
+        })?;
+    }
+
+    // get network fee rate
+    let params_response: ParamsResponse = deps
+        .querier
+        .query_wasm_smart(marketplace, &MarketplaceQueryMsg::Params {})?;
+    let network_fee_rate = params_response.params.trading_fee_percent / u128_to_dec(100u128);
+
+    // get collection royalty
+    let collection_info = deps.querier.query_wasm_smart::<CollectionInfoResponse>(
+        collection_address.clone(),
+        &Sg721QueryMsg::CollectionInfo {},
+    );
+    let royalty_fee_rate = match collection_info {
+        // cw721
+        Err(_) => Decimal::zero(),
+        // sg721
+        Ok(x) => x.royalty_info.map(|x| x.share).unwrap_or_default(),
+    };
+    let discount_base = royalty_fee_rate + network_fee_rate;
+
+    let CollectionBidsResponse {
+        bids: collection_bids,
+    } = deps.querier.query_wasm_smart(
+        marketplace,
+        &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
+            collection: collection_address.to_string(),
+            start_before: None,
+            limit: Some(limit),
+        },
+    )?;
+
+    Ok(QueryCollectionOffersResponse {
+        collection_bids,
+        discount_base,
+        price_ratio_stable,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
