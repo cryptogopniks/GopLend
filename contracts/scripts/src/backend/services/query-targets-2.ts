@@ -22,6 +22,7 @@ import {
 const platformList: PlatformType[] = ["main", "stable"];
 
 // TODO:
+// limit amount of liquidation per cycle to not shift collection price too fast
 // migrate marketplace adapter again
 // can multiple users share same collection offer?
 // +check it's safe to use utils.cwGetMarketplaceOffers

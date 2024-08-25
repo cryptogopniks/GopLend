@@ -40,6 +40,13 @@ export const ADDRESS = {
     ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
+    LIQUIDATION_CONTROLLER_LIST: [
+      "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+      "stars1zwq7nlqm94pcg879vrww2mtawtp28gdkd8uz2v",
+      "stars106jszpr7vxk8z6ww5p3dwuq5qpzr2mfmv04xtv",
+      "stars1a5d2m8dv4l5hzkv5glnwufxecqt6dzyg23zewf",
+      "stars17daccunykmpvrnkhnhe9v8axknwynzm8jnw5sx",
+    ],
     ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     MARKETPLACE:
       "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
