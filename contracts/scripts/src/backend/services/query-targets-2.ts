@@ -22,6 +22,8 @@ import {
 const platformList: PlatformType[] = ["main", "stable"];
 
 // TODO:
+// migrate marketplace adapter again
+// can multiple users share same collection offer?
 // +check it's safe to use utils.cwGetMarketplaceOffers
 // +handle both platforms
 // +migrate oracle
@@ -29,25 +31,24 @@ const platformList: PlatformType[] = ["main", "stable"];
 // +migrate marketplace adapter
 // +remove execution cooldown from scheduller adapter
 // +-add query frequency limiter
-// can multiple users share same collection offer?
 export async function queryTargets(
   chainId: string,
   rpc: string,
-  marketplace: string,
   rateConfigMain: RateConfig,
   rateConfigStable: RateConfig,
   commonConfigMain: CommonConfig,
   commonConfigStable: CommonConfig,
   ltvMaxMain: number,
   ltvMaxStable: number,
+  ltvMaxFraction: number,
   blockTimeOffset: number, // several seconds to consider query delays
   colateralPaginationAmount: number,
   borrowersPaginationAmount: number,
   pricesPaginationAmount: number,
   bidsPaginationAmount: number,
   offersBatchPaginationAmount: number, // 5
-  offersMaxPaginationAmount: number, // 10
-  offersMaxCount: number // 20
+  collectionOffersPaginationAmount: number, // 50
+  tokenOffersPaginationAmount: number // 20
 ): Promise<LiquidationItem[]> {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
@@ -110,42 +111,36 @@ export async function queryTargets(
     )
   );
 
-  // TODO: token querier may not be efficient
-  const { royaltyFeeList, tokenOfferList, collectionOfferList } =
-    await utils.cwGetMarketplaceData(
-      marketplace,
-      collectionList,
-      blockTime,
-      offersBatchPaginationAmount,
-      offersMaxPaginationAmount,
-      offersMaxCount
-    );
+  const {
+    tokenOfferList,
+    collectionOfferList,
+    discountBaseList,
+    priceRatioStable,
+  } = await utils.cwGetMarketplaceData(
+    ltvAndCollateralList,
+    collectionList,
+    blockTime,
+    offersBatchPaginationAmount,
+    collectionOffersPaginationAmount,
+    tokenOffersPaginationAmount
+  );
 
-  const networkFee = await utils.cwQueryNetworkFee(marketplace);
-  const { value: priceRatio } = await oracle.cwQueryPriceRatio();
   const offers = distributeOffers(
     collectionList,
     collateralListMain,
     collateralListStable,
     tokenOfferList,
     collectionOfferList,
-    royaltyFeeList,
-    networkFee,
-    Number(priceRatio),
+    discountBaseList,
+    priceRatioStable,
     blockTime,
     platformList
   );
 
-  // TODO: replace with splitter
-  const totalBidsCommon = mergeBidsAndOffers(
+  let { totalBidsMain, totalBidsStable } = mergeBidsAndOffers(
     liquidationBidsMain,
     liquidationBidsStable,
     offers
-  );
-
-  let totalBidsMain = totalBidsCommon.filter((x) => x.platformType === "main");
-  let totalBidsStable = totalBidsCommon.filter(
-    (x) => x.platformType === "stable"
   );
 
   const liquidationTargets = ltvAndCollateralList.reduce(
@@ -188,7 +183,8 @@ export async function queryTargets(
         collateralValue,
         Number(discount_max_rate),
         ltv,
-        ltvMax
+        ltvMax,
+        ltvMaxFraction
       );
 
       const liquidationSet = calcLiquidationSet(

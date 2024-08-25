@@ -12,7 +12,7 @@ import {
   calcLiquidationValue,
   calcLtvMax,
   choosePrice,
-  matchCollateralsAndBids,
+  matchCollateralsAndBidsLegacy,
 } from "./math";
 import {
   Addr,
@@ -256,7 +256,7 @@ export async function queryTargets(
       collectionAndCollateralListByBorrower
     );
 
-    const biddedCollateralList = matchCollateralsAndBids(
+    const biddedCollateralList = matchCollateralsAndBidsLegacy(
       commonConfig.main_currency,
       collectionAndCollateralListByBorrower,
       collectionAndBidList,
@@ -269,7 +269,8 @@ export async function queryTargets(
       collateralValue,
       Number(rateConfig.discount_max_rate),
       ltv,
-      ltvMax
+      ltvMax,
+      1
     );
 
     const liquidation_set = calcLiquidationSet(

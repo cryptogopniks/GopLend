@@ -1,13 +1,15 @@
 import { PriceItem } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
-import { LiquidationBidExtended } from "../../common/interfaces";
+import {
+  LiquidationBidExtended,
+  TargetBorrower,
+} from "../../common/interfaces";
 import {
   Bid,
   CollectionBid,
 } from "../../common/interfaces/stargaze-marketplace";
 import {
   Addr,
-  ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
   BiddedCollateralItem,
   Collateral,
   CommonConfig,
@@ -81,6 +83,113 @@ export function choosePrice(
     JSON.stringify(priceItem.price.currency.token)
     ? priceItem.price.amount
     : priceItem.usd_price.amount;
+}
+
+// Places bid on each collateral token, best bids have higher priority
+//
+// Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
+// is floating), offfers from 100 % or more (liquidation price is fixed). Here are examples:
+// 1) Bid for 200 at a 5 % discount. At liquidation, the token price is 100,
+// but the liquidation price is 95. After liquidation the bid is 105, you can withdraw it
+// and get the balance back
+// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
+// but the liquidation price is 190. After liquidation the offer will be consumed completely
+export function matchCollateralsAndBidsLegacy(
+  mainCurrency: CurrencyForToken,
+  collectionAndCollateralListByBorrower: [Addr, Collateral][],
+  collectionAndBidList: [Addr, LiquidationBid][],
+  priceList: PriceItem[]
+): BiddedCollateralItem[] {
+  // set bids priority
+  collectionAndBidList.sort(
+    ([_collectionA, bidA], [_collectionB, bidB]) =>
+      Number(bidA.amount) - Number(bidB.amount)
+  );
+  collectionAndBidList.sort(
+    ([_collectionA, bidA], [_collectionB, bidB]) =>
+      Number(bidA.creation_date) - Number(bidB.creation_date)
+  );
+  collectionAndBidList.sort(
+    ([_collectionA, bidA], [_collectionB, bidB]) =>
+      Number(bidA.discount) - Number(bidB.discount)
+  );
+  collectionAndBidList.sort(
+    ([_collectionA, bidA], [_collectionB, bidB]) =>
+      Number(bidA.bid_type) - Number(bidB.bid_type)
+  );
+
+  // add best bid for each collateral token
+  let biddedCollateralList: BiddedCollateralItem[] = [];
+
+  for (const [
+    collateral_collection,
+    collateral,
+  ] of collectionAndCollateralListByBorrower) {
+    const priceItem = priceList.find(
+      (x) => x.address === collateral_collection
+    );
+    if (!priceItem) continue;
+
+    const price = choosePrice(mainCurrency, priceItem);
+
+    for (const tokenItem of collateral.token_item_list) {
+      for (let i = 0; i < collectionAndBidList.length; i++) {
+        const [_bid_collection, bid] = collectionAndBidList[i];
+
+        const { bidAmount, discountedPrice, liquidationPrice } =
+          bid.bid_type === "liquidation_bid"
+            ? (() => {
+                // bids
+                const bidAmount = Number(bid.amount);
+                const discountedPrice = calcDiscountedAmount(
+                  Number(price),
+                  Number(bid.discount)
+                );
+                const liquidationPrice = discountedPrice;
+
+                return { bidAmount, discountedPrice, liquidationPrice };
+              })()
+            : (() => {
+                // offers
+                const bidAmount = calcDiscountedAmount(
+                  Number(bid.amount),
+                  Number(bid.discount)
+                );
+                const discountedPrice = Number(price);
+                const liquidationPrice = bidAmount;
+
+                return { bidAmount, discountedPrice, liquidationPrice };
+              })();
+
+        if (
+          bid.token_id_list.includes(tokenItem.id) &&
+          bidAmount >= discountedPrice
+        ) {
+          const biddedCollateralItem: BiddedCollateralItem = {
+            collection: collateral_collection,
+            token_item: tokenItem,
+            owner: collateral.owner,
+            liquidator: bid.liquidator,
+            bid_creation_date: bid.creation_date,
+            liquidation_price: liquidationPrice.toString(),
+            collateral_price: price,
+            bid_amount: bid.amount,
+            bid_discount: bid.discount,
+            bid_type: bid.bid_type,
+          };
+
+          biddedCollateralList.push(biddedCollateralItem);
+
+          collectionAndBidList[i][1].amount = (
+            bidAmount - discountedPrice
+          ).toString();
+          break;
+        }
+      }
+    }
+  }
+
+  return biddedCollateralList;
 }
 
 // Places bid on each collateral token, best bids have higher priority
@@ -184,19 +293,27 @@ export function matchCollateralsAndBids(
   return biddedCollateralList;
 }
 
-// ltvMax = (loan - (1 - discount) * liquidation_value) / (collateral - liquidation_value)
-// ltvMax * collateral - ltvMax * liquidation_value = loan - (1 - discount) * liquidation_value
-// (1 - discount - ltvMax) * liquidation_value = loan - ltvMax * collateral
-// liquidation_value = (loan - ltvMax * collateral) / (1 - discount - ltvMax)
-// liquidation_value = collateral * (ltv - ltvMax) / (1 - discount - ltvMax)
+// targetLtv = (loan - (1 - discount) * liquidation_value) / (collateral - liquidation_value)
+// targetLtv * collateral - targetLtv * liquidation_value = loan - (1 - discount) * liquidation_value
+// (1 - discount - targetLtv) * liquidation_value = loan - targetLtv * collateral
+// liquidation_value = (loan - targetLtv * collateral) / (1 - discount - targetLtv)
+// liquidation_value = collateral * (ltv - targetLtv) / (1 - discount - targetLtv)
+// targetLtv = ltvMaxFraction * ltvMax
 export function calcLiquidationValue(
   collateral: number,
   discountRate: number,
   ltv: number,
-  ltvMax: number
+  ltvMax: number,
+  ltvMaxFraction: number
 ): number {
+  if (ltvMaxFraction < 0.5 || ltvMaxFraction > 1) {
+    throw new Error("ltvMaxFraction is out of range [0.5, 1]!");
+  }
+
+  const targetLtv = ltvMaxFraction * ltvMax;
+
   return Math.min(
-    (collateral * (ltv - ltvMax)) / (1 - discountRate - ltvMax),
+    (collateral * (ltv - targetLtv)) / (1 - discountRate - targetLtv),
     collateral
   );
 }
@@ -396,17 +513,6 @@ export function getCollateralValue(
   return !isPriceOutdated ? collateralValue : undefined;
 }
 
-interface TargetBorrower {
-  platformType: PlatformType;
-  borrowerAddress: string;
-  ltv: number;
-  loanAmount: number;
-  loanCreationDate: number;
-  accumulatedLoan: number;
-  collateralValue: number;
-  collectionAndCollateralList: [string, Collateral][];
-}
-
 // get borrowers with ltv > ltvMax
 export function getTargetBorrowers(
   platformType: PlatformType,
@@ -566,9 +672,8 @@ export function distributeOffers(
   collateralListStable: QueryCollateralsResponseItem[],
   tokenOfferList: [string, Bid[]][],
   collectionOfferList: [string, CollectionBid[]][],
-  royaltyFeeList: [string, number][],
-  networkFee: number,
-  priceRatio: number,
+  discountBaseList: [string, number][],
+  priceRatioStable: number,
   blockTime: number,
   platformList: PlatformType[]
 ): LiquidationBidExtended[] {
@@ -583,10 +688,8 @@ export function distributeOffers(
       [];
     if (!tokenOffers.length && !collectionOffers.length) continue;
 
-    const royaltyFee = Number(
-      royaltyFeeList.find(([address]) => address === collection)?.[1]
-    );
-    const discountBase = networkFee + royaltyFee;
+    const discountBase =
+      discountBaseList.find(([address]) => address === collection)?.[1] || 0;
 
     const collateralMain =
       collateralListMain.find((x) => x.address === collection)?.collateral ||
@@ -604,7 +707,6 @@ export function distributeOffers(
     if (!tokenListMain.length && !tokenListStable.length) continue;
 
     for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
-      // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
       let finders_fee_rate = Number(finders_fee_bps) / 100;
       const tokenId = token_id.toString();
 
@@ -620,7 +722,7 @@ export function distributeOffers(
         creationDate: blockTime,
         liquidator: bidder,
         tokenIdList: [tokenId],
-        amount: calcPrice(Number(price), isMain ? 1 : priceRatio),
+        amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
         discount: discountBase + finders_fee_rate,
         bidType: "token_offer",
         platformType: isMain ? "main" : "stable",
@@ -630,7 +732,6 @@ export function distributeOffers(
     }
 
     for (const { price, bidder, finders_fee_bps } of collectionOffers) {
-      // discount = royalty_fee_rate + network_fee_rate + finders_fee_rate
       let finders_fee_rate = Number(finders_fee_bps) / 100;
 
       for (const platformType of platformList) {
@@ -642,7 +743,7 @@ export function distributeOffers(
           creationDate: blockTime,
           liquidator: bidder,
           tokenIdList,
-          amount: calcPrice(Number(price), isMain ? 1 : priceRatio),
+          amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
           discount: discountBase + finders_fee_rate,
           bidType: "collection_offer",
           platformType,
@@ -662,7 +763,18 @@ export function mergeBidsAndOffers(
   liquidationBidsMain: QueryLiquidationBidsByCollectionAddressListResponseItem[],
   liquidationBidsStable: QueryLiquidationBidsByCollectionAddressListResponseItem[],
   offers: LiquidationBidExtended[]
-): LiquidationBidExtended[] {
+): {
+  totalBidsMain: LiquidationBidExtended[];
+  totalBidsStable: LiquidationBidExtended[];
+} {
+  const [totalBidsMain, totalBidsStable] = offers.reduce(
+    (acc, cur) => {
+      acc[cur.platformType === "main" ? 0 : 1].push(cur);
+      return acc;
+    },
+    [[], []] as [LiquidationBidExtended[], LiquidationBidExtended[]]
+  );
+
   const liquidationBidsMainExtended: LiquidationBidExtended[] =
     liquidationBidsMain.flatMap(({ collection_address, liquidation_bids }) => {
       return liquidation_bids.map((x) => ({
@@ -695,9 +807,8 @@ export function mergeBidsAndOffers(
       }
     );
 
-  return [
-    ...liquidationBidsMainExtended,
-    ...liquidationBidsStableExtended,
-    ...offers,
-  ];
+  return {
+    totalBidsMain: [...liquidationBidsMainExtended, ...totalBidsMain],
+    totalBidsStable: [...liquidationBidsStableExtended, ...totalBidsStable],
+  };
 }
