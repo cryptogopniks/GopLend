@@ -22,7 +22,7 @@ import {
 const platformList: PlatformType[] = ["main", "stable"];
 
 // TODO:
-// limit amount of liquidation per cycle to not shift collection price too fast
+// +limit amount of liquidation per cycle to not shift collection price too fast
 // migrate marketplace adapter again
 // can multiple users share same collection offer?
 // +check it's safe to use utils.cwGetMarketplaceOffers
@@ -50,7 +50,7 @@ export async function queryTargets(
   offersBatchPaginationAmount: number, // 5
   collectionOffersPaginationAmount: number, // 50
   tokenOffersPaginationAmount: number // 20
-): Promise<LiquidationItem[]> {
+): Promise<[PlatformType, LiquidationItem][]> {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
   const [collateralListMain, collateralListStable] = await Promise.all(
@@ -144,85 +144,91 @@ export async function queryTargets(
     offers
   );
 
-  const liquidationTargets = ltvAndCollateralList.reduce(
-    (
-      acc,
-      {
-        platformType,
-        borrowerAddress,
-        ltv,
-        loanAmount,
-        loanCreationDate,
-        accumulatedLoan,
-        collateralValue,
-        collectionAndCollateralList,
-      }
-    ) => {
-      const isMain = platformType === "main";
-      const { main_currency } = isMain ? commonConfigMain : commonConfigStable;
-      const { discount_max_rate, borrow_apr } = isMain
-        ? rateConfigMain
-        : rateConfigStable;
-      const ltvMax = isMain ? ltvMaxMain : ltvMaxStable;
-      const totalBids = isMain ? totalBidsMain : totalBidsStable;
-
-      const collectionAndBidList = getCollectionAndBidList(
-        totalBids,
-        collectionAndCollateralList
-      );
-
-      const biddedCollateralList = matchCollateralsAndBids(
-        main_currency,
-        collectionAndCollateralList,
-        collectionAndBidList,
-        priceList
-      );
-
-      // calculate how much tokens and what collection must be liquidated to get proper ltv
-      // for worst case (max discount)
-      const maxLiquidationValue = calcLiquidationValue(
-        collateralValue,
-        Number(discount_max_rate),
-        ltv,
-        ltvMax,
-        ltvMaxFraction
-      );
-
-      const liquidationSet = calcLiquidationSet(
-        biddedCollateralList,
-        maxLiquidationValue,
-        ltvMax,
-        Number(borrow_apr),
-        accumulatedLoan,
-        loanAmount,
-        collateralValue,
-        blockTime,
-        loanCreationDate
-      );
-
-      if (liquidationSet.length) {
-        // remove used bids
-        ({ totalBidsMain, totalBidsStable } = reduceBids(
+  const liquidationTargets: [PlatformType, LiquidationItem][] =
+    ltvAndCollateralList.reduce(
+      (
+        acc,
+        {
           platformType,
-          totalBidsMain,
-          totalBidsStable,
-          liquidationSet
-        ));
+          borrowerAddress,
+          ltv,
+          loanAmount,
+          loanCreationDate,
+          accumulatedLoan,
+          collateralValue,
+          collectionAndCollateralList,
+        }
+      ) => {
+        const isMain = platformType === "main";
+        const { main_currency } = isMain
+          ? commonConfigMain
+          : commonConfigStable;
+        const { discount_max_rate, borrow_apr } = isMain
+          ? rateConfigMain
+          : rateConfigStable;
+        const ltvMax = isMain ? ltvMaxMain : ltvMaxStable;
+        const totalBids = isMain ? totalBidsMain : totalBidsStable;
 
-        acc.push({
-          borrower: borrowerAddress,
-          liquidation_set: liquidationSet,
-        });
-      } else {
-        l(
-          `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
+        const collectionAndBidList = getCollectionAndBidList(
+          totalBids,
+          collectionAndCollateralList
         );
-      }
 
-      return acc;
-    },
-    [] as LiquidationItem[]
-  );
+        const biddedCollateralList = matchCollateralsAndBids(
+          main_currency,
+          collectionAndCollateralList,
+          collectionAndBidList,
+          priceList
+        );
+
+        // calculate how much tokens and what collection must be liquidated to get proper ltv
+        // for worst case (max discount)
+        const maxLiquidationValue = calcLiquidationValue(
+          collateralValue,
+          Number(discount_max_rate),
+          ltv,
+          ltvMax,
+          ltvMaxFraction
+        );
+
+        const liquidationSet = calcLiquidationSet(
+          biddedCollateralList,
+          maxLiquidationValue,
+          ltvMax,
+          Number(borrow_apr),
+          accumulatedLoan,
+          loanAmount,
+          collateralValue,
+          blockTime,
+          loanCreationDate
+        );
+
+        if (liquidationSet.length) {
+          // remove used bids
+          ({ totalBidsMain, totalBidsStable } = reduceBids(
+            platformType,
+            totalBidsMain,
+            totalBidsStable,
+            liquidationSet
+          ));
+
+          acc.push([
+            platformType,
+            {
+              borrower: borrowerAddress,
+              liquidation_set: liquidationSet,
+            },
+          ]);
+        } else {
+          l(
+            `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
+          );
+        }
+
+        return acc;
+      },
+      [] as [PlatformType, LiquidationItem][]
+    );
 
   return liquidationTargets;
 }
