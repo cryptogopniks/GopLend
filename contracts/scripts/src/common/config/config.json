@@ -29,7 +29,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f\",\"lending_platform_stable\":\"stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana\",\"adapter_dex\":\"stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y\",\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\"}}",
-              "CODE": 4457,
+              "CODE": 4468,
               "ADDRESS": "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93"
             },
             {
