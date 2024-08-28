@@ -1,3 +1,4 @@
+import { getLast } from "../../common/utils";
 import { PriceItem } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
@@ -811,4 +812,39 @@ export function mergeBidsAndOffers(
     totalBidsMain: [...liquidationBidsMainExtended, ...totalBidsMain],
     totalBidsStable: [...liquidationBidsStableExtended, ...totalBidsStable],
   };
+}
+
+export interface PriceSample {
+  value: number;
+  timestamp: number;
+}
+
+// returns [twap, updatedPriceSampleList]
+export function calcTwap(
+  window: number,
+  priceSampleList: PriceSample[]
+): [number, PriceSample[]] {
+  const { timestamp: lastTimestamp } = getLast(priceSampleList);
+  const lowerBoundary = lastTimestamp - Math.min(window, lastTimestamp);
+  const updatedPriceSampleList = priceSampleList.filter(
+    (x) => x.timestamp >= lowerBoundary
+  );
+  // if (updatedPriceSampleList.length < 2) {
+  //   throw new Error("updatedPriceSampleList must have at least 2 elements!");
+  // }
+
+  const [_, period, product] = updatedPriceSampleList.reduce(
+    ([prevSample, periodAcc, productAcc], { value, timestamp }) => {
+      const period = timestamp - prevSample.timestamp;
+      return [
+        { value, timestamp },
+        periodAcc + period,
+        productAcc + period * prevSample.value,
+      ];
+    },
+    [updatedPriceSampleList[0], 0, 0]
+  );
+  const twap = period ? product / period : 0;
+
+  return [twap, updatedPriceSampleList];
 }
