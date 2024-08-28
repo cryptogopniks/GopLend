@@ -824,14 +824,37 @@ export function calcTwap(
   window: number,
   priceSampleList: PriceSample[]
 ): [number, PriceSample[]] {
+  if (!priceSampleList.length) {
+    return [0, priceSampleList];
+  }
+
   const { timestamp: lastTimestamp } = getLast(priceSampleList);
   const lowerBoundary = lastTimestamp - Math.min(window, lastTimestamp);
-  const updatedPriceSampleList = priceSampleList.filter(
-    (x) => x.timestamp >= lowerBoundary
+
+  let [boundarySample] = priceSampleList;
+  let updatedPriceSampleList = priceSampleList.reduce(
+    (acc, { value, timestamp }) => {
+      if (timestamp > lowerBoundary) {
+        acc.push({ value, timestamp });
+      } else {
+        boundarySample = { value, timestamp: lowerBoundary };
+      }
+
+      return acc;
+    },
+    [] as PriceSample[]
   );
-  // if (updatedPriceSampleList.length < 2) {
-  //   throw new Error("updatedPriceSampleList must have at least 2 elements!");
-  // }
+
+  if (
+    JSON.stringify(boundarySample) !== JSON.stringify(updatedPriceSampleList[0])
+  ) {
+    updatedPriceSampleList = [boundarySample, ...updatedPriceSampleList];
+  }
+
+  const [firstPriceSample] = updatedPriceSampleList;
+  if (updatedPriceSampleList.length === 1) {
+    return [firstPriceSample.value, updatedPriceSampleList];
+  }
 
   const [_, period, product] = updatedPriceSampleList.reduce(
     ([prevSample, periodAcc, productAcc], { value, timestamp }) => {
@@ -842,7 +865,7 @@ export function calcTwap(
         productAcc + period * prevSample.value,
       ];
     },
-    [updatedPriceSampleList[0], 0, 0]
+    [firstPriceSample, 0, 0]
   );
   const twap = period ? product / period : 0;
 
