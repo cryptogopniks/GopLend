@@ -1,3 +1,4 @@
+import { getLast } from "../../common/utils";
 import { calcTwap, PriceSample } from "../services/math";
 
 describe("testing calcTwap", () => {
@@ -11,8 +12,8 @@ describe("testing calcTwap", () => {
     { value: 110, timestamp: 84 },
     { value: 120, timestamp: 96 },
     { value: 115, timestamp: 108 },
-    { value: 125, timestamp: 120 },
   ];
+  const NEW_SAMPLE: PriceSample = { value: 125, timestamp: 120 };
 
   test("empty dataset, 4 samples window", () => {
     const samples: PriceSample[] = [];
@@ -23,18 +24,20 @@ describe("testing calcTwap", () => {
   });
 
   test("1 sample dataset, 4 samples window", () => {
-    const samples = SAMPLES.slice(0, 1);
+    const samples: PriceSample[] = [];
+    const newSample: PriceSample = SAMPLES[0];
     const window: number = 48;
     const expected: [number, PriceSample[]] = [
       100,
       [{ value: 100, timestamp: 12 }],
     ];
 
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
+    expect(calcTwap(window, samples, newSample)).toStrictEqual(expected);
   });
 
   test("2 samples dataset, 4 samples window", () => {
-    const samples = SAMPLES.slice(0, 2);
+    const samples = SAMPLES.slice(0, 1);
+    const newSample: PriceSample = SAMPLES[1];
     const window: number = 48;
     const expected: [number, PriceSample[]] = [
       100,
@@ -44,11 +47,12 @@ describe("testing calcTwap", () => {
       ],
     ];
 
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
+    expect(calcTwap(window, samples, newSample)).toStrictEqual(expected);
   });
 
   test("default dataset, 4 samples window", () => {
     const samples = SAMPLES;
+    const newSample: PriceSample = NEW_SAMPLE;
     const window: number = 48;
     const expected: [number, PriceSample[]] = [
       110,
@@ -61,11 +65,12 @@ describe("testing calcTwap", () => {
       ],
     ];
 
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
+    expect(calcTwap(window, samples, newSample)).toStrictEqual(expected);
   });
 
   test("default dataset, 0.5 sample window", () => {
     const samples = SAMPLES;
+    const newSample: PriceSample = NEW_SAMPLE;
     const window: number = 6;
     const expected: [number, PriceSample[]] = [
       115,
@@ -75,7 +80,7 @@ describe("testing calcTwap", () => {
       ],
     ];
 
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
+    expect(calcTwap(window, samples, newSample)).toStrictEqual(expected);
   });
 
   test("unequal periods dataset, 4 samples window", () => {
@@ -89,8 +94,8 @@ describe("testing calcTwap", () => {
       { value: 110, timestamp: 94 },
       { value: 120, timestamp: 96 },
       { value: 115, timestamp: 100 },
-      { value: 125, timestamp: 120 },
     ];
+    const newSample: PriceSample = NEW_SAMPLE;
     const window: number = 48;
     const expected: [number, PriceSample[]] = [
       106.04166666666667,
@@ -103,7 +108,7 @@ describe("testing calcTwap", () => {
       ],
     ];
 
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
+    expect(calcTwap(window, samples, newSample)).toStrictEqual(expected);
   });
 
   test("passing through default dataset, 4 samples window", () => {
@@ -115,8 +120,10 @@ describe("testing calcTwap", () => {
 
     let twapList: number[] = [];
     for (let i = 0; i < 16; i++) {
-      const samples = SAMPLES.slice(Math.max(i - 5, 0), i);
-      const [twap] = calcTwap(window, samples);
+      let samples = [...SAMPLES, NEW_SAMPLE].slice(Math.max(i - 5, 0), i);
+      const newSample: PriceSample = getLast(samples);
+      samples = samples.slice(0, -1);
+      const [twap] = calcTwap(window, samples, newSample);
       twapList.push(twap);
     }
 

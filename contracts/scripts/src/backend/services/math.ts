@@ -1,4 +1,4 @@
-import { getLast } from "../../common/utils";
+import { getLast, li } from "../../common/utils";
 import { PriceItem } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
@@ -819,15 +819,10 @@ export interface PriceSample {
   timestamp: number;
 }
 
-// returns [twap, updatedPriceSampleList]
-export function calcTwap(
+function applyWindow(
   window: number,
   priceSampleList: PriceSample[]
-): [number, PriceSample[]] {
-  if (!priceSampleList.length) {
-    return [0, priceSampleList];
-  }
-
+): PriceSample[] {
   const { timestamp: lastTimestamp } = getLast(priceSampleList);
   const lowerBoundary = lastTimestamp - Math.min(window, lastTimestamp);
 
@@ -851,6 +846,24 @@ export function calcTwap(
     updatedPriceSampleList = [boundarySample, ...updatedPriceSampleList];
   }
 
+  return updatedPriceSampleList;
+}
+
+// returns [twap, updatedPriceSampleList]
+export function calcTwap(
+  window: number,
+  priceSampleList: PriceSample[],
+  newPriceSample?: PriceSample
+): [number, PriceSample[]] {
+  if (newPriceSample) {
+    priceSampleList = [...priceSampleList, newPriceSample];
+  }
+
+  if (!priceSampleList.length) {
+    return [0, priceSampleList];
+  }
+
+  const updatedPriceSampleList = applyWindow(window, priceSampleList);
   const [firstPriceSample] = updatedPriceSampleList;
   if (updatedPriceSampleList.length === 1) {
     return [firstPriceSample.value, updatedPriceSampleList];
@@ -870,4 +883,31 @@ export function calcTwap(
   const twap = period ? product / period : 0;
 
   return [twap, updatedPriceSampleList];
+}
+
+// returns [ema, updatedPriceSampleList]
+export function calcEma(
+  window: number,
+  priceSampleList: PriceSample[],
+  newPriceSample?: PriceSample,
+  prevEma?: number
+) {
+  const updatedPriceSampleList = applyWindow(window, priceSampleList);
+  const [firstPriceSample] = priceSampleList;
+  const lastPriceSample = newPriceSample
+    ? newPriceSample
+    : getLast(priceSampleList);
+  const fullPeriod = lastPriceSample.timestamp - firstPriceSample.timestamp;
+  const averageSamplePeriod = fullPeriod / priceSampleList.length;
+  const windowSamples = window / averageSamplePeriod;
+  const k = 2 / (windowSamples + 1);
+
+  prevEma =
+    prevEma ||
+    priceSampleList.reduce((acc, cur) => acc + cur.value, 0) /
+      priceSampleList.length;
+
+  const ema = lastPriceSample.value * k + prevEma * (1 - k);
+
+  return [ema, updatedPriceSampleList];
 }

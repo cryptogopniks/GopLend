@@ -5,9 +5,7 @@
     "../backend/config/*.json",
     "../common/config/*.json"
   ],
-  "exclude": [
-    "./tests"
-  ],
+  "exclude": [],
   "ts-node": {
     "rootDir": "../",
     "outDir": "../../dist",
