@@ -333,22 +333,26 @@ pub fn query_liquidation_bids_by_liquidator_address(
     _env: Env,
     address: String,
 ) -> StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>> {
-    let liquidator = LIQUIDATORS
-        .load(deps.storage, &deps.api.addr_validate(&address)?)
-        .unwrap_or_default();
+    let liquidator_address = deps.api.addr_validate(&address)?;
 
-    liquidator
+    LIQUIDATORS
+        .load(deps.storage, &liquidator_address)
+        .unwrap_or_default()
         .collection_addresses
         .into_iter()
         .map(|collection_address| {
-            let liquidation_bids = LIQUIDATION_BIDS.load(deps.storage, &collection_address)?;
+            let liquidation_bids = LIQUIDATION_BIDS
+                .load(deps.storage, &collection_address)?
+                .into_iter()
+                .filter(|x| x.liquidator == liquidator_address)
+                .collect();
 
             Ok(QueryLiquidationBidsByCollectionAddressListResponseItem {
                 collection_address,
                 liquidation_bids,
             })
         })
-        .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>()
+        .collect()
 }
 
 pub fn query_proposals(

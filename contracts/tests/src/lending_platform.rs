@@ -9811,3 +9811,142 @@ fn ltv_list_for_collections_removed_from_oracle() -> StdResult<()> {
 
     Ok(())
 }
+
+#[test]
+fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
+    let mut project = Project::new();
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
+                    ProjectCoin::Stars.get_decimals(),
+                ),
+            ),
+            usd_price: Funds::new(
+                Uint128::new(80_000_000_000),
+                &Currency::new(
+                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
+                    ProjectCoin::Usdc.get_decimals(),
+                ),
+            ),
+        }],
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        PlatformType::Main,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral and borrow
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_main_address(),
+        ProjectNft::Gopniks,
+    );
+
+    // collateral value = 800_000_000 * 3 = 2_400_000_000
+    let date = project.get_block_time();
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
+        }],
+    )?;
+
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["5"]),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
+    project.lending_platform_try_place_bid(
+        ProjectAccount::Kate,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["6"]),
+        }],
+        "0",
+        800,
+        ProjectCoin::Stars,
+    )?;
+
+    let alice_bids = project.lending_platform_query_liquidation_bids_by_liquidator_address(
+        PlatformType::Main,
+        ProjectAccount::Alice,
+    )?;
+    let kate_bids = project.lending_platform_query_liquidation_bids_by_liquidator_address(
+        PlatformType::Main,
+        ProjectAccount::Kate,
+    )?;
+
+    assert_that(&alice_bids).is_equal_to(vec![
+        QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: date,
+                liquidator: ProjectAccount::Alice.into(),
+                token_id_list: to_string_vec(&["5"]),
+                amount: Uint128::new(800),
+                discount: Decimal::zero(),
+                bid_type: BidType::LiquidationBid,
+            }],
+        },
+    ]);
+    assert_that(&kate_bids).is_equal_to(vec![
+        QueryLiquidationBidsByCollectionAddressListResponseItem {
+            collection_address: ProjectNft::Gopniks.into(),
+            liquidation_bids: vec![LiquidationBid {
+                creation_date: date,
+                liquidator: ProjectAccount::Kate.into(),
+                token_id_list: to_string_vec(&["6"]),
+                amount: Uint128::new(800),
+                discount: Decimal::zero(),
+                bid_type: BidType::LiquidationBid,
+            }],
+        },
+    ]);
+
+    Ok(())
+}
