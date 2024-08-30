@@ -889,6 +889,7 @@ export function calcTwap(
   return [twap, updatedPriceSampleList];
 }
 
+// TODO: rewrite
 // returns [ema, updatedPriceSampleList]
 export function calcEma(
   window: number,
@@ -928,4 +929,100 @@ export function calcEma(
     updatedPriceSampleList = [...updatedPriceSampleList, newPriceSample];
   }
   return [ema, updatedPriceSampleList];
+}
+
+// combine TWAP and EMA
+export function calcHybridAverage(
+  twap: number,
+  ema: number,
+  twapWeight: number
+): number {
+  return twapWeight * twap + (1 - twapWeight) * ema;
+}
+
+export function calcMedian(values: number[]): number {
+  const sortedValues = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sortedValues.length / 2);
+
+  return sortedValues.length % 2
+    ? sortedValues[mid]
+    : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+}
+
+interface CollectionPriceResponse {
+  twapSampleList: PriceSample[];
+  emaSampleList: PriceSample[];
+  floorPriceEma: number;
+  twapOfferList: PriceSample[];
+  emaOfferList: PriceSample[];
+  offerEma: number;
+  offer: number;
+}
+
+export function calcCollectionPrice(
+  floorPriceBoundary: number,
+  twapWeight: number,
+  window: number,
+  floorPriceSampleList: PriceSample[],
+  newFloorPriceSample: PriceSample,
+  prevFloorPriceEma: number | undefined,
+  offerPriceList: number[],
+  medianOfferSampleList: PriceSample[],
+  prevMedianOfferEma: number
+): CollectionPriceResponse {
+  // hybrid TWAP/EMA floor price
+  const [floorPriceTwap, twapSampleList] = calcTwap(
+    window,
+    floorPriceSampleList,
+    newFloorPriceSample
+  );
+  const [floorPriceEma, emaSampleList] = calcEma(
+    window,
+    floorPriceSampleList,
+    newFloorPriceSample,
+    prevFloorPriceEma
+  );
+  const floorPrice = calcHybridAverage(
+    floorPriceTwap,
+    floorPriceEma,
+    twapWeight
+  );
+
+  // filter offers
+  const validOffers = offerPriceList.filter(
+    (offer) => offer >= floorPriceBoundary * floorPrice && offer <= floorPrice
+  );
+
+  // median of filtered offers
+  const medianOffer = validOffers.length
+    ? calcMedian(validOffers)
+    : (floorPrice * (1 + floorPriceBoundary)) / 2;
+  const newMedianOfferSample: PriceSample = {
+    value: medianOffer,
+    timestamp: newFloorPriceSample?.timestamp,
+  };
+
+  // hybrid TWAP/EMA of median offers
+  const [offerTwap, twapOfferList] = calcTwap(
+    window,
+    medianOfferSampleList,
+    newMedianOfferSample
+  );
+  const [offerEma, emaOfferList] = calcEma(
+    window,
+    medianOfferSampleList,
+    newMedianOfferSample,
+    prevMedianOfferEma
+  );
+  const offer = calcHybridAverage(offerTwap, offerEma, twapWeight);
+
+  return {
+    twapSampleList,
+    emaSampleList,
+    floorPriceEma,
+    twapOfferList,
+    emaOfferList,
+    offerEma,
+    offer,
+  };
 }
