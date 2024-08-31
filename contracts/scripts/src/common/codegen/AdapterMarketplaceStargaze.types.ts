@@ -57,6 +57,10 @@ export interface TokenItem {
 export type QueryMsg = {
   query_config: {};
 } | {
+  query_floor_prices: {
+    collection_address_list: string[];
+  };
+} | {
   query_token_offers: {
     collection_address: string;
     limit: number;
@@ -115,6 +119,7 @@ export interface Config {
   oracle?: Addr | null;
   worker?: Addr | null;
 }
+export type ArrayOfTupleOfAddrAndUint128 = [Addr, Uint128][];
 export interface QueryOffersByCollectionAddressResponse {
   last_collection_offer?: CollectionBidOffset | null;
   last_token_offer?: BidOffset | null;

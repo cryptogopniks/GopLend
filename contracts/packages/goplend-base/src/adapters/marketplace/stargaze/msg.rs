@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Decimal;
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use sg_marketplace::{
     msg::{BidOffset, CollectionBidOffset},
     state::CollectionBid,
@@ -57,6 +57,11 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
+
+    #[returns(Vec<(Addr, Uint128)>)]
+    QueryFloorPrices {
+        collection_address_list: Vec<String>,
+    },
 
     #[returns(Vec<(u32, Vec<sg_marketplace::state::Bid>)>)]
     QueryTokenOffers {

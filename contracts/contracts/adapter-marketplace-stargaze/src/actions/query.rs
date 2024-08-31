@@ -1,11 +1,11 @@
-use cosmwasm_std::{Decimal, Deps, Env, StdResult, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, Env, StdResult, Uint128};
 
 use sg721_base::msg::{CollectionInfoResponse, QueryMsg as Sg721QueryMsg};
 
 use sg_marketplace::{
     msg::{
-        BidOffset, BidsResponse, CollectionBidOffset, CollectionBidsResponse, ParamsResponse,
-        QueryMsg as MarketplaceQueryMsg,
+        AsksResponse, BidOffset, BidsResponse, CollectionBidOffset, CollectionBidsResponse,
+        ParamsResponse, QueryMsg as MarketplaceQueryMsg,
     },
     state::{Bid, CollectionBid, Order},
 };
@@ -28,6 +28,33 @@ use goplend_base::{
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
+}
+
+pub fn query_floor_prices(
+    deps: Deps,
+    _env: Env,
+    collection_address_list: Vec<String>,
+) -> StdResult<Vec<(Addr, Uint128)>> {
+    let marketplace = &unwrap_field(CONFIG.load(deps.storage)?.marketplace, "marketplace")?;
+
+    collection_address_list
+        .iter()
+        .map(|collection| {
+            let collection_address = deps.api.addr_validate(collection)?;
+            let AsksResponse { asks } = deps.querier.query_wasm_smart(
+                marketplace,
+                &MarketplaceQueryMsg::AsksSortedByPrice {
+                    collection: collection.to_owned(),
+                    include_inactive: Some(false),
+                    start_after: None,
+                    limit: Some(1),
+                },
+            )?;
+            let floor_price = asks.first().map(|y| y.price).unwrap_or_default();
+
+            Ok((collection_address, floor_price))
+        })
+        .collect()
 }
 
 pub fn query_token_offers(

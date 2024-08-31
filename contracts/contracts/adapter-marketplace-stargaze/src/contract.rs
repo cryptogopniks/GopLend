@@ -71,6 +71,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
+        QueryMsg::QueryFloorPrices {
+            collection_address_list,
+        } => to_json_binary(&q::query_floor_prices(deps, env, collection_address_list)?),
+
         QueryMsg::QueryTokenOffers {
             collection_address,
             token_list,

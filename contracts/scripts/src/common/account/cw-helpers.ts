@@ -2207,6 +2207,16 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function cwQueryFloorPrices(
+    collectionAddressList: string[],
+    isDisplayed: boolean = false
+  ) {
+    const res = await adapterMarketplaceStargazeQueryClient.queryFloorPrices({
+      collectionAddressList,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
   async function cwAdapterMarketplaceStargazeQueryTokenOffers(
     collectionAddress: string,
     tokenList: string[],
@@ -2933,6 +2943,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         kujira: {},
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
+          cwQueryFloorPrices,
+          // TODO: rename
           cwAdapterMarketplaceStargazeQueryTokenOffers,
           cwAdapterMarketplaceStargazeQueryCollectionOffers,
           cwQueryOffersByCollectionAddress:

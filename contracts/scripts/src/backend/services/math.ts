@@ -949,14 +949,12 @@ export function calcMedian(values: number[]): number {
     : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
 }
 
-interface CollectionPriceResponse {
+export interface CollectionPriceResponse {
   twapSampleList: PriceSample[];
-  emaSampleList: PriceSample[];
   floorPriceEma: number;
   twapOfferList: PriceSample[];
-  emaOfferList: PriceSample[];
   offerEma: number;
-  offer: number;
+  collectionPrice: number;
 }
 
 export function calcCollectionPrice(
@@ -976,7 +974,7 @@ export function calcCollectionPrice(
     floorPriceSampleList,
     newFloorPriceSample
   );
-  const [floorPriceEma, emaSampleList] = calcEma(
+  const [floorPriceEma, _emaSampleList] = calcEma(
     window,
     floorPriceSampleList,
     newFloorPriceSample,
@@ -1008,21 +1006,19 @@ export function calcCollectionPrice(
     medianOfferSampleList,
     newMedianOfferSample
   );
-  const [offerEma, emaOfferList] = calcEma(
+  const [offerEma, _emaOfferList] = calcEma(
     window,
     medianOfferSampleList,
     newMedianOfferSample,
     prevMedianOfferEma
   );
-  const offer = calcHybridAverage(offerTwap, offerEma, twapWeight);
+  const collectionPrice = calcHybridAverage(offerTwap, offerEma, twapWeight);
 
   return {
     twapSampleList,
-    emaSampleList,
     floorPriceEma,
     twapOfferList,
-    emaOfferList,
     offerEma,
-    offer,
+    collectionPrice,
   };
 }
