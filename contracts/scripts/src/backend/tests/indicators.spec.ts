@@ -112,18 +112,36 @@ describe("testing calcTwap", () => {
   });
 
   test("passing through default dataset, 4 samples window", () => {
-    const window: number = 48;
-    const expected: number[] = [
-      0, 100, 100, 105, 100, 103.75, 105, 101.25, 106.25, 107.5, 110, 115,
-      117.5, 115, 125, 0,
+    const dataSet: PriceSample[] = [
+      { value: 100, timestamp: 12 },
+      { value: 110, timestamp: 24 },
+      { value: 90, timestamp: 36 },
+      { value: 115, timestamp: 48 },
+      { value: 105, timestamp: 60 },
+      { value: 95, timestamp: 72 },
+      { value: 110, timestamp: 84 },
+      { value: 120, timestamp: 96 },
+      { value: 115, timestamp: 108 },
+      { value: 125, timestamp: 120 },
+      { value: 0, timestamp: 132 },
+      { value: 0, timestamp: 144 },
+      { value: 0, timestamp: 156 },
+      { value: 0, timestamp: 168 },
+      { value: 0, timestamp: 180 },
     ];
 
+    const window: number = 48;
+    const expected: number[] = [
+      100, 100, 105, 100, 103.75, 105, 101.25, 106.25, 107.5, 110, 117.5, 90,
+      60, 31.25, 0,
+    ];
+
+    let samples: PriceSample[] = [];
     let twapList: number[] = [];
-    for (let i = 0; i < 16; i++) {
-      let samples = [...SAMPLES, NEW_SAMPLE].slice(Math.max(i - 5, 0), i);
-      const newSample: PriceSample = getLast(samples);
-      samples = samples.slice(0, -1);
-      const [twap] = calcTwap(window, samples, newSample);
+    let twap: number | undefined = undefined;
+
+    for (let i = 0; i < dataSet.length; i++) {
+      [twap, samples] = calcTwap(window, samples, dataSet[i]);
       twapList.push(twap);
     }
 
@@ -247,21 +265,42 @@ describe("testing calcEma", () => {
   });
 
   test("passing through default dataset, 4 samples window", () => {
-    const window: number = 48;
-    const expected: number[] = [
-      0, 200, 164, 134.399999, 126.639999, 117.983999, 108.790399, 109.274239,
-      113.564543, 114.138725, 118.483235, 121.089941, 122.653964, 123.592378,
-      126.407622, 0,
+    const dataSet: PriceSample[] = [
+      { value: 100, timestamp: 12 },
+      { value: 110, timestamp: 24 },
+      { value: 90, timestamp: 36 },
+      { value: 115, timestamp: 48 },
+      { value: 105, timestamp: 60 },
+      { value: 95, timestamp: 72 },
+      { value: 110, timestamp: 84 },
+      { value: 120, timestamp: 96 },
+      { value: 115, timestamp: 108 },
+      { value: 125, timestamp: 120 },
+      { value: 0, timestamp: 132 },
+      { value: 0, timestamp: 144 },
+      { value: 0, timestamp: 156 },
+      { value: 0, timestamp: 168 },
+      { value: 0, timestamp: 180 },
+      { value: 0, timestamp: 192 },
+      { value: 0, timestamp: 204 },
+      { value: 0, timestamp: 216 },
+      { value: 0, timestamp: 228 },
+      { value: 0, timestamp: 240 },
     ];
 
-    let tempEma: number | undefined = undefined;
+    const window: number = 48;
+    const expected: number[] = [
+      200, 164, 134.399999, 126.639999, 117.983999, 108.790399, 109.274239,
+      113.564543, 114.138725, 118.483235, 71.089941, 42.653964, 25.592378,
+      15.355426, 9.213255, 5.527953, 3.316771, 1.990062, 1.194037, 0.716422,
+    ];
+
+    let samples: PriceSample[] = [];
     let emaList: number[] = [];
-    for (let i = 0; i < 16; i++) {
-      let samples = [...SAMPLES, NEW_SAMPLE].slice(Math.max(i - 5, 0), i);
-      const newSample: PriceSample = getLast(samples);
-      samples = samples.slice(0, -1);
-      const [ema] = calcEma(window, samples, newSample, tempEma);
-      tempEma = ema;
+    let ema: number | undefined = undefined;
+
+    for (let i = 0; i < dataSet.length; i++) {
+      [ema, samples] = calcEma(window, samples, dataSet[i], ema);
       emaList.push(ema);
     }
 

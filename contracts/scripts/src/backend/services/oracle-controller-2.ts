@@ -417,16 +417,17 @@ async function main(isInfiniteLoop: boolean) {
   // [collection, CollectionPriceResponse][]
   let collectionPriceResponseList: [string, CollectionPriceResponse][] = [];
 
-  try {
-    // TODO: query collectionPriceResponseList from DB
-    // collectionPriceResponseList = await queryCollectionPriceResponseList()
-  } catch (error) {
-    l(error);
-  }
-
   // loop
   while (true) {
     const date = getLocalBlockTime();
+
+    try {
+      // TODO: query collectionPriceResponseList from DB
+      // collectionPriceResponseList = await queryCollectionPriceResponseList()
+    } catch (error) {
+      l(error, "\n");
+    }
+
     try {
       collectionPriceResponseList = await setPrices(
         mainCurrency,
