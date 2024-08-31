@@ -857,7 +857,7 @@ function applyWindow(
 export function calcTwap(
   window: number,
   priceSampleList: PriceSample[],
-  newPriceSample?: PriceSample
+  newPriceSample: PriceSample
 ): [number, PriceSample[]] {
   if (newPriceSample) {
     priceSampleList = [...priceSampleList, newPriceSample];
@@ -889,46 +889,17 @@ export function calcTwap(
   return [twap, updatedPriceSampleList];
 }
 
-// TODO: rewrite
-// returns [ema, updatedPriceSampleList]
 export function calcEma(
-  window: number,
-  priceSampleList: PriceSample[],
-  newPriceSample?: PriceSample,
+  windowSamples: number,
+  newPrice: number,
   prevEma?: number
-): [number, PriceSample[]] {
-  if (!priceSampleList.length && !newPriceSample) {
-    return [0, priceSampleList];
+): number {
+  if (!prevEma) {
+    return newPrice;
   }
 
-  let updatedPriceSampleList = applyWindow(
-    window,
-    priceSampleList,
-    newPriceSample
-  );
-  const [firstPriceSample] = priceSampleList;
-  const lastPriceSample = newPriceSample
-    ? newPriceSample
-    : getLast(priceSampleList);
-  const fullPeriod = firstPriceSample
-    ? lastPriceSample.timestamp - firstPriceSample.timestamp
-    : 0;
-  const averageSamplePeriod = fullPeriod / priceSampleList.length;
-  const windowSamples = averageSamplePeriod ? window / averageSamplePeriod : 0;
   const k = 2 / (windowSamples + 1);
-
-  prevEma =
-    prevEma ||
-    priceSampleList.reduce((acc, cur) => acc + cur.value, 0) /
-      priceSampleList.length ||
-    0;
-
-  const ema = floor(lastPriceSample.value * k + prevEma * (1 - k), 6);
-
-  if (newPriceSample) {
-    updatedPriceSampleList = [...updatedPriceSampleList, newPriceSample];
-  }
-  return [ema, updatedPriceSampleList];
+  return floor(newPrice * k + prevEma * (1 - k), 6);
 }
 
 // combine TWAP and EMA
@@ -974,10 +945,18 @@ export function calcCollectionPrice(
     floorPriceSampleList,
     newFloorPriceSample
   );
-  const [floorPriceEma, _emaSampleList] = calcEma(
-    window,
-    floorPriceSampleList,
-    newFloorPriceSample,
+
+  const [firstPriceSample] = floorPriceSampleList;
+  const lastPriceSample = newFloorPriceSample;
+  const fullPeriod = firstPriceSample
+    ? lastPriceSample.timestamp - firstPriceSample.timestamp
+    : 0;
+  const averageSamplePeriod = fullPeriod / (floorPriceSampleList.length + 1);
+  const windowSamples = averageSamplePeriod ? window / averageSamplePeriod : 0;
+
+  const floorPriceEma = calcEma(
+    windowSamples,
+    newFloorPriceSample.value,
     prevFloorPriceEma
   );
   const floorPrice = calcHybridAverage(
@@ -1006,10 +985,9 @@ export function calcCollectionPrice(
     medianOfferSampleList,
     newMedianOfferSample
   );
-  const [offerEma, _emaOfferList] = calcEma(
-    window,
-    medianOfferSampleList,
-    newMedianOfferSample,
+  const offerEma = calcEma(
+    windowSamples,
+    newMedianOfferSample.value,
     prevMedianOfferEma
   );
   const collectionPrice = calcHybridAverage(offerTwap, offerEma, twapWeight);

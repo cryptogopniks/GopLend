@@ -1,4 +1,3 @@
-import { getLast } from "../../common/utils";
 import { calcEma, calcTwap, PriceSample } from "../services/math";
 
 describe("testing calcTwap", () => {
@@ -14,14 +13,6 @@ describe("testing calcTwap", () => {
     { value: 115, timestamp: 108 },
   ];
   const NEW_SAMPLE: PriceSample = { value: 125, timestamp: 120 };
-
-  test("empty dataset, 4 samples window", () => {
-    const samples: PriceSample[] = [];
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [0, []];
-
-    expect(calcTwap(window, samples)).toStrictEqual(expected);
-  });
 
   test("1 sample dataset, 4 samples window", () => {
     const samples: PriceSample[] = [];
@@ -150,120 +141,6 @@ describe("testing calcTwap", () => {
 });
 
 describe("testing calcEma", () => {
-  const SAMPLES: PriceSample[] = [
-    { value: 100, timestamp: 12 },
-    { value: 110, timestamp: 24 },
-    { value: 90, timestamp: 36 },
-    { value: 115, timestamp: 48 },
-    { value: 105, timestamp: 60 },
-    { value: 95, timestamp: 72 },
-    { value: 110, timestamp: 84 },
-    { value: 120, timestamp: 96 },
-    { value: 115, timestamp: 108 },
-  ];
-  const NEW_SAMPLE: PriceSample = { value: 125, timestamp: 120 };
-
-  test("empty dataset, 4 samples window", () => {
-    const samples: PriceSample[] = [];
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [0, []];
-
-    expect(calcEma(window, samples)).toStrictEqual(expected);
-  });
-
-  test("1 sample dataset, 4 samples window", () => {
-    const samples: PriceSample[] = [];
-    const newSample: PriceSample = SAMPLES[0];
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [
-      200,
-      [{ value: 100, timestamp: 12 }],
-    ];
-
-    expect(calcEma(window, samples, newSample)).toStrictEqual(expected);
-  });
-
-  test("2 samples dataset, 4 samples window", () => {
-    const samples = SAMPLES.slice(0, 1);
-    const newSample: PriceSample = SAMPLES[1];
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [
-      104,
-      [
-        { value: 100, timestamp: 12 },
-        { value: 110, timestamp: 24 },
-      ],
-    ];
-
-    expect(calcEma(window, samples, newSample)).toStrictEqual(expected);
-  });
-
-  test("default dataset, 4 samples window", () => {
-    const samples = SAMPLES;
-    const newSample: PriceSample = NEW_SAMPLE;
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [
-      114,
-      [
-        { value: 105, timestamp: 60 },
-        { value: 95, timestamp: 72 },
-        { value: 110, timestamp: 84 },
-        { value: 120, timestamp: 96 },
-        { value: 115, timestamp: 108 },
-        { value: 125, timestamp: 120 },
-      ],
-    ];
-
-    expect(calcEma(window, samples, newSample)).toStrictEqual(expected);
-  });
-
-  test("default dataset, 0.5 sample window", () => {
-    const samples = SAMPLES;
-    const newSample: PriceSample = NEW_SAMPLE;
-    const window: number = 6;
-    const expected: [number, PriceSample[]] = [
-      131.111111,
-      [
-        { value: 120, timestamp: 102 },
-        { value: 115, timestamp: 108 },
-        { value: 125, timestamp: 120 },
-      ],
-    ];
-
-    expect(calcEma(window, samples, newSample)).toStrictEqual(expected);
-  });
-
-  test("unequal periods dataset, 4 samples window", () => {
-    const samples: PriceSample[] = [
-      { value: 100, timestamp: 2 },
-      { value: 110, timestamp: 24 },
-      { value: 90, timestamp: 28 },
-      { value: 115, timestamp: 55 },
-      { value: 105, timestamp: 60 },
-      { value: 95, timestamp: 61 },
-      { value: 110, timestamp: 94 },
-      { value: 120, timestamp: 96 },
-      { value: 115, timestamp: 100 },
-    ];
-    const newSample: PriceSample = NEW_SAMPLE;
-    const window: number = 48;
-    const expected: [number, PriceSample[]] = [
-      114.533333,
-      [
-        { value: 90, timestamp: 52 },
-        { value: 115, timestamp: 55 },
-        { value: 105, timestamp: 60 },
-        { value: 95, timestamp: 61 },
-        { value: 110, timestamp: 94 },
-        { value: 120, timestamp: 96 },
-        { value: 115, timestamp: 100 },
-        { value: 125, timestamp: 120 },
-      ],
-    ];
-
-    expect(calcEma(window, samples, newSample)).toStrictEqual(expected);
-  });
-
   test("passing through default dataset, 4 samples window", () => {
     const dataSet: PriceSample[] = [
       { value: 100, timestamp: 12 },
@@ -288,19 +165,18 @@ describe("testing calcEma", () => {
       { value: 0, timestamp: 240 },
     ];
 
-    const window: number = 48;
+    const windowSamples: number = 4;
     const expected: number[] = [
-      200, 164, 134.399999, 126.639999, 117.983999, 108.790399, 109.274239,
-      113.564543, 114.138725, 118.483235, 71.089941, 42.653964, 25.592378,
-      15.355426, 9.213255, 5.527953, 3.316771, 1.990062, 1.194037, 0.716422,
+      100, 104, 98.4, 105.039999, 105.023999, 101.014399, 104.608639,
+      110.765183, 112.459109, 117.475465, 70.485278, 42.291166, 25.374699,
+      15.224819, 9.134891, 5.480934, 3.28856, 1.973135, 1.183881, 0.710328,
     ];
 
-    let samples: PriceSample[] = [];
     let emaList: number[] = [];
     let ema: number | undefined = undefined;
 
     for (let i = 0; i < dataSet.length; i++) {
-      [ema, samples] = calcEma(window, samples, dataSet[i], ema);
+      ema = calcEma(windowSamples, dataSet[i].value, ema);
       emaList.push(ema);
     }
 
