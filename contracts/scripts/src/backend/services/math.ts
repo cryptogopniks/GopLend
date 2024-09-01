@@ -1,5 +1,5 @@
 import { floor, getLast } from "../../common/utils";
-import { PriceItem } from "../../common/codegen/Oracle.types";
+import { PriceItemForFundsForToken } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   LiquidationBidExtended,
@@ -78,7 +78,7 @@ export function calcDiscountedAmount(amount: number, discount: number): number {
 
 export function choosePrice(
   mainCurrency: CurrencyForToken,
-  priceItem: PriceItem
+  priceItem: PriceItemForFundsForToken
 ) {
   return JSON.stringify(mainCurrency.token) ===
     JSON.stringify(priceItem.price.currency.token)
@@ -99,7 +99,7 @@ export function matchCollateralsAndBidsLegacy(
   mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
   collectionAndBidList: [Addr, LiquidationBid][],
-  priceList: PriceItem[]
+  priceList: PriceItemForFundsForToken[]
 ): BiddedCollateralItem[] {
   // set bids priority
   collectionAndBidList.sort(
@@ -206,7 +206,7 @@ export function matchCollateralsAndBids(
   mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
   collectionAndBidList: LiquidationBidExtended[],
-  priceList: PriceItem[]
+  priceList: PriceItemForFundsForToken[]
 ): BiddedCollateralItem[] {
   // set bids priority
   collectionAndBidList.sort(
@@ -491,7 +491,7 @@ export function getCollateralsByBorrower(
 export function getCollateralValue(
   mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  prices: PriceItem[]
+  prices: PriceItemForFundsForToken[]
 ): number | undefined {
   let isPriceOutdated = false;
 
@@ -519,7 +519,7 @@ export function getTargetBorrowers(
   platformType: PlatformType,
   borrowerList: QueryBorrowersResponseItem[],
   collateralList: QueryCollateralsResponseItem[],
-  priceList: PriceItem[],
+  priceList: PriceItemForFundsForToken[],
   rateConfig: RateConfig,
   commonConfig: CommonConfig,
   ltvMax: number,

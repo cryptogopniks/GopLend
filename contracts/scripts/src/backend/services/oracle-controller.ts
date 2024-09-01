@@ -323,14 +323,8 @@ async function main(isInfiniteLoop: boolean) {
       ([collection, collectionPrice]) => {
         return {
           collection_address: collection,
-          price: {
-            amount: floor(collectionPrice).toString(),
-            currency: mainCurrency,
-          },
-          usd_price: {
-            amount: floor(priceRatio * collectionPrice).toString(),
-            currency: stableCurrency,
-          },
+          price: floor(collectionPrice).toString(),
+          usd_price: floor(priceRatio * collectionPrice).toString(),
         };
       }
     );

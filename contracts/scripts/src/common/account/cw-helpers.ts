@@ -26,7 +26,10 @@ import CONFIG_JSON from "../config/config.json";
 import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
-import { PriceItem, RawPriceItem } from "../codegen/Oracle.types";
+import {
+  PriceItemForFundsForToken,
+  RawPriceItem,
+} from "../codegen/Oracle.types";
 import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
   BidOffset,
@@ -1492,12 +1495,16 @@ async function getCwExecHelpers(
       controller,
       maxPriceUpdatePeriod,
       executionCooldown,
+      mainCurrency,
+      stableCurrency,
     }: {
       admin?: string;
       worker?: string;
       controller?: string[];
       maxPriceUpdatePeriod?: number;
       executionCooldown?: number;
+      mainCurrency?: CurrencyForTokenUnverified;
+      stableCurrency?: CurrencyForTokenUnverified;
     },
     gasPrice: string
   ) {
@@ -1509,6 +1516,8 @@ async function getCwExecHelpers(
           controller,
           maxPriceUpdatePeriod,
           executionCooldown,
+          mainCurrency,
+          stableCurrency,
         }),
       ],
       gasPrice
@@ -2859,18 +2868,19 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     maxPaginationAmount: number,
     maxCount: number = 0,
     isDisplayed: boolean = false
-  ): Promise<PriceItem[]> {
+  ): Promise<PriceItemForFundsForToken[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
 
-    let allItems: PriceItem[] = [];
+    let allItems: PriceItemForFundsForToken[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: PriceItem[] = await oracleQueryClient.queryPrices({
-        limit: paginationAmount,
-        startAfter: lastItem,
-      });
+      const items: PriceItemForFundsForToken[] =
+        await oracleQueryClient.queryPrices({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
 
       lastItem = getLast(items)?.address || "";
       allItems = [...allItems, ...items];

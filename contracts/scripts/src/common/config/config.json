@@ -74,7 +74,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 4459,
+              "CODE": 4518,
               "ADDRESS": "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7"
             },
             {

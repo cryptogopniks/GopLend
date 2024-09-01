@@ -275,6 +275,18 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "oracle",
               INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                stable_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.TESTNET.USDC },
+                  },
+                  decimals: 6,
+                },
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
@@ -288,7 +300,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 4459,
+              CODE: 4518,
               ADDRESS:
                 "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7",
             },
@@ -552,6 +564,18 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.STARGAZE.WORKER,
                 execution_cooldown: 4,
                 max_price_update_period: 30,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                stable_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.MAINNET.USDC },
+                  },
+                  decimals: 6,
+                },
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
