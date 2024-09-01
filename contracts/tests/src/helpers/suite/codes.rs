@@ -82,6 +82,7 @@ pub trait WithCodes {
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr;
 
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_oracle(
         &mut self,
         oracle_code_id: u64,
@@ -89,6 +90,8 @@ pub trait WithCodes {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
+        main_currency: &Currency<TokenUnverified>,
+        stable_currency: &Currency<TokenUnverified>,
     ) -> Addr;
 
     fn instantiate_minter(
@@ -440,6 +443,8 @@ impl WithCodes for Project {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
+        main_currency: &Currency<TokenUnverified>,
+        stable_currency: &Currency<TokenUnverified>,
     ) -> Addr {
         self.instantiate_contract(
             oracle_code_id,
@@ -451,6 +456,8 @@ impl WithCodes for Project {
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 execution_cooldown: execution_cooldown.to_owned(),
                 max_price_update_period: max_price_update_period.to_owned(),
+                main_currency: main_currency.to_owned(),
+                stable_currency: stable_currency.to_owned(),
             },
         )
     }

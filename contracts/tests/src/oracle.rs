@@ -4,7 +4,7 @@ use speculoos::assert_that;
 use cosmwasm_std::{StdResult, Uint128};
 
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
+    assets::{Currency, Funds, Token},
     error::ContractError,
     oracle::{
         msg::MigrateMsg,
@@ -32,37 +32,13 @@ fn default() -> StdResult<()> {
         &[
             RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                price: Funds::new(
-                    Uint128::new(300),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                ),
-                usd_price: Funds::new(
-                    Uint128::new(300),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                        ProjectCoin::Usdc.get_decimals(),
-                    ),
-                ),
+                price: Uint128::new(300),
+                usd_price: Uint128::new(300),
             },
             RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                price: Funds::new(
-                    Uint128::new(800),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                ),
-                usd_price: Funds::new(
-                    Uint128::new(800),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                        ProjectCoin::Usdc.get_decimals(),
-                    ),
-                ),
+                price: Uint128::new(800),
+                usd_price: Uint128::new(800),
             },
         ],
     )?;
@@ -126,37 +102,13 @@ fn unauthorized() -> StdResult<()> {
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
-                        ),
-                    ),
-                    usd_price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                            ProjectCoin::Usdc.get_decimals(),
-                        ),
-                    ),
+                    price: Uint128::new(300),
+                    usd_price: Uint128::new(300),
                 },
                 RawPriceItem {
                     collection_address: ProjectNft::Gopniks.to_string(),
-                    price: Funds::new(
-                        Uint128::new(800),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
-                        ),
-                    ),
-                    usd_price: Funds::new(
-                        Uint128::new(800),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                            ProjectCoin::Usdc.get_decimals(),
-                        ),
-                    ),
+                    price: Uint128::new(800),
+                    usd_price: Uint128::new(800),
                 },
             ],
         )
@@ -178,37 +130,13 @@ fn duplicated_collections() -> StdResult<()> {
             &[
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
-                        ),
-                    ),
-                    usd_price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                            ProjectCoin::Usdc.get_decimals(),
-                        ),
-                    ),
+                    price: Uint128::new(300),
+                    usd_price: Uint128::new(300),
                 },
                 RawPriceItem {
                     collection_address: ProjectNft::Pinjeons.to_string(),
-                    price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                            ProjectCoin::Stars.get_decimals(),
-                        ),
-                    ),
-                    usd_price: Funds::new(
-                        Uint128::new(300),
-                        &Currency::new(
-                            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                            ProjectCoin::Usdc.get_decimals(),
-                        ),
-                    ),
+                    price: Uint128::new(300),
+                    usd_price: Uint128::new(300),
                 },
             ],
         )
@@ -246,20 +174,8 @@ fn zeros_in_prices() -> StdResult<()> {
             &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Pinjeons.to_string(),
-                price: Funds::new(
-                    Uint128::new(0),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                ),
-                usd_price: Funds::new(
-                    Uint128::new(0),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                        ProjectCoin::Usdc.get_decimals(),
-                    ),
-                ),
+                price: Uint128::new(0),
+                usd_price: Uint128::new(0),
             }],
         )
         .unwrap_err();

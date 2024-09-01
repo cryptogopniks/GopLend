@@ -40,6 +40,13 @@ export const ADDRESS = {
     ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
     WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
+    LIQUIDATION_CONTROLLER_LIST: [
+      "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+      "stars1zwq7nlqm94pcg879vrww2mtawtp28gdkd8uz2v",
+      "stars106jszpr7vxk8z6ww5p3dwuq5qpzr2mfmv04xtv",
+      "stars1a5d2m8dv4l5hzkv5glnwufxecqt6dzyg23zewf",
+      "stars17daccunykmpvrnkhnhe9v8axknwynzm8jnw5sx",
+    ],
     ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
     MARKETPLACE:
       "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
@@ -139,7 +146,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4457,
+              CODE: 4498,
               ADDRESS:
                 "stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93",
             },
@@ -205,7 +212,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4425,
+              CODE: 4475,
               ADDRESS:
                 "stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93",
             },
@@ -241,7 +248,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4425,
+              CODE: 4475,
               ADDRESS:
                 "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
             },
@@ -268,6 +275,18 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "oracle",
               INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                stable_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.TESTNET.USDC },
+                  },
+                  decimals: 6,
+                },
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",
@@ -281,7 +300,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 4459,
+              CODE: 4518,
               ADDRESS:
                 "stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7",
             },
@@ -545,6 +564,18 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.STARGAZE.WORKER,
                 execution_cooldown: 4,
                 max_price_update_period: 30,
+                main_currency: {
+                  token: {
+                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  },
+                  decimals: 6,
+                },
+                stable_currency: {
+                  token: {
+                    native: { denom: DENOM.STARGAZE.MAINNET.USDC },
+                  },
+                  decimals: 6,
+                },
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "1.0.0",

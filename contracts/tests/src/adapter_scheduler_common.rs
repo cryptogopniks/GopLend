@@ -24,7 +24,7 @@ use crate::{
         oracle::OracleExtension,
         suite::{
             core::{to_string_vec, Project},
-            types::{GetDecimals, GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
+            types::{GetPrice, ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },
     lending_platform::get_targets,
@@ -61,20 +61,8 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
+            price: Uint128::new(COLLECTION_PRICE_BEFORE),
+            usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
         }],
     )?;
 
@@ -166,20 +154,8 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            price: Funds::new(
-                Uint128::new(700),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(700),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
+            price: Uint128::new(700),
+            usd_price: Uint128::new(700),
         }],
     )?;
 
@@ -227,20 +203,8 @@ fn push_multiple_clock_sources() -> StdResult<()> {
         &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            price: Funds::new(
-                Uint128::new(600),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(600),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
+            price: Uint128::new(600),
+            usd_price: Uint128::new(600),
         }],
     )?;
 
@@ -311,20 +275,8 @@ fn log_zero_cross() -> StdResult<()> {
         &ProjectCoin::Stars.get_price().to_string(),
         &[RawPriceItem {
             collection_address: ProjectNft::Gopniks.to_string(),
-            price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(COLLECTION_PRICE_BEFORE),
-                &Currency::new(
-                    &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
+            price: Uint128::new(COLLECTION_PRICE_BEFORE),
+            usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
         }],
     )?;
 
@@ -431,20 +383,8 @@ fn log_zero_cross() -> StdResult<()> {
             &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                price: Funds::new(
-                    Uint128::new(700),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                ),
-                usd_price: Funds::new(
-                    Uint128::new(700),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                        ProjectCoin::Usdc.get_decimals(),
-                    ),
-                ),
+                price: Uint128::new(700),
+                usd_price: Uint128::new(700),
             }],
         )?;
 
@@ -471,20 +411,8 @@ fn log_zero_cross() -> StdResult<()> {
             &ProjectCoin::Stars.get_price().to_string(),
             &[RawPriceItem {
                 collection_address: ProjectNft::Gopniks.to_string(),
-                price: Funds::new(
-                    Uint128::new(COLLECTION_PRICE_BEFORE),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                        ProjectCoin::Stars.get_decimals(),
-                    ),
-                ),
-                usd_price: Funds::new(
-                    Uint128::new(COLLECTION_PRICE_BEFORE),
-                    &Currency::new(
-                        &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                        ProjectCoin::Usdc.get_decimals(),
-                    ),
-                ),
+                price: Uint128::new(COLLECTION_PRICE_BEFORE),
+                usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
             }],
         )?;
 

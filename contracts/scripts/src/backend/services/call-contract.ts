@@ -147,25 +147,13 @@ async function main() {
       [
         {
           collection_address: COLLECTION.STARGAZE.PIGEON,
-          price: {
-            amount: "10000000",
-            currency: CURRENCY.STARS,
-          },
-          usd_price: {
-            amount: "97000",
-            currency: CURRENCY.USDC,
-          },
+          price: "10000000",
+          usd_price: "97000",
         },
         {
           collection_address: COLLECTION.STARGAZE.SHANE,
-          price: {
-            amount: "20000000",
-            currency: CURRENCY.STARS,
-          },
-          usd_price: {
-            amount: "194000",
-            currency: CURRENCY.USDC,
-          },
+          price: "20000000",
+          usd_price: "194000",
         },
       ],
       gasPrice

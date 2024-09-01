@@ -4,11 +4,26 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
+export type TokenUnverified = {
+  native: {
+    denom: string;
+  };
+} | {
+  cw20: {
+    address: string;
+  };
+};
 export interface InstantiateMsg {
   controller?: string[] | null;
   execution_cooldown?: number | null;
+  main_currency: CurrencyForTokenUnverified;
   max_price_update_period?: number | null;
+  stable_currency: CurrencyForTokenUnverified;
   worker?: string | null;
+}
+export interface CurrencyForTokenUnverified {
+  decimals: number;
+  token: TokenUnverified;
 }
 export type ExecuteMsg = {
   accept_admin_role: {};
@@ -17,7 +32,9 @@ export type ExecuteMsg = {
     admin?: string | null;
     controller?: string[] | null;
     execution_cooldown?: number | null;
+    main_currency?: CurrencyForTokenUnverified | null;
     max_price_update_period?: number | null;
+    stable_currency?: CurrencyForTokenUnverified | null;
     worker?: string | null;
   };
 } | {
@@ -36,28 +53,11 @@ export type ExecuteMsg = {
   };
 };
 export type Uint128 = string;
-export type TokenUnverified = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: string;
-  };
-};
 export type Decimal = string;
 export interface RawPriceItem {
   collection_address: string;
-  price: FundsForTokenUnverified;
-  usd_price: FundsForTokenUnverified;
-}
-export interface FundsForTokenUnverified {
-  amount: Uint128;
-  currency: CurrencyForTokenUnverified;
-}
-export interface CurrencyForTokenUnverified {
-  decimals: number;
-  token: TokenUnverified;
+  price: Uint128;
+  usd_price: Uint128;
 }
 export type QueryMsg = {
   query_config: {};
@@ -79,12 +79,27 @@ export interface MigrateMsg {
 }
 export type Uint64 = number;
 export type Addr = string;
+export type Token = {
+  native: {
+    denom: string;
+  };
+} | {
+  cw20: {
+    address: Addr;
+  };
+};
 export interface Config {
   admin: Addr;
   controller?: Addr[] | null;
   execution_cooldown: number;
+  main_currency: CurrencyForToken;
   max_price_update_period: number;
+  stable_currency: CurrencyForToken;
   worker?: Addr | null;
+}
+export interface CurrencyForToken {
+  decimals: number;
+  token: Token;
 }
 export type ArrayOfLog = Log[];
 export interface Log {
@@ -98,17 +113,8 @@ export interface PriceRatioItem {
   update_date: number;
   value: Decimal;
 }
-export type Token = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: Addr;
-  };
-};
-export type ArrayOfPriceItem = PriceItem[];
-export interface PriceItem {
+export type ArrayOfPriceItemForFundsForToken = PriceItemForFundsForToken[];
+export interface PriceItemForFundsForToken {
   address: Addr;
   is_outdated: boolean;
   price: FundsForToken;
@@ -118,8 +124,4 @@ export interface PriceItem {
 export interface FundsForToken {
   amount: Uint128;
   currency: CurrencyForToken;
-}
-export interface CurrencyForToken {
-  decimals: number;
-  token: Token;
 }

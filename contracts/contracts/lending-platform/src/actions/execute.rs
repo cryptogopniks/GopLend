@@ -444,7 +444,7 @@ pub fn try_deposit_collateral(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses_full),
@@ -614,7 +614,7 @@ pub fn try_withdraw_collateral(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),

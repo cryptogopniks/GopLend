@@ -6,10 +6,31 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, CollectionBidOffset, BidOffset, MigrateMsg, Config, QueryOffersByCollectionAddressResponse, LiquidationBid } from "./AdapterMarketplaceStargaze.types";
+import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, CollectionBidOffset, BidOffset, MigrateMsg, Timestamp, Uint64, QueryCollectionOffersResponse, CollectionBid, Config, ArrayOfTupleOfAddrAndUint128, QueryOffersByCollectionAddressResponse, LiquidationBid, ArrayOfTupleOfuint32AndArrayOfBid, Bid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
+  queryFloorPrices: ({
+    collectionAddressList
+  }: {
+    collectionAddressList: string[];
+  }) => Promise<ArrayOfTupleOfAddrAndUint128>;
+  queryTokenOffers: ({
+    collectionAddress,
+    limit,
+    tokenList
+  }: {
+    collectionAddress: string;
+    limit: number;
+    tokenList: number[];
+  }) => Promise<ArrayOfTupleOfUint32AndArrayOfBid>;
+  queryCollectionOffers: ({
+    collectionAddress,
+    limit
+  }: {
+    collectionAddress: string;
+    limit: number;
+  }) => Promise<QueryCollectionOffersResponse>;
   queryOffersByCollectionAddress: ({
     collectionAddress,
     expirationDelay,
@@ -33,11 +54,56 @@ export class AdapterMarketplaceStargazeQueryClient implements AdapterMarketplace
     this.client = client;
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
+    this.queryFloorPrices = this.queryFloorPrices.bind(this);
+    this.queryTokenOffers = this.queryTokenOffers.bind(this);
+    this.queryCollectionOffers = this.queryCollectionOffers.bind(this);
     this.queryOffersByCollectionAddress = this.queryOffersByCollectionAddress.bind(this);
   }
   queryConfig = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_config: {}
+    });
+  };
+  queryFloorPrices = async ({
+    collectionAddressList
+  }: {
+    collectionAddressList: string[];
+  }): Promise<ArrayOfTupleOfAddrAndUint128> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_floor_prices: {
+        collection_address_list: collectionAddressList
+      }
+    });
+  };
+  queryTokenOffers = async ({
+    collectionAddress,
+    limit,
+    tokenList
+  }: {
+    collectionAddress: string;
+    limit: number;
+    tokenList: number[];
+  }): Promise<ArrayOfTupleOfUint32AndArrayOfBid> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_token_offers: {
+        collection_address: collectionAddress,
+        limit,
+        token_list: tokenList
+      }
+    });
+  };
+  queryCollectionOffers = async ({
+    collectionAddress,
+    limit
+  }: {
+    collectionAddress: string;
+    limit: number;
+  }): Promise<QueryCollectionOffersResponse> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collection_offers: {
+        collection_address: collectionAddress,
+        limit
+      }
     });
   };
   queryOffersByCollectionAddress = async ({

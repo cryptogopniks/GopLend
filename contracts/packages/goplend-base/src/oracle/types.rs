@@ -1,21 +1,21 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Decimal};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 
-use crate::assets::{Funds, Token, TokenUnverified};
+use crate::assets::{Currency, Token};
 
 #[cw_serde]
 pub struct RawPriceItem {
     pub collection_address: String,
-    pub price: Funds<TokenUnverified>,
-    pub usd_price: Funds<TokenUnverified>,
+    pub price: Uint128,
+    pub usd_price: Uint128,
 }
 
 // NFT price
 #[cw_serde]
-pub struct PriceItem {
+pub struct PriceItem<T> {
     pub address: Addr,
-    pub price: Funds<Token>,
-    pub usd_price: Funds<Token>,
+    pub price: T,
+    pub usd_price: T,
     pub update_date: u64,
     pub is_outdated: bool,
 }
@@ -35,6 +35,8 @@ pub struct Config {
     pub controller: Option<Vec<Addr>>,
     pub execution_cooldown: u64,
     pub max_price_update_period: u64,
+    pub main_currency: Currency<Token>,
+    pub stable_currency: Currency<Token>,
 }
 
 #[cw_serde]

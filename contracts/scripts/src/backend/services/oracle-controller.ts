@@ -1,19 +1,21 @@
 import { getSigner } from "../account/signer";
-import { getLast, l, li, floor, wait, Request } from "../../common/utils";
+import { l, li, floor, wait, Request } from "../../common/utils";
 import { readFile } from "fs/promises";
+import { getChainOptionById } from "../../common/config/config-utils";
+import {
+  getCwExecHelpers,
+  getCwQueryHelpers,
+} from "../../common/account/cw-helpers";
+import {
+  CurrencyForToken,
+  RawPriceItem,
+} from "../../common/codegen/Oracle.types";
 import {
   AssetDescription,
   ChainConfig,
   Offer,
   PoolDatabase,
 } from "../../common/interfaces";
-import { getChainOptionById } from "../../common/config/config-utils";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
-import {
-  getCwExecHelpers,
-  getCwQueryHelpers,
-} from "../../common/account/cw-helpers";
-import { QueryCollectionsResponseItem } from "../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -23,19 +25,24 @@ import {
   getLocalBlockTime,
   getBlockTime,
 } from "./utils";
-import {
-  CurrencyForToken,
-  RawPriceItem,
-} from "../../common/codegen/Oracle.types";
 
-const PRICE_RATIO_MULTIPLIER = 0.97;
-const PAGINATION_QUERY_AMOUNT = 50;
-const QUERY_OFFERS_BATCH_SIZE = 3;
+const BLOCK_TIME_MARGIN = 10; // delay in seconds to consider paginated queries time difference
+const PRICE_RATIO_MULTIPLIER = 0.97; // to consider swap price impact
+
+const PAGINATION = {
+  COLLECTIONS: 50,
+  OFFERS: {
+    COLLECTION_BATCH: 5,
+    COLLECTION_LIMIT: 50,
+    COLLECTION_MAX_COUNT: 50,
+  },
+};
 
 function calcAverage(list: number[]): number {
   return list.reduce((acc, cur) => acc + cur, 0) / list.length;
 }
 
+// TODO: change formula
 function calcCollectionPrice(priceList: number[]): number {
   const offersCount = priceList.length;
   const amounts = priceList.sort((a, b) => b - a); // sort offers by amount descending
@@ -182,10 +189,10 @@ async function main(isInfiniteLoop: boolean) {
 
   const getCollectionList = async () => {
     const collectionListMain = (
-      await lending.pQueryCollectionList("main", PAGINATION_QUERY_AMOUNT)
+      await lending.pQueryCollectionList("main", PAGINATION.COLLECTIONS)
     ).map((x) => x.address);
     const collectionListStable = (
-      await lending.pQueryCollectionList("stable", PAGINATION_QUERY_AMOUNT)
+      await lending.pQueryCollectionList("stable", PAGINATION.COLLECTIONS)
     ).map((x) => x.address);
 
     return Array.from(
@@ -229,17 +236,28 @@ async function main(isInfiniteLoop: boolean) {
   const queryAllOffers = async (
     marketplaceAddress: string,
     collectionList: string[],
-    batchSize: number
+    collectionBatchSize: number,
+    collectionLimit: number,
+    collectionMaxCount: number,
+    blockTime: number
   ): Promise<[string, Offer[]][]> => {
     let collectionAndOffersList: [string, Offer[]][] = [];
     let collectionBatch: string[] = [];
 
     const addCollection = async (collection: string) => {
       try {
-        const offers = await utils.cwQueryMarketplaceOffers(
-          marketplaceAddress,
-          collection
-        );
+        const offers: Offer[] = (
+          await utils.pQueryMarketplaceCollectionOffers(
+            marketplaceAddress,
+            collection,
+            blockTime,
+            collectionLimit,
+            collectionMaxCount
+          )
+        ).map((x) => ({
+          price: Number(x.price),
+          expires_at: Math.floor(Number(x.expires_at) / 1e9),
+        }));
 
         collectionAndOffersList.push([collection, offers]);
       } catch (error) {
@@ -249,7 +267,7 @@ async function main(isInfiniteLoop: boolean) {
 
     // group queries
     for (const collection of collectionList) {
-      if (collectionBatch.length !== batchSize) {
+      if (collectionBatch.length !== collectionBatchSize) {
         collectionBatch.push(collection);
       } else {
         await Promise.all(
@@ -274,24 +292,25 @@ async function main(isInfiniteLoop: boolean) {
     collectionList: string[],
     blockTimeOffset: number
   ) => {
+    let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
     const collectionAndOffersList = await queryAllOffers(
       marketplaceAddress,
       collectionList,
-      QUERY_OFFERS_BATCH_SIZE
+      PAGINATION.OFFERS.COLLECTION_BATCH,
+      PAGINATION.OFFERS.COLLECTION_LIMIT,
+      PAGINATION.OFFERS.COLLECTION_MAX_COUNT,
+      blockTime
     );
 
-    // remove expired offers and collections w/o offers, calc collection prices
-    let blockTime = getBlockTime(blockTimeOffset);
+    // calc collection prices
     const collectionAndPriceList = (
       collectionAndOffersList.map(([collection, offers]) => {
-        const priceList = offers
-          .filter((x) => x.expires_at > blockTime)
-          .map((x) => x.price);
+        const priceList = offers.map((x) => x.price);
         const collectionPrice = calcCollectionPrice(priceList);
 
         return [collection, collectionPrice];
       }) as [string, number][]
-    ).filter(([_collection, collectionPrice]) => collectionPrice);
+    ).filter(([_collection, collectionPrice]) => collectionPrice); // TOTO: update formula and remove
 
     // try get stars price from imperator api or pools
     const starsPrice = await queryStarsPrice(req);
@@ -304,27 +323,21 @@ async function main(isInfiniteLoop: boolean) {
       ([collection, collectionPrice]) => {
         return {
           collection_address: collection,
-          price: {
-            amount: floor(collectionPrice).toString(),
-            currency: mainCurrency,
-          },
-          usd_price: {
-            amount: floor(priceRatio * collectionPrice).toString(),
-            currency: stableCurrency,
-          },
+          price: floor(collectionPrice).toString(),
+          usd_price: floor(priceRatio * collectionPrice).toString(),
         };
       }
     );
 
     // li({ priceRatio, priceData });
 
-    // limit execution frequency
-    const [{ block_time: lastUpdateTime }] = await oracle.cwQueryLog();
-    blockTime = getBlockTime(blockTimeOffset);
-    const nextUpdateMinTime = lastUpdateTime + executionCooldown;
-    const timeToWait =
-      nextUpdateMinTime - Math.min(blockTime, nextUpdateMinTime);
-    await wait(timeToWait * 1e3);
+    // // limit execution frequency
+    // const [{ block_time: lastUpdateTime }] = await oracle.cwQueryLog();
+    // blockTime = getBlockTime(blockTimeOffset);
+    // const nextUpdateMinTime = lastUpdateTime + executionCooldown;
+    // const timeToWait =
+    //   nextUpdateMinTime - Math.min(blockTime, nextUpdateMinTime);
+    // await wait(timeToWait * 1e3);
 
     // send tx
     await h.oracle.cwSetPrices(priceRatio, priceData, gasPrice);
@@ -354,7 +367,7 @@ async function main(isInfiniteLoop: boolean) {
       );
     } catch (error) {
       l(error, "\n");
-      // await wait(executionCooldown * 1e3);
+      await wait(executionCooldown * 1e3);
     }
     l({ cycleLength: getLocalBlockTime() - date });
 

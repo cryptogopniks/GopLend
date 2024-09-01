@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, Decimal, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, ArrayOfLog, Log, PriceRatioItem, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
+import { TokenUnverified, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Decimal, RawPriceItem, QueryMsg, MigrateMsg, Uint64, Addr, Token, Config, CurrencyForToken, ArrayOfLog, Log, PriceRatioItem, ArrayOfPriceItemForFundsForToken, PriceItemForFundsForToken, FundsForToken } from "./Oracle.types";
 export interface OracleReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
@@ -18,7 +18,7 @@ export interface OracleReadOnlyInterface {
     collectionAddresses?: string[];
     limit?: number;
     startAfter?: string;
-  }) => Promise<ArrayOfPriceItem>;
+  }) => Promise<ArrayOfPriceItemForFundsForToken>;
   queryPriceRatio: () => Promise<PriceRatioItem>;
   queryBlockTime: () => Promise<Uint64>;
   queryLog: () => Promise<ArrayOfLog>;
@@ -48,7 +48,7 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
     collectionAddresses?: string[];
     limit?: number;
     startAfter?: string;
-  }): Promise<ArrayOfPriceItem> => {
+  }): Promise<ArrayOfPriceItemForFundsForToken> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_prices: {
         collection_addresses: collectionAddresses,
@@ -81,13 +81,17 @@ export interface OracleInterface extends OracleReadOnlyInterface {
     admin,
     controller,
     executionCooldown,
+    mainCurrency,
     maxPriceUpdatePeriod,
+    stableCurrency,
     worker
   }: {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
+    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
+    stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   setPrices: ({
@@ -134,13 +138,17 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
     admin,
     controller,
     executionCooldown,
+    mainCurrency,
     maxPriceUpdatePeriod,
+    stableCurrency,
     worker
   }: {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
+    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
+    stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
@@ -148,7 +156,9 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
         admin,
         controller,
         execution_cooldown: executionCooldown,
+        main_currency: mainCurrency,
         max_price_update_period: maxPriceUpdatePeriod,
+        stable_currency: stableCurrency,
         worker
       }
     }, fee, memo, _funds);

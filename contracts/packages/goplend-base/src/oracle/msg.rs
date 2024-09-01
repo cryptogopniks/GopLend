@@ -1,7 +1,10 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Decimal;
 
-use crate::oracle::types::RawPriceItem;
+use crate::{
+    assets::{Currency, TokenUnverified},
+    oracle::types::RawPriceItem,
+};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -9,6 +12,8 @@ pub struct InstantiateMsg {
     pub controller: Option<Vec<String>>,
     pub execution_cooldown: Option<u64>,
     pub max_price_update_period: Option<u64>,
+    pub main_currency: Currency<TokenUnverified>,
+    pub stable_currency: Currency<TokenUnverified>,
 }
 
 #[cw_serde]
@@ -28,6 +33,8 @@ pub enum ExecuteMsg {
         controller: Option<Vec<String>>,
         execution_cooldown: Option<u64>,
         max_price_update_period: Option<u64>,
+        main_currency: Option<Currency<TokenUnverified>>,
+        stable_currency: Option<Currency<TokenUnverified>>,
     },
 
     // controller
@@ -54,7 +61,7 @@ pub enum QueryMsg {
     #[returns(crate::oracle::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<crate::oracle::types::PriceItem>)]
+    #[returns(Vec<crate::oracle::types::PriceItem<crate::assets::Funds<crate::assets::Token> >>)]
     QueryPrices {
         collection_addresses: Option<Vec<String>>,
         start_after: Option<String>,

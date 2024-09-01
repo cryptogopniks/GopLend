@@ -21,7 +21,10 @@ use goplend_base::{
 
 use crate::math;
 
-pub fn choose_price(main_currency: &Currency<Token>, price_item: &PriceItem) -> Uint128 {
+pub fn choose_price(
+    main_currency: &Currency<Token>,
+    price_item: &PriceItem<Funds<Token>>,
+) -> Uint128 {
     if main_currency == &price_item.price.currency {
         price_item.price.amount
     } else {
@@ -400,7 +403,7 @@ pub fn get_collaterals_by_borrower(
 pub fn get_collateral_value(
     main_currency: &Currency<Token>,
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
-    prices: &[PriceItem],
+    prices: &[PriceItem<Funds<Token>>],
 ) -> StdResult<Uint128> {
     let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
         Ok(Uint128::zero()),
@@ -431,6 +434,7 @@ pub mod offchain {
     use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 
     use goplend_base::{
+        assets::{Funds, Token},
         lending_platform::{
             msg::{
                 QueryBorrowersResponseItem, QueryCollateralsResponseItem,
@@ -464,7 +468,7 @@ pub mod offchain {
         oracle_address: &Addr,
         borrower_list: &[QueryBorrowersResponseItem],
         collection_and_collateral_list: &[QueryCollateralsResponseItem],
-    ) -> StdResult<Vec<PriceItem>> {
+    ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
         // collect collection addresses over current page borrowers
         let borrower_addresses: Vec<Addr> =
             borrower_list.iter().map(|x| x.address.to_owned()).collect();
@@ -490,7 +494,7 @@ pub mod offchain {
                 .collect::<Vec<String>>(),
         );
 
-        querier_wrapper.query_wasm_smart::<Vec<PriceItem>>(
+        querier_wrapper.query_wasm_smart::<Vec<PriceItem<Funds<Token>>>>(
             oracle_address,
             &oracle::msg::QueryMsg::QueryPrices {
                 collection_addresses,

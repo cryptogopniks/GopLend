@@ -1,5 +1,9 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use sg_marketplace::msg::{BidOffset, CollectionBidOffset};
+use cosmwasm_std::{Addr, Decimal, Uint128};
+use sg_marketplace::{
+    msg::{BidOffset, CollectionBidOffset},
+    state::CollectionBid,
+};
 
 use crate::{
     adapters::dex::stargaze::types::Route,
@@ -54,6 +58,24 @@ pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
 
+    #[returns(Vec<(Addr, Uint128)>)]
+    QueryFloorPrices {
+        collection_address_list: Vec<String>,
+    },
+
+    #[returns(Vec<(u32, Vec<sg_marketplace::state::Bid>)>)]
+    QueryTokenOffers {
+        collection_address: String,
+        token_list: Vec<u32>,
+        limit: u32,
+    },
+
+    #[returns(QueryCollectionOffersResponse)]
+    QueryCollectionOffers {
+        collection_address: String,
+        limit: u32,
+    },
+
     #[returns(QueryOffersByCollectionAddressResponse)]
     QueryOffersByCollectionAddress {
         platform_type: PlatformType,
@@ -71,4 +93,11 @@ pub struct QueryOffersByCollectionAddressResponse {
     pub offers: Vec<LiquidationBid>,
     pub last_collection_offer: Option<CollectionBidOffset>,
     pub last_token_offer: Option<BidOffset>,
+}
+
+#[cw_serde]
+pub struct QueryCollectionOffersResponse {
+    pub collection_bids: Vec<CollectionBid>,
+    pub discount_base: Decimal,
+    pub price_ratio_stable: Decimal,
 }

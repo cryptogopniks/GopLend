@@ -53,6 +53,8 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
+            main_currency,
+            stable_currency,
         } => e::try_update_config(
             deps,
             env,
@@ -62,6 +64,8 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
+            main_currency,
+            stable_currency,
         ),
     }
 }

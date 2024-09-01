@@ -1,4 +1,4 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Deque, Item, Map};
 
 use crate::oracle::types::{Config, Log, TransferAdminState};
@@ -20,6 +20,6 @@ pub const PRICE_RATIO: Item<PriceRatioItem> = Item::new("price ratio");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer admin state");
 
-pub const PRICE_AND_DATE_LIST: Map<&Addr, PriceItem> = Map::new("price and data list");
+pub const PRICE_AND_DATE_LIST: Map<&Addr, PriceItem<Uint128>> = Map::new("price and data list");
 
 pub const LOG: Deque<Log> = Deque::new("log");

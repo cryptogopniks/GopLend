@@ -32,7 +32,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         ),
     ];
 
-    let price_list: Vec<PriceItem> = vec![
+    let price_list: Vec<PriceItem<Funds<Token>>> = vec![
         PriceItem {
             address: ProjectNft::Gopniks.into(),
             price: Funds::new(
@@ -419,7 +419,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         ),
     ];
 
-    let price_list: Vec<PriceItem> = vec![
+    let price_list: Vec<PriceItem<Funds<Token>>> = vec![
         PriceItem {
             address: ProjectNft::Gopniks.into(),
             price: Funds::new(

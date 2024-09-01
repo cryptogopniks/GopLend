@@ -4,15 +4,18 @@ import { ChainConfig } from "../../common/interfaces";
 import { ENCODING, PATH_TO_CONFIG_JSON, parseStoreArgs } from "./utils";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
-import { ArrayOfPriceItem, PriceItem } from "../../common/codegen/Oracle.types";
 import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import {
+  ArrayOfPriceItemForFundsForToken,
+  PriceItemForFundsForToken,
+} from "../../common/codegen/Oracle.types";
 import {
   calcConditionalLtv,
   calcLiquidationSet,
   calcLiquidationValue,
   calcLtvMax,
   choosePrice,
-  matchCollateralsAndBids,
+  matchCollateralsAndBidsLegacy,
 } from "./math";
 import {
   Addr,
@@ -59,7 +62,7 @@ export async function queryTargets(
   const getCollectionPrices = async (
     borrowers: [Addr, Borrower][],
     collectionAndCollateralList: [Addr, Collateral[]][]
-  ): Promise<ArrayOfPriceItem> => {
+  ): Promise<ArrayOfPriceItemForFundsForToken> => {
     // collect collection addresses over current page borrowers
     const borrowerAddresses: Addr[] = borrowers.map(([address, _]) => address);
 
@@ -106,7 +109,7 @@ export async function queryTargets(
   const getCollateralValue = (
     mainCurrency: CurrencyForToken,
     collectionAndCollateralListByBorrower: [Addr, Collateral][],
-    prices: PriceItem[]
+    prices: PriceItemForFundsForToken[]
   ) => {
     let isPriceOutdated = false;
 
@@ -256,7 +259,7 @@ export async function queryTargets(
       collectionAndCollateralListByBorrower
     );
 
-    const biddedCollateralList = matchCollateralsAndBids(
+    const biddedCollateralList = matchCollateralsAndBidsLegacy(
       commonConfig.main_currency,
       collectionAndCollateralListByBorrower,
       collectionAndBidList,
@@ -269,7 +272,8 @@ export async function queryTargets(
       collateralValue,
       Number(rateConfig.discount_max_rate),
       ltv,
-      ltvMax
+      ltvMax,
+      1
     );
 
     const liquidation_set = calcLiquidationSet(
