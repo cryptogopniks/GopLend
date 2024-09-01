@@ -2,6 +2,7 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
+    assets::Currency,
     error::ContractError,
     oracle::{
         msg::InstantiateMsg,
@@ -48,6 +49,14 @@ pub fn try_instantiate(
             max_price_update_period: msg
                 .max_price_update_period
                 .unwrap_or(MAX_PRICE_UPDATE_PERIOD),
+            main_currency: Currency::new(
+                &msg.main_currency.token.verify(deps.api)?,
+                msg.main_currency.decimals,
+            ),
+            stable_currency: Currency::new(
+                &msg.stable_currency.token.verify(deps.api)?,
+                msg.stable_currency.decimals,
+            ),
         },
     )?;
 

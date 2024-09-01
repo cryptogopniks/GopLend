@@ -503,7 +503,7 @@ pub fn query_ltv_list(
         .map(|(address, _)| address.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -578,7 +578,7 @@ pub fn query_conditional_ltv(
         .collect();
 
     // TODO: limit prices change rate to protect against oracle attack
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -675,7 +675,7 @@ pub fn query_available_to_borrow(
         .collect();
 
     // TODO: limit prices change rate to protect against oracle attack
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
@@ -816,7 +816,7 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem> = deps.querier.query_wasm_smart(
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),

@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdResult};
 
 use goplend_base::{
-    assets::{Currency, Funds},
+    assets::{Currency, TokenUnverified},
     error::ContractError,
     oracle::{
         state::{
@@ -79,19 +79,11 @@ pub fn try_set_prices(
         usd_price,
     } in data
     {
-        if price.amount.is_zero() {
+        if price.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
         let collection_address = &deps.api.addr_validate(&collection_address)?;
-
-        let price_token = price.currency.token.verify(deps.api)?;
-        let currency = Currency::new(&price_token, price.currency.decimals);
-        let price = Funds::new(price.amount, &currency);
-
-        let usd_price_token = usd_price.currency.token.verify(deps.api)?;
-        let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
-        let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
         if let Ok(PriceItem { update_date, .. }) =
             PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
@@ -190,19 +182,11 @@ pub fn try_update_prices(
         usd_price,
     } in data
     {
-        if price.amount.is_zero() {
+        if price.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
         let collection_address = &deps.api.addr_validate(&collection_address)?;
-
-        let price_token = price.currency.token.verify(deps.api)?;
-        let currency = Currency::new(&price_token, price.currency.decimals);
-        let price = Funds::new(price.amount, &currency);
-
-        let usd_price_token = usd_price.currency.token.verify(deps.api)?;
-        let usd_currency = Currency::new(&usd_price_token, usd_price.currency.decimals);
-        let usd_price = Funds::new(usd_price.amount, &usd_currency);
 
         if let Ok(PriceItem { update_date, .. }) =
             PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
@@ -308,6 +292,8 @@ pub fn try_update_config(
     controller: Option<Vec<String>>,
     execution_cooldown: Option<u64>,
     max_price_update_period: Option<u64>,
+    main_currency: Option<Currency<TokenUnverified>>,
+    stable_currency: Option<Currency<TokenUnverified>>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -381,6 +367,30 @@ pub fn try_update_config(
             AuthType::AdminOrWorker,
         )?;
         config.max_price_update_period = x;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = main_currency {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
+
+        config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = stable_currency {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::AdminOrWorker,
+        )?;
+
+        config.stable_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
         is_config_updated = true;
     }
 

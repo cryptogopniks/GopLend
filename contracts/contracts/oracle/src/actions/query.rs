@@ -1,8 +1,8 @@
-use cosmwasm_std::{Deps, Env, Order, StdResult};
+use cosmwasm_std::{Deps, Env, Order, StdResult, Uint128};
 
 use cw_storage_plus::Bound;
 use goplend_base::{
-    assets::{Currency, Funds, Token},
+    assets::{Funds, Token},
     oracle::{
         state::{
             CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
@@ -22,10 +22,12 @@ pub fn query_prices(
     collection_addresses: Option<Vec<String>>,
     start_after: Option<String>,
     limit: Option<u32>,
-) -> StdResult<Vec<PriceItem>> {
+) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
     let block_time = env.block.time.seconds();
     let Config {
         max_price_update_period,
+        main_currency,
+        stable_currency,
         ..
     } = CONFIG.load(deps.storage)?;
     let decreased_block_time =
@@ -36,27 +38,26 @@ pub fn query_prices(
             .iter()
             .map(|y| {
                 let address = deps.api.addr_validate(y)?;
-                let mut price_item =
+                let price_item =
                     PRICE_AND_DATE_LIST
                         .load(deps.storage, &address)
                         .unwrap_or(PriceItem {
                             address: address.to_owned(),
-                            price: Funds::new(
-                                0u128,
-                                &Currency::new(&Token::new_native(&String::default()), 0),
-                            ),
-                            usd_price: Funds::new(
-                                0u128,
-                                &Currency::new(&Token::new_native(&String::default()), 0),
-                            ),
+                            price: Uint128::zero(),
+                            usd_price: Uint128::zero(),
                             update_date: 0,
                             is_outdated: true,
                         });
-                price_item.is_outdated = decreased_block_time > price_item.update_date;
 
-                Ok(price_item)
+                Ok(PriceItem {
+                    address: price_item.address,
+                    price: Funds::new(price_item.price, &main_currency),
+                    usd_price: Funds::new(price_item.usd_price, &stable_currency),
+                    update_date: price_item.update_date,
+                    is_outdated: decreased_block_time > price_item.update_date,
+                })
             })
-            .collect::<StdResult<Vec<PriceItem>>>();
+            .collect();
     }
 
     let limit = limit
@@ -76,10 +77,15 @@ pub fn query_prices(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
-            let (_address, mut price_item) = x.unwrap();
-            price_item.is_outdated = decreased_block_time > price_item.update_date;
+            let (_address, price_item) = x.unwrap();
 
-            price_item
+            PriceItem {
+                address: price_item.address,
+                price: Funds::new(price_item.price, &main_currency),
+                usd_price: Funds::new(price_item.usd_price, &stable_currency),
+                update_date: price_item.update_date,
+                is_outdated: decreased_block_time > price_item.update_date,
+            }
         })
         .collect())
 }

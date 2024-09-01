@@ -2,6 +2,7 @@ use cosmwasm_std::StdResult;
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
+    assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
     oracle::{
@@ -26,6 +27,8 @@ pub trait OracleExtension {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        stable_currency: &Option<Currency<TokenUnverified>>,
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_set_prices(
@@ -55,7 +58,7 @@ pub trait OracleExtension {
         collection_addresses: &Option<Vec<ProjectNft>>,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<PriceItem>>;
+    ) -> StdResult<Vec<PriceItem<Funds<Token>>>>;
 
     fn oracle_query_price_ratio(&self) -> StdResult<PriceRatioItem>;
 
@@ -86,6 +89,8 @@ impl OracleExtension for Project {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
+        main_currency: &Option<Currency<TokenUnverified>>,
+        stable_currency: &Option<Currency<TokenUnverified>>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -99,6 +104,8 @@ impl OracleExtension for Project {
                         .map(|x| x.iter().map(|y| y.to_string()).collect()),
                     execution_cooldown: execution_cooldown.to_owned(),
                     max_price_update_period: max_price_update_period.to_owned(),
+                    main_currency: main_currency.as_ref().map(|x| x.to_owned()),
+                    stable_currency: stable_currency.as_ref().map(|x| x.to_owned()),
                 },
                 &[],
             )
@@ -176,7 +183,7 @@ impl OracleExtension for Project {
         collection_addresses: &Option<Vec<ProjectNft>>,
         start_after: &Option<ProjectNft>,
         limit: &Option<u32>,
-    ) -> StdResult<Vec<PriceItem>> {
+    ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
         let collection_addresses = collection_addresses
             .as_ref()
             .map(|x| x.iter().map(|y| y.to_string()).collect());
