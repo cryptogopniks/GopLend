@@ -19,6 +19,7 @@ use crate::helpers::suite::{
 pub trait OracleExtension {
     fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
+    #[allow(clippy::too_many_arguments)]
     fn oracle_try_update_config(
         &mut self,
         sender: ProjectAccount,

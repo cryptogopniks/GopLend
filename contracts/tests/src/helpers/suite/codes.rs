@@ -82,6 +82,7 @@ pub trait WithCodes {
         is_marketplace_interface_enabled: &Option<bool>,
     ) -> Addr;
 
+    #[allow(clippy::too_many_arguments)]
     fn instantiate_oracle(
         &mut self,
         oracle_code_id: u64,

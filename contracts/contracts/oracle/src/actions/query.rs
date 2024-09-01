@@ -50,7 +50,7 @@ pub fn query_prices(
                         });
 
                 Ok(PriceItem {
-                    address: price_item.address,
+                    address,
                     price: Funds::new(price_item.price, &main_currency),
                     usd_price: Funds::new(price_item.usd_price, &stable_currency),
                     update_date: price_item.update_date,
@@ -77,10 +77,10 @@ pub fn query_prices(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .map(|x| {
-            let (_address, price_item) = x.unwrap();
+            let (address, price_item) = x.unwrap();
 
             PriceItem {
-                address: price_item.address,
+                address,
                 price: Funds::new(price_item.price, &main_currency),
                 usd_price: Funds::new(price_item.usd_price, &stable_currency),
                 update_date: price_item.update_date,

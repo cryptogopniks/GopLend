@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, Decimal, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, ArrayOfLog, Log, PriceRatioItem, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
+import { TokenUnverified, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Decimal, RawPriceItem, QueryMsg, MigrateMsg, Uint64, Addr, Token, Config, CurrencyForToken, ArrayOfLog, Log, PriceRatioItem, ArrayOfPriceItemForFundsForToken, PriceItemForFundsForToken, FundsForToken } from "./Oracle.types";
 export interface OracleMsg {
   contractAddress: string;
   sender: string;
@@ -17,13 +17,17 @@ export interface OracleMsg {
     admin,
     controller,
     executionCooldown,
+    mainCurrency,
     maxPriceUpdatePeriod,
+    stableCurrency,
     worker
   }: {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
+    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
+    stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   setPrices: ({
@@ -75,13 +79,17 @@ export class OracleMsgComposer implements OracleMsg {
     admin,
     controller,
     executionCooldown,
+    mainCurrency,
     maxPriceUpdatePeriod,
+    stableCurrency,
     worker
   }: {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
+    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
+    stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -94,7 +102,9 @@ export class OracleMsgComposer implements OracleMsg {
             admin,
             controller,
             execution_cooldown: executionCooldown,
+            main_currency: mainCurrency,
             max_price_update_period: maxPriceUpdatePeriod,
+            stable_currency: stableCurrency,
             worker
           }
         })),
