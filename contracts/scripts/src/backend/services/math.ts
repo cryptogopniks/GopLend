@@ -629,7 +629,9 @@ export function reduceBids(
         return acc;
       }
 
-      bid.amount -= Math.min(Number(liquidation_price), bid.amount);
+      bid.amount = floor(
+        bid.amount - Math.min(Number(liquidation_price), bid.amount)
+      );
       bid.tokenIdList = bid.tokenIdList.filter((id) => id !== token_item.id);
       if (bid.tokenIdList.length && !bid.amount) {
         acc.push(bid);
