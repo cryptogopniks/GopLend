@@ -196,12 +196,6 @@ async function main(isInfiniteLoop: boolean) {
     // get execution cooldown
     const executionCooldown = (await oracle.cwQueryConfig()).execution_cooldown;
 
-    // get currencies
-    const mainCurrency = (await lending.cwQueryCommonConfig("main"))
-      .main_currency;
-    const stableCurrency = (await lending.cwQueryCommonConfig("stable"))
-      .main_currency;
-
     // get stargaze marketplace address
     const { marketplace: marketplaceAddress } =
       await adapter.marketplace.stargaze.cwQueryConfig();
@@ -217,8 +211,6 @@ async function main(isInfiniteLoop: boolean) {
 
     return {
       executionCooldown,
-      mainCurrency,
-      stableCurrency,
       marketplaceAddress,
       collectionList,
       blockTimeOffset,
@@ -238,18 +230,22 @@ async function main(isInfiniteLoop: boolean) {
 
     const addCollection = async (collection: string) => {
       try {
-        const offers: Offer[] = (
-          await utils.pQueryMarketplaceCollectionOffers(
-            marketplaceAddress,
-            collection,
-            blockTime,
-            collectionLimit,
-            collectionMaxCount
-          )
-        ).map((x) => ({
-          price: Number(x.price),
-          expires_at: Math.floor(Number(x.expires_at) / 1e9),
-        }));
+        const offers: Offer[] =
+          // TODO: create pQuery based on adapterMarketplaceStargazeQueryClient.queryCollectionOffers
+          // and use instead of pQueryMarketplaceCollectionOffers
+          // to reduce collection price by fees
+          (
+            await utils.pQueryMarketplaceCollectionOffers(
+              marketplaceAddress,
+              collection,
+              blockTime,
+              collectionLimit,
+              collectionMaxCount
+            )
+          ).map((x) => ({
+            price: Number(x.price),
+            expires_at: Math.floor(Number(x.expires_at) / 1e9),
+          }));
 
         collectionAndOffersList.push([collection, offers]);
       } catch (error) {
@@ -278,8 +274,6 @@ async function main(isInfiniteLoop: boolean) {
   };
 
   const setPrices = async (
-    mainCurrency: CurrencyForToken,
-    stableCurrency: CurrencyForToken,
     marketplaceAddress: string,
     collectionList: string[],
     blockTimeOffset: number,
@@ -401,8 +395,6 @@ async function main(isInfiniteLoop: boolean) {
   // initialization part - run it single time on script start
   const {
     executionCooldown,
-    mainCurrency,
-    stableCurrency,
     marketplaceAddress,
     collectionList,
     blockTimeOffset,
@@ -424,8 +416,6 @@ async function main(isInfiniteLoop: boolean) {
 
     try {
       collectionPriceResponseList = await setPrices(
-        mainCurrency,
-        stableCurrency,
         marketplaceAddress,
         collectionList,
         blockTimeOffset,

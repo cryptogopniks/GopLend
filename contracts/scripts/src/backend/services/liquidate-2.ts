@@ -86,6 +86,14 @@ async function getPushListFn(
       );
 
       const msgList = routeList.map((route) => {
+        const targets = routeAndliquidationItemList.reduce(
+          (acc, [currentRoute, liquidationItem]) => {
+            if (currentRoute === route) acc.push(liquidationItem);
+            return acc;
+          },
+          [] as LiquidationItem[]
+        );
+
         const msg: MsgExecuteContractEncodeObject = {
           typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
           value: MsgExecuteContract.fromPartial({
@@ -95,9 +103,7 @@ async function getPushListFn(
               JSON.stringify({
                 push: {
                   route,
-                  targets: routeAndliquidationItemList.filter(
-                    ([currentRoute]) => currentRoute === route
-                  ),
+                  targets,
                 },
               })
             ),
