@@ -100,7 +100,7 @@ export type Uint64 = string;
 export interface QueryCollectionOffersResponse {
   collection_bids: CollectionBid[];
   discount_base: Decimal;
-  price_ratio_stable: Decimal;
+  price_ratio_stable?: Decimal | null;
 }
 export interface CollectionBid {
   bidder: Addr;

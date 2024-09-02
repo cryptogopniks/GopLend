@@ -95,23 +95,17 @@ pub fn query_collection_offers(
         marketplace,
         ..
     } = CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
-    let PriceRatioItem {
-        value: price_ratio_stable,
-        is_outdated,
-        ..
-    } = deps.querier.query_wasm_smart(
-        oracle,
-        &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
-    )?;
-
-    if is_outdated {
-        Err(ContractError::OutdatedPrice {
-            val: price_ratio_stable.to_string(),
-        })?;
-    }
+    // this query is used to get collection main prices for oracle
+    // then price_ratio_stable can be optional
+    let price_ratio_stable = deps
+        .querier
+        .query_wasm_smart::<PriceRatioItem>(
+            &unwrap_field(oracle, "oracle")?,
+            &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
+        )
+        .map(|x| if x.is_outdated { None } else { Some(x.value) })?;
 
     // get network fee rate
     let params_response: ParamsResponse = deps

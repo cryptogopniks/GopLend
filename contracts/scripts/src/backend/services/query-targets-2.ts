@@ -21,17 +21,6 @@ import {
 
 const platformList: PlatformType[] = ["main", "stable"];
 
-// TODO:
-// +limit amount of liquidation per cycle to not shift collection price too fast
-// migrate marketplace adapter again
-// can multiple users share same collection offer?
-// +check it's safe to use utils.cwGetMarketplaceOffers
-// +handle both platforms
-// +migrate oracle
-// +migrate scheduler adapter
-// +migrate marketplace adapter
-// +remove execution cooldown from scheduller adapter
-// +-add query frequency limiter
 export async function queryTargets(
   chainId: string,
   rpc: string,

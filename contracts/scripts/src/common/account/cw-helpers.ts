@@ -2052,7 +2052,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       try {
         // query collection offers, fees, price ratio
         const { collection_bids, discount_base, price_ratio_stable } =
-          await cwAdapterMarketplaceStargazeQueryCollectionOffers(
+          await cwQueryCollectionOffers(
             collection,
             collectionOffersPaginationAmount
           );
@@ -2075,12 +2075,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
           )?.[1] || [];
 
         if (tokenList.length) {
-          const marketplaceTokenOffers =
-            (await cwAdapterMarketplaceStargazeQueryTokenOffers(
-              collection,
-              tokenList,
-              tokenOffersPaginationAmount
-            )) as [number, Bid[]][];
+          const marketplaceTokenOffers = (await cwQueryTokenOffers(
+            collection,
+            tokenList,
+            tokenOffersPaginationAmount
+          )) as [number, Bid[]][];
 
           // remove expired offers
           const tokenOffers = marketplaceTokenOffers.reduce(
@@ -2167,7 +2166,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
             )
           ) {
             const items: QueryOffersByCollectionAddressResponse =
-              await cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
+              await cwQueryOffersByCollectionAddress(
                 platformType,
                 collectionAddress,
                 EXPIRATION_DELAY_S,
@@ -2226,7 +2225,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryTokenOffers(
+  async function cwQueryTokenOffers(
     collectionAddress: string,
     tokenList: string[],
     limit: number = 100,
@@ -2240,7 +2239,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryCollectionOffers(
+  async function cwQueryCollectionOffers(
     collectionAddress: string,
     limit: number = 100,
     isDisplayed: boolean = false
@@ -2253,7 +2252,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
+  async function cwQueryOffersByCollectionAddress(
     platformType: PlatformType,
     collectionAddress: string,
     expirationDelay: number,
@@ -2954,11 +2953,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
           cwQueryFloorPrices,
-          // TODO: rename
-          cwAdapterMarketplaceStargazeQueryTokenOffers,
-          cwAdapterMarketplaceStargazeQueryCollectionOffers,
-          cwQueryOffersByCollectionAddress:
-            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress,
+          cwQueryTokenOffers,
+          cwQueryCollectionOffers,
+          cwQueryOffersByCollectionAddress,
         },
       },
       scheduler: {

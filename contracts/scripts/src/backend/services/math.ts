@@ -710,7 +710,7 @@ export function distributeOffers(
     if (!tokenListMain.length && !tokenListStable.length) continue;
 
     for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
-      let finders_fee_rate = Number(finders_fee_bps) / 100;
+      const findersFeeRate = Number(finders_fee_bps) / 100;
       const tokenId = token_id.toString();
 
       const isMain = collateralMain.find((x) =>
@@ -726,7 +726,7 @@ export function distributeOffers(
         liquidator: bidder,
         tokenIdList: [tokenId],
         amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-        discount: discountBase + finders_fee_rate,
+        discount: discountBase + findersFeeRate,
         bidType: "token_offer",
         platformType: isMain ? "main" : "stable",
         collectionOfferId: -1,
@@ -735,7 +735,7 @@ export function distributeOffers(
     }
 
     for (const { price, bidder, finders_fee_bps } of collectionOffers) {
-      let finders_fee_rate = Number(finders_fee_bps) / 100;
+      const findersFeeRate = Number(finders_fee_bps) / 100;
 
       for (const platformType of platformList) {
         const isMain = platformType === "main";
@@ -747,7 +747,7 @@ export function distributeOffers(
           liquidator: bidder,
           tokenIdList,
           amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-          discount: discountBase + finders_fee_rate,
+          discount: discountBase + findersFeeRate,
           bidType: "collection_offer",
           platformType,
           collectionOfferId,

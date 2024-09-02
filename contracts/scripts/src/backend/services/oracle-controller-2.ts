@@ -2,6 +2,7 @@ import { getSigner } from "../account/signer";
 import { l, li, floor, wait, Request } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
+import { RawPriceItem } from "../../common/codegen/Oracle.types";
 import {
   calcCollectionPrice,
   CollectionPriceResponse,
@@ -11,10 +12,6 @@ import {
   getCwExecHelpers,
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
-import {
-  CurrencyForToken,
-  RawPriceItem,
-} from "../../common/codegen/Oracle.types";
 import {
   AssetDescription,
   ChainConfig,
@@ -45,7 +42,6 @@ const PAGINATION = {
   OFFERS: {
     COLLECTION_BATCH: 5,
     COLLECTION_LIMIT: 50,
-    COLLECTION_MAX_COUNT: 50,
   },
 };
 
@@ -196,11 +192,6 @@ async function main(isInfiniteLoop: boolean) {
     // get execution cooldown
     const executionCooldown = (await oracle.cwQueryConfig()).execution_cooldown;
 
-    // get stargaze marketplace address
-    const { marketplace: marketplaceAddress } =
-      await adapter.marketplace.stargaze.cwQueryConfig();
-    if (!marketplaceAddress) throw new Error("Marketplace isn't found!");
-
     // get all listed collections
     const collectionList = await getCollectionList();
 
@@ -211,41 +202,42 @@ async function main(isInfiniteLoop: boolean) {
 
     return {
       executionCooldown,
-      marketplaceAddress,
       collectionList,
       blockTimeOffset,
     };
   };
 
   const queryAllOffers = async (
-    marketplaceAddress: string,
     collectionList: string[],
     collectionBatchSize: number,
-    collectionLimit: number,
-    collectionMaxCount: number,
-    blockTime: number
+    collectionLimit: number
   ): Promise<[string, Offer[]][]> => {
     let collectionAndOffersList: [string, Offer[]][] = [];
     let collectionBatch: string[] = [];
 
     const addCollection = async (collection: string) => {
       try {
-        const offers: Offer[] =
-          // TODO: create pQuery based on adapterMarketplaceStargazeQueryClient.queryCollectionOffers
-          // and use instead of pQueryMarketplaceCollectionOffers
-          // to reduce collection price by fees
-          (
-            await utils.pQueryMarketplaceCollectionOffers(
-              marketplaceAddress,
-              collection,
-              blockTime,
-              collectionLimit,
-              collectionMaxCount
-            )
-          ).map((x) => ({
-            price: Number(x.price),
+        const { discount_base, collection_bids } =
+          // it's enough to get up to 100 higher offers per collection
+          // (probably we never get so much)
+          await adapter.marketplace.stargaze.cwQueryCollectionOffers(
+            collection,
+            collectionLimit
+          );
+
+        const offers: Offer[] = collection_bids.map((x) => {
+          // prices must be reduced by fees
+          const discountBase = Number(discount_base);
+          const findersFeeRate = Number(x.finders_fee_bps) / 100;
+          const price = floor(
+            (1 - discountBase - findersFeeRate) * Number(x.price)
+          );
+
+          return {
+            price,
             expires_at: Math.floor(Number(x.expires_at) / 1e9),
-          }));
+          };
+        });
 
         collectionAndOffersList.push([collection, offers]);
       } catch (error) {
@@ -274,19 +266,15 @@ async function main(isInfiniteLoop: boolean) {
   };
 
   const setPrices = async (
-    marketplaceAddress: string,
     collectionList: string[],
     blockTimeOffset: number,
     collectionPriceResponseList: [string, CollectionPriceResponse][]
   ): Promise<[string, CollectionPriceResponse][]> => {
     let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
     const collectionAndOffersList = await queryAllOffers(
-      marketplaceAddress,
       collectionList,
       PAGINATION.OFFERS.COLLECTION_BATCH,
-      PAGINATION.OFFERS.COLLECTION_LIMIT,
-      PAGINATION.OFFERS.COLLECTION_MAX_COUNT,
-      blockTime
+      PAGINATION.OFFERS.COLLECTION_LIMIT
     );
 
     const floorPriceList: [string, number][] = (
@@ -393,12 +381,8 @@ async function main(isInfiniteLoop: boolean) {
 
   // TODO: restart script on collection list change
   // initialization part - run it single time on script start
-  const {
-    executionCooldown,
-    marketplaceAddress,
-    collectionList,
-    blockTimeOffset,
-  } = await getInitialParameters();
+  const { executionCooldown, collectionList, blockTimeOffset } =
+    await getInitialParameters();
 
   // [collection, CollectionPriceResponse][]
   let collectionPriceResponseList: [string, CollectionPriceResponse][] = [];
@@ -416,7 +400,6 @@ async function main(isInfiniteLoop: boolean) {
 
     try {
       collectionPriceResponseList = await setPrices(
-        marketplaceAddress,
         collectionList,
         blockTimeOffset,
         collectionPriceResponseList
