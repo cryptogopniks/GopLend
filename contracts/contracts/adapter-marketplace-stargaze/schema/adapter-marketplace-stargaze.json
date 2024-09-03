@@ -533,8 +533,7 @@
       "type": "object",
       "required": [
         "collection_bids",
-        "discount_base",
-        "price_ratio_stable"
+        "discount_base"
       ],
       "properties": {
         "collection_bids": {
@@ -547,7 +546,14 @@
           "$ref": "#/definitions/Decimal"
         },
         "price_ratio_stable": {
-          "$ref": "#/definitions/Decimal"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false,

@@ -545,7 +545,6 @@ pub fn try_withdraw_collateral(
     // check if nfts are on contract balance
     check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
 
-    let mut is_collateral_withdrawn_completely = true;
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
     for CollectionInfo {
@@ -584,11 +583,9 @@ pub fn try_withdraw_collateral(
                     collateral
                         .token_item_list
                         .retain(|item| !token_id_list.contains(&item.id));
-
-                    collateral
-                } else {
-                    collateral
                 }
+
+                collateral
             })
             .filter(|collateral| !collateral.token_item_list.is_empty())
             .collect();
@@ -597,7 +594,6 @@ pub fn try_withdraw_collateral(
             COLLATERALS.remove(deps.storage, &collection_address);
         } else {
             COLLATERALS.save(deps.storage, &collection_address, &collaterals)?;
-            is_collateral_withdrawn_completely = false;
         }
     }
 
@@ -613,6 +609,7 @@ pub fn try_withdraw_collateral(
         .iter()
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
+    let is_collateral_withdrawn_completely = collection_addresses.is_empty();
 
     let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
@@ -629,7 +626,7 @@ pub fn try_withdraw_collateral(
         &prices,
     )?;
 
-    if collateral_value < common_config.collateral_min_value && !is_collateral_withdrawn_completely
+    if !is_collateral_withdrawn_completely && collateral_value < common_config.collateral_min_value
     {
         Err(ContractError::LowCollateral {
             provided_amount: collateral_value.u128(),

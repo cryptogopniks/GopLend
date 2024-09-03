@@ -629,7 +629,9 @@ export function reduceBids(
         return acc;
       }
 
-      bid.amount -= Math.min(Number(liquidation_price), bid.amount);
+      bid.amount = floor(
+        bid.amount - Math.min(Number(liquidation_price), bid.amount)
+      );
       bid.tokenIdList = bid.tokenIdList.filter((id) => id !== token_item.id);
       if (bid.tokenIdList.length && !bid.amount) {
         acc.push(bid);
@@ -663,7 +665,7 @@ export function getCollectionsFromLtvAndCollateralList(
 // price = base_price * price_ratio * (1 - price_impact)
 // as price_impact comes with price_ratio
 // price = base_price * price_ratio
-function calcPrice(basePrice: number, priceRatio: number): number {
+export function calcPrice(basePrice: number, priceRatio: number): number {
   return basePrice * priceRatio;
 }
 
@@ -708,7 +710,7 @@ export function distributeOffers(
     if (!tokenListMain.length && !tokenListStable.length) continue;
 
     for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
-      let finders_fee_rate = Number(finders_fee_bps) / 100;
+      const findersFeeRate = Number(finders_fee_bps) / 100;
       const tokenId = token_id.toString();
 
       const isMain = collateralMain.find((x) =>
@@ -724,7 +726,7 @@ export function distributeOffers(
         liquidator: bidder,
         tokenIdList: [tokenId],
         amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-        discount: discountBase + finders_fee_rate,
+        discount: discountBase + findersFeeRate,
         bidType: "token_offer",
         platformType: isMain ? "main" : "stable",
         collectionOfferId: -1,
@@ -733,7 +735,7 @@ export function distributeOffers(
     }
 
     for (const { price, bidder, finders_fee_bps } of collectionOffers) {
-      let finders_fee_rate = Number(finders_fee_bps) / 100;
+      const findersFeeRate = Number(finders_fee_bps) / 100;
 
       for (const platformType of platformList) {
         const isMain = platformType === "main";
@@ -745,7 +747,7 @@ export function distributeOffers(
           liquidator: bidder,
           tokenIdList,
           amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-          discount: discountBase + finders_fee_rate,
+          discount: discountBase + findersFeeRate,
           bidType: "collection_offer",
           platformType,
           collectionOfferId,
@@ -812,6 +814,28 @@ export function mergeBidsAndOffers(
     totalBidsMain: [...liquidationBidsMainExtended, ...totalBidsMain],
     totalBidsStable: [...liquidationBidsStableExtended, ...totalBidsStable],
   };
+}
+
+// returns [collection, tokenList][]
+export function aggregateTokensByCollection(
+  ltvAndCollateralList: TargetBorrower[],
+  collectionList: string[]
+): [string, string[]][] {
+  return collectionList.map((collectionAddress) => {
+    const tokens = ltvAndCollateralList.reduce(
+      (acc, { collectionAndCollateralList }) => {
+        const currentTokens =
+          collectionAndCollateralList
+            .find(([collection]) => collection === collectionAddress)?.[1]
+            .token_item_list.map(({ id }) => id) || [];
+
+        return [...acc, ...currentTokens];
+      },
+      [] as string[]
+    );
+
+    return [collectionAddress, tokens];
+  });
 }
 
 export interface PriceSample {

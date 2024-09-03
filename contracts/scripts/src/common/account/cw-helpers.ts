@@ -2016,7 +2016,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwGetMarketplaceData(
-    ltvAndCollateralList: TargetBorrower[],
+    collectionAndTokensList: [string, string[]][],
     collectionList: string[],
     blockTime: number,
     batchPaginationAmount: number,
@@ -2029,30 +2029,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     let discountBaseList: [string, number][] = [];
     let priceRatioStable: number | undefined = undefined;
 
-    // aggregate tokens by collection
-    const collectionAndTokensList: [string, string[]][] = collectionList.map(
-      (collectionAddress) => {
-        const tokens = ltvAndCollateralList.reduce(
-          (acc, { collectionAndCollateralList }) => {
-            const currentTokens =
-              collectionAndCollateralList
-                .find(([collection]) => collection === collectionAddress)?.[1]
-                .token_item_list.map((x) => x.id) || [];
-
-            return [...acc, ...currentTokens];
-          },
-          [] as string[]
-        );
-
-        return [collectionAddress, tokens];
-      }
-    );
-
     const fn = async (collection: string) => {
       try {
         // query collection offers, fees, price ratio
         const { collection_bids, discount_base, price_ratio_stable } =
-          await cwAdapterMarketplaceStargazeQueryCollectionOffers(
+          await cwQueryCollectionOffers(
             collection,
             collectionOffersPaginationAmount
           );
@@ -2075,12 +2056,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
           )?.[1] || [];
 
         if (tokenList.length) {
-          const marketplaceTokenOffers =
-            (await cwAdapterMarketplaceStargazeQueryTokenOffers(
-              collection,
-              tokenList,
-              tokenOffersPaginationAmount
-            )) as [number, Bid[]][];
+          const marketplaceTokenOffers = (await cwQueryTokenOffers(
+            collection,
+            tokenList,
+            tokenOffersPaginationAmount
+          )) as [number, Bid[]][];
 
           // remove expired offers
           const tokenOffers = marketplaceTokenOffers.reduce(
@@ -2123,83 +2103,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     };
   }
 
-  // query ALL token and collection offers
-  async function cwGetMarketplaceOffers(
-    platformType: PlatformType,
-    collectionAddressList: string[],
-    is_marketplace_interface_enabled: boolean,
-    isDisplayed: boolean = false
-  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
-    const EXPIRATION_DELAY_S = 30;
-    const ASYNC_QUERY_AMOUNT = 5;
-
-    if (!is_marketplace_interface_enabled) {
-      return [];
-    }
-
-    const tokenOfferDefault: BidOffset = { bidder: "", price: "", token_id: 0 };
-    const collectionOfferDefault: CollectionBidOffset = {
-      bidder: "",
-      price: "",
-      collection: "",
-    };
-
-    const tokenOfferDefaultString = JSON.stringify(tokenOfferDefault);
-    const collectionOfferDefaultString = JSON.stringify(collectionOfferDefault);
-
-    let promiseList: Promise<void>[] = [];
-    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-      [];
-
-    for (const collectionAddress of collectionAddressList) {
-      const fn = async () => {
-        try {
-          let offers: LiquidationBid[] = [];
-          let lastTokenOfferItem: BidOffset | undefined = undefined;
-          let lastCollectionOfferItem: CollectionBidOffset | undefined =
-            undefined;
-
-          while (
-            !(
-              JSON.stringify(lastTokenOfferItem) === tokenOfferDefaultString &&
-              JSON.stringify(lastCollectionOfferItem) ===
-                collectionOfferDefaultString
-            )
-          ) {
-            const items: QueryOffersByCollectionAddressResponse =
-              await cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
-                platformType,
-                collectionAddress,
-                EXPIRATION_DELAY_S,
-                lastCollectionOfferItem,
-                lastTokenOfferItem
-              );
-
-            lastTokenOfferItem = items.last_token_offer || tokenOfferDefault;
-            lastCollectionOfferItem =
-              items.last_collection_offer || collectionOfferDefault;
-
-            offers = [...offers, ...items.offers];
-          }
-
-          allItems.push({
-            collection_address: collectionAddress,
-            liquidation_bids: offers,
-          });
-        } catch (_) {}
-      };
-
-      if (promiseList.length >= ASYNC_QUERY_AMOUNT) {
-        await Promise.all(promiseList);
-        promiseList = [];
-      }
-
-      promiseList.push(fn());
-    }
-
-    return logAndReturn(allItems, isDisplayed);
-  }
-
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -2226,7 +2129,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryTokenOffers(
+  async function cwQueryTokenOffers(
     collectionAddress: string,
     tokenList: string[],
     limit: number = 100,
@@ -2240,7 +2143,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryCollectionOffers(
+  async function cwQueryCollectionOffers(
     collectionAddress: string,
     limit: number = 100,
     isDisplayed: boolean = false
@@ -2253,7 +2156,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress(
+  async function cwQueryOffersByCollectionAddress(
     platformType: PlatformType,
     collectionAddress: string,
     expirationDelay: number,
@@ -2940,7 +2843,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       pQueryMarketplaceTokenOffers,
       pQueryMarketplaceCollectionOffers,
       cwGetMarketplaceData,
-      cwGetMarketplaceOffers, // TODO: replace
     },
     adapter: {
       dex: {
@@ -2954,11 +2856,9 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         stargaze: {
           cwQueryConfig: cwAdapterMarketplaceStargazeQueryConfig,
           cwQueryFloorPrices,
-          // TODO: rename
-          cwAdapterMarketplaceStargazeQueryTokenOffers,
-          cwAdapterMarketplaceStargazeQueryCollectionOffers,
-          cwQueryOffersByCollectionAddress:
-            cwAdapterMarketplaceStargazeQueryOffersByCollectionAddress,
+          cwQueryTokenOffers,
+          cwQueryCollectionOffers,
+          cwQueryOffersByCollectionAddress,
         },
       },
       scheduler: {

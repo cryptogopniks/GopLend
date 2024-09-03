@@ -99,5 +99,5 @@ pub struct QueryOffersByCollectionAddressResponse {
 pub struct QueryCollectionOffersResponse {
     pub collection_bids: Vec<CollectionBid>,
     pub discount_base: Decimal,
-    pub price_ratio_stable: Decimal,
+    pub price_ratio_stable: Option<Decimal>,
 }
