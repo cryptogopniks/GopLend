@@ -2016,7 +2016,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   }
 
   async function cwGetMarketplaceData(
-    ltvAndCollateralList: TargetBorrower[],
+    collectionAndTokensList: [string, string[]][],
     collectionList: string[],
     blockTime: number,
     batchPaginationAmount: number,
@@ -2028,25 +2028,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     let collectionOfferList: [string, CollectionBid[]][] = [];
     let discountBaseList: [string, number][] = [];
     let priceRatioStable: number | undefined = undefined;
-
-    // aggregate tokens by collection
-    const collectionAndTokensList: [string, string[]][] = collectionList.map(
-      (collectionAddress) => {
-        const tokens = ltvAndCollateralList.reduce(
-          (acc, { collectionAndCollateralList }) => {
-            const currentTokens =
-              collectionAndCollateralList
-                .find(([collection]) => collection === collectionAddress)?.[1]
-                .token_item_list.map((x) => x.id) || [];
-
-            return [...acc, ...currentTokens];
-          },
-          [] as string[]
-        );
-
-        return [collectionAddress, tokens];
-      }
-    );
 
     const fn = async (collection: string) => {
       try {
@@ -2120,83 +2101,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       discountBaseList,
       priceRatioStable,
     };
-  }
-
-  // query ALL token and collection offers
-  async function cwGetMarketplaceOffers(
-    platformType: PlatformType,
-    collectionAddressList: string[],
-    is_marketplace_interface_enabled: boolean,
-    isDisplayed: boolean = false
-  ): Promise<QueryLiquidationBidsByCollectionAddressListResponseItem[]> {
-    const EXPIRATION_DELAY_S = 30;
-    const ASYNC_QUERY_AMOUNT = 5;
-
-    if (!is_marketplace_interface_enabled) {
-      return [];
-    }
-
-    const tokenOfferDefault: BidOffset = { bidder: "", price: "", token_id: 0 };
-    const collectionOfferDefault: CollectionBidOffset = {
-      bidder: "",
-      price: "",
-      collection: "",
-    };
-
-    const tokenOfferDefaultString = JSON.stringify(tokenOfferDefault);
-    const collectionOfferDefaultString = JSON.stringify(collectionOfferDefault);
-
-    let promiseList: Promise<void>[] = [];
-    let allItems: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-      [];
-
-    for (const collectionAddress of collectionAddressList) {
-      const fn = async () => {
-        try {
-          let offers: LiquidationBid[] = [];
-          let lastTokenOfferItem: BidOffset | undefined = undefined;
-          let lastCollectionOfferItem: CollectionBidOffset | undefined =
-            undefined;
-
-          while (
-            !(
-              JSON.stringify(lastTokenOfferItem) === tokenOfferDefaultString &&
-              JSON.stringify(lastCollectionOfferItem) ===
-                collectionOfferDefaultString
-            )
-          ) {
-            const items: QueryOffersByCollectionAddressResponse =
-              await cwQueryOffersByCollectionAddress(
-                platformType,
-                collectionAddress,
-                EXPIRATION_DELAY_S,
-                lastCollectionOfferItem,
-                lastTokenOfferItem
-              );
-
-            lastTokenOfferItem = items.last_token_offer || tokenOfferDefault;
-            lastCollectionOfferItem =
-              items.last_collection_offer || collectionOfferDefault;
-
-            offers = [...offers, ...items.offers];
-          }
-
-          allItems.push({
-            collection_address: collectionAddress,
-            liquidation_bids: offers,
-          });
-        } catch (_) {}
-      };
-
-      if (promiseList.length >= ASYNC_QUERY_AMOUNT) {
-        await Promise.all(promiseList);
-        promiseList = [];
-      }
-
-      promiseList.push(fn());
-    }
-
-    return logAndReturn(allItems, isDisplayed);
   }
 
   // adapter-dex-stargaze
@@ -2939,7 +2843,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       pQueryMarketplaceTokenOffers,
       pQueryMarketplaceCollectionOffers,
       cwGetMarketplaceData,
-      cwGetMarketplaceOffers, // TODO: replace
     },
     adapter: {
       dex: {

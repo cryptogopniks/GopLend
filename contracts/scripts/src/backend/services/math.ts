@@ -665,7 +665,7 @@ export function getCollectionsFromLtvAndCollateralList(
 // price = base_price * price_ratio * (1 - price_impact)
 // as price_impact comes with price_ratio
 // price = base_price * price_ratio
-function calcPrice(basePrice: number, priceRatio: number): number {
+export function calcPrice(basePrice: number, priceRatio: number): number {
   return basePrice * priceRatio;
 }
 
@@ -814,6 +814,28 @@ export function mergeBidsAndOffers(
     totalBidsMain: [...liquidationBidsMainExtended, ...totalBidsMain],
     totalBidsStable: [...liquidationBidsStableExtended, ...totalBidsStable],
   };
+}
+
+// returns [collection, tokenList][]
+export function aggregateTokensByCollection(
+  ltvAndCollateralList: TargetBorrower[],
+  collectionList: string[]
+): [string, string[]][] {
+  return collectionList.map((collectionAddress) => {
+    const tokens = ltvAndCollateralList.reduce(
+      (acc, { collectionAndCollateralList }) => {
+        const currentTokens =
+          collectionAndCollateralList
+            .find(([collection]) => collection === collectionAddress)?.[1]
+            .token_item_list.map(({ id }) => id) || [];
+
+        return [...acc, ...currentTokens];
+      },
+      [] as string[]
+    );
+
+    return [collectionAddress, tokens];
+  });
 }
 
 export interface PriceSample {

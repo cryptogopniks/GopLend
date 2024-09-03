@@ -8,6 +8,7 @@ import {
   RateConfig,
 } from "../../common/codegen/LendingPlatform.types";
 import {
+  aggregateTokensByCollection,
   calcLiquidationSet,
   calcLiquidationValue,
   distributeOffers,
@@ -101,13 +102,18 @@ export async function queryTargets(
     )
   );
 
+  const collectionAndTokensList = aggregateTokensByCollection(
+    ltvAndCollateralList,
+    collectionList
+  );
+
   const {
     tokenOfferList,
     collectionOfferList,
     discountBaseList,
     priceRatioStable,
   } = await utils.cwGetMarketplaceData(
-    ltvAndCollateralList,
+    collectionAndTokensList,
     collectionList,
     blockTime,
     offersBatchPaginationAmount,
