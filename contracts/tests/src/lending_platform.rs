@@ -460,6 +460,147 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
 }
 
 #[test]
+fn repay_and_withdraw_collateral() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
+    const AMOUNT: u128 = 1_000_000;
+    const DELAY: u64 = 100;
+
+    project.oracle_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(200),
+        &None,
+        &None,
+    )?;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Uint128::new(COLLECTION_PRICE_BEFORE),
+            usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        &None,
+        &None,
+        &None,
+        &Some(100),
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        PlatformType::Main,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral
+    for user in [ProjectAccount::Alice, ProjectAccount::Bob] {
+        project.increase_allowances_nft(
+            user,
+            project.get_lending_platform_main_address(),
+            ProjectNft::Gopniks,
+        );
+    }
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["1"]),
+        }],
+    )?;
+
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["4"]),
+        }],
+    )?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, PlatformType::Main, AMOUNT)?;
+
+    // check accumulated loan
+    project.wait(DELAY);
+
+    // project.oracle_try_update_prices(
+    //     ProjectAccount::Scheduler,
+    //     &ProjectCoin::Stars.get_price().to_string(),
+    //     &[RawPriceItem {
+    //         collection_address: ProjectNft::Gopniks.to_string(),
+    //         price: Uint128::new(COLLECTION_PRICE_BEFORE),
+    //         usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
+    //     }],
+    // )?;
+
+    let borrower =
+        project.lending_platform_query_borrower(PlatformType::Main, ProjectAccount::Bob)?;
+
+    // repay all
+    project.lending_platform_try_repay(
+        ProjectAccount::Bob,
+        PlatformType::Main,
+        borrower.accumulated_loan.u128(),
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(DELAY);
+
+    project.lending_platform_try_withdraw_collateral(
+        ProjectAccount::Bob,
+        PlatformType::Main,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["4"]),
+        }],
+    )?;
+
+    Ok(())
+}
+
+#[test]
 fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     let mut project = Project::new();
 
