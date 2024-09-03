@@ -565,16 +565,6 @@ fn repay_and_withdraw_collateral() -> StdResult<()> {
     // check accumulated loan
     project.wait(DELAY);
 
-    // project.oracle_try_update_prices(
-    //     ProjectAccount::Scheduler,
-    //     &ProjectCoin::Stars.get_price().to_string(),
-    //     &[RawPriceItem {
-    //         collection_address: ProjectNft::Gopniks.to_string(),
-    //         price: Uint128::new(COLLECTION_PRICE_BEFORE),
-    //         usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
-    //     }],
-    // )?;
-
     let borrower =
         project.lending_platform_query_borrower(PlatformType::Main, ProjectAccount::Bob)?;
 
