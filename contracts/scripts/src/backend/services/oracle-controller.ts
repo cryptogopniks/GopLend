@@ -28,6 +28,10 @@ import {
   getBlockTime,
 } from "./utils";
 
+import {
+  setCollectionPriceResponseList
+} from "./DB"
+
 interface CollectionInfo {
   collection: string;
   price: number;
@@ -406,7 +410,7 @@ async function main(isInfiniteLoop: boolean) {
       );
 
       // TODO: write collectionPriceResponseList in DB
-      // await setCollectionPriceResponseList(collectionPriceResponseList)
+      await setCollectionPriceResponseList(collectionPriceResponseList)
     } catch (error) {
       l(error, "\n");
       await wait(executionCooldown * 1e3);
