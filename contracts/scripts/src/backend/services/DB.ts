@@ -66,7 +66,7 @@ export async function readAllData() {
         });
       });
   
-    //   console.log('Данные из базы данных:', data);
+    return(data);
   
     } catch (error) {
       console.error('Ошибка при чтении данных:', error);
@@ -81,4 +81,10 @@ export async function readAllData() {
 // }];
 
   //setCollectionPriceResponseList(collectionPriceResponseList);
-  //readAllData()
+  
+
+  async function readAllDataFN() {
+    console.log(await readAllData())
+  }
+
+  readAllDataFN()
