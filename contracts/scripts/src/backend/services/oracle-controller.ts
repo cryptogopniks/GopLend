@@ -45,11 +45,14 @@ const PAGINATION = {
   },
 };
 
-const FLOOR_PRICE_BOUNDARY: number = 0.75;
 const TWAP_WEIGHT: number = 0.7;
 const BLOCK_TIME: number = 6;
 const SAMPLING_WINDOW: number = 10 * BLOCK_TIME;
-const OFFER_TO_FP_RATIO: number = 0.9;
+const FP_TWAP_WINDOW_MULTIPLIER: number = 2;
+const FLOOR_PRICE_BOUNDARY = {
+  UPPER: 0.93,
+  LOWER: 0.8,
+};
 
 const COLLECTION_PRICE_RESPONSE_DEFAULT: CollectionPriceResponse = {
   twapSampleList: [],
@@ -293,7 +296,7 @@ async function main(isInfiniteLoop: boolean) {
 
       const highestOffer = (offers || [])[0].price || 0;
 
-      return [collectionAddress, highestOffer / OFFER_TO_FP_RATIO];
+      return [collectionAddress, highestOffer / FLOOR_PRICE_BOUNDARY.UPPER];
     });
 
     // calc collection prices
@@ -308,7 +311,7 @@ async function main(isInfiniteLoop: boolean) {
         const {
           twapSampleList: floorPriceSampleList,
           floorPriceEma: prevFloorPriceEma,
-          twapOfferList: medianOfferSampleList,
+          twapOfferList: meanOfferSampleList,
           offerEma: prevMedianOfferEma,
         } = collectionPriceResponse;
 
@@ -328,14 +331,16 @@ async function main(isInfiniteLoop: boolean) {
           offerEma,
           collectionPrice,
         } = calcCollectionPrice(
-          FLOOR_PRICE_BOUNDARY,
+          FLOOR_PRICE_BOUNDARY.UPPER,
+          FLOOR_PRICE_BOUNDARY.LOWER,
           TWAP_WEIGHT,
           SAMPLING_WINDOW,
+          FP_TWAP_WINDOW_MULTIPLIER,
           floorPriceSampleList,
           newFloorPriceSample,
           prevFloorPriceEma,
           offerPriceList,
-          medianOfferSampleList,
+          meanOfferSampleList,
           prevMedianOfferEma
         );
 
