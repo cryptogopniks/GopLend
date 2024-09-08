@@ -83,8 +83,8 @@ export async function readAllData() {
   //setCollectionPriceResponseList(collectionPriceResponseList);
   
 
-  async function readAllDataFN() {
-    console.log(await readAllData())
-  }
+//   async function readAllDataFN() {
+//     console.log(await readAllData())
+//   }
 
-  readAllDataFN()
+//   readAllDataFN()
