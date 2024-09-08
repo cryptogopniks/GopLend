@@ -935,13 +935,8 @@ export function calcHybridAverage(
   return twapWeight * twap + (1 - twapWeight) * ema;
 }
 
-export function calcMedian(values: number[]): number {
-  const sortedValues = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sortedValues.length / 2);
-
-  return sortedValues.length % 2
-    ? sortedValues[mid]
-    : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+export function calcMean(values: number[]): number {
+  return values.reduce((acc, cur) => acc + cur, 0) / values.length;
 }
 
 export interface CollectionPriceResponse {
@@ -953,19 +948,22 @@ export interface CollectionPriceResponse {
 }
 
 export function calcCollectionPrice(
-  floorPriceBoundary: number,
+  floorPriceBoundaryUpper: number,
+  floorPriceBoundaryLower: number,
   twapWeight: number,
   window: number,
+  fpTwapWindowMultiplier: number,
   floorPriceSampleList: PriceSample[],
   newFloorPriceSample: PriceSample,
   prevFloorPriceEma: number | undefined,
   offerPriceList: number[],
-  medianOfferSampleList: PriceSample[],
-  prevMedianOfferEma: number
+  meanOfferSampleList: PriceSample[],
+  prevMeanOfferEma: number
 ): CollectionPriceResponse {
   // hybrid TWAP/EMA floor price
+  // FP must be smoothed stronger as FP is more volatile than mean of offers
   const [floorPriceTwap, twapSampleList] = calcTwap(
-    window,
+    fpTwapWindowMultiplier * window,
     floorPriceSampleList,
     newFloorPriceSample
   );
@@ -991,28 +989,30 @@ export function calcCollectionPrice(
 
   // filter offers
   const validOffers = offerPriceList.filter(
-    (offer) => offer >= floorPriceBoundary * floorPrice && offer <= floorPrice
+    (offer) =>
+      offer >= floorPriceBoundaryLower * floorPrice &&
+      offer <= floorPriceBoundaryUpper * floorPrice
   );
 
-  // median of filtered offers
-  const medianOffer = validOffers.length
-    ? calcMedian(validOffers)
-    : (floorPrice * (1 + floorPriceBoundary)) / 2;
-  const newMedianOfferSample: PriceSample = {
-    value: medianOffer,
+  // mean of filtered offers
+  const meanOffer = validOffers.length
+    ? calcMean(validOffers)
+    : (floorPrice * (floorPriceBoundaryUpper + floorPriceBoundaryLower)) / 2;
+  const newMeanOfferSample: PriceSample = {
+    value: meanOffer,
     timestamp: newFloorPriceSample?.timestamp,
   };
 
-  // hybrid TWAP/EMA of median offers
+  // hybrid TWAP/EMA of mean offers
   const [offerTwap, twapOfferList] = calcTwap(
     window,
-    medianOfferSampleList,
-    newMedianOfferSample
+    meanOfferSampleList,
+    newMeanOfferSample
   );
   const offerEma = calcEma(
     windowSamples,
-    newMedianOfferSample.value,
-    prevMedianOfferEma
+    newMeanOfferSample.value,
+    prevMeanOfferEma
   );
   const collectionPrice = calcHybridAverage(offerTwap, offerEma, twapWeight);
 
