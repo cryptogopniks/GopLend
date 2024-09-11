@@ -28,6 +28,12 @@ pub mod faucet {
     pub mod types;
 }
 
+pub mod market_maker {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
+}
+
 pub mod adapters {
     pub mod marketplace {
         pub mod kujira {

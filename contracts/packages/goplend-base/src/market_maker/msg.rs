@@ -1,0 +1,108 @@
+use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::{Addr, Uint128};
+
+use crate::assets::TokenUnverified;
+
+#[cw_serde]
+pub struct InstantiateMsg {
+    pub worker: Option<String>,
+    pub controller: Option<Vec<String>>,
+    pub token: Option<TokenUnverified>,
+}
+
+#[cw_serde]
+pub struct MigrateMsg {
+    pub version: String,
+}
+
+#[cw_serde]
+pub enum ExecuteMsg {
+    // any
+    AcceptAdminRole {},
+
+    // admin
+    UpdateConfig {
+        admin: Option<String>,
+        worker: Option<String>,
+        controller: Option<Vec<String>>,
+        token: Option<TokenUnverified>,
+    },
+
+    // admin, worker
+    Lock {},
+
+    Unlock {},
+
+    // collection owners
+    /// add new collections or rewrite existing
+    SetCollections {
+        list: Vec<crate::lending_platform::types::CollectionInfo<String>>,
+    },
+
+    RemoveCollections {
+        list: Vec<String>,
+    },
+
+    DepositLiquidity {
+        collection_address: String,
+    },
+
+    /// can remove offers if it's required to get enough liquidity
+    WithdrawLiquidity {
+        collection_address: String,
+    },
+
+    /// withdraw all bought NFT's
+    WithdrawCollateral {
+        collection_address: String,
+    },
+
+    // controller
+    UpdateOffers {
+        collection_address: String,
+        from_to_price_list: Vec<(Uint128, Uint128)>,
+    },
+}
+
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum QueryMsg {
+    #[returns(super::types::Config)]
+    QueryConfig {},
+
+    #[returns(Vec<super::types::CollectionOwners<Addr>>)]
+    QueryCollectionOwnersList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(super::types::CollectionOwners<Addr>)]
+    QueryCollectionOwners { collection_address: String },
+
+    #[returns(Vec<super::types::LiquidityInfo>)]
+    QueryLiquidityList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(super::types::LiquidityInfo)]
+    QueryLiquidity { collection_address: String },
+
+    #[returns(Vec<crate::lending_platform::types::CollectionInfo<Addr>>)]
+    QueryCollateralList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
+    QueryCollateral { collection_address: String },
+
+    #[returns(Vec<super::types::OffersResponse>)]
+    QueryOffersList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+
+    #[returns(super::types::OffersResponse)]
+    QueryOffers { collection_address: String },
+}
