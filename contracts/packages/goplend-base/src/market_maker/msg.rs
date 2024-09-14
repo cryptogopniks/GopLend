@@ -7,7 +7,7 @@ use crate::assets::TokenUnverified;
 pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub controller: Option<Vec<String>>,
-    pub token: Option<TokenUnverified>,
+    pub token: TokenUnverified,
 }
 
 #[cw_serde]
