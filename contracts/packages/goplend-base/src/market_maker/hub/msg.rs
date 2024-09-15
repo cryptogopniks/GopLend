@@ -9,6 +9,7 @@ pub struct InstantiateMsg {
     pub marketplace: Option<String>,
     pub controller: Option<Vec<String>>,
     pub token: TokenUnverified,
+    pub max_outpost_amount: Option<u8>,
 }
 
 #[cw_serde]
@@ -28,7 +29,10 @@ pub enum ExecuteMsg {
         marketplace: Option<String>,
         controller: Option<Vec<String>>,
         token: Option<TokenUnverified>,
+        max_outpost_amount: Option<u8>,
     },
+
+    AddOutpost {},
 
     // admin, worker
     Lock {},
@@ -71,25 +75,28 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(super::types::Config)]
+    #[returns(crate::market_maker::types::HubConfig)]
     QueryConfig {},
 
-    #[returns(Vec<super::types::CollectionOwners<Addr>>)]
+    #[returns(Vec<Addr>)]
+    QueryOutposts {},
+
+    #[returns(Vec<crate::market_maker::types::CollectionOwners<Addr>>)]
     QueryCollectionOwnersList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
 
-    #[returns(super::types::CollectionOwners<Addr>)]
+    #[returns(crate::market_maker::types::CollectionOwners<Addr>)]
     QueryCollectionOwners { collection_address: String },
 
-    #[returns(Vec<super::types::LiquidityInfo>)]
+    #[returns(Vec<crate::market_maker::types::LiquidityInfo>)]
     QueryLiquidityList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
 
-    #[returns(super::types::LiquidityInfo)]
+    #[returns(crate::market_maker::types::LiquidityInfo)]
     QueryLiquidity { collection_address: String },
 
     #[returns(Vec<crate::lending_platform::types::CollectionInfo<Addr>>)]
@@ -101,12 +108,12 @@ pub enum QueryMsg {
     #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
     QueryCollateral { collection_address: String },
 
-    #[returns(Vec<super::types::OffersResponse>)]
+    #[returns(Vec<crate::market_maker::types::OffersResponse>)]
     QueryOffersList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
 
-    #[returns(super::types::OffersResponse)]
+    #[returns(crate::market_maker::types::OffersResponse)]
     QueryOffers { collection_address: String },
 }

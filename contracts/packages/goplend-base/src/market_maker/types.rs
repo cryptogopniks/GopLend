@@ -34,15 +34,20 @@ pub struct OffersResponse {
 }
 
 #[cw_serde]
-pub struct Config {
+pub struct HubConfig {
     pub admin: Addr,
     pub worker: Option<Addr>,
     pub marketplace: Option<Addr>,
     pub controller: Option<Vec<Addr>>,
     pub token: Token,
+    pub max_outpost_amount: u8,
     // pub boundary_high: Decimal,
     // pub boundary_low: Decimal,
-    // pub max_offers_amount: u8,
+}
+
+#[cw_serde]
+pub struct OutpostConfig {
+    pub hub: Addr,
 }
 
 #[cw_serde]

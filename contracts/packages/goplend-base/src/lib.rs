@@ -29,9 +29,17 @@ pub mod faucet {
 }
 
 pub mod market_maker {
-    pub mod msg;
-    pub mod state;
     pub mod types;
+
+    pub mod hub {
+        pub mod msg;
+        pub mod state;
+    }
+
+    pub mod outpost {
+        pub mod msg;
+        pub mod state;
+    }
 }
 
 pub mod adapters {

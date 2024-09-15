@@ -1,5 +1,5 @@
 [package]
-name = "market-maker"
+name = "market-maker-outpost"
 version = "1.0.0"
 authors = ["M. Daeva <embedmad@gmail.com>"]
 edition = "2021"

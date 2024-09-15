@@ -10,10 +10,10 @@ use goplend_base::{
     error::ContractError,
     lending_platform::types::CollectionInfo,
     market_maker::{
-        state::{
+        hub::state::{
             CONFIG, IS_LOCKED, LIQUIDITY, OWNERS, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
-        types::{Config, LiquidityInfo, OffersResponse, TransferAdminState},
+        types::{HubConfig, LiquidityInfo, OffersResponse, TransferAdminState},
     },
     utils::{
         check_authorization, check_funds, get_collection_operator_approvals, get_transfer_msg,
@@ -30,7 +30,7 @@ pub fn try_accept_admin_role(
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let block_time = env.block.time.seconds();
-    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
+    let HubConfig { admin, worker, .. } = CONFIG.load(deps.storage)?;
     let TransferAdminState {
         new_admin,
         deadline,
@@ -49,7 +49,7 @@ pub fn try_accept_admin_role(
         Err(ContractError::TransferAdminDeadline)?;
     }
 
-    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+    CONFIG.update(deps.storage, |mut x| -> StdResult<HubConfig> {
         x.admin = sender_address;
         Ok(x)
     })?;
@@ -72,6 +72,7 @@ pub fn try_update_config(
     marketplace: Option<String>,
     controller: Option<Vec<String>>,
     token: Option<TokenUnverified>,
+    max_outpost_amount: Option<u8>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -145,6 +146,17 @@ pub fn try_update_config(
             AuthType::Admin,
         )?;
         config.token = x.verify(deps.api)?;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = max_outpost_amount {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
+        config.max_outpost_amount = x;
         is_config_updated = true;
     }
 

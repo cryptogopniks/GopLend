@@ -6,7 +6,7 @@ use cosmwasm_std::{
 
 use goplend_base::{
     error::ContractError,
-    market_maker::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    market_maker::hub::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
 use crate::actions::{
@@ -41,6 +41,7 @@ pub fn execute(
             marketplace,
             controller,
             token,
+            max_outpost_amount,
         } => e::try_update_config(
             deps,
             env,
@@ -50,7 +51,10 @@ pub fn execute(
             marketplace,
             controller,
             token,
+            max_outpost_amount,
         ),
+
+        ExecuteMsg::AddOutpost {} => unimplemented!(),
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
@@ -90,6 +94,8 @@ pub fn execute(
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
+
+        QueryMsg::QueryOutposts {} => unimplemented!(),
 
         QueryMsg::QueryCollectionOwnersList { start_after, limit } => to_json_binary(
             &q::query_collection_owners_list(deps, env, start_after, limit)?,

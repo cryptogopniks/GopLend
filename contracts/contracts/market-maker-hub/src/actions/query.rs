@@ -8,13 +8,13 @@ use sg_marketplace::msg::{CollectionBidsResponse, QueryMsg as MarketplaceQueryMs
 use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
-        state::{CONFIG, LIQUIDITY, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
-        types::{CollectionOwners, Config, LiquidityInfo, OffersResponse},
+        hub::state::{CONFIG, LIQUIDITY, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
+        types::{CollectionOwners, HubConfig, LiquidityInfo, OffersResponse},
     },
     utils::unwrap_field,
 };
 
-pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
+pub fn query_config(deps: Deps, _env: Env) -> StdResult<HubConfig> {
     CONFIG.load(deps.storage)
 }
 

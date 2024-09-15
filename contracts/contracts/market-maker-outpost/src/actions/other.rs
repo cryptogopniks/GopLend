@@ -5,7 +5,7 @@ use semver::Version;
 
 use goplend_base::{
     error::ContractError,
-    market_maker::{msg::MigrateMsg, state::CONTRACT_NAME},
+    market_maker::outpost::{msg::MigrateMsg, state::CONTRACT_NAME},
 };
 
 pub fn migrate_contract(

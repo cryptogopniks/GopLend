@@ -4,9 +4,11 @@ use cw2::set_contract_version;
 use goplend_base::{
     error::ContractError,
     market_maker::{
-        msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME, IS_LOCKED},
-        types::Config,
+        hub::{
+            msg::InstantiateMsg,
+            state::{CONFIG, CONTRACT_NAME, IS_LOCKED, MAX_OUTPOST_AMOUNT},
+        },
+        types::HubConfig,
     },
 };
 
@@ -24,7 +26,7 @@ pub fn try_instantiate(
 
     CONFIG.save(
         deps.storage,
-        &Config {
+        &HubConfig {
             admin: sender.to_owned(),
             worker: msg
                 .worker
@@ -41,6 +43,7 @@ pub fn try_instantiate(
                 .map(|x| x.iter().map(|y| deps.api.addr_validate(&y)).collect())
                 .transpose()?,
             token: msg.token.verify(deps.api)?,
+            max_outpost_amount: msg.max_outpost_amount.unwrap_or(MAX_OUTPOST_AMOUNT),
         },
     )?;
 

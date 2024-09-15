@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use goplend_base::market_maker::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use goplend_base::market_maker::outpost::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
     write_api! {
