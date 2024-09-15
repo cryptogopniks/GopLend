@@ -36,13 +36,14 @@ pub enum ExecuteMsg {
     Unlock {},
 
     // collection owners
-    /// add new collections or rewrite existing
-    SetCollections {
-        list: Vec<crate::lending_platform::types::CollectionInfo<String>>,
+    /// add new collection or rewrite existing
+    SetCollection {
+        collection_address: String,
+        owner_list: Vec<String>,
     },
 
     RemoveCollections {
-        list: Vec<String>,
+        collection_address_list: Vec<String>,
     },
 
     DepositLiquidity {
@@ -51,6 +52,7 @@ pub enum ExecuteMsg {
 
     /// can remove offers if it's required to get enough liquidity
     WithdrawLiquidity {
+        amount: Uint128,
         collection_address: String,
     },
 

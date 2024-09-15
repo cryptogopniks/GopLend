@@ -56,17 +56,23 @@ pub fn execute(
 
         ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
 
-        ExecuteMsg::SetCollections { list } => e::try_set_collections(deps, env, info, list),
+        ExecuteMsg::SetCollection {
+            collection_address,
+            owner_list,
+        } => e::try_set_collection(deps, env, info, collection_address, owner_list),
 
-        ExecuteMsg::RemoveCollections { list } => e::try_remove_collections(deps, env, info, list),
+        ExecuteMsg::RemoveCollections {
+            collection_address_list,
+        } => e::try_remove_collections(deps, env, info, collection_address_list),
 
         ExecuteMsg::DepositLiquidity { collection_address } => {
             e::try_deposit_liquidity(deps, env, info, collection_address)
         }
 
-        ExecuteMsg::WithdrawLiquidity { collection_address } => {
-            e::try_withdraw_liquidity(deps, env, info, collection_address)
-        }
+        ExecuteMsg::WithdrawLiquidity {
+            amount,
+            collection_address,
+        } => e::try_withdraw_liquidity(deps, env, info, amount, collection_address),
 
         ExecuteMsg::WithdrawCollateral { collection_address } => {
             e::try_withdraw_collateral(deps, env, info, collection_address)

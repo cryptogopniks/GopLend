@@ -17,6 +17,16 @@ pub struct LiquidityInfo {
     pub amount_in_offers: Vec<(Uint128, CollectionBid)>,
 }
 
+impl LiquidityInfo {
+    pub fn new_empty(collection_address: &Addr) -> Self {
+        Self {
+            collection_address: collection_address.to_owned(),
+            amount_undistributed: Uint128::zero(),
+            amount_in_offers: vec![],
+        }
+    }
+}
+
 #[cw_serde]
 pub struct OffersResponse {
     pub collection_address: Addr,
