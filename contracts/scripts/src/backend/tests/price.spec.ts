@@ -1,7 +1,7 @@
 import { floor } from "../../common/utils";
 import { calcCollectionPrice, PriceSample } from "../services/math";
 
-describe("testing calcEma", () => {
+describe("testing calcCollectionPrice", () => {
   const TWAP_WEIGHT: number = 0.7;
   const BLOCK_TIME: number = 6;
   const SAMPLING_WINDOW: number = 10 * BLOCK_TIME;
