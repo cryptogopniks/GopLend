@@ -312,7 +312,7 @@ async function main(isInfiniteLoop: boolean) {
           twapSampleList: floorPriceSampleList,
           floorPriceEma: prevFloorPriceEma,
           twapOfferList: meanOfferSampleList,
-          offerEma: prevMedianOfferEma,
+          offerEma: prevMeanOfferEma,
         } = collectionPriceResponse;
 
         const [_collectionAddress, floorPrice] = floorPriceList.find(
@@ -341,7 +341,7 @@ async function main(isInfiniteLoop: boolean) {
           prevFloorPriceEma,
           offerPriceList,
           meanOfferSampleList,
-          prevMedianOfferEma
+          prevMeanOfferEma
         );
 
         return {
