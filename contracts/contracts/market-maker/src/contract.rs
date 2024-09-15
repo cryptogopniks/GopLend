@@ -38,9 +38,19 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
+            marketplace,
             controller,
             token,
-        } => e::try_update_config(deps, env, info, admin, worker, controller, token),
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            worker,
+            marketplace,
+            controller,
+            token,
+        ),
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 

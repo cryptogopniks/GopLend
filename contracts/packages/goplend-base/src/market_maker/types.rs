@@ -27,6 +27,7 @@ pub struct OffersResponse {
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
+    pub marketplace: Option<Addr>,
     pub controller: Option<Vec<Addr>>,
     pub token: Token,
     // pub boundary_high: Decimal,

@@ -6,6 +6,7 @@ use crate::assets::TokenUnverified;
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
+    pub marketplace: Option<String>,
     pub controller: Option<Vec<String>>,
     pub token: TokenUnverified,
 }
@@ -24,6 +25,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
+        marketplace: Option<String>,
         controller: Option<Vec<String>>,
         token: Option<TokenUnverified>,
     },

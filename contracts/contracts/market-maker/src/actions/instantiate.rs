@@ -31,6 +31,11 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
+            marketplace: msg
+                .marketplace
+                .map(|x| deps.api.addr_validate(&x))
+                .transpose()
+                .unwrap_or(Some(sender.to_owned())),
             controller: msg
                 .controller
                 .map(|x| x.iter().map(|y| deps.api.addr_validate(&y)).collect())

@@ -65,6 +65,7 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
+    marketplace: Option<String>,
     controller: Option<Vec<String>>,
     token: Option<TokenUnverified>,
 ) -> Result<Response, ContractError> {
@@ -103,6 +104,17 @@ pub fn try_update_config(
             AuthType::Admin,
         )?;
         config.worker = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = marketplace {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
+        config.marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
