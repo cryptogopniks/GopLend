@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 
 #[cw_serde]
 pub struct InstantiateMsg {}
@@ -18,11 +18,13 @@ pub enum ExecuteMsg {
 
     RemoveOffer {
         collection_address: String,
+        recipient: Option<String>,
     },
 
     /// withdraw all bought NFT's
     WithdrawCollateral {
         collection_address: String,
+        recipient: Option<String>,
     },
 }
 
@@ -39,11 +41,11 @@ pub enum QueryMsg {
     QueryCollateral { collection_address: String },
 
     #[returns(Vec<crate::market_maker::types::OffersResponse>)]
-    QueryOffersList {
+    QueryOfferList {
         start_after: Option<String>,
         limit: Option<u32>,
     },
 
-    #[returns(crate::market_maker::types::OffersResponse)]
-    QueryOffers { collection_address: String },
+    #[returns(Uint128)]
+    QueryOffer { collection_address: String },
 }

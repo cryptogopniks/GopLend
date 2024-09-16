@@ -33,11 +33,19 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetOffer { collection_address } => unimplemented!(),
+        ExecuteMsg::SetOffer { collection_address } => {
+            e::try_set_offer(deps, env, info, collection_address)
+        }
 
-        ExecuteMsg::RemoveOffer { collection_address } => unimplemented!(),
+        ExecuteMsg::RemoveOffer {
+            collection_address,
+            recipient,
+        } => e::try_remove_offer(deps, env, info, collection_address, recipient),
 
-        ExecuteMsg::WithdrawCollateral { collection_address } => unimplemented!(),
+        ExecuteMsg::WithdrawCollateral {
+            collection_address,
+            recipient,
+        } => e::try_withdraw_collateral(deps, env, info, collection_address, recipient),
     }
 }
 
@@ -53,12 +61,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_collateral(deps, env, collection_address)?)
         }
 
-        QueryMsg::QueryOffersList { start_after, limit } => {
-            to_json_binary(&q::query_offers_list(deps, env, start_after, limit)?)
+        QueryMsg::QueryOfferList { start_after, limit } => {
+            to_json_binary(&q::query_offer_list(deps, env, start_after, limit)?)
         }
 
-        QueryMsg::QueryOffers { collection_address } => {
-            to_json_binary(&q::query_offers(deps, env, collection_address)?)
+        QueryMsg::QueryOffer { collection_address } => {
+            to_json_binary(&q::query_offer(deps, env, collection_address)?)
         }
     }
 }

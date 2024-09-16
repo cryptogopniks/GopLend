@@ -1,18 +1,20 @@
-use cosmwasm_std::{Addr, Deps, Env, Order, StdResult, Uint128};
+use cosmwasm_std::{Addr, Deps, Env, StdResult, Uint128};
 
 use cw721::TokensResponse;
-use cw_storage_plus::Bound;
 
-use sg_marketplace::msg::{CollectionBidsResponse, QueryMsg as MarketplaceQueryMsg};
+use sg_marketplace::msg::CollectionBidResponse;
 
 use goplend_base::{
+    error::ContractError,
     lending_platform::types::CollectionInfo,
     market_maker::{
-        outpost::state::{CONFIG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
-        types::{CollectionOwners, LiquidityInfo, OffersResponse, OutpostConfig},
+        outpost::state::{PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
+        types::{CollectionOwners, OffersResponse},
     },
     utils::unwrap_field,
 };
+
+use crate::helpers::get_config;
 
 pub fn query_collateral_list(
     deps: Deps,
@@ -20,43 +22,35 @@ pub fn query_collateral_list(
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<CollectionInfo<Addr>>> {
-    // let market_maker = env.contract.address;
-    // let limit = limit
-    //     .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-    //     .min(PAGINATION_MAX_LIMIT) as usize;
+    let (_, hub) = get_config(deps)?;
+    let collection_list = deps
+        .querier
+        .query_wasm_smart::<Vec<CollectionOwners<Addr>>>(
+            &hub,
+            &goplend_base::market_maker::hub::msg::QueryMsg::QueryCollectionOwnersList {
+                start_after,
+                limit,
+            },
+        )?;
 
-    // let binding;
-    // let start_bound = match start_after {
-    //     Some(addr) => {
-    //         binding = deps.api.addr_validate(&addr)?;
-    //         Some(Bound::exclusive(&binding))
-    //     }
-    //     None => None,
-    // };
+    collection_list
+        .iter()
+        .map(|x| {
+            let TokensResponse { tokens } = deps.querier.query_wasm_smart(
+                &x.collection_address,
+                &cw721::Cw721QueryMsg::Tokens {
+                    owner: env.contract.address.to_string(),
+                    start_after: None,
+                    limit: Some(PAGINATION_MAX_LIMIT),
+                },
+            )?;
 
-    // OWNERS
-    //     .keys(deps.storage, start_bound, None, Order::Ascending)
-    //     .take(limit as usize)
-    //     .map(|x| {
-    //         let collection_address = x.unwrap();
-
-    //         let TokensResponse { tokens } = deps.querier.query_wasm_smart(
-    //             &collection_address,
-    //             &cw721::Cw721QueryMsg::Tokens {
-    //                 owner: market_maker.to_string(),
-    //                 start_after: None,
-    //                 limit: Some(PAGINATION_MAX_LIMIT),
-    //             },
-    //         )?;
-
-    //         Ok(CollectionInfo {
-    //             collection_address,
-    //             token_id_list: tokens,
-    //         })
-    //     })
-    //     .collect()
-
-    unimplemented!()
+            Ok(CollectionInfo {
+                collection_address: x.collection_address.clone(),
+                token_id_list: tokens,
+            })
+        })
+        .collect()
 }
 
 pub fn query_collateral(
@@ -64,14 +58,13 @@ pub fn query_collateral(
     env: Env,
     collection_address: String,
 ) -> StdResult<CollectionInfo<Addr>> {
-    let market_maker = env.contract.address;
     let collection_address = deps.api.addr_validate(&collection_address)?;
     let TokensResponse { tokens } = deps.querier.query_wasm_smart(
         &collection_address,
         &cw721::Cw721QueryMsg::Tokens {
-            owner: market_maker.to_string(),
+            owner: env.contract.address.to_string(),
             start_after: None,
-            limit: Some(PAGINATION_MAX_LIMIT),
+            limit: Some(PAGINATION_DEFAULT_LIMIT),
         },
     )?;
 
@@ -81,92 +74,62 @@ pub fn query_collateral(
     })
 }
 
-pub fn query_offers_list(
+pub fn query_offer_list(
     deps: Deps,
     env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<OffersResponse>> {
-    // let market_maker = env.contract.address;
-    // let config = CONFIG.load(deps.storage)?;
-    // let marketplace = &unwrap_field(config.marketplace, "marketplace")?;
+    let (config, hub) = get_config(deps)?;
+    let marketplace = &unwrap_field(config.marketplace, "marketplace")?;
+    let collection_list = deps
+        .querier
+        .query_wasm_smart::<Vec<CollectionOwners<Addr>>>(
+            &hub,
+            &goplend_base::market_maker::hub::msg::QueryMsg::QueryCollectionOwnersList {
+                start_after,
+                limit,
+            },
+        )?;
 
-    // let limit = limit
-    //     .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-    //     .min(PAGINATION_MAX_LIMIT) as usize;
+    collection_list
+        .iter()
+        .map(|x| {
+            let offer_price = deps
+                .querier
+                .query_wasm_smart::<CollectionBidResponse>(
+                    marketplace,
+                    &sg_marketplace::msg::QueryMsg::CollectionBid {
+                        collection: x.collection_address.to_string(),
+                        bidder: env.contract.address.to_string(),
+                    },
+                )?
+                .bid
+                .ok_or(ContractError::OfferIsNotFound)?
+                .price;
 
-    // let binding;
-    // let start_bound = match start_after {
-    //     Some(addr) => {
-    //         binding = deps.api.addr_validate(&addr)?;
-    //         Some(Bound::exclusive(&binding))
-    //     }
-    //     None => None,
-    // };
-
-    // OWNERS
-    //     .keys(deps.storage, start_bound, None, Order::Ascending)
-    //     .take(limit as usize)
-    //     .map(|x| {
-    //         let collection_address = x.unwrap();
-
-    //         let CollectionBidsResponse {
-    //             bids: collection_bids,
-    //         } = deps.querier.query_wasm_smart(
-    //             marketplace,
-    //             &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
-    //                 collection: collection_address.to_string(),
-    //                 start_before: None,
-    //                 limit: Some(PAGINATION_MAX_LIMIT),
-    //             },
-    //         )?;
-
-    //         let price_list: Vec<Uint128> = collection_bids.iter().fold(vec![], |mut acc, cur| {
-    //             if cur.bidder == market_maker {
-    //                 acc.push(cur.price);
-    //             }
-
-    //             acc
-    //         });
-
-    //         Ok(OffersResponse {
-    //             collection_address,
-    //             price_list,
-    //         })
-    //     })
-    //     .collect()
-
-    unimplemented!()
+            Ok(OffersResponse {
+                collection_address: x.collection_address.clone(),
+                price_list: vec![offer_price],
+            })
+        })
+        .collect()
 }
 
-pub fn query_offers(deps: Deps, env: Env, collection_address: String) -> StdResult<OffersResponse> {
-    // let market_maker = env.contract.address;
-    // let collection_address = deps.api.addr_validate(&collection_address)?;
-    // let config = CONFIG.load(deps.storage)?;
-    // let marketplace = unwrap_field(config.marketplace, "marketplace")?;
-    // let CollectionBidsResponse {
-    //     bids: collection_bids,
-    // } = deps.querier.query_wasm_smart(
-    //     marketplace,
-    //     &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
-    //         collection: collection_address.to_string(),
-    //         start_before: None,
-    //         limit: Some(PAGINATION_MAX_LIMIT),
-    //     },
-    // )?;
+pub fn query_offer(deps: Deps, env: Env, collection_address: String) -> StdResult<Uint128> {
+    let (config, _) = get_config(deps)?;
+    let offer_price = deps
+        .querier
+        .query_wasm_smart::<CollectionBidResponse>(
+            unwrap_field(config.marketplace, "marketplace")?,
+            &sg_marketplace::msg::QueryMsg::CollectionBid {
+                collection: collection_address,
+                bidder: env.contract.address.to_string(),
+            },
+        )?
+        .bid
+        .ok_or(ContractError::OfferIsNotFound)?
+        .price;
 
-    // let price_list: Vec<Uint128> = collection_bids.iter().fold(vec![], |mut acc, cur| {
-    //     if cur.bidder == market_maker {
-    //         acc.push(cur.price);
-    //     }
-
-    //     acc
-    // });
-
-    // Ok(OffersResponse {
-    //     collection_address,
-    //     price_list,
-    // })
-
-    unimplemented!()
+    Ok(offer_price)
 }
