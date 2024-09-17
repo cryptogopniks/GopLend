@@ -41,6 +41,7 @@ pub struct HubConfig {
     pub controller: Option<Vec<Addr>>,
     pub token: Token,
     pub max_outpost_amount: u8,
+    pub outpost_code_id: Option<u64>,
     // pub boundary_high: Decimal,
     // pub boundary_low: Decimal,
 }

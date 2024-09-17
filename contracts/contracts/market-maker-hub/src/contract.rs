@@ -6,7 +6,10 @@ use cosmwasm_std::{
 
 use goplend_base::{
     error::ContractError,
-    market_maker::hub::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    market_maker::hub::{
+        msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+        state::ADD_OUTPOST_REPLY,
+    },
 };
 
 use crate::actions::{
@@ -42,6 +45,7 @@ pub fn execute(
             controller,
             token,
             max_outpost_amount,
+            outpost_code_id,
         } => e::try_update_config(
             deps,
             env,
@@ -52,9 +56,10 @@ pub fn execute(
             controller,
             token,
             max_outpost_amount,
+            outpost_code_id,
         ),
 
-        ExecuteMsg::AddOutpost {} => unimplemented!(),
+        ExecuteMsg::AddOutpost {} => e::try_add_outpost(deps, env, info),
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 
@@ -133,10 +138,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 /// Exposes all the replies available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-    let Reply { id: _, result: _ } = reply;
+pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
+    let Reply { id, result } = reply;
 
-    Err(ContractError::UndefinedReplyId)
+    match id {
+        ADD_OUTPOST_REPLY => e::add_outpost_reply(deps, env, &result),
+        _ => Err(ContractError::UndefinedReplyId),
+    }
 }
 
 /// Used for contract migration

@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    coins, to_json_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-    Storage, Uint128, WasmMsg,
+    coins, to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
 
 use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
@@ -11,8 +11,10 @@ use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
         hub::state::{
-            CONFIG, IS_LOCKED, LIQUIDITY, OWNERS, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+            ADD_OUTPOST_REPLY, CONFIG, IS_LOCKED, LIQUIDITY, OUTPOSTS, OWNERS,
+            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
+        outpost::state::CONTRACT_NAME,
         types::{HubConfig, LiquidityInfo, OffersResponse, TransferAdminState},
     },
     utils::{
@@ -73,6 +75,7 @@ pub fn try_update_config(
     controller: Option<Vec<String>>,
     token: Option<TokenUnverified>,
     max_outpost_amount: Option<u8>,
+    outpost_code_id: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -160,6 +163,17 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
+    if let Some(x) = outpost_code_id {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
+        config.outpost_code_id = Some(x);
+        is_config_updated = true;
+    }
+
     // don't allow empty messages
     if !is_config_updated {
         Err(ContractError::NoParameters)?;
@@ -168,6 +182,72 @@ pub fn try_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "try_update_config"))
+}
+
+pub fn try_add_outpost(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let config = CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::AdminOrWorker,
+    )?;
+
+    let outpost_amount = OUTPOSTS.load(deps.storage)?.len() as u8;
+    if outpost_amount >= config.max_outpost_amount {
+        Err(ContractError::ExceededOutpostMaxAmount)?;
+    }
+
+    let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
+        admin: Some(config.admin.to_string()),
+        code_id: unwrap_field(config.outpost_code_id, "outpost_code_id")?,
+        label: CONTRACT_NAME.to_string(),
+        msg: to_json_binary(&goplend_base::market_maker::outpost::msg::InstantiateMsg {})?,
+        funds: vec![],
+    });
+
+    let submsg = SubMsg::reply_on_success(msg, ADD_OUTPOST_REPLY);
+
+    Ok(Response::new()
+        .add_submessage(submsg)
+        .add_attribute("action", "try_add_outpost"))
+}
+
+pub fn add_outpost_reply(
+    deps: DepsMut,
+    _env: Env,
+    result: &SubMsgResult,
+) -> Result<Response, ContractError> {
+    let res = result
+        .to_owned()
+        .into_result()
+        .map_err(|e| ContractError::CustomError { val: e })?;
+
+    let instantiate_event = unwrap_field(
+        res.events.iter().find(|x| x.ty == "instantiate"),
+        "instantiate_event",
+    )?;
+
+    let outpost_address = &unwrap_field(
+        instantiate_event
+            .attributes
+            .iter()
+            .find(|x| x.key == "_contract_address"),
+        "outpost_address",
+    )?
+    .value;
+
+    OUTPOSTS.update(deps.storage, |mut x| -> StdResult<Vec<Addr>> {
+        x.push(deps.api.addr_validate(outpost_address)?);
+        Ok(x)
+    })?;
+
+    Ok(Response::new())
 }
 
 pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {

@@ -10,6 +10,7 @@ pub struct InstantiateMsg {
     pub controller: Option<Vec<String>>,
     pub token: TokenUnverified,
     pub max_outpost_amount: Option<u8>,
+    pub outpost_code_id: Option<u64>,
 }
 
 #[cw_serde]
@@ -30,6 +31,7 @@ pub enum ExecuteMsg {
         controller: Option<Vec<String>>,
         token: Option<TokenUnverified>,
         max_outpost_amount: Option<u8>,
+        outpost_code_id: Option<u64>,
     },
 
     AddOutpost {},

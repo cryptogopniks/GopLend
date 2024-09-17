@@ -44,6 +44,7 @@ pub fn try_instantiate(
                 .transpose()?,
             token: msg.token.verify(deps.api)?,
             max_outpost_amount: msg.max_outpost_amount.unwrap_or(MAX_OUTPOST_AMOUNT),
+            outpost_code_id: msg.outpost_code_id,
         },
     )?;
 

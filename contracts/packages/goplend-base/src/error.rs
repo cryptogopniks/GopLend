@@ -112,6 +112,9 @@ pub enum ContractError {
     #[error("Zero amount to send!")]
     ZeroAmount,
 
+    #[error("Exceeded outpost max amount!")]
+    ExceededOutpostMaxAmount,
+
     #[error("Exceeded prices max amount!")]
     ExceededPricesMaxAmount,
 
