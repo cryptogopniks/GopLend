@@ -957,7 +957,7 @@ export function calcCollectionPrice(
   newFloorPriceSample: PriceSample,
   prevFloorPriceEma: number | undefined,
   offerPriceList: number[],
-  comissions: number[],
+  feeRateList: number[],
   meanOfferSampleList: PriceSample[],
   prevMeanOfferEma: number
 ): CollectionPriceResponse {
@@ -988,22 +988,17 @@ export function calcCollectionPrice(
     twapWeight
   );
 
-
   // filter offers
-  const validOffersNonFiltered = offerPriceList.map((offer, index) => {
+  const validOffers = offerPriceList.reduce((acc, offer, i) => {
     if (
       offer >= floorPriceBoundaryLower * floorPrice &&
       offer <= floorPriceBoundaryUpper * floorPrice
     ) {
-      return floor(offer * comissions[index])
-    } else {
-      return undefined; 
+      acc.push(floor((1 - feeRateList[i]) * offer));
     }
-  });
-  
-  const validOffers = validOffersNonFiltered.filter(offer => offer !== undefined);
 
-  console.log(validOffers, offerPriceList)
+    return acc;
+  }, [] as number[]);
 
   // mean of filtered offers
   const meanOffer = validOffers.length

@@ -232,12 +232,13 @@ async function main(isInfiniteLoop: boolean) {
           // prices must be reduced by fees
           const discountBase = Number(discount_base);
           const findersFeeRate = Number(x.finders_fee_bps) / 100;
-          const price = Number(x.price)
+          const price = Number(x.price);
+          const feeRate = discountBase + findersFeeRate;
 
           return {
             price,
             expires_at: Math.floor(Number(x.expires_at) / 1e9),
-            comissions: (1 - discountBase - findersFeeRate)
+            feeRate,
           };
         });
 
@@ -302,7 +303,7 @@ async function main(isInfiniteLoop: boolean) {
     const collectionInfoList: CollectionInfo[] = collectionAndOffersList.map(
       ([collection, offers]) => {
         const offerPriceList = offers.map((x) => x.price);
-        const comissions = offers.map((x) => x.comissions);
+        const feeRateList = offers.map((x) => x.feeRate);
 
         const [_, collectionPriceResponse] = collectionPriceResponseList.find(
           ([collectionAddress]) => collectionAddress === collection
@@ -340,7 +341,7 @@ async function main(isInfiniteLoop: boolean) {
           newFloorPriceSample,
           prevFloorPriceEma,
           offerPriceList,
-          comissions,
+          feeRateList,
           meanOfferSampleList,
           prevMeanOfferEma
         );
