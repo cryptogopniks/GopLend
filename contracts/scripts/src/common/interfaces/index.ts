@@ -57,6 +57,7 @@ interface PoolDatabase {
 interface Offer {
   price: number;
   expires_at: number;
+  feeRate: number;
 }
 
 interface QueryContractResponse {
