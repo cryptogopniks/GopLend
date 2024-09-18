@@ -1080,6 +1080,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
+name = "market-maker-hub"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw721 0.18.0",
+ "goplend-base",
+ "semver",
+ "serde",
+ "sg-marketplace",
+ "sg721 3.14.0",
+ "sg721-base 3.14.0",
+]
+
+[[package]]
+name = "market-maker-outpost"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw721 0.18.0",
+ "goplend-base",
+ "semver",
+ "serde",
+ "sg-marketplace",
+ "sg721 3.14.0",
+ "sg721-base 3.14.0",
+]
+
+[[package]]
 name = "minter"
 version = "1.2.0"
 dependencies = [

@@ -957,6 +957,7 @@ export function calcCollectionPrice(
   newFloorPriceSample: PriceSample,
   prevFloorPriceEma: number | undefined,
   offerPriceList: number[],
+  feeRateList: number[],
   meanOfferSampleList: PriceSample[],
   prevMeanOfferEma: number
 ): CollectionPriceResponse {
@@ -988,11 +989,16 @@ export function calcCollectionPrice(
   );
 
   // filter offers
-  const validOffers = offerPriceList.filter(
-    (offer) =>
+  const validOffers = offerPriceList.reduce((acc, offer, i) => {
+    if (
       offer >= floorPriceBoundaryLower * floorPrice &&
       offer <= floorPriceBoundaryUpper * floorPrice
-  );
+    ) {
+      acc.push(floor((1 - feeRateList[i]) * offer));
+    }
+
+    return acc;
+  }, [] as number[]);
 
   // mean of filtered offers
   const meanOffer = validOffers.length

@@ -91,6 +91,9 @@ pub enum ContractError {
     #[error("Address already exists!")]
     AddressExists,
 
+    #[error("Offer is not found!")]
+    OfferIsNotFound,
+
     #[error("NFT is not found!")]
     NftIsNotFound,
 
@@ -108,6 +111,9 @@ pub enum ContractError {
 
     #[error("Zero amount to send!")]
     ZeroAmount,
+
+    #[error("Exceeded outpost max amount!")]
+    ExceededOutpostMaxAmount,
 
     #[error("Exceeded prices max amount!")]
     ExceededPricesMaxAmount,
