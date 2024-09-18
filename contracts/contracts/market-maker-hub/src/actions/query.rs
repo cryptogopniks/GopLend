@@ -1,21 +1,23 @@
 use cosmwasm_std::{Addr, Deps, Env, Order, StdResult, Uint128};
 
-use cw721::TokensResponse;
 use cw_storage_plus::Bound;
-
-use sg_marketplace::msg::{CollectionBidsResponse, QueryMsg as MarketplaceQueryMsg};
 
 use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
-        hub::state::{CONFIG, LIQUIDITY, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT},
+        hub::state::{
+            CONFIG, LIQUIDITY, OUTPOSTS, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
+        },
         types::{CollectionOwners, HubConfig, LiquidityInfo, OffersResponse},
     },
-    utils::unwrap_field,
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<HubConfig> {
     CONFIG.load(deps.storage)
+}
+
+pub fn query_outposts(deps: Deps, _env: Env) -> StdResult<Vec<Addr>> {
+    OUTPOSTS.load(deps.storage)
 }
 
 pub fn query_collection_owners_list(
@@ -104,11 +106,11 @@ pub fn query_liquidity(
 
 pub fn query_collateral_list(
     deps: Deps,
-    env: Env,
+    _env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<CollectionInfo<Addr>>> {
-    let market_maker = env.contract.address;
+    let outpost_list = OUTPOSTS.load(deps.storage)?;
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
@@ -128,18 +130,24 @@ pub fn query_collateral_list(
         .map(|x| {
             let collection_address = x.unwrap();
 
-            let TokensResponse { tokens } = deps.querier.query_wasm_smart(
-                &collection_address,
-                &cw721::Cw721QueryMsg::Tokens {
-                    owner: market_maker.to_string(),
-                    start_after: None,
-                    limit: Some(PAGINATION_MAX_LIMIT),
-                },
-            )?;
+            let token_id_list = outpost_list
+                .iter()
+                .flat_map(|x| {
+                    deps.querier
+                        .query_wasm_smart::<CollectionInfo<Addr>>(
+                            x,
+                            &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
+                                collection_address: collection_address.to_string(),
+                            },
+                        )
+                        .map(|y| y.token_id_list)
+                        .unwrap_or_default()
+                })
+                .collect();
 
             Ok(CollectionInfo {
                 collection_address,
-                token_id_list: tokens,
+                token_id_list,
             })
         })
         .collect()
@@ -147,36 +155,39 @@ pub fn query_collateral_list(
 
 pub fn query_collateral(
     deps: Deps,
-    env: Env,
+    _env: Env,
     collection_address: String,
 ) -> StdResult<CollectionInfo<Addr>> {
-    let market_maker = env.contract.address;
     let collection_address = deps.api.addr_validate(&collection_address)?;
-    let TokensResponse { tokens } = deps.querier.query_wasm_smart(
-        &collection_address,
-        &cw721::Cw721QueryMsg::Tokens {
-            owner: market_maker.to_string(),
-            start_after: None,
-            limit: Some(PAGINATION_MAX_LIMIT),
-        },
-    )?;
+    let outpost_list = OUTPOSTS.load(deps.storage)?;
+    let token_id_list = outpost_list
+        .iter()
+        .flat_map(|x| {
+            deps.querier
+                .query_wasm_smart::<CollectionInfo<Addr>>(
+                    x,
+                    &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
+                        collection_address: collection_address.to_string(),
+                    },
+                )
+                .map(|y| y.token_id_list)
+                .unwrap_or_default()
+        })
+        .collect();
 
     Ok(CollectionInfo {
         collection_address,
-        token_id_list: tokens,
+        token_id_list,
     })
 }
 
 pub fn query_offers_list(
     deps: Deps,
-    env: Env,
+    _env: Env,
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> StdResult<Vec<OffersResponse>> {
-    let market_maker = env.contract.address;
-    let config = CONFIG.load(deps.storage)?;
-    let marketplace = &unwrap_field(config.marketplace, "marketplace")?;
-
+    let outpost_list = OUTPOSTS.load(deps.storage)?;
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
         .min(PAGINATION_MAX_LIMIT) as usize;
@@ -195,25 +206,17 @@ pub fn query_offers_list(
         .take(limit as usize)
         .map(|x| {
             let collection_address = x.unwrap();
-
-            let CollectionBidsResponse {
-                bids: collection_bids,
-            } = deps.querier.query_wasm_smart(
-                marketplace,
-                &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
-                    collection: collection_address.to_string(),
-                    start_before: None,
-                    limit: Some(PAGINATION_MAX_LIMIT),
-                },
-            )?;
-
-            let price_list: Vec<Uint128> = collection_bids.iter().fold(vec![], |mut acc, cur| {
-                if cur.bidder == market_maker {
-                    acc.push(cur.price);
-                }
-
-                acc
-            });
+            let price_list = outpost_list
+                .iter()
+                .map(|x| {
+                    deps.querier.query_wasm_smart::<Uint128>(
+                        x,
+                        &goplend_base::market_maker::outpost::msg::QueryMsg::QueryOffer {
+                            collection_address: collection_address.to_string(),
+                        },
+                    )
+                })
+                .collect::<StdResult<Vec<_>>>()?;
 
             Ok(OffersResponse {
                 collection_address,
@@ -223,29 +226,24 @@ pub fn query_offers_list(
         .collect()
 }
 
-pub fn query_offers(deps: Deps, env: Env, collection_address: String) -> StdResult<OffersResponse> {
-    let market_maker = env.contract.address;
+pub fn query_offers(
+    deps: Deps,
+    _env: Env,
+    collection_address: String,
+) -> StdResult<OffersResponse> {
     let collection_address = deps.api.addr_validate(&collection_address)?;
-    let config = CONFIG.load(deps.storage)?;
-    let marketplace = unwrap_field(config.marketplace, "marketplace")?;
-    let CollectionBidsResponse {
-        bids: collection_bids,
-    } = deps.querier.query_wasm_smart(
-        marketplace,
-        &MarketplaceQueryMsg::ReverseCollectionBidsSortedByPrice {
-            collection: collection_address.to_string(),
-            start_before: None,
-            limit: Some(PAGINATION_MAX_LIMIT),
-        },
-    )?;
-
-    let price_list: Vec<Uint128> = collection_bids.iter().fold(vec![], |mut acc, cur| {
-        if cur.bidder == market_maker {
-            acc.push(cur.price);
-        }
-
-        acc
-    });
+    let outpost_list = OUTPOSTS.load(deps.storage)?;
+    let price_list = outpost_list
+        .iter()
+        .map(|x| {
+            deps.querier.query_wasm_smart::<Uint128>(
+                x,
+                &goplend_base::market_maker::outpost::msg::QueryMsg::QueryOffer {
+                    collection_address: collection_address.to_string(),
+                },
+            )
+        })
+        .collect::<StdResult<Vec<_>>>()?;
 
     Ok(OffersResponse {
         collection_address,

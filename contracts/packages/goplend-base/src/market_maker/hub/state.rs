@@ -19,4 +19,5 @@ pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer a
 
 /// collection owners by collection address
 pub const OWNERS: Map<&Addr, Vec<Addr>> = Map::new("owners by collection");
+/// collection liquidity by collection address
 pub const LIQUIDITY: Map<&Addr, LiquidityInfo> = Map::new("liquidity");

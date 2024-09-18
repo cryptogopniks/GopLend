@@ -6,7 +6,7 @@ use goplend_base::{
     market_maker::{
         hub::{
             msg::InstantiateMsg,
-            state::{CONFIG, CONTRACT_NAME, IS_LOCKED, MAX_OUTPOST_AMOUNT},
+            state::{CONFIG, CONTRACT_NAME, IS_LOCKED, MAX_OUTPOST_AMOUNT, OUTPOSTS},
         },
         types::HubConfig,
     },
@@ -49,6 +49,7 @@ pub fn try_instantiate(
     )?;
 
     IS_LOCKED.save(deps.storage, &false)?;
+    OUTPOSTS.save(deps.storage, &vec![])?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

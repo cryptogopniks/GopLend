@@ -100,7 +100,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOutposts {} => unimplemented!(),
+        QueryMsg::QueryOutposts {} => to_json_binary(&q::query_outposts(deps, env)?),
 
         QueryMsg::QueryCollectionOwnersList { start_after, limit } => to_json_binary(
             &q::query_collection_owners_list(deps, env, start_after, limit)?,
