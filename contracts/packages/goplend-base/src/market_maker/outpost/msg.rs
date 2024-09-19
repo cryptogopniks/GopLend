@@ -37,7 +37,7 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
+    #[returns(crate::market_maker::types::CollateralResponse)]
     QueryCollateral { collection_address: String },
 
     #[returns(Vec<crate::market_maker::types::OffersResponse>)]

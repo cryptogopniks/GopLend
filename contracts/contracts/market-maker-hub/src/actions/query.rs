@@ -8,7 +8,7 @@ use goplend_base::{
         hub::state::{
             CONFIG, LIQUIDITY, OUTPOSTS, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
         },
-        types::{CollectionOwners, HubConfig, LiquidityInfo, OffersResponse},
+        types::{CollateralResponse, CollectionOwners, HubConfig, LiquidityInfo, OffersResponse},
     },
 };
 
@@ -104,6 +104,7 @@ pub fn query_liquidity(
     LIQUIDITY.load(deps.storage, &deps.api.addr_validate(&collection_address)?)
 }
 
+// TODO: update response
 pub fn query_collateral_list(
     deps: Deps,
     _env: Env,
@@ -157,28 +158,26 @@ pub fn query_collateral(
     deps: Deps,
     _env: Env,
     collection_address: String,
-) -> StdResult<CollectionInfo<Addr>> {
+) -> StdResult<Vec<CollateralResponse>> {
     let collection_address = deps.api.addr_validate(&collection_address)?;
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let token_id_list = outpost_list
-        .iter()
-        .flat_map(|x| {
-            deps.querier
-                .query_wasm_smart::<CollectionInfo<Addr>>(
-                    x,
-                    &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
-                        collection_address: collection_address.to_string(),
-                    },
-                )
-                .map(|y| y.token_id_list)
-                .unwrap_or_default()
-        })
-        .collect();
 
-    Ok(CollectionInfo {
-        collection_address,
-        token_id_list,
-    })
+    OUTPOSTS
+        .load(deps.storage)?
+        .iter()
+        .map(|outpost| {
+            let collection_info = deps.querier.query_wasm_smart(
+                outpost,
+                &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
+                    collection_address: collection_address.to_string(),
+                },
+            )?;
+
+            Ok(CollateralResponse {
+                outpost: outpost.to_owned(),
+                collection_info,
+            })
+        })
+        .collect()
 }
 
 pub fn query_offers_list(

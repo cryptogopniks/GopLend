@@ -1,21 +1,18 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    coins, to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
     Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
-
-use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
 
 use goplend_base::{
     assets::TokenUnverified,
     error::ContractError,
-    lending_platform::types::CollectionInfo,
     market_maker::{
         hub::state::{
             ADD_OUTPOST_REPLY, CONFIG, IS_LOCKED, LIQUIDITY, OUTPOSTS, OWNERS,
             TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
         },
         outpost::state::CONTRACT_NAME,
-        types::{HubConfig, LiquidityInfo, OffersResponse, TransferAdminState},
+        types::{CollateralResponse, HubConfig, LiquidityInfo, OffersResponse, TransferAdminState},
     },
     utils::{
         check_authorization, check_funds, get_collection_operator_approvals, get_transfer_msg,
@@ -23,7 +20,7 @@ use goplend_base::{
     },
 };
 
-use super::query::query_offers;
+use super::query::{query_collateral, query_offers};
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -449,11 +446,44 @@ pub fn try_withdraw_liquidity(
 
 pub fn try_withdraw_collateral(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     collection_address: String,
 ) -> Result<Response, ContractError> {
-    Ok(Response::new().add_attribute("action", "try_withdraw_collateral"))
+    let mut response = Response::new().add_attribute("action", "try_withdraw_collateral");
+    check_lockout(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let config = CONFIG.load(deps.storage)?;
+    let owner_list = OWNERS.load(deps.storage, &collection_address)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::Specified {
+            allowlist: owner_list.into_iter().map(Some).collect(),
+        },
+    )?;
+
+    // we need to extract liquidity from offers starting from higher
+    let collateral_response_list =
+        query_collateral(deps.as_ref(), env, collection_address.to_string())?;
+
+    for CollateralResponse { outpost, .. } in collateral_response_list {
+        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: outpost.to_string(),
+            msg: to_json_binary(
+                &goplend_base::market_maker::outpost::msg::ExecuteMsg::WithdrawCollateral {
+                    collection_address: collection_address.to_string(),
+                    recipient: Some(sender_address.to_string()),
+                },
+            )?,
+            funds: vec![],
+        });
+        response = response.add_message(msg);
+    }
+
+    Ok(response)
 }
 
 pub fn try_update_offers(
