@@ -82,6 +82,7 @@ pub fn query_offer_list(
 ) -> StdResult<Vec<OffersResponse>> {
     let (config, hub) = get_config(deps)?;
     let marketplace = &unwrap_field(config.marketplace, "marketplace")?;
+    let outpost = env.contract.address;
     let collection_list = deps
         .querier
         .query_wasm_smart::<Vec<CollectionOwners<Addr>>>(
@@ -101,7 +102,7 @@ pub fn query_offer_list(
                     marketplace,
                     &sg_marketplace::msg::QueryMsg::CollectionBid {
                         collection: x.collection_address.to_string(),
-                        bidder: env.contract.address.to_string(),
+                        bidder: outpost.to_string(),
                     },
                 )?
                 .bid
@@ -110,7 +111,7 @@ pub fn query_offer_list(
 
             Ok(OffersResponse {
                 collection_address: x.collection_address.clone(),
-                price_list: vec![offer_price],
+                price_and_outpost_list: vec![(offer_price, outpost.clone())],
             })
         })
         .collect()

@@ -14,7 +14,7 @@ pub struct CollectionOwners<T: ToString> {
 pub struct LiquidityInfo {
     pub collection_address: Addr,
     pub amount_undistributed: Uint128,
-    pub amount_in_offers: Vec<(Uint128, CollectionBid)>,
+    pub offers: Vec<CollectionBid>, // to get amount_in_offers
 }
 
 impl LiquidityInfo {
@@ -22,7 +22,7 @@ impl LiquidityInfo {
         Self {
             collection_address: collection_address.to_owned(),
             amount_undistributed: Uint128::zero(),
-            amount_in_offers: vec![],
+            offers: vec![],
         }
     }
 }
@@ -30,7 +30,7 @@ impl LiquidityInfo {
 #[cw_serde]
 pub struct OffersResponse {
     pub collection_address: Addr,
-    pub price_list: Vec<Uint128>,
+    pub price_and_outpost_list: Vec<(Uint128, Addr)>,
 }
 
 #[cw_serde]

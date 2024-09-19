@@ -358,7 +358,6 @@ pub fn try_deposit_liquidity(
         },
     )?;
 
-    // TODO: do we need other conditions?
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
@@ -391,10 +390,8 @@ pub fn try_withdraw_liquidity(
     let mut response = Response::new().add_attribute("action", "try_withdraw_liquidity");
     check_lockout(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-
     let collection_address = deps.api.addr_validate(&collection_address)?;
     let config = CONFIG.load(deps.storage)?;
-    let marketplace = unwrap_field(config.marketplace, "marketplace")?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
     check_authorization(
         &sender_address,
@@ -416,20 +413,36 @@ pub fn try_withdraw_liquidity(
     }
 
     // we need to extract liquidity from offers starting from higher
-    let OffersResponse { price_list, .. } =
-        query_offers(deps.as_ref(), env, collection_address.to_string())?;
+    let OffersResponse {
+        mut price_and_outpost_list,
+        ..
+    } = query_offers(deps.as_ref(), env, collection_address.to_string())?;
+    // sort descending by price
+    price_and_outpost_list.sort_unstable_by_key(|(price, _)| Uint128::MAX - price);
 
-    for price in price_list {
-        liquidity.amount_undistributed += price;
+    for (price, outpost) in price_and_outpost_list {
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: marketplace.to_string(),
-            msg: to_json_binary(&sg_marketplace::msg::ExecuteMsg::RemoveCollectionBid {
-                collection: collection_address.to_string(),
-            })?,
+            contract_addr: outpost.to_string(),
+            msg: to_json_binary(
+                &goplend_base::market_maker::outpost::msg::ExecuteMsg::RemoveOffer {
+                    collection_address: collection_address.to_string(),
+                    recipient: Some(sender_address.to_string()),
+                },
+            )?,
             funds: vec![],
         });
         response = response.add_message(msg);
+
+        liquidity.offers.retain(|x| x.bidder != outpost);
+        liquidity.amount_undistributed += price;
+
+        if liquidity.amount_undistributed >= amount {
+            liquidity.amount_undistributed -= amount;
+            break;
+        }
     }
+
+    LIQUIDITY.save(deps.storage, &collection_address, &liquidity)?;
 
     Ok(response)
 }

@@ -206,21 +206,23 @@ pub fn query_offers_list(
         .take(limit as usize)
         .map(|x| {
             let collection_address = x.unwrap();
-            let price_list = outpost_list
+            let price_and_outpost_list = outpost_list
                 .iter()
                 .map(|x| {
-                    deps.querier.query_wasm_smart::<Uint128>(
+                    let price = deps.querier.query_wasm_smart::<Uint128>(
                         x,
                         &goplend_base::market_maker::outpost::msg::QueryMsg::QueryOffer {
                             collection_address: collection_address.to_string(),
                         },
-                    )
+                    )?;
+
+                    Ok((price, x.to_owned()))
                 })
                 .collect::<StdResult<Vec<_>>>()?;
 
             Ok(OffersResponse {
                 collection_address,
-                price_list,
+                price_and_outpost_list,
             })
         })
         .collect()
@@ -233,20 +235,22 @@ pub fn query_offers(
 ) -> StdResult<OffersResponse> {
     let collection_address = deps.api.addr_validate(&collection_address)?;
     let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let price_list = outpost_list
+    let price_and_outpost_list = outpost_list
         .iter()
         .map(|x| {
-            deps.querier.query_wasm_smart::<Uint128>(
+            let price = deps.querier.query_wasm_smart::<Uint128>(
                 x,
                 &goplend_base::market_maker::outpost::msg::QueryMsg::QueryOffer {
                     collection_address: collection_address.to_string(),
                 },
-            )
+            )?;
+
+            Ok((price, x.to_owned()))
         })
         .collect::<StdResult<Vec<_>>>()?;
 
     Ok(OffersResponse {
         collection_address,
-        price_list,
+        price_and_outpost_list,
     })
 }
