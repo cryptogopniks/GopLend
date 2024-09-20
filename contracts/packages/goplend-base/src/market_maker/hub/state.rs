@@ -1,7 +1,7 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::market_maker::types::{HubConfig, LiquidityInfo, TransferAdminState};
+use crate::market_maker::types::{HubConfig, TransferAdminState};
 
 pub const CONTRACT_NAME: &str = "goplend-market-maker-hub";
 
@@ -19,5 +19,5 @@ pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer a
 
 /// collection owners by collection address
 pub const OWNERS: Map<&Addr, Vec<Addr>> = Map::new("owners by collection");
-/// collection liquidity by collection address
-pub const LIQUIDITY: Map<&Addr, LiquidityInfo> = Map::new("liquidity");
+/// undistributed collection liquidity by collection address
+pub const UNDISTRIBUTED_LIQUIDITY: Map<&Addr, Uint128> = Map::new("undistributed_liquidity");

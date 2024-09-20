@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
-    Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
+    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Storage,
+    SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
 
 use goplend_base::{
@@ -8,15 +8,14 @@ use goplend_base::{
     error::ContractError,
     market_maker::{
         hub::state::{
-            ADD_OUTPOST_REPLY, CONFIG, IS_LOCKED, LIQUIDITY, OUTPOSTS, OWNERS,
-            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+            ADD_OUTPOST_REPLY, CONFIG, IS_LOCKED, OUTPOSTS, OWNERS, TRANSFER_ADMIN_STATE,
+            TRANSFER_ADMIN_TIMEOUT, UNDISTRIBUTED_LIQUIDITY,
         },
         outpost::state::CONTRACT_NAME,
-        types::{CollateralResponse, HubConfig, LiquidityInfo, OffersResponse, TransferAdminState},
+        types::{CollateralResponse, HubConfig, OffersResponse, TransferAdminState},
     },
     utils::{
-        check_authorization, check_funds, get_collection_operator_approvals, get_transfer_msg,
-        unwrap_field, AuthType, FundsType,
+        check_authorization, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
     },
 };
 
@@ -363,15 +362,10 @@ pub fn try_deposit_liquidity(
         Err(ContractError::WrongAssetType)?;
     }
 
-    LIQUIDITY.update(
+    UNDISTRIBUTED_LIQUIDITY.update(
         deps.storage,
         &collection_address,
-        |x| -> StdResult<LiquidityInfo> {
-            let mut liquidity_info = x.unwrap_or(LiquidityInfo::new_empty(&collection_address));
-            liquidity_info.amount_undistributed += asset_amount;
-
-            Ok(liquidity_info)
-        },
+        |x| -> StdResult<Uint128> { Ok(x.unwrap_or_default() + asset_amount) },
     )?;
 
     Ok(Response::new().add_attribute("action", "try_deposit_liquidity"))
@@ -399,12 +393,13 @@ pub fn try_withdraw_liquidity(
         },
     )?;
 
-    let mut liquidity = LIQUIDITY.load(deps.storage, &collection_address)?;
+    let mut amount_undistributed =
+        UNDISTRIBUTED_LIQUIDITY.load(deps.storage, &collection_address)?;
 
     // we have enough undistributed liquidity
-    if amount <= liquidity.amount_undistributed {
-        liquidity.amount_undistributed -= amount;
-        LIQUIDITY.save(deps.storage, &collection_address, &liquidity)?;
+    if amount <= amount_undistributed {
+        amount_undistributed -= amount;
+        UNDISTRIBUTED_LIQUIDITY.save(deps.storage, &collection_address, &amount_undistributed)?;
 
         return Ok(response.add_message(get_transfer_msg(&sender_address, amount, &config.token)?));
     }
@@ -430,16 +425,14 @@ pub fn try_withdraw_liquidity(
         });
         response = response.add_message(msg);
 
-        liquidity.offers.retain(|x| x.bidder != outpost);
-        liquidity.amount_undistributed += price;
-
-        if liquidity.amount_undistributed >= amount {
-            liquidity.amount_undistributed -= amount;
+        amount_undistributed += price;
+        if amount_undistributed >= amount {
+            amount_undistributed -= amount;
             break;
         }
     }
 
-    LIQUIDITY.save(deps.storage, &collection_address, &liquidity)?;
+    UNDISTRIBUTED_LIQUIDITY.save(deps.storage, &collection_address, &amount_undistributed)?;
 
     Ok(response)
 }

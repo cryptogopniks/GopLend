@@ -125,14 +125,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryCollateral { collection_address } => {
             to_json_binary(&q::query_collateral(deps, env, collection_address)?)
         }
-
-        QueryMsg::QueryOffersList { start_after, limit } => {
-            to_json_binary(&q::query_offers_list(deps, env, start_after, limit)?)
-        }
-
-        QueryMsg::QueryOffers { collection_address } => {
-            to_json_binary(&q::query_offers(deps, env, collection_address)?)
-        }
     }
 }
 

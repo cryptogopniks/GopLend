@@ -109,13 +109,4 @@ pub enum QueryMsg {
 
     #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
     QueryCollateral { collection_address: String },
-
-    #[returns(Vec<crate::market_maker::types::OffersResponse>)]
-    QueryOffersList {
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-
-    #[returns(crate::market_maker::types::OffersResponse)]
-    QueryOffers { collection_address: String },
 }
