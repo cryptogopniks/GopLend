@@ -12,14 +12,14 @@ use goplend_base::{
             TRANSFER_ADMIN_TIMEOUT, UNDISTRIBUTED_LIQUIDITY,
         },
         outpost::state::CONTRACT_NAME,
-        types::{CollateralResponse, HubConfig, OffersResponse, TransferAdminState},
+        types::{HubConfig, TransferAdminState},
     },
     utils::{
         check_authorization, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
     },
 };
 
-use super::query::{query_collateral, query_offers};
+use super::query::{get_price_and_outpost_list, query_collateral};
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -373,7 +373,7 @@ pub fn try_deposit_liquidity(
 
 pub fn try_withdraw_liquidity(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     amount: Uint128,
     collection_address: String,
@@ -384,6 +384,7 @@ pub fn try_withdraw_liquidity(
     let collection_address = deps.api.addr_validate(&collection_address)?;
     let config = CONFIG.load(deps.storage)?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
+    let outpost_list = OUTPOSTS.load(deps.storage)?;
     check_authorization(
         &sender_address,
         &config.admin,
@@ -405,14 +406,17 @@ pub fn try_withdraw_liquidity(
     }
 
     // we need to extract liquidity from offers starting from higher
-    let OffersResponse {
-        mut price_and_outpost_list,
-        ..
-    } = query_offers(deps.as_ref(), env, collection_address.to_string())?;
+    let mut price_and_outpost_list =
+        get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
     // sort descending by price
     price_and_outpost_list.sort_unstable_by_key(|(price, _)| Uint128::MAX - price);
 
     for (price, outpost) in price_and_outpost_list {
+        // ignore outposts without offers
+        if price.is_zero() {
+            continue;
+        }
+
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: outpost.to_string(),
             msg: to_json_binary(
@@ -432,6 +436,10 @@ pub fn try_withdraw_liquidity(
         }
     }
 
+    if amount_undistributed < amount {
+        Err(ContractError::ExceededAvailableAssetAmount)?;
+    }
+
     UNDISTRIBUTED_LIQUIDITY.save(deps.storage, &collection_address, &amount_undistributed)?;
 
     Ok(response)
@@ -443,7 +451,6 @@ pub fn try_withdraw_collateral(
     info: MessageInfo,
     collection_address: String,
 ) -> Result<Response, ContractError> {
-    let mut response = Response::new().add_attribute("action", "try_withdraw_collateral");
     check_lockout(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let collection_address = deps.api.addr_validate(&collection_address)?;
@@ -459,24 +466,26 @@ pub fn try_withdraw_collateral(
     )?;
 
     // we need to extract liquidity from offers starting from higher
-    let collateral_response_list =
-        query_collateral(deps.as_ref(), env, collection_address.to_string())?;
+    let msg_list = query_collateral(deps.as_ref(), env, collection_address.to_string())?
+        .into_iter()
+        .filter(|x| !x.collection_info.token_id_list.is_empty())
+        .map(|x| {
+            Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: x.outpost.to_string(),
+                msg: to_json_binary(
+                    &goplend_base::market_maker::outpost::msg::ExecuteMsg::WithdrawCollateral {
+                        collection_address: collection_address.to_string(),
+                        recipient: Some(sender_address.to_string()),
+                    },
+                )?,
+                funds: vec![],
+            }))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
 
-    for CollateralResponse { outpost, .. } in collateral_response_list {
-        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: outpost.to_string(),
-            msg: to_json_binary(
-                &goplend_base::market_maker::outpost::msg::ExecuteMsg::WithdrawCollateral {
-                    collection_address: collection_address.to_string(),
-                    recipient: Some(sender_address.to_string()),
-                },
-            )?,
-            funds: vec![],
-        });
-        response = response.add_message(msg);
-    }
-
-    Ok(response)
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attribute("action", "try_withdraw_collateral"))
 }
 
 pub fn try_update_offers(

@@ -9,7 +9,7 @@ use goplend_base::{
             CONFIG, OUTPOSTS, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
             UNDISTRIBUTED_LIQUIDITY,
         },
-        types::{CollateralResponse, CollectionOwners, HubConfig, LiquidityInfo, OffersResponse},
+        types::{CollateralResponse, CollectionOwners, HubConfig, LiquidityInfo},
     },
 };
 
@@ -184,72 +184,7 @@ pub fn query_collateral(
         .collect()
 }
 
-pub fn query_offers_list(
-    deps: Deps,
-    _env: Env,
-    start_after: Option<String>,
-    limit: Option<u32>,
-) -> StdResult<Vec<OffersResponse>> {
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let limit = limit
-        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-        .min(PAGINATION_MAX_LIMIT) as usize;
-
-    let binding;
-    let start_bound = match start_after {
-        Some(addr) => {
-            binding = deps.api.addr_validate(&addr)?;
-            Some(Bound::exclusive(&binding))
-        }
-        None => None,
-    };
-
-    OWNERS
-        .keys(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit as usize)
-        .map(|x| {
-            let collection_address = x.unwrap();
-            let price_and_outpost_list =
-                get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
-
-            Ok(OffersResponse {
-                collection_address,
-                price_and_outpost_list,
-            })
-        })
-        .collect()
-}
-
-pub fn query_offers(
-    deps: Deps,
-    _env: Env,
-    collection_address: String,
-) -> StdResult<OffersResponse> {
-    let collection_address = deps.api.addr_validate(&collection_address)?;
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let price_and_outpost_list =
-        get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
-
-    Ok(OffersResponse {
-        collection_address,
-        price_and_outpost_list,
-    })
-}
-
-fn get_collection_info(
-    querier: &QuerierWrapper,
-    collection_address: &Addr,
-    outpost: &Addr,
-) -> StdResult<CollectionInfo<Addr>> {
-    querier.query_wasm_smart(
-        outpost,
-        &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
-            collection_address: collection_address.to_string(),
-        },
-    )
-}
-
-fn get_price_and_outpost_list(
+pub fn get_price_and_outpost_list(
     querier: &QuerierWrapper,
     collection_address: &Addr,
     outpost_list: &[Addr],
@@ -267,4 +202,17 @@ fn get_price_and_outpost_list(
             Ok((price, outpost.to_owned()))
         })
         .collect::<StdResult<Vec<_>>>()
+}
+
+fn get_collection_info(
+    querier: &QuerierWrapper,
+    collection_address: &Addr,
+    outpost: &Addr,
+) -> StdResult<CollectionInfo<Addr>> {
+    querier.query_wasm_smart(
+        outpost,
+        &goplend_base::market_maker::outpost::msg::QueryMsg::QueryCollateral {
+            collection_address: collection_address.to_string(),
+        },
+    )
 }
