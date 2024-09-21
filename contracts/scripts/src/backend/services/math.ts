@@ -942,6 +942,7 @@ export function calcMean(values: number[]): number {
 export interface CollectionPriceResponse {
   twapSampleList: PriceSample[];
   floorPriceEma: number;
+  floorPrice: number; // for market maker script
   twapOfferList: PriceSample[];
   offerEma: number;
   collectionPrice: number;
@@ -1025,6 +1026,7 @@ export function calcCollectionPrice(
   return {
     twapSampleList,
     floorPriceEma,
+    floorPrice,
     twapOfferList,
     offerEma,
     collectionPrice,

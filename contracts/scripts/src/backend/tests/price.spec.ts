@@ -10,6 +10,7 @@ describe("testing calcCollectionPrice", () => {
     UPPER: 0.93,
     LOWER: 0.8,
   };
+  const FEE_RATE: number = 0.02;
 
   test("adding first low offer when FP is set", () => {
     const floorPriceSampleListDataset: PriceSample[] = [
@@ -59,9 +60,9 @@ describe("testing calcCollectionPrice", () => {
     ];
 
     const expected: number[] = [
-      346, 346, 346, 345.999, 345.999, 344.199, 339.207, 336.054, 330.235,
-      329.024, 325.75, 325.519, 325.359, 325.249, 325.172, 325.119, 325.082,
-      325.057, 325.039, 325.027,
+      346, 346, 346, 345.999, 345.999, 343.599, 336.943, 332.739, 324.98,
+      323.365, 319, 318.692, 318.479, 318.332, 318.229, 318.159, 318.11,
+      318.076, 318.052, 318.036,
     ];
 
     let floorPriceSampleList: PriceSample[] = [];
@@ -73,6 +74,7 @@ describe("testing calcCollectionPrice", () => {
     for (let i = 0; i < floorPriceSampleListDataset.length; i++) {
       const newFloorPriceSample = floorPriceSampleListDataset[i];
       const offerPriceList = offerPriceListDataset[i];
+      const feeRateList = Array(offerPriceList.length).fill(FEE_RATE);
       const {
         twapSampleList,
         floorPriceEma,
@@ -89,6 +91,7 @@ describe("testing calcCollectionPrice", () => {
         newFloorPriceSample,
         prevFloorPriceEma,
         offerPriceList,
+        feeRateList,
         meanOfferSampleList,
         prevMeanOfferEma
       );
