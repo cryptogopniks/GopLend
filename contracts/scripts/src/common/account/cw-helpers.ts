@@ -1782,17 +1782,20 @@ async function getCwExecHelpers(
 
   async function cwUpdateOffers(
     collectionAddress: string,
-    priceAndOutpostList: [number, string][],
+    fromToPriceAndOutpostList: [number, number, string][],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
       [
         marketMakerHubMsgComposer.updateOffers({
           collectionAddress,
-          priceAndOutpostList: priceAndOutpostList.map(([price, outpost]) => [
-            price.toString(),
-            outpost,
-          ]),
+          fromToPriceAndOutpostList: fromToPriceAndOutpostList.map(
+            ([priceBefore, priceAfter, outpost]) => [
+              priceBefore.toString(),
+              priceAfter.toString(),
+              outpost,
+            ]
+          ),
         }),
       ],
       gasPrice
@@ -1902,7 +1905,7 @@ async function getCwExecHelpers(
         cwUpdateConfig: cwFaucetUpdateConfig,
       },
     },
-    market_maker: {
+    marketMaker: {
       hub: {
         cwAcceptAdminRole: cwMarketMakerHubAcceptAdminRole,
         cwUpdateConfig: cwMarketMakerHubUpdateConfig,
@@ -3384,7 +3387,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         cwQueryConfig: cwFaucetQueryConfig,
       },
     },
-    market_maker: {
+    marketMaker: {
       hub: {
         cwQueryConfig: cwMarketMakerHubQueryConfig,
         cwQueryOutposts,

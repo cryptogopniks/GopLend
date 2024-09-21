@@ -64,11 +64,10 @@ export type ExecuteMsg = {
 } | {
   update_offers: {
     collection_address: string;
-    price_and_outpost_list: [Uint128, Addr][];
+    from_to_price_and_outpost_list: [Uint128, Uint128, string][];
   };
 };
 export type Uint128 = string;
-export type Addr = string;
 export type QueryMsg = {
   query_config: {};
 } | {
@@ -104,6 +103,7 @@ export type QueryMsg = {
 export interface MigrateMsg {
   version: string;
 }
+export type Addr = string;
 export interface CollectionInfoForAddr {
   collection_address: Addr;
   token_id_list: string[];

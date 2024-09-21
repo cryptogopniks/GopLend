@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { getLast, l } from "../../common/utils";
+import { floor, getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { COLLECTION, TOKEN } from "./constants";
@@ -52,7 +52,7 @@ async function main() {
     const testWallets = await getWallets(TYPE);
     const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
 
-    const { minter } = await getCwQueryHelpers(chainId, RPC);
+    const { minter, marketMaker } = await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const prepareConfigs = async () => {
@@ -81,6 +81,24 @@ async function main() {
           paymentDenomStable,
         ],
       ];
+
+      const collectionList = isKujira
+        ? [
+            [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
+            [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
+            [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
+          ]
+        : [
+            [COLLECTION.STARGAZE.MOO, "MOO"],
+            [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
+            [COLLECTION.STARGAZE.SHANE, "SHANE"],
+
+            [COLLECTION.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
+            [COLLECTION.STARGAZE.PLASTELINE, "PLASTELINE"],
+            [COLLECTION.STARGAZE.BIT_KIDS, "BIT_KIDS"],
+            [COLLECTION.STARGAZE.BAD_KIDS, "BAD_KIDS"],
+            [COLLECTION.STARGAZE.SLOTHS, "SLOTHS"],
+          ];
 
       for (const [
         platformType,
@@ -143,27 +161,9 @@ async function main() {
         );
 
         // add collections
-        const collections = isKujira
-          ? [
-              [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
-              [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
-              [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
-            ]
-          : [
-              [COLLECTION.STARGAZE.MOO, "MOO"],
-              [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
-              [COLLECTION.STARGAZE.SHANE, "SHANE"],
-
-              [COLLECTION.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
-              [COLLECTION.STARGAZE.PLASTELINE, "PLASTELINE"],
-              [COLLECTION.STARGAZE.BIT_KIDS, "BIT_KIDS"],
-              [COLLECTION.STARGAZE.BAD_KIDS, "BAD_KIDS"],
-              [COLLECTION.STARGAZE.SLOTHS, "SLOTHS"],
-            ];
-
         let i = 0;
 
-        for (const [collection_address, name] of collections) {
+        for (const [collection_address, name] of collectionList) {
           await h.lending.cwCreateProposal(
             platformType,
             {
@@ -192,6 +192,39 @@ async function main() {
             gasPrice
           );
         }
+      }
+
+      // add market maker outposts
+      const hubConfig = await marketMaker.hub.cwQueryConfig();
+      const maxOutpostAmount = hubConfig.max_outpost_amount;
+      let outpostAmount = (await marketMaker.hub.cwQueryOutposts()).length;
+
+      while (outpostAmount < maxOutpostAmount) {
+        await h.marketMaker.hub.cwAddOutpost(gasPrice);
+        outpostAmount = (await marketMaker.hub.cwQueryOutposts()).length;
+      }
+
+      // set collection owners in market maker
+      const ownerList = hubConfig.worker
+        ? [hubConfig.admin, hubConfig.worker]
+        : [hubConfig.admin];
+
+      for (const [collection] of collectionList) {
+        await h.marketMaker.hub.cwSetCollection(
+          collection,
+          ownerList,
+          gasPrice
+        );
+      }
+
+      // add liquidity to maker maker
+      for (const [collection] of collectionList) {
+        await h.marketMaker.hub.cwDepositLiquidity(
+          collection,
+          floor(paymentAmount / maxOutpostAmount),
+          paymentDenomMain,
+          gasPrice
+        );
       }
     };
 

@@ -82,6 +82,24 @@ pub fn query_offer(deps: Deps, env: Env, collection_address: String) -> StdResul
     ))
 }
 
+pub fn get_offer_price(
+    querier: &QuerierWrapper,
+    marketplace: impl ToString,
+    collection: impl ToString,
+    bidder: impl ToString,
+) -> Uint128 {
+    querier
+        .query_wasm_smart::<CollectionBidResponse>(
+            marketplace.to_string(),
+            &sg_marketplace::msg::QueryMsg::CollectionBid {
+                collection: collection.to_string(),
+                bidder: bidder.to_string(),
+            },
+        )
+        .map(|x| x.bid.map(|y| y.price).unwrap_or_default())
+        .unwrap_or_default()
+}
+
 fn get_collection_list(
     querier: &QuerierWrapper,
     hub: &Addr,
@@ -114,23 +132,5 @@ fn get_token_id_list(
             },
         )
         .map(|x| x.tokens)
-        .unwrap_or_default()
-}
-
-fn get_offer_price(
-    querier: &QuerierWrapper,
-    marketplace: impl ToString,
-    collection: impl ToString,
-    bidder: impl ToString,
-) -> Uint128 {
-    querier
-        .query_wasm_smart::<CollectionBidResponse>(
-            marketplace.to_string(),
-            &sg_marketplace::msg::QueryMsg::CollectionBid {
-                collection: collection.to_string(),
-                bidder: bidder.to_string(),
-            },
-        )
-        .map(|x| x.bid.map(|y| y.price).unwrap_or_default())
         .unwrap_or_default()
 }

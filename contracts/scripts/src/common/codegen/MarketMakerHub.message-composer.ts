@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Addr, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, QueryMsg, MigrateMsg, Addr, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
 export interface MarketMakerHubMsg {
   contractAddress: string;
   sender: string;
@@ -64,10 +64,10 @@ export interface MarketMakerHubMsg {
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateOffers: ({
     collectionAddress,
-    priceAndOutpostList
+    fromToPriceAndOutpostList
   }: {
     collectionAddress: string;
-    priceAndOutpostList: Uint128[][];
+    fromToPriceAndOutpostList: Uint128[][];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
@@ -280,10 +280,10 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
   };
   updateOffers = ({
     collectionAddress,
-    priceAndOutpostList
+    fromToPriceAndOutpostList
   }: {
     collectionAddress: string;
-    priceAndOutpostList: Uint128[][];
+    fromToPriceAndOutpostList: Uint128[][];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -293,7 +293,7 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         msg: toUtf8(JSON.stringify({
           update_offers: {
             collection_address: collectionAddress,
-            price_and_outpost_list: priceAndOutpostList
+            from_to_price_and_outpost_list: fromToPriceAndOutpostList
           }
         })),
         funds: _funds

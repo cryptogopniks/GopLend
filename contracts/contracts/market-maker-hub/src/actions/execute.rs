@@ -493,7 +493,7 @@ pub fn try_update_offers(
     _env: Env,
     info: MessageInfo,
     collection_address: String,
-    price_and_outpost_list: Vec<(Uint128, Addr)>,
+    from_to_price_and_outpost_list: Vec<(Uint128, Uint128, String)>,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -511,9 +511,15 @@ pub fn try_update_offers(
         },
     )?;
 
-    let msg_list = price_and_outpost_list
+    let mut liquidity_to_add: Uint128 = Uint128::zero();
+    let mut liquidity_to_sub: Uint128 = Uint128::zero();
+
+    let msg_list = from_to_price_and_outpost_list
         .iter()
-        .map(|(price, outpost)| {
+        .map(|(price_before, price_after, outpost)| {
+            liquidity_to_add += price_before;
+            liquidity_to_sub += price_after;
+
             Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: outpost.to_string(),
                 msg: to_json_binary(
@@ -521,10 +527,19 @@ pub fn try_update_offers(
                         collection_address: collection_address.to_string(),
                     },
                 )?,
-                funds: coins(price.u128(), config.token.try_get_native()?),
+                funds: coins(price_after.u128(), config.token.try_get_native()?),
             }))
         })
         .collect::<StdResult<Vec<_>>>()?;
+
+    // previous offers will be removed, new offers will be set
+    UNDISTRIBUTED_LIQUIDITY.update(
+        deps.storage,
+        &collection_address,
+        |x| -> StdResult<Uint128> {
+            Ok(x.unwrap_or_default() + liquidity_to_add - liquidity_to_sub)
+        },
+    )?;
 
     Ok(Response::new()
         .add_messages(msg_list)

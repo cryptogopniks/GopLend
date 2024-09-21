@@ -70,7 +70,7 @@ pub enum ExecuteMsg {
     // controller
     UpdateOffers {
         collection_address: String,
-        price_and_outpost_list: Vec<(Uint128, Addr)>,
+        from_to_price_and_outpost_list: Vec<(Uint128, Uint128, String)>,
     },
 }
 

@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Addr, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, QueryMsg, MigrateMsg, Addr, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
 export interface MarketMakerHubReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<HubConfig>;
@@ -204,10 +204,10 @@ export interface MarketMakerHubInterface extends MarketMakerHubReadOnlyInterface
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateOffers: ({
     collectionAddress,
-    priceAndOutpostList
+    fromToPriceAndOutpostList
   }: {
     collectionAddress: string;
-    priceAndOutpostList: Uint128[][];
+    fromToPriceAndOutpostList: Uint128[][];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class MarketMakerHubClient extends MarketMakerHubQueryClient implements MarketMakerHubInterface {
@@ -343,15 +343,15 @@ export class MarketMakerHubClient extends MarketMakerHubQueryClient implements M
   };
   updateOffers = async ({
     collectionAddress,
-    priceAndOutpostList
+    fromToPriceAndOutpostList
   }: {
     collectionAddress: string;
-    priceAndOutpostList: Uint128[][];
+    fromToPriceAndOutpostList: Uint128[][];
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_offers: {
         collection_address: collectionAddress,
-        price_and_outpost_list: priceAndOutpostList
+        from_to_price_and_outpost_list: fromToPriceAndOutpostList
       }
     }, fee, memo, _funds);
   };
