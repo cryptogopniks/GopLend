@@ -89,8 +89,8 @@ pub fn execute(
 
         ExecuteMsg::UpdateOffers {
             collection_address,
-            from_to_price_list,
-        } => e::try_update_offers(deps, env, info, collection_address, from_to_price_list),
+            price_and_outpost_list,
+        } => e::try_update_offers(deps, env, info, collection_address, price_and_outpost_list),
     }
 }
 

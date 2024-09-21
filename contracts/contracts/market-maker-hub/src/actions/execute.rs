@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Storage,
-    SubMsg, SubMsgResult, Uint128, WasmMsg,
+    coins, to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
+    Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
 
 use goplend_base::{
@@ -493,9 +493,42 @@ pub fn try_update_offers(
     _env: Env,
     info: MessageInfo,
     collection_address: String,
-    from_to_price_list: Vec<(Uint128, Uint128)>,
+    price_and_outpost_list: Vec<(Uint128, Addr)>,
 ) -> Result<Response, ContractError> {
-    Ok(Response::new().add_attribute("action", "try_update_offers"))
+    check_lockout(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let config = CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::Specified {
+            allowlist: config
+                .controller
+                .map(|x| x.into_iter().map(Some).collect())
+                .unwrap_or_default(),
+        },
+    )?;
+
+    let msg_list = price_and_outpost_list
+        .iter()
+        .map(|(price, outpost)| {
+            Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: outpost.to_string(),
+                msg: to_json_binary(
+                    &goplend_base::market_maker::outpost::msg::ExecuteMsg::SetOffer {
+                        collection_address: collection_address.to_string(),
+                    },
+                )?,
+                funds: coins(price.u128(), config.token.try_get_native()?),
+            }))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
+
+    Ok(Response::new()
+        .add_messages(msg_list)
+        .add_attribute("action", "try_update_offers"))
 }
 
 fn check_lockout(storage: &dyn Storage) -> StdResult<()> {
