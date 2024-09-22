@@ -317,15 +317,14 @@ pub fn query_liquidation_bids_by_liquidator_address_list(
                         liquidation_bids,
                     })
                 })
-                .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>(
-                )?;
+                .collect::<StdResult<Vec<_>>>()?;
 
             Ok(QueryLiquidationBidsByLiquidatorAddressListResponseItem {
                 liquidator_address,
                 collection_and_liquidation_bids_list,
             })
         })
-        .collect::<StdResult<Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>>>()
+        .collect::<StdResult<Vec<_>>>()
 }
 
 pub fn query_liquidation_bids_by_liquidator_address(
@@ -482,6 +481,11 @@ pub fn query_ltv_list(
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
 
     let limit = limit
         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
@@ -513,12 +517,6 @@ pub fn query_ltv_list(
             limit: None,
         },
     )?;
-
-    let ltv_max = math::calc_ltv_max(
-        rate_config.bid_min_rate,
-        rate_config.discount_max_rate,
-        rate_config.discount_min_rate,
-    );
 
     BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -556,7 +554,7 @@ pub fn query_ltv_list(
                 }
             })
         })
-        .collect::<StdResult<Vec<(Addr, Option<Decimal>)>>>()
+        .collect::<StdResult<Vec<_>>>()
 }
 
 pub fn query_conditional_ltv(
@@ -572,58 +570,30 @@ pub fn query_conditional_ltv(
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
         .load(deps.storage, &borrower_address)
         .unwrap_or_default();
-
-    // get collaterals owned by borrower
-    let collection_and_collateral_list = COLLATERALS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
-    let collection_and_collateral_list =
-        helpers::get_collaterals_by_borrower(&collection_and_collateral_list, &borrower_address);
-
-    let collection_addresses: Vec<String> = collection_and_collateral_list
-        .iter()
-        .map(|(collection, _collateral)| collection.to_string())
-        .collect();
-
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            start_after: None,
-            limit: None,
-        },
-    )?;
-
-    let collateral_value = helpers::get_collateral_value(
-        &common_config.main_currency,
-        &collection_and_collateral_list,
-        &prices,
-    )?;
-
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
         rate_config.discount_max_rate,
         rate_config.discount_min_rate,
     );
 
-    Ok(math::calc_conditional_ltv(
+    helpers::get_conditional_ltv(
+        deps,
+        &address_config,
+        &rate_config,
+        &common_config,
         ltv_max,
-        rate_config.borrow_apr,
-        amount_to_borrow.unwrap_or_default(),
-        amount_to_repay.unwrap_or_default(),
-        borrower.accumulated_loan,
-        borrower.loan.amount,
-        amount_to_deposit.unwrap_or_default(),
-        amount_to_withdraw.unwrap_or_default(),
-        collateral_value,
+        &borrower_address,
+        &borrower,
         block_time,
-        borrower.loan.creation_date,
-    ))
+        amount_to_deposit,
+        amount_to_withdraw,
+        amount_to_borrow,
+        amount_to_repay,
+    )
 }
 
 pub fn query_total_available_to_borrow_liquidity(deps: Deps, env: Env) -> StdResult<Uint128> {
@@ -813,7 +783,7 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
     // collateral
     let collateral_list = COLLATERALS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+        .collect::<StdResult<Vec<_>>>()?;
 
     let collateral: Vec<QueryCollateralsResponseItem> = collateral_list
         .iter()
@@ -880,7 +850,7 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
                 liquidation_bids,
             })
         })
-        .collect::<StdResult<Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>>>()?;
+        .collect::<StdResult<Vec<_>>>()?;
 
     Ok(QueryUserInfoResponse {
         main_token_balance,

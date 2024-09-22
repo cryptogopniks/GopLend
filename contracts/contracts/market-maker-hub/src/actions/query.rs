@@ -42,7 +42,7 @@ pub fn query_collection_owners_list(
 
     OWNERS
         .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit as usize)
+        .take(limit)
         .map(|x| {
             let (collection_address, owner_list) = x.unwrap();
 
@@ -90,7 +90,7 @@ pub fn query_liquidity_list(
 
     UNDISTRIBUTED_LIQUIDITY
         .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit as usize)
+        .take(limit)
         .map(|x| {
             let (collection_address, amount_undistributed) = x.unwrap();
             let price_and_outpost_list =
@@ -145,7 +145,7 @@ pub fn query_collateral_list(
 
     let collection_list = OWNERS
         .keys(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit as usize)
+        .take(limit)
         .collect::<StdResult<Vec<Addr>>>()?;
 
     Ok(outpost_list

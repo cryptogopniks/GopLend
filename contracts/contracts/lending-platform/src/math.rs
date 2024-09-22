@@ -74,6 +74,7 @@ pub fn calc_bgl_to_main_price(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn calc_conditional_deposit_apr(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,

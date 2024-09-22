@@ -131,7 +131,7 @@ pub fn try_update_config(
         )?;
         config.controller = Some(
             x.iter()
-                .map(|y| deps.api.addr_validate(&y))
+                .map(|y| deps.api.addr_validate(y))
                 .collect::<StdResult<Vec<_>>>()?,
         );
         is_config_updated = true;
