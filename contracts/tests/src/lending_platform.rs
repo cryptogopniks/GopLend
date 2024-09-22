@@ -111,6 +111,7 @@ pub fn get_targets(
         );
 
         let ltv = math::calc_conditional_ltv(
+            ltv_max,
             rate_config.borrow_apr,
             Uint128::zero(),
             accumulated_loan,
@@ -122,6 +123,7 @@ pub fn get_targets(
         );
 
         // if ltv is low check next borrower, otherwise liquidate required amount
+        // no collateral borrowers will be ignored
         if ltv <= ltv_max {
             continue;
         }
@@ -541,6 +543,7 @@ fn repay_and_withdraw_collateral() -> StdResult<()> {
             ProjectNft::Gopniks,
         );
     }
+
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Alice,
         PlatformType::Main,
@@ -549,7 +552,6 @@ fn repay_and_withdraw_collateral() -> StdResult<()> {
             token_id_list: to_string_vec(&["1"]),
         }],
     )?;
-
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
         PlatformType::Main,
@@ -572,7 +574,7 @@ fn repay_and_withdraw_collateral() -> StdResult<()> {
     project.lending_platform_try_repay(
         ProjectAccount::Bob,
         PlatformType::Main,
-        borrower.accumulated_loan.u128(),
+        (borrower.loan.amount + borrower.accumulated_loan).u128(),
         ProjectCoin::Stars,
     )?;
 
@@ -586,6 +588,85 @@ fn repay_and_withdraw_collateral() -> StdResult<()> {
             token_id_list: to_string_vec(&["4"]),
         }],
     )?;
+
+    Ok(())
+}
+
+#[test]
+fn borrow_without_collateral() -> StdResult<()> {
+    let mut project = Project::new();
+
+    const COLLECTION_PRICE_BEFORE: u128 = 2_000_000;
+    const AMOUNT: u128 = 1_000_000;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &ProjectCoin::Stars.get_price().to_string(),
+        &[RawPriceItem {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            price: Uint128::new(COLLECTION_PRICE_BEFORE),
+            usd_price: Uint128::new(COLLECTION_PRICE_BEFORE),
+        }],
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(
+        ProjectAccount::Admin,
+        PlatformType::Main,
+        proposal,
+    )?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        PlatformType::Main,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // deposit
+    project.lending_platform_try_deposit(
+        ProjectAccount::Alice,
+        PlatformType::Main,
+        AMOUNT,
+        ProjectCoin::Stars,
+    )?;
+
+    // borrow
+    let res = project
+        .lending_platform_try_borrow(ProjectAccount::Bob, PlatformType::Main, AMOUNT)
+        .unwrap_err();
+    assert_error(&res, ContractError::ExceededLtv);
 
     Ok(())
 }
@@ -3992,7 +4073,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
             }],
         }];
 
-    assert_that(&ltv_after).is_equal_to(Decimal::zero());
+    assert_that(&ltv_after).is_equal_to(str_to_dec("0.727272727272727272"));
     assert_that(&collaterals_after).is_equal_to(expected_collateral);
     assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
 
@@ -8706,6 +8787,10 @@ fn outdated_prices() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, PlatformType::Main, &borrowers)?;
 
+    let borrower_alice =
+        project.lending_platform_query_borrower(PlatformType::Main, ProjectAccount::Alice)?;
+    assert_that(&borrower_alice.loan.amount.u128()).is_equal_to(570);
+
     project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
@@ -8714,9 +8799,16 @@ fn outdated_prices() -> StdResult<()> {
     )?;
 
     // alice got liquidation as her ltv was known
+    let borrower_alice =
+        project.lending_platform_query_borrower(PlatformType::Main, ProjectAccount::Alice)?;
+    assert_that(&borrower_alice.loan.amount.u128()).is_equal_to(330);
+
     let ltv_list = project.lending_platform_query_ltv_list(PlatformType::Main, &None, &None)?;
     assert_that(&ltv_list).is_equal_to(vec![
-        (ProjectAccount::Alice.into(), Some(Decimal::zero())),
+        (
+            ProjectAccount::Alice.into(),
+            Some(str_to_dec("0.727272727272727272")),
+        ),
         (ProjectAccount::Bob.into(), None),
         (ProjectAccount::John.into(), None),
     ]);
@@ -8760,6 +8852,22 @@ fn outdated_prices() -> StdResult<()> {
         .collect::<Vec<String>>();
     let targets = get_targets(&project, PlatformType::Main, &borrowers)?;
 
+    let ltv_list = project.lending_platform_query_ltv_list(PlatformType::Main, &None, &None)?;
+    assert_that(&ltv_list).is_equal_to(vec![
+        (
+            ProjectAccount::Alice.into(),
+            Some(str_to_dec("0.727272727272727272")),
+        ),
+        (
+            ProjectAccount::Bob.into(),
+            Some(str_to_dec("2.180452908217079988")),
+        ),
+        (
+            ProjectAccount::John.into(),
+            Some(str_to_dec("2.135340089426381781")),
+        ),
+    ]);
+
     project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
         ClockSource::Offchain,
@@ -8767,12 +8875,21 @@ fn outdated_prices() -> StdResult<()> {
         &Route::Empty,
     )?;
 
-    // alice got liquidation as her ltv was known
+    // bob and john got liquidation
     let ltv_list = project.lending_platform_query_ltv_list(PlatformType::Main, &None, &None)?;
     assert_that(&ltv_list).is_equal_to(vec![
-        (ProjectAccount::Alice.into(), Some(Decimal::zero())),
-        (ProjectAccount::Bob.into(), Some(Decimal::zero())),
-        (ProjectAccount::John.into(), Some(Decimal::zero())),
+        (
+            ProjectAccount::Alice.into(),
+            Some(str_to_dec("0.727272727272727272")),
+        ),
+        (
+            ProjectAccount::Bob.into(),
+            Some(str_to_dec("0.727272727272727272")),
+        ),
+        (
+            ProjectAccount::John.into(),
+            Some(str_to_dec("0.727272727272727272")),
+        ),
     ]);
 
     Ok(())

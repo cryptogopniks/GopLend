@@ -167,7 +167,6 @@ async function main(userAddress: string) {
         if (priceRatioItem.is_outdated) {
           throw new Error("priceRatioStable is outdated!");
         }
-
         const priceRatioStable = Number(priceRatioItem.value);
 
         const tokenOffers: QueryLiquidationBidsByCollectionAddressListResponseItem[] =

@@ -512,6 +512,12 @@ pub fn query_ltv_list(
         },
     )?;
 
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
+
     BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
@@ -531,6 +537,7 @@ pub fn query_ltv_list(
                 Err(_) => (borrower_address, None),
                 Ok(collateral_value) => {
                     let ltv = math::calc_conditional_ltv(
+                        ltv_max,
                         rate_config.borrow_apr,
                         Uint128::zero(),
                         borrower.accumulated_loan,
@@ -593,7 +600,14 @@ pub fn query_conditional_ltv(
         &prices,
     )?;
 
+    let ltv_max = math::calc_ltv_max(
+        rate_config.bid_min_rate,
+        rate_config.discount_max_rate,
+        rate_config.discount_min_rate,
+    );
+
     Ok(math::calc_conditional_ltv(
+        ltv_max,
         rate_config.borrow_apr,
         amount_to_borrow.unwrap_or_default(),
         borrower.accumulated_loan,
@@ -828,23 +842,20 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
     let collateral_value =
         helpers::get_collateral_value(&main_currency, &collection_and_collateral_list, &prices)?;
 
-    let ltv = if collateral_value.is_zero() && !loan.is_zero() {
-        Decimal::zero()
-    } else {
-        math::calc_conditional_ltv(
-            borrow_apr,
-            Uint128::zero(),
-            Uint128::zero(),
-            loan,
-            Uint128::zero(),
-            collateral_value,
-            block_time,
-            block_time,
-        )
-    };
+    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
+    let ltv = math::calc_conditional_ltv(
+        ltv_max,
+        borrow_apr,
+        Uint128::zero(),
+        Uint128::zero(),
+        loan,
+        Uint128::zero(),
+        collateral_value,
+        block_time,
+        block_time,
+    );
 
     // available_to_borrow
-    let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
     let available_to_borrow = math::calc_available_to_borrow(ltv_max, collateral_value, loan);
 
     // liquidation bids

@@ -93,6 +93,7 @@ pub fn calc_conditional_deposit_apr(
 
 #[allow(clippy::too_many_arguments)]
 pub fn calc_conditional_ltv(
+    ltv_max: Decimal,
     borrow_apr: Decimal,
     amount_to_borrow: Uint128,
     accumulated_loan: Uint128,
@@ -105,14 +106,20 @@ pub fn calc_conditional_ltv(
     let collateral = collateral + amount_to_deposit;
     let accumulated_loan = accumulated_loan + amount_to_borrow;
 
-    if collateral.is_zero() {
-        return Decimal::zero();
-    }
-
     let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
     let loan = u128_to_dec(accumulated_loan)
         + u128_to_dec(loan)
             * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS));
+
+    // if loan is zero then ltv is zero anyway
+    if loan.is_zero() {
+        return Decimal::zero();
+    }
+
+    // if loan isn't zero while collateral is zero then ltv is max
+    if collateral.is_zero() {
+        return ltv_max;
+    }
 
     loan / u128_to_dec(collateral)
 }

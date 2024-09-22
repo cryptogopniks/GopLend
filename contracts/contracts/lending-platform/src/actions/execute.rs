@@ -649,7 +649,7 @@ pub fn try_withdraw_collateral(
         rate_config.discount_min_rate,
     );
 
-    if ltv > ltv_max {
+    if ltv >= ltv_max {
         Err(ContractError::ExceededLtv)?;
     }
 
@@ -703,7 +703,7 @@ pub fn try_borrow(
         rate_config.discount_min_rate,
     );
 
-    if ltv > ltv_max {
+    if ltv >= ltv_max {
         Err(ContractError::ExceededLtv)?;
     }
 

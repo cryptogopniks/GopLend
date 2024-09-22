@@ -68,16 +68,16 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
-    await adapter.marketplace.stargaze.cwQueryConfig(true);
-    await adapter.scheduler[name].cwQueryConfig(true);
+    // await adapter.marketplace.stargaze.cwQueryConfig(true);
+    // await adapter.scheduler[name].cwQueryConfig(true);
     const platforms: PlatformType[] = ["main", "stable"];
     for (const platformType of platforms) {
       await lending.cwQueryAddressConfig(platformType, true);
       await lending.cwQueryRateConfig(platformType, true);
       await lending.cwQueryCommonConfig(platformType, true);
     }
-    await minter[name].cwQueryConfig(true);
-    await oracle.cwQueryConfig(true);
+    // await minter[name].cwQueryConfig(true);
+    // await oracle.cwQueryConfig(true);
     return;
 
     await lending.cwQueryLtvList("main", 1, undefined, true);

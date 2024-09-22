@@ -5,7 +5,7 @@
     "returned_and_unbonded": []
   },
   "borrower": {
-    "accumulated_loan": "4446965",
+    "accumulated_loan": "5135860",
     "loan": {
       "creation_date": 1726948033,
       "amount": "11000000000"
@@ -13,7 +13,7 @@
   },
   "collateralCost": "0",
   "collateral": [],
-  "ltv": "0",
+  "ltv": "0.727272727272727272",
   "availableToBorrow": "0",
   "ownBids": [
     {

@@ -332,7 +332,9 @@ fn calc_liquidation_sets_default() {
         .iter()
         .fold(Uint128::zero(), |acc, cur| acc + cur.collateral_price);
 
+    let ltv_max = str_to_dec("0.5");
     let ltv = math::calc_conditional_ltv(
+        ltv_max,
         borrow_apr,
         Uint128::zero(),
         accumulated_loan,
@@ -342,8 +344,6 @@ fn calc_liquidation_sets_default() {
         block_time,
         loan_creation_date,
     );
-
-    let ltv_max = str_to_dec("0.5");
 
     let max_liquidation_value =
         math::calc_liquidation_value(collateral, discount_max_rate, ltv, ltv_max);
@@ -594,7 +594,9 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
     let loan_creation_date = 0;
     let collateral = Uint128::new(700);
 
+    let ltv_max = str_to_dec("0.5");
     let ltv = math::calc_conditional_ltv(
+        ltv_max,
         borrow_apr,
         Uint128::zero(),
         accumulated_loan,
@@ -604,8 +606,6 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         block_time,
         loan_creation_date,
     );
-
-    let ltv_max = str_to_dec("0.5");
 
     let max_liquidation_value =
         math::calc_liquidation_value(collateral, discount_max_rate, ltv, ltv_max);

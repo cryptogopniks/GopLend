@@ -107,19 +107,22 @@ export async function queryTargets(
     collectionList
   );
 
-  const {
-    tokenOfferList,
-    collectionOfferList,
-    discountBaseList,
-    priceRatioStable,
-  } = await utils.cwGetMarketplaceData(
-    collectionAndTokensList,
-    collectionList,
-    blockTime,
-    offersBatchPaginationAmount,
-    collectionOffersPaginationAmount,
-    tokenOffersPaginationAmount
-  );
+  const { tokenOfferList, collectionOfferList, discountBaseList } =
+    await utils.cwGetMarketplaceData(
+      collectionAndTokensList,
+      collectionList,
+      blockTime,
+      offersBatchPaginationAmount,
+      collectionOffersPaginationAmount,
+      tokenOffersPaginationAmount
+    );
+
+  // query priceRatio directly as MarketplaceData can be empty due to collectionAddresses
+  const priceRatioItem = await oracle.cwQueryPriceRatio();
+  if (priceRatioItem.is_outdated) {
+    throw new Error("priceRatioStable is outdated!");
+  }
+  const priceRatioStable = Number(priceRatioItem.value);
 
   const offers = distributeOffers(
     collectionList,
