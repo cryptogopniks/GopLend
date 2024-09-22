@@ -2248,12 +2248,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     let tokenOfferList: [string, Bid[]][] = [];
     let collectionOfferList: [string, CollectionBid[]][] = [];
     let discountBaseList: [string, number][] = [];
-    let priceRatioStable: number | undefined = undefined;
 
     const fn = async (collection: string) => {
       try {
-        // query collection offers, fees, price ratio
-        const { collection_bids, discount_base, price_ratio_stable } =
+        // query collection offers, fees
+        const { collection_bids, discount_base } =
           await cwQueryCollectionOffers(
             collection,
             collectionOffersPaginationAmount
@@ -2264,7 +2263,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
           (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
         ) as CollectionBid[];
 
-        priceRatioStable = Number(price_ratio_stable);
         discountBaseList.push([collection, Number(discount_base)]);
         if (marketplaceCollectionOffers.length) {
           collectionOfferList.push([collection, marketplaceCollectionOffers]);
@@ -2314,13 +2312,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
     await Promise.all(promiseList);
 
-    if (!priceRatioStable) throw new Error("priceRatioStable isn't found!");
-
     return {
       tokenOfferList,
       collectionOfferList,
       discountBaseList,
-      priceRatioStable,
     };
   }
 
