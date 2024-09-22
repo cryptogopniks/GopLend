@@ -85,6 +85,31 @@
               "UPDATE_MSG": "{\"update_config\":{}}",
               "CODE": 4397,
               "ADDRESS": "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8"
+            },
+            {
+              "WASM": "market_maker_outpost.wasm",
+              "LABEL": "market_maker_outpost",
+              "PERMISSION": [
+                "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t"
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 4634,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "market_maker_hub.wasm",
+              "LABEL": "market_maker_hub",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+              ],
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":4634}}",
+              "CODE": 4633,
+              "ADDRESS": "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t"
             }
           ],
           "IBC": []

@@ -221,7 +221,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4535,
               ADDRESS:
-                "stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93",
+                "stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f",
             },
 
             {
@@ -257,7 +257,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4535,
               ADDRESS:
-                "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
+                "stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana",
             },
 
             {
@@ -274,7 +274,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4426,
               ADDRESS:
-                "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk",
+                "stars1g0lqj70n4umzw89gmeumfkqf20pf5px6wl8um338jvd3664cy7xquqfc4l",
             },
 
             {
@@ -334,16 +334,14 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "market_maker_outpost.wasm",
               LABEL: "market_maker_outpost",
               PERMISSION: [
-                $(
-                  "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=market_maker_hub]|ADDRESS"
-                ),
+                "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t",
               ],
               INIT_MSG: toJson<MarketMakerOutpostTypes.InstantiateMsg>({}),
               MIGRATE_MSG: toJson<MarketMakerOutpostTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson({}),
-              CODE: 0,
+              CODE: 4634,
               ADDRESS: "",
             },
 
@@ -374,8 +372,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4633,
+              ADDRESS:
+                "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t",
             },
           ],
           IBC: [],

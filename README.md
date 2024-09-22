@@ -96,3 +96,9 @@ LTV_MAX = 0.727
 ```
 
 Thus, at the minimum discount, the collateral is redeemed for 110 % of the loan value and 5 % of the profit goes to the `STARS` pool, and at the minimum discount, the collateral is redeemed for 137.5 % of the loan value and 32.5 % of the profit goes to the `STARS` pool. The discount itself varies from 0 to 20 %.
+
+### Market Maker
+
+Market Maker is a separate app (2 contracts + 1 script) handling collection offers for listed collections. It allows to keep 10 offers in lower quarter of allowed offers range to stabilize collection price and provide more liquidity for liquidations. When amount of offers in allowed range drop to 5 it update out of range offers to get 10 proper offers again
+
+To enable MM for new collection admin or worker must list it on MM specifying collection owners. Then one of these owners must deposit liquidity that will be used to put offers. It's recommended to provide liquidity in amout of 17 * `collection_floor_price` to have enough liquidity to update offers when collection price will go up
