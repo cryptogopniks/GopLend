@@ -22,6 +22,12 @@ import { OracleQueryClient } from "../codegen/Oracle.client";
 import { FaucetMsgComposer } from "../codegen/Faucet.message-composer";
 import { FaucetQueryClient } from "../codegen/Faucet.client";
 
+import { MarketMakerHubMsgComposer } from "../codegen/MarketMakerHub.message-composer";
+import { MarketMakerHubQueryClient } from "../codegen/MarketMakerHub.client";
+
+import { MarketMakerOutpostMsgComposer } from "../codegen/MarketMakerOutpost.message-composer";
+import { MarketMakerOutpostQueryClient } from "../codegen/MarketMakerOutpost.client";
+
 import CONFIG_JSON from "../config/config.json";
 import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
@@ -34,10 +40,8 @@ import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
   BidOffset,
   CollectionBidOffset,
-  LiquidationBid,
   MarketplaceVersion,
   PlatformType,
-  QueryOffersByCollectionAddressResponse,
 } from "../codegen/AdapterMarketplaceStargaze.types";
 import {
   getCwClient,
@@ -77,6 +81,12 @@ import {
   Logo,
   Metadata,
 } from "../codegen/Minter.types";
+import { OffersResponse } from "../codegen/MarketMakerOutpost.types";
+import {
+  CollectionInfoForAddr,
+  CollectionOwnersForAddr,
+  LiquidityInfo,
+} from "../codegen/MarketMakerHub.types";
 import {
   Bid,
   BidsResponse,
@@ -105,7 +115,6 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
   MarketplaceData,
-  TargetBorrower,
 } from "../interfaces";
 
 function addSingleTokenToComposerObj(
@@ -203,6 +212,8 @@ function getContracts(contracts: ContractInfo[]) {
   let MINTER_CONTRACT: ContractInfo | undefined;
   let ORACLE_CONTRACT: ContractInfo | undefined;
   let FAUCET_CONTRACT: ContractInfo | undefined;
+  let MARKET_MAKER_HUB_CONTRACT: ContractInfo | undefined;
+  let MARKET_MAKER_OUTPOST_CONTRACT: ContractInfo | undefined;
 
   try {
     ADAPTER_DEX_CONTRACT = getContractByLabel(contracts, "adapter_dex");
@@ -264,6 +275,24 @@ function getContracts(contracts: ContractInfo[]) {
     l(error);
   }
 
+  try {
+    MARKET_MAKER_HUB_CONTRACT = getContractByLabel(
+      contracts,
+      "market_maker_hub"
+    );
+  } catch (error) {
+    l(error);
+  }
+
+  try {
+    MARKET_MAKER_OUTPOST_CONTRACT = getContractByLabel(
+      contracts,
+      "market_maker_outpost"
+    );
+  } catch (error) {
+    l(error);
+  }
+
   return {
     ADAPTER_DEX_CONTRACT,
     ADAPTER_MARKETPLACE_CONTRACT,
@@ -273,6 +302,8 @@ function getContracts(contracts: ContractInfo[]) {
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
     FAUCET_CONTRACT,
+    MARKET_MAKER_HUB_CONTRACT,
+    MARKET_MAKER_OUTPOST_CONTRACT,
   };
 }
 
@@ -296,6 +327,8 @@ async function getCwExecHelpers(
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
     FAUCET_CONTRACT,
+    MARKET_MAKER_HUB_CONTRACT,
+    // MARKET_MAKER_OUTPOST_CONTRACT,
   } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc, owner, signer);
@@ -306,51 +339,54 @@ async function getCwExecHelpers(
 
   const adapterDexStargazeMsgComposer = new AdapterDexStargazeMsgComposer(
     owner,
-    ADAPTER_DEX_CONTRACT ? ADAPTER_DEX_CONTRACT.ADDRESS : ""
+    ADAPTER_DEX_CONTRACT?.ADDRESS || ""
   );
 
   const adapterMarketplaceStargazeMsgComposer =
     new AdapterMarketplaceStargazeMsgComposer(
       owner,
-      ADAPTER_MARKETPLACE_CONTRACT ? ADAPTER_MARKETPLACE_CONTRACT.ADDRESS : ""
+      ADAPTER_MARKETPLACE_CONTRACT?.ADDRESS || ""
     );
 
   const adapterSchedulerCommonMsgComposer =
     new AdapterSchedulerCommonMsgComposer(
       owner,
-      ADAPTER_SCHEDULER_CONTRACT ? ADAPTER_SCHEDULER_CONTRACT.ADDRESS : ""
+      ADAPTER_SCHEDULER_CONTRACT?.ADDRESS || ""
     );
 
   const lendingPlatformMainMsgComposer = new LendingPlatformMsgComposer(
     owner,
-    LENDING_PLATFORM_MAIN_CONTRACT ? LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS : ""
+    LENDING_PLATFORM_MAIN_CONTRACT?.ADDRESS || ""
   );
 
   const lendingPlatformStableMsgComposer = new LendingPlatformMsgComposer(
     owner,
-    LENDING_PLATFORM_STABLE_CONTRACT
-      ? LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS
-      : ""
+    LENDING_PLATFORM_STABLE_CONTRACT?.ADDRESS || ""
   );
 
   const minterMsgComposer = new MinterMsgComposer(
     owner,
-    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT?.ADDRESS || ""
   );
 
   const minterKujiraMsgComposer = new MinterKujiraMsgComposer(
     owner,
-    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT?.ADDRESS || ""
   );
 
   const oracleMsgComposer = new OracleMsgComposer(
     owner,
-    ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
+    ORACLE_CONTRACT?.ADDRESS || ""
   );
 
   const faucetMsgComposer = new FaucetMsgComposer(
     owner,
-    FAUCET_CONTRACT ? FAUCET_CONTRACT.ADDRESS : ""
+    FAUCET_CONTRACT?.ADDRESS || ""
+  );
+
+  const marketMakerHubMsgComposer = new MarketMakerHubMsgComposer(
+    owner,
+    MARKET_MAKER_HUB_CONTRACT?.ADDRESS || ""
   );
 
   const getPlatformComposer = (platformType: PlatformType) => {
@@ -1606,6 +1642,166 @@ async function getCwExecHelpers(
     );
   }
 
+  // market-maker-hub
+
+  async function cwMarketMakerHubAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
+  async function cwMarketMakerHubUpdateConfig(
+    {
+      admin,
+      worker,
+      marketplace,
+      controller,
+      token,
+      maxOutpostAmount,
+      outpostCodeId,
+    }: {
+      admin?: string;
+      worker?: string;
+      marketplace?: string;
+      controller?: string[];
+      token?: TokenUnverified;
+      maxOutpostAmount?: number;
+      outpostCodeId?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        marketMakerHubMsgComposer.updateConfig({
+          admin,
+          worker,
+          marketplace,
+          controller,
+          token,
+          maxOutpostAmount,
+          outpostCodeId,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwAddOutpost(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.addOutpost()],
+      gasPrice
+    );
+  }
+
+  async function cwMarketMakerHubLock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.lock()],
+      gasPrice
+    );
+  }
+
+  async function cwMarketMakerHubUnlock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.unlock()],
+      gasPrice
+    );
+  }
+
+  async function cwSetCollection(
+    collectionAddress: string,
+    ownerList: string[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        marketMakerHubMsgComposer.setCollection({
+          collectionAddress,
+          ownerList,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwRemoveCollections(
+    collectionAddressList: string[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.removeCollections({ collectionAddressList })],
+      gasPrice
+    );
+  }
+
+  async function cwDepositLiquidity(
+    collectionAddress: string,
+    amount: number,
+    denom: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          marketMakerHubMsgComposer.depositLiquidity({ collectionAddress }),
+          amount,
+          {
+            native: { denom },
+          }
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwWithdrawLiquidity(
+    collectionAddress: string,
+    amount: number,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        marketMakerHubMsgComposer.withdrawLiquidity({
+          collectionAddress,
+          amount: amount.toString(),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwMarketMakerHubWithdrawCollateral(
+    collectionAddress: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [marketMakerHubMsgComposer.withdrawCollateral({ collectionAddress })],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateOffers(
+    collectionAddress: string,
+    fromToPriceAndOutpostList: [number, number, string][],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        marketMakerHubMsgComposer.updateOffers({
+          collectionAddress,
+          fromToPriceAndOutpostList: fromToPriceAndOutpostList.map(
+            ([priceBefore, priceAfter, outpost]) => [
+              priceBefore.toString(),
+              priceAfter.toString(),
+              outpost,
+            ]
+          ),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   return {
     utils: { cwRevoke },
     adapter: {
@@ -1709,6 +1905,22 @@ async function getCwExecHelpers(
         cwUpdateConfig: cwFaucetUpdateConfig,
       },
     },
+    marketMaker: {
+      hub: {
+        cwAcceptAdminRole: cwMarketMakerHubAcceptAdminRole,
+        cwUpdateConfig: cwMarketMakerHubUpdateConfig,
+        cwAddOutpost,
+        cwLock: cwMarketMakerHubLock,
+        cwUnlock: cwMarketMakerHubUnlock,
+        cwSetCollection,
+        cwRemoveCollections,
+        cwDepositLiquidity,
+        cwWithdrawLiquidity,
+        cwWithdrawCollateral: cwMarketMakerHubWithdrawCollateral,
+        cwUpdateOffers,
+      },
+      outpost: {},
+    },
   };
 }
 
@@ -1727,6 +1939,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     MINTER_CONTRACT,
     ORACLE_CONTRACT,
     FAUCET_CONTRACT,
+    MARKET_MAKER_HUB_CONTRACT,
+    // MARKET_MAKER_OUTPOST_CONTRACT,
   } = getContracts(CONTRACTS);
 
   const cwClient = await getCwClient(rpc);
@@ -1736,52 +1950,59 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   const adapterDexStargazeQueryClient = new AdapterDexStargazeQueryClient(
     cosmwasmQueryClient,
-    ADAPTER_DEX_CONTRACT ? ADAPTER_DEX_CONTRACT.ADDRESS : ""
+    ADAPTER_DEX_CONTRACT?.ADDRESS || ""
   );
 
   const adapterMarketplaceStargazeQueryClient =
     new AdapterMarketplaceStargazeQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_MARKETPLACE_CONTRACT ? ADAPTER_MARKETPLACE_CONTRACT.ADDRESS : ""
+      ADAPTER_MARKETPLACE_CONTRACT?.ADDRESS || ""
     );
 
   const adapterSchedulerCommonQueryClient =
     new AdapterSchedulerCommonQueryClient(
       cosmwasmQueryClient,
-      ADAPTER_SCHEDULER_CONTRACT ? ADAPTER_SCHEDULER_CONTRACT.ADDRESS : ""
+      ADAPTER_SCHEDULER_CONTRACT?.ADDRESS || ""
     );
 
   const lendingPlatformMainQueryClient = new LendingPlatformQueryClient(
     cosmwasmQueryClient,
-    LENDING_PLATFORM_MAIN_CONTRACT ? LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS : ""
+    LENDING_PLATFORM_MAIN_CONTRACT?.ADDRESS || ""
   );
 
   const lendingPlatformStableQueryClient = new LendingPlatformQueryClient(
     cosmwasmQueryClient,
-    LENDING_PLATFORM_STABLE_CONTRACT
-      ? LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS
-      : ""
+    LENDING_PLATFORM_STABLE_CONTRACT?.ADDRESS || ""
   );
 
   const minterQueryClient = new MinterQueryClient(
     cosmwasmQueryClient,
-    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT?.ADDRESS || ""
   );
 
   const minterKujiraQueryClient = new MinterKujiraQueryClient(
     cosmwasmQueryClient,
-    MINTER_CONTRACT ? MINTER_CONTRACT.ADDRESS : ""
+    MINTER_CONTRACT?.ADDRESS || ""
   );
 
   const oracleQueryClient = new OracleQueryClient(
     cosmwasmQueryClient,
-    ORACLE_CONTRACT ? ORACLE_CONTRACT.ADDRESS : ""
+    ORACLE_CONTRACT?.ADDRESS || ""
   );
 
   const faucetQueryClient = new FaucetQueryClient(
     cosmwasmQueryClient,
-    FAUCET_CONTRACT ? FAUCET_CONTRACT.ADDRESS : ""
+    FAUCET_CONTRACT?.ADDRESS || ""
   );
+
+  const marketMakerHubQueryClient = new MarketMakerHubQueryClient(
+    cosmwasmQueryClient,
+    MARKET_MAKER_HUB_CONTRACT?.ADDRESS || ""
+  );
+
+  const getMarketMakerOutpostQueryClient = (outpost: string) => {
+    return new MarketMakerOutpostQueryClient(cosmwasmQueryClient, outpost);
+  };
 
   const getPlatformQueryClient = (platformType: PlatformType) => {
     return platformType === "main"
@@ -2832,6 +3053,227 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  // market-maker-hub
+
+  async function cwMarketMakerHubQueryConfig(isDisplayed: boolean = false) {
+    const res = await marketMakerHubQueryClient.queryConfig();
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwQueryOutposts(isDisplayed: boolean = false) {
+    const res = await marketMakerHubQueryClient.queryOutposts();
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function pQueryCollectionOwnersList(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<CollectionOwnersForAddr[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: CollectionOwnersForAddr[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: CollectionOwnersForAddr[] =
+        await marketMakerHubQueryClient.queryCollectionOwnersList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwQueryCollectionOwners(
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await marketMakerHubQueryClient.queryCollectionOwners({
+      collectionAddress,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function pQueryLiquidityList(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<LiquidityInfo[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: LiquidityInfo[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: LiquidityInfo[] =
+        await marketMakerHubQueryClient.queryLiquidityList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwQueryLiquidity(
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await marketMakerHubQueryClient.queryLiquidity({
+      collectionAddress,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function pMarketMakerHubQueryCollateralList(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<CollectionInfoForAddr[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: CollectionInfoForAddr[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: CollectionInfoForAddr[] =
+        await marketMakerHubQueryClient.queryCollateralList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwMarketMakerHubQueryCollateral(
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await marketMakerHubQueryClient.queryCollateral({
+      collectionAddress,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
+  // market-maker-outpost
+
+  async function pMarketMakerOutpostQueryCollateralList(
+    outpost: string,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<CollectionInfoForAddr[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: CollectionInfoForAddr[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: CollectionInfoForAddr[] =
+        await getMarketMakerOutpostQueryClient(outpost).queryCollateralList({
+          limit: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwMarketMakerOutpostQueryCollateral(
+    outpost: string,
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await getMarketMakerOutpostQueryClient(outpost).queryCollateral(
+      {
+        collectionAddress,
+      }
+    );
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function pQueryOfferList(
+    outpost: string,
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<OffersResponse[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: OffersResponse[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: OffersResponse[] = await getMarketMakerOutpostQueryClient(
+        outpost
+      ).queryOfferList({
+        limit: paginationAmount,
+        startAfter: lastItem,
+      });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwQueryOffer(
+    outpost: string,
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await getMarketMakerOutpostQueryClient(outpost).queryOffer({
+      collectionAddress,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
   return {
     utils: {
       cwQueryOperators,
@@ -2943,6 +3385,24 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         cwQueryDenom,
         cwQueryLastClaimDate,
         cwQueryConfig: cwFaucetQueryConfig,
+      },
+    },
+    marketMaker: {
+      hub: {
+        cwQueryConfig: cwMarketMakerHubQueryConfig,
+        cwQueryOutposts,
+        pQueryCollectionOwnersList,
+        cwQueryCollectionOwners,
+        pQueryLiquidityList,
+        cwQueryLiquidity,
+        pQueryCollateralList: pMarketMakerHubQueryCollateralList,
+        cwQueryCollateral: cwMarketMakerHubQueryCollateral,
+      },
+      outpost: {
+        pQueryCollateralList: pMarketMakerOutpostQueryCollateralList,
+        cwQueryCollateral: cwMarketMakerOutpostQueryCollateral,
+        pQueryOfferList,
+        cwQueryOffer,
       },
     },
   };

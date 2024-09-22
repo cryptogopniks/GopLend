@@ -70,7 +70,7 @@ pub enum ExecuteMsg {
     // controller
     UpdateOffers {
         collection_address: String,
-        from_to_price_list: Vec<(Uint128, Uint128)>,
+        from_to_price_and_outpost_list: Vec<(Uint128, Uint128, String)>,
     },
 }
 
@@ -109,13 +109,4 @@ pub enum QueryMsg {
 
     #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
     QueryCollateral { collection_address: String },
-
-    #[returns(Vec<crate::market_maker::types::OffersResponse>)]
-    QueryOffersList {
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-
-    #[returns(crate::market_maker::types::OffersResponse)]
-    QueryOffers { collection_address: String },
 }

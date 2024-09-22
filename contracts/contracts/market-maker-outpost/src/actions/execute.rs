@@ -12,7 +12,7 @@ use goplend_base::{
 
 use crate::helpers::get_config;
 
-use super::query::{query_collateral, query_offer};
+use super::query::{get_offer_price, query_collateral, query_offer};
 
 pub fn try_set_offer(
     deps: DepsMut,
@@ -34,22 +34,38 @@ pub fn try_set_offer(
         &config.admin,
         &config.worker,
         AuthType::Specified {
-            allowlist: vec![Some(hub)],
+            allowlist: vec![Some(hub.clone())],
         },
     )?;
 
-    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: unwrap_field(config.marketplace, "marketplace")?.to_string(),
-        msg: to_json_binary(&sg_marketplace::msg::ExecuteMsg::SetCollectionBid {
-            collection: collection_address,
-            expires: env.block.time.plus_days(EXPIRATION_DELAY_IN_DAYS),
-            finders_fee_bps: Some(FINDERS_FEE_BPS),
-        })?,
-        funds: coins(asset_amount.u128(), asset_info.try_get_native()?),
-    });
+    let marketplace = unwrap_field(config.marketplace, "marketplace")?;
+    let offer_price = get_offer_price(
+        &deps.querier,
+        &marketplace,
+        &collection_address,
+        env.contract.address,
+    );
+
+    let msg_list = vec![
+        // set new offer
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: marketplace.to_string(),
+            msg: to_json_binary(&sg_marketplace::msg::ExecuteMsg::SetCollectionBid {
+                collection: collection_address,
+                expires: env.block.time.plus_days(EXPIRATION_DELAY_IN_DAYS),
+                finders_fee_bps: Some(FINDERS_FEE_BPS),
+            })?,
+            funds: coins(asset_amount.u128(), asset_info.try_get_native()?),
+        }),
+        // return previous offer to hub
+        CosmosMsg::Bank(BankMsg::Send {
+            to_address: hub.to_string(),
+            amount: coins(offer_price.u128(), config.token.try_get_native()?),
+        }),
+    ];
 
     Ok(Response::new()
-        .add_message(msg)
+        .add_messages(msg_list)
         .add_attribute("action", "try_set_offer"))
 }
 

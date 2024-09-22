@@ -89,8 +89,14 @@ pub fn execute(
 
         ExecuteMsg::UpdateOffers {
             collection_address,
-            from_to_price_list,
-        } => e::try_update_offers(deps, env, info, collection_address, from_to_price_list),
+            from_to_price_and_outpost_list,
+        } => e::try_update_offers(
+            deps,
+            env,
+            info,
+            collection_address,
+            from_to_price_and_outpost_list,
+        ),
     }
 }
 
@@ -100,7 +106,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOutposts {} => unimplemented!(),
+        QueryMsg::QueryOutposts {} => to_json_binary(&q::query_outposts(deps, env)?),
 
         QueryMsg::QueryCollectionOwnersList { start_after, limit } => to_json_binary(
             &q::query_collection_owners_list(deps, env, start_after, limit)?,
@@ -124,14 +130,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryCollateral { collection_address } => {
             to_json_binary(&q::query_collateral(deps, env, collection_address)?)
-        }
-
-        QueryMsg::QueryOffersList { start_after, limit } => {
-            to_json_binary(&q::query_offers_list(deps, env, start_after, limit)?)
-        }
-
-        QueryMsg::QueryOffers { collection_address } => {
-            to_json_binary(&q::query_offers(deps, env, collection_address)?)
         }
     }
 }

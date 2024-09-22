@@ -6,13 +6,16 @@
   ./codegen.sh adapter-scheduler-common && \
   ./codegen.sh lending-platform && \
   ./codegen.sh minter && \
-  ./codegen.sh oracle
+  ./codegen.sh oracle && \
+  ./codegen.sh market-maker-hub && \
+  ./codegen.sh market-maker-outpost
 
 yarn run json
 yarn run store "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
-yarn run store "elgafar-1|lending_platform_stable,minter,oracle"
-yarn run inst "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle"
-yarn run config "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle"
+yarn run store "elgafar-1|lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run inst "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run store "elgafar-1|market_maker_outpost"
+yarn run config "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
 yarn run prepare-contracts "elgafar-1|"
 yarn run call "elgafar-1|"
 

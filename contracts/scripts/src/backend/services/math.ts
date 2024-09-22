@@ -942,6 +942,7 @@ export function calcMean(values: number[]): number {
 export interface CollectionPriceResponse {
   twapSampleList: PriceSample[];
   floorPriceEma: number;
+  floorPrice: number; // for market maker script
   twapOfferList: PriceSample[];
   offerEma: number;
   collectionPrice: number;
@@ -1025,8 +1026,114 @@ export function calcCollectionPrice(
   return {
     twapSampleList,
     floorPriceEma,
+    floorPrice,
     twapOfferList,
     offerEma,
     collectionPrice,
+  };
+}
+
+export function splitOffers(
+  lowerFloorPrice: number,
+  upperFloorPrice: number,
+  price_and_outpost_list: [string, string][]
+) {
+  const priceAndOutpostList = (
+    price_and_outpost_list.map(([price, outpost]) => [
+      Number(price),
+      outpost,
+    ]) as [number, string][]
+  ).sort(([priceA], [priceB]) => priceB - priceA);
+
+  const regularOffers = priceAndOutpostList
+    .map(([price]) => price)
+    .filter((price) => price >= lowerFloorPrice && price <= upperFloorPrice);
+
+  // sort ascending as we need to get rid of smallest offers first
+  const tooSmallOffers = priceAndOutpostList
+    .filter(([price]) => price < lowerFloorPrice)
+    .sort(([priceA], [priceB]) => priceA - priceB);
+
+  const tooBigOffers = priceAndOutpostList.filter(
+    ([price]) => price > upperFloorPrice
+  );
+
+  return {
+    regularOffers,
+    tooSmallOffers,
+    tooBigOffers,
+  };
+}
+
+export function getOffersExtendedUp(
+  upper_allowed_offers_boundary: number,
+  amountUndistributed: number,
+  floorPrice: number,
+  lowerFloorPrice: number,
+  regularOffers: number[],
+  tooSmallOffers: [number, string][]
+) {
+  const highestOffer = regularOffers[0] || lowerFloorPrice;
+  const allowedPriceRange =
+    floorPrice * upper_allowed_offers_boundary - highestOffer;
+  const priceStep = floor(allowedPriceRange / (tooSmallOffers.length - 1));
+  const fromToPriceAndOutpostListRaw: [number, number, string][] =
+    tooSmallOffers.map(([priceBefore, outpost], i) => {
+      const priceAfter = highestOffer + priceStep * (i + 1);
+      return [priceBefore, priceAfter, outpost];
+    });
+
+  // filter offers based on available liquidity
+  const [fromToPriceAndOutpostList]: [[number, number, string][], number] =
+    fromToPriceAndOutpostListRaw.reduce(
+      (acc, cur) => {
+        let [list, availableLiquidity] = acc;
+        const [priceBefore, priceAfter] = cur;
+
+        if (availableLiquidity >= priceAfter) {
+          list = [...list, cur];
+          availableLiquidity -= priceAfter - priceBefore;
+        }
+
+        return [list, availableLiquidity];
+      },
+      [[], amountUndistributed] as [[number, number, string][], number]
+    );
+
+  const isNoLiquidity = !fromToPriceAndOutpostList.length;
+  const isRequiredMoreLiquidity =
+    fromToPriceAndOutpostList.length < fromToPriceAndOutpostListRaw.length;
+
+  return {
+    fromToPriceAndOutpostList,
+    isNoLiquidity,
+    isRequiredMoreLiquidity,
+  };
+}
+
+export function getOffersExtendedDown(
+  lower_allowed_offers_boundary: number,
+  amountUndistributed: number,
+  floorPrice: number,
+  upperFloorPrice: number,
+  regularOffers: number[],
+  tooBigOffers: [number, string][]
+) {
+  const lowestOffer = getLast(regularOffers) || upperFloorPrice;
+  const allowedPriceRange =
+    lowestOffer - floorPrice * lower_allowed_offers_boundary;
+  const priceStep = floor(allowedPriceRange / (tooBigOffers.length - 1));
+  const fromToPriceAndOutpostList: [number, number, string][] =
+    tooBigOffers.map(([priceBefore, outpost], i) => {
+      const priceAfter = lowestOffer - priceStep * (i + 1);
+      return [priceBefore, priceAfter, outpost];
+    });
+
+  const [[_, firstPriceAfter]] = fromToPriceAndOutpostList;
+  const isNoLiquidity = amountUndistributed < firstPriceAfter;
+
+  return {
+    fromToPriceAndOutpostList,
+    isNoLiquidity,
   };
 }

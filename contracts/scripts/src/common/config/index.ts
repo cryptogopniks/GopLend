@@ -10,6 +10,8 @@ import * as MinterTypes from "../codegen/Minter.types";
 import * as MinterKujiraTypes from "../codegen/MinterKujira.types";
 import * as OracleTypes from "../codegen/Oracle.types";
 import * as FaucetTypes from "../codegen/Faucet.types";
+import * as MarketMakerHubTypes from "../codegen/MarketMakerHub.types";
+import * as MarketMakerOutpostTypes from "../codegen/MarketMakerOutpost.types";
 
 export type NetworkName = "STARGAZE" | "KUJIRA" | "NEUTRON" | "TERRA";
 
@@ -23,7 +25,9 @@ export type Wasm =
   | "minter.wasm"
   | "minter_kujira.wasm"
   | "oracle.wasm"
-  | "faucet.wasm";
+  | "faucet.wasm"
+  | "market_maker_hub.wasm"
+  | "market_maker_outpost.wasm";
 
 export type Label =
   | "adapter_dex"
@@ -33,7 +37,9 @@ export type Label =
   | "lending_platform_stable"
   | "minter"
   | "oracle"
-  | "faucet";
+  | "faucet"
+  | "market_maker_hub"
+  | "market_maker_outpost";
 
 export const ADDRESS = {
   STARGAZE: {
@@ -48,6 +54,7 @@ export const ADDRESS = {
       "stars17daccunykmpvrnkhnhe9v8axknwynzm8jnw5sx",
     ],
     ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+    MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
     MARKETPLACE:
       "stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu",
   },
@@ -214,7 +221,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4535,
               ADDRESS:
-                "stars12jmnzgkc58mlhge3d22sthjeauavndhrf7dcsp4rnfqlkpw0nqys3csc93",
+                "stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f",
             },
 
             {
@@ -250,7 +257,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4535,
               ADDRESS:
-                "stars1j47p0e2hvft4qtfnfyyp5t74ryvzzp4qqw4he7kk7fs7dzw9ngjsr7xfk8",
+                "stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana",
             },
 
             {
@@ -267,7 +274,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               CODE: 4426,
               ADDRESS:
-                "stars142fm3lhv2x9ymvv8ze2udefec4wpf0czv4dsgjn0vmccmdt09tcqzt2ghk",
+                "stars1g0lqj70n4umzw89gmeumfkqf20pf5px6wl8um338jvd3664cy7xquqfc4l",
             },
 
             {
@@ -321,6 +328,53 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 4397,
               ADDRESS:
                 "stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8",
+            },
+
+            {
+              WASM: "market_maker_outpost.wasm",
+              LABEL: "market_maker_outpost",
+              PERMISSION: [
+                "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t",
+              ],
+              INIT_MSG: toJson<MarketMakerOutpostTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MarketMakerOutpostTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson({}),
+              CODE: 4634,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "market_maker_hub.wasm",
+              LABEL: "market_maker_hub",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<MarketMakerHubTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
+                controller: [
+                  ADDRESS.STARGAZE.ADMIN,
+                  ADDRESS.STARGAZE.WORKER,
+                  ADDRESS.STARGAZE.MARKET_MAKER_CONTROLLER,
+                ],
+                token: {
+                  native: { denom: $("OPTIONS[CHAIN_ID=elgafar-1]|DENOM") },
+                },
+                max_outpost_amount: 10,
+              }),
+              MIGRATE_MSG: toJson<MarketMakerHubTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MarketMakerHubTypes.ExecuteMsg>({
+                update_config: {
+                  outpost_code_id: $(
+                    "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[LABEL=market_maker_outpost]|CODE"
+                  ),
+                },
+              }),
+              CODE: 4633,
+              ADDRESS:
+                "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t",
             },
           ],
           IBC: [],

@@ -57,6 +57,7 @@ const FLOOR_PRICE_BOUNDARY = {
 const COLLECTION_PRICE_RESPONSE_DEFAULT: CollectionPriceResponse = {
   twapSampleList: [],
   floorPriceEma: 0,
+  floorPrice: 0,
   twapOfferList: [],
   offerEma: 0,
   collectionPrice: 0,
