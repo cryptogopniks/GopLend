@@ -20,7 +20,6 @@ interface MarketplaceData {
   tokenOfferList: [string, Bid[]][];
   collectionOfferList: [string, CollectionBid[]][];
   discountBaseList: [string, number][];
-  priceRatioStable: number;
 }
 
 interface LiquidationBidExtended {

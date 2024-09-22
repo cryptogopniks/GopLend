@@ -152,19 +152,22 @@ async function main(userAddress: string) {
             return [collection, tokenList];
           });
 
-        const {
-          collectionOfferList,
-          tokenOfferList,
-          discountBaseList,
-          priceRatioStable,
-        } = await utils.cwGetMarketplaceData(
-          collectionAndTokensList,
-          collectionAddresses,
-          blockTime,
-          PAGINATION.OFFERS.BATCH,
-          PAGINATION.OFFERS.COLLECTION_LIMIT,
-          PAGINATION.OFFERS.TOKEN_LIMIT
-        );
+        const { collectionOfferList, tokenOfferList, discountBaseList } =
+          await utils.cwGetMarketplaceData(
+            collectionAndTokensList,
+            collectionAddresses,
+            blockTime,
+            PAGINATION.OFFERS.BATCH,
+            PAGINATION.OFFERS.COLLECTION_LIMIT,
+            PAGINATION.OFFERS.TOKEN_LIMIT
+          );
+
+        // query priceRatio directly as MarketplaceData can be empty due to collectionAddresses
+        const priceRatioItem = await oracle.cwQueryPriceRatio();
+        if (priceRatioItem.is_outdated) {
+          throw new Error("priceRatioStable is outdated!");
+        }
+        const priceRatioStable = Number(priceRatioItem.value);
 
         const tokenOffers: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
           tokenOfferList.map(([collectionAddress, bids]) => {
@@ -321,5 +324,5 @@ async function main(userAddress: string) {
   );
 }
 
-main("stars1vq97vj6hsrvg8569eclpnpsvs6nk7jllkdcx86");
+main("stars1lze4mhdus8tfh40046sz5r533grvua5rcv0f09");
 // main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");
