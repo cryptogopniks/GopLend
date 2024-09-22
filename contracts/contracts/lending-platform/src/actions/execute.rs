@@ -639,8 +639,15 @@ pub fn try_withdraw_collateral(
     }
 
     // check ltv
-    let ltv =
-        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
+    let ltv = query::query_conditional_ltv(
+        deps.as_ref(),
+        env,
+        sender_address.to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
 
     let ltv_max = math::calc_ltv_max(
@@ -695,8 +702,15 @@ pub fn try_borrow(
     })?;
 
     // check ltv
-    let ltv =
-        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
+    let ltv = query::query_conditional_ltv(
+        deps.as_ref(),
+        env,
+        sender_address.to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
         rate_config.discount_max_rate,

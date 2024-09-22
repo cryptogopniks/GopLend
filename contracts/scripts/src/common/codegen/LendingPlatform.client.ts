@@ -168,8 +168,10 @@ export interface LendingPlatformReadOnlyInterface {
   queryBglCurrencyToMainCurrencyPrice: () => Promise<Decimal>;
   queryConditionalDepositApr: ({
     amountToDeposit,
+    amountToWithdraw,
   }: {
     amountToDeposit?: Uint128;
+    amountToWithdraw?: Uint128;
   }) => Promise<Decimal>;
   queryLtvList: ({
     limit,
@@ -181,10 +183,14 @@ export interface LendingPlatformReadOnlyInterface {
   queryConditionalLtv: ({
     amountToBorrow,
     amountToDeposit,
+    amountToRepay,
+    amountToWithdraw,
     borrower,
   }: {
     amountToBorrow?: Uint128;
     amountToDeposit?: Uint128;
+    amountToRepay?: Uint128;
+    amountToWithdraw?: Uint128;
     borrower: string;
   }) => Promise<Decimal>;
   queryTotalAvailableToBorrowLiquidity: () => Promise<Uint128>;
@@ -479,12 +485,15 @@ export class LendingPlatformQueryClient
   };
   queryConditionalDepositApr = async ({
     amountToDeposit,
+    amountToWithdraw,
   }: {
     amountToDeposit?: Uint128;
+    amountToWithdraw?: Uint128;
   }): Promise<Decimal> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_conditional_deposit_apr: {
         amount_to_deposit: amountToDeposit,
+        amount_to_withdraw: amountToWithdraw,
       },
     });
   };
@@ -505,16 +514,22 @@ export class LendingPlatformQueryClient
   queryConditionalLtv = async ({
     amountToBorrow,
     amountToDeposit,
+    amountToRepay,
+    amountToWithdraw,
     borrower,
   }: {
     amountToBorrow?: Uint128;
     amountToDeposit?: Uint128;
+    amountToRepay?: Uint128;
+    amountToWithdraw?: Uint128;
     borrower: string;
   }): Promise<Decimal> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_conditional_ltv: {
         amount_to_borrow: amountToBorrow,
         amount_to_deposit: amountToDeposit,
+        amount_to_repay: amountToRepay,
+        amount_to_withdraw: amountToWithdraw,
         borrower,
       },
     });

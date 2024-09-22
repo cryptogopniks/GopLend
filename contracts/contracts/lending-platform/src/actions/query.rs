@@ -450,6 +450,7 @@ pub fn query_conditional_deposit_apr(
     deps: Deps,
     _env: Env,
     amount_to_deposit: Option<Uint128>,
+    amount_to_withdraw: Option<Uint128>,
 ) -> StdResult<Decimal> {
     let RateConfig {
         borrow_apr,
@@ -462,6 +463,7 @@ pub fn query_conditional_deposit_apr(
         borrow_apr,
         borrow_fee_rate,
         amount_to_deposit.unwrap_or_default(),
+        amount_to_withdraw.unwrap_or_default(),
         regular.deposited,
         regular.unbonded,
         regular.borrowed.amount,
@@ -540,8 +542,10 @@ pub fn query_ltv_list(
                         ltv_max,
                         rate_config.borrow_apr,
                         Uint128::zero(),
+                        Uint128::zero(),
                         borrower.accumulated_loan,
                         borrower.loan.amount,
+                        Uint128::zero(),
                         Uint128::zero(),
                         collateral_value,
                         block_time,
@@ -560,7 +564,9 @@ pub fn query_conditional_ltv(
     env: Env,
     borrower: String,
     amount_to_deposit: Option<Uint128>,
+    amount_to_withdraw: Option<Uint128>,
     amount_to_borrow: Option<Uint128>,
+    amount_to_repay: Option<Uint128>,
 ) -> StdResult<Decimal> {
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -584,7 +590,6 @@ pub fn query_conditional_ltv(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    // TODO: limit prices change rate to protect against oracle attack
     let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
@@ -610,9 +615,11 @@ pub fn query_conditional_ltv(
         ltv_max,
         rate_config.borrow_apr,
         amount_to_borrow.unwrap_or_default(),
+        amount_to_repay.unwrap_or_default(),
         borrower.accumulated_loan,
         borrower.loan.amount,
         amount_to_deposit.unwrap_or_default(),
+        amount_to_withdraw.unwrap_or_default(),
         collateral_value,
         block_time,
         borrower.loan.creation_date,
@@ -688,7 +695,6 @@ pub fn query_available_to_borrow(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    // TODO: limit prices change rate to protect against oracle attack
     let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
@@ -848,7 +854,9 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
         borrow_apr,
         Uint128::zero(),
         Uint128::zero(),
+        Uint128::zero(),
         loan,
+        Uint128::zero(),
         Uint128::zero(),
         collateral_value,
         block_time,

@@ -251,7 +251,10 @@ pub enum QueryMsg {
     QueryBglCurrencyToMainCurrencyPrice {},
 
     #[returns(Decimal)]
-    QueryConditionalDepositApr { amount_to_deposit: Option<Uint128> },
+    QueryConditionalDepositApr {
+        amount_to_deposit: Option<Uint128>,
+        amount_to_withdraw: Option<Uint128>,
+    },
 
     #[returns(Vec<(Addr, Option<Decimal>)>)]
     QueryLtvList {
@@ -263,7 +266,9 @@ pub enum QueryMsg {
     QueryConditionalLtv {
         borrower: String,
         amount_to_deposit: Option<Uint128>,
+        amount_to_withdraw: Option<Uint128>,
         amount_to_borrow: Option<Uint128>,
+        amount_to_repay: Option<Uint128>,
     },
 
     #[returns(Uint128)]

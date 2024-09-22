@@ -13,7 +13,6 @@ use sg_marketplace::{
 
 use crate::state::{COLLECTION_OFFERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT};
 
-// TODO: sort bids
 pub fn collection_bids_sorted_by_price(
     deps: Deps,
     env: Env,
@@ -62,7 +61,7 @@ pub fn bids_sorted_by_price(
             collection: x.collection,
             bidder: x.bidder,
             price: x.price,
-            token_id: 5, // TODO
+            token_id: 5,
             finders_fee_bps: None,
             expires_at: env.block.time.plus_days(1_000),
         })

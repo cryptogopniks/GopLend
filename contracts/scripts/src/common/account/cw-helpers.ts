@@ -2798,12 +2798,16 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   async function cwQueryConditionalDepositApr(
     platformType: PlatformType,
     amountToDeposit: number,
+    amountToWithdraw: number,
     isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(
       platformType
     ).queryConditionalDepositApr({
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
+      amountToWithdraw: amountToWithdraw
+        ? amountToWithdraw.toString()
+        : undefined,
     });
     return logAndReturn(res, isDisplayed);
   }
@@ -2825,13 +2829,19 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     platformType: PlatformType,
     borrower: string,
     amountToDeposit: number = 0,
+    amountToWithdraw: number = 0,
     amountToBorrow: number = 0,
+    amountToRepay: number = 0,
     isDisplayed: boolean = false
   ) {
     const res = await getPlatformQueryClient(platformType).queryConditionalLtv({
       borrower,
       amountToDeposit: amountToDeposit ? amountToDeposit.toString() : undefined,
+      amountToWithdraw: amountToWithdraw
+        ? amountToWithdraw.toString()
+        : undefined,
       amountToBorrow: amountToBorrow ? amountToBorrow.toString() : undefined,
+      amountToRepay: amountToRepay ? amountToRepay.toString() : undefined,
     });
     return logAndReturn(res, isDisplayed);
   }

@@ -51,20 +51,21 @@ export function calcConditionalLtv(
   ltvMax: number,
   borrowApr: number,
   amountToBorrow: number,
+  amountToRepay: number,
   accumulatedLoan: number,
   loan: number,
   amountToDeposit: number,
+  amountToWithdraw: number,
   collateral: number,
   blockTime: number,
   loanCreationDate: number
 ): number {
-  collateral += amountToDeposit;
-  accumulatedLoan += amountToBorrow;
-
   const borrowDuration = blockTime - loanCreationDate;
-  loan =
-    accumulatedLoan +
+  collateral += amountToDeposit - amountToWithdraw;
+  accumulatedLoan +=
     loan * (1 + (borrowApr * borrowDuration) / YEAR_IN_SECONDS);
+
+  loan = accumulatedLoan + amountToBorrow - amountToRepay;
 
   // if loan is zero then ltv is zero anyway
   if (!loan) {
@@ -556,8 +557,10 @@ export function getTargetBorrowers(
         ltvMax,
         Number(rateConfig.borrow_apr),
         0,
+        0,
         accumulatedLoan,
         loanAmount,
+        0,
         0,
         collateralValue,
         blockTime,

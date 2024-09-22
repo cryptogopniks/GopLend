@@ -559,7 +559,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   },
                   decimals: 6,
                 },
-                borrow_apr: "0.16", // TODO: ???
+                borrow_apr: "0.16", // TODO: should we use it instead of 0.25?
                 borrow_fee_rate: "0.05",
                 liquidation_fee_rate: "0.05",
                 discount_min_rate: "0",
