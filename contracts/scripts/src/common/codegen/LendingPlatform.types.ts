@@ -290,6 +290,7 @@ export type QueryMsg = {
 } | {
   query_conditional_deposit_apr: {
     amount_to_deposit?: Uint128 | null;
+    amount_to_withdraw?: Uint128 | null;
   };
 } | {
   query_ltv_list: {
@@ -300,6 +301,8 @@ export type QueryMsg = {
   query_conditional_ltv: {
     amount_to_borrow?: Uint128 | null;
     amount_to_deposit?: Uint128 | null;
+    amount_to_repay?: Uint128 | null;
+    amount_to_withdraw?: Uint128 | null;
     borrower: string;
   };
 } | {

@@ -362,6 +362,7 @@ pub trait LendingPlatformExtension {
         &self,
         platform_type: PlatformType,
         amount_to_deposit: &Option<u128>,
+        amount_to_withdraw: &Option<u128>,
     ) -> StdResult<Decimal>;
 
     fn lending_platform_query_ltv_list(
@@ -376,7 +377,9 @@ pub trait LendingPlatformExtension {
         platform_type: PlatformType,
         borrower: ProjectAccount,
         amount_to_deposit: &Option<u128>,
+        amount_to_withdraw: &Option<u128>,
         amount_to_borrow: &Option<u128>,
+        amount_to_repay: &Option<u128>,
     ) -> StdResult<Decimal>;
 
     fn lending_platform_query_total_available_to_borrow_liquidity(
@@ -1377,6 +1380,7 @@ impl LendingPlatformExtension for Project {
         &self,
         platform_type: PlatformType,
         amount_to_deposit: &Option<u128>,
+        amount_to_withdraw: &Option<u128>,
     ) -> StdResult<Decimal> {
         let contract_address = match platform_type {
             PlatformType::Main => self.get_lending_platform_main_address(),
@@ -1387,6 +1391,9 @@ impl LendingPlatformExtension for Project {
             contract_address,
             &QueryMsg::QueryConditionalDepositApr {
                 amount_to_deposit: amount_to_deposit
+                    .as_ref()
+                    .map(|x| Uint128::new(x.to_owned())),
+                amount_to_withdraw: amount_to_withdraw
                     .as_ref()
                     .map(|x| Uint128::new(x.to_owned())),
             },
@@ -1420,7 +1427,9 @@ impl LendingPlatformExtension for Project {
         platform_type: PlatformType,
         borrower: ProjectAccount,
         amount_to_deposit: &Option<u128>,
+        amount_to_withdraw: &Option<u128>,
         amount_to_borrow: &Option<u128>,
+        amount_to_repay: &Option<u128>,
     ) -> StdResult<Decimal> {
         let contract_address = match platform_type {
             PlatformType::Main => self.get_lending_platform_main_address(),
@@ -1434,9 +1443,13 @@ impl LendingPlatformExtension for Project {
                 amount_to_deposit: amount_to_deposit
                     .as_ref()
                     .map(|x| Uint128::new(x.to_owned())),
+                amount_to_withdraw: amount_to_withdraw
+                    .as_ref()
+                    .map(|x| Uint128::new(x.to_owned())),
                 amount_to_borrow: amount_to_borrow
                     .as_ref()
                     .map(|x| Uint128::new(x.to_owned())),
+                amount_to_repay: amount_to_repay.as_ref().map(|x| Uint128::new(x.to_owned())),
             },
         )
     }

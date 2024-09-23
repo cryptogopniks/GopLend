@@ -40,7 +40,7 @@ pub fn try_instantiate(
                 .unwrap_or(Some(sender.to_owned())),
             controller: msg
                 .controller
-                .map(|x| x.iter().map(|y| deps.api.addr_validate(&y)).collect())
+                .map(|x| x.iter().map(|y| deps.api.addr_validate(y)).collect())
                 .transpose()?,
             token: msg.token.verify(deps.api)?,
             max_outpost_amount: msg.max_outpost_amount.unwrap_or(MAX_OUTPOST_AMOUNT),

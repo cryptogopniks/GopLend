@@ -31,15 +31,7 @@ use goplend_base::{
     },
 };
 
-use crate::{
-    actions::query,
-    helpers::{
-        self, accumulate_expected_rewards, check_collections_holder, check_lockout,
-        increase_platform_revenue, update_balances, update_borrowers_storages,
-        update_liquidation_storages, verify_proposal_status,
-    },
-    math,
-};
+use crate::{helpers, math};
 
 pub fn try_deposit(
     deps: DepsMut,
@@ -48,7 +40,7 @@ pub fn try_deposit(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -73,7 +65,7 @@ pub fn try_deposit(
     }
 
     // update contract balances
-    accumulate_expected_rewards(deps.storage, block_time)?;
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
 
     let bgl_token_amount = math::calc_minted_bgl_token_amount(
@@ -112,7 +104,7 @@ pub fn try_unbond(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -136,7 +128,7 @@ pub fn try_unbond(
     }
 
     // update balances
-    accumulate_expected_rewards(deps.storage, block_time)?;
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
 
     let main_token_amount = math::calc_unbonded_main_token_amount(
@@ -189,7 +181,7 @@ pub fn try_unbond(
 }
 
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -293,7 +285,7 @@ pub fn try_deposit_collateral(
     info: MessageInfo,
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -337,7 +329,7 @@ pub fn try_deposit_collateral(
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
 
     // check if nfts are on user balance
-    check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
+    helpers::check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -500,7 +492,7 @@ pub fn try_withdraw_collateral(
     info: MessageInfo,
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -540,10 +532,10 @@ pub fn try_withdraw_collateral(
 
     // query collection prices
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+    let oracle = &unwrap_field(address_config.oracle.clone(), "oracle")?;
 
     // check if nfts are on contract balance
-    check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
+    helpers::check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -631,23 +623,38 @@ pub fn try_withdraw_collateral(
         Err(ContractError::LowCollateral {
             provided_amount: collateral_value.u128(),
             min_amount: common_config.collateral_min_value.u128(),
-            denom: match common_config.main_currency.token {
-                Token::Native { denom } => denom,
+            denom: match &common_config.main_currency.token {
+                Token::Native { denom } => denom.to_string(),
                 Token::Cw20 { address } => address.to_string(),
             },
         })?;
     }
 
     // check ltv
-    let ltv =
-        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
+    let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
         rate_config.discount_max_rate,
         rate_config.discount_min_rate,
     );
+    let borrower = BORROWERS
+        .load(deps.storage, &sender_address)
+        .unwrap_or_default();
+    let ltv = helpers::get_conditional_ltv(
+        deps.as_ref(),
+        &address_config,
+        &rate_config,
+        &common_config,
+        ltv_max,
+        &sender_address,
+        &borrower,
+        block_time,
+        None,
+        None,
+        None,
+        None,
+    )?;
 
     if ltv >= ltv_max {
         Err(ContractError::ExceededLtv)?;
@@ -664,7 +671,7 @@ pub fn try_borrow(
     info: MessageInfo,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -677,38 +684,48 @@ pub fn try_borrow(
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-
-    BORROWERS.update(deps.storage, &sender_address, |x| -> StdResult<Borrower> {
-        let mut borrower = x.unwrap_or_default();
-
-        borrower.accumulated_loan = math::calc_accumulated_loan(
-            rate_config.borrow_apr,
-            borrower.accumulated_loan,
-            borrower.loan.amount,
-            block_time,
-            borrower.loan.creation_date,
-        );
-        borrower.loan.creation_date = block_time;
-        borrower.loan.amount += amount;
-
-        Ok(borrower)
-    })?;
-
-    // check ltv
-    let ltv =
-        query::query_conditional_ltv(deps.as_ref(), env, sender_address.to_string(), None, None)?;
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
         rate_config.discount_max_rate,
         rate_config.discount_min_rate,
     );
 
+    let mut borrower = BORROWERS
+        .load(deps.storage, &sender_address)
+        .unwrap_or_default();
+    borrower.accumulated_loan = math::calc_accumulated_loan(
+        rate_config.borrow_apr,
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        block_time,
+        borrower.loan.creation_date,
+    );
+    borrower.loan.creation_date = block_time;
+    borrower.loan.amount += amount;
+    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+
+    // check ltv
+    let ltv = helpers::get_conditional_ltv(
+        deps.as_ref(),
+        &address_config,
+        &rate_config,
+        &common_config,
+        ltv_max,
+        &sender_address,
+        &borrower,
+        block_time,
+        None,
+        None,
+        None,
+        None,
+    )?;
+
     if ltv >= ltv_max {
         Err(ContractError::ExceededLtv)?;
     }
 
     // update states
-    accumulate_expected_rewards(deps.storage, block_time)?;
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
 
     let mut balances = BALANCES.load(deps.storage)?;
 
@@ -763,7 +780,7 @@ pub fn try_repay(
 ) -> Result<Response, ContractError> {
     let mut response = Response::new().add_attribute("action", "try_repay");
 
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -817,7 +834,7 @@ pub fn try_repay(
         rate_config.borrow_apr,
         rate_config.borrow_fee_rate,
     );
-    increase_platform_revenue(
+    helpers::increase_platform_revenue(
         deps.storage,
         platform_revenue,
         &common_config.main_currency.token,
@@ -839,7 +856,7 @@ pub fn try_repay(
         BORROWERS.save(deps.storage, &sender_address, &borrower)?;
     }
 
-    accumulate_expected_rewards(deps.storage, block_time)?;
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
 
     BALANCES.update(deps.storage, |mut balances| -> StdResult<Balances> {
         amount_to_repay -= platform_revenue;
@@ -883,7 +900,7 @@ pub fn try_place_bid(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1091,7 +1108,7 @@ pub fn try_update_bid(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1286,7 +1303,7 @@ pub fn try_remove_bid(
     collection_addresses: Vec<String>,
     creation_date: u64,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1377,7 +1394,7 @@ pub fn try_liquidate(
     targets: Vec<LiquidationItem>,
     route: Route,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
     let block_time = env.block.time.seconds();
@@ -1417,13 +1434,13 @@ pub fn try_liquidate(
         } = BORROWERS.load(deps.storage, &borrower_address)?;
 
         let (current_liquidation_value, current_internal_liquidation_value) =
-            update_liquidation_storages(deps.storage, &liquidation_set, block_time)?;
+            helpers::update_liquidation_storages(deps.storage, &liquidation_set, block_time)?;
 
         // update total_liquidation_value and borrowers_storages
         total_liquidation_value += current_liquidation_value;
         total_internal_liquidation_value += current_internal_liquidation_value;
 
-        update_borrowers_storages(
+        helpers::update_borrowers_storages(
             deps.storage,
             &loan,
             &borrower_address,
@@ -1450,17 +1467,17 @@ pub fn try_liquidate(
     );
     let main_currency_pool_addition = total_liquidation_value - platform_revenue;
 
-    increase_platform_revenue(
+    helpers::increase_platform_revenue(
         deps.storage,
         platform_revenue,
         &common_config.main_currency.token,
         &common_config.main_currency,
     )?;
 
-    accumulate_expected_rewards(deps.storage, block_time)?;
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
 
     // update contract balances
-    update_balances(
+    helpers::update_balances(
         deps.storage,
         block_time,
         rate_config.borrow_apr,
@@ -1570,10 +1587,10 @@ pub fn try_update_address_config(
     adapter_scheduler: Option<String>,
     adapter_marketplace: Option<String>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
-    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
+    helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = ADDRESS_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
     let current_admin = &config.admin;
@@ -1677,11 +1694,11 @@ pub fn try_update_rate_config(
     discount_max_rate: Option<Decimal>,
     bid_min_rate: Option<Decimal>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
-    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
+    helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = RATE_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
 
@@ -1743,11 +1760,11 @@ pub fn try_update_common_config(
     borrowers_reserve_fraction_ratio: Option<Decimal>,
     is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
-    accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
+    helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
     let mut config = COMMON_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
@@ -1815,7 +1832,7 @@ pub fn try_deposit_reserve_liquidity(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1851,7 +1868,7 @@ pub fn try_withdraw_reserve_liquidity(
     info: MessageInfo,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1891,7 +1908,7 @@ pub fn try_reinforce_bgl_token(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1958,7 +1975,7 @@ pub fn try_distribute_funds(
     info: MessageInfo,
     address_and_weight_list: Vec<(String, Decimal)>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2025,7 +2042,7 @@ pub fn try_remove_collection(
     info: MessageInfo,
     address: String,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2048,7 +2065,7 @@ pub fn try_create_proposal(
     info: MessageInfo,
     proposal: Proposal<String, TokenUnverified>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2148,7 +2165,7 @@ pub fn try_reject_proposal(
     info: MessageInfo,
     id: u32,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2166,7 +2183,7 @@ pub fn try_reject_proposal(
             let proposal = unwrap_field(proposal, "proposal")?;
 
             // verify proposal status
-            verify_proposal_status(&proposal, ProposalStatus::Active)?;
+            helpers::verify_proposal_status(&proposal, ProposalStatus::Active)?;
 
             Ok(Proposal {
                 proposal_status: Some(ProposalStatus::Rejected),
@@ -2186,7 +2203,7 @@ pub fn try_accept_proposal(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.as_ref())?;
+    helpers::check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
 
@@ -2200,7 +2217,7 @@ pub fn try_accept_proposal(
     }
 
     // verify proposal status
-    verify_proposal_status(&proposal, ProposalStatus::Active)?;
+    helpers::verify_proposal_status(&proposal, ProposalStatus::Active)?;
 
     let (collection_address, new_collection_address, collection) = match &proposal.proposal_type {
         ProposalType::AddCollection {
@@ -2279,7 +2296,7 @@ pub fn try_accept_proposal(
     };
 
     // update funds
-    increase_platform_revenue(
+    helpers::increase_platform_revenue(
         deps.storage,
         asset_amount,
         &asset_info,

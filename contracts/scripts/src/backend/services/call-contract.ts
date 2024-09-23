@@ -90,7 +90,7 @@ async function main() {
     // return;
 
     await lending.cwQueryBalances("stable", true);
-    await lending.cwQueryConditionalDepositApr("stable", 0, true);
+    await lending.cwQueryConditionalDepositApr("stable", 0, 0, true);
     return;
 
     // await lending.cwQueryCollateralByOwner(
@@ -128,7 +128,7 @@ async function main() {
     return;
 
     await lending.cwQueryBalances("main", true);
-    await lending.cwQueryConditionalDepositApr("main", 0, true);
+    await lending.cwQueryConditionalDepositApr("main", 0, 0, true);
     return;
 
     const CURRENCY = {

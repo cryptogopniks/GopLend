@@ -219,7 +219,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4635,
+              CODE: 4636,
               ADDRESS:
                 "stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f",
             },
@@ -255,7 +255,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4635,
+              CODE: 4636,
               ADDRESS:
                 "stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana",
             },
@@ -559,7 +559,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   },
                   decimals: 6,
                 },
-                borrow_apr: "0.16", // TODO: ???
+                borrow_apr: "0.16", // TODO: should we use it instead of 0.25?
                 borrow_fee_rate: "0.05",
                 liquidation_fee_rate: "0.05",
                 discount_min_rate: "0",

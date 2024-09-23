@@ -114,8 +114,10 @@ pub fn get_targets(
             ltv_max,
             rate_config.borrow_apr,
             Uint128::zero(),
+            Uint128::zero(),
             accumulated_loan,
             loan.amount,
+            Uint128::zero(),
             Uint128::zero(),
             collateral_value,
             block_time,
@@ -304,7 +306,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
 
     // check initial deposit apr and bgl price
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -315,7 +317,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     project.wait(DELAY / 2);
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -336,7 +338,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     project.lending_platform_try_borrow(ProjectAccount::Bob, PlatformType::Main, AMOUNT)?;
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -357,7 +359,7 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     )?;
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -451,7 +453,7 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
 
     // check initial deposit apr and bgl price
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -795,7 +797,7 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
 
     // check apr, bgl price
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -1042,7 +1044,7 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
 
     // check apr, bgl price
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     let bgl_to_main_price =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
 
@@ -3184,7 +3186,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
 
     // deposit
@@ -3196,7 +3198,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
 
     // place bid
@@ -3253,7 +3255,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     assert_that(&liquidation_bids_before).is_equal_to(liquidation_bids_after);
 
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
 
     // reduce prices to trigger liquidation
@@ -3284,12 +3286,14 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
 
     // liquidation reduces deposit apr
     let deposit_apr =
-        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None)?;
+        project.lending_platform_query_conditional_deposit_apr(PlatformType::Main, &None, &None)?;
     assert_that(&deposit_apr).is_equal_to(str_to_dec("0.121764705882352941"));
 
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -3484,6 +3488,8 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let collaterals_after =
         project.lending_platform_query_collateral_list(PlatformType::Main, &None, &None)?;
@@ -3668,6 +3674,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -3856,6 +3864,8 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let collaterals_after =
         project.lending_platform_query_collateral_list(PlatformType::Main, &None, &None)?;
@@ -4042,6 +4052,8 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let collaterals_after =
         project.lending_platform_query_collateral_list(PlatformType::Main, &None, &None)?;
@@ -4220,6 +4232,8 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -4408,6 +4422,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let collaterals_after =
         project.lending_platform_query_collateral_list(PlatformType::Main, &None, &None)?;
@@ -4592,6 +4608,8 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -4785,6 +4803,8 @@ fn single_discount_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -5028,6 +5048,8 @@ fn multiple_discount_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -5347,6 +5369,8 @@ fn multiple_collection_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -5913,6 +5937,8 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
 
     // 570 / 800 = 0.7125
@@ -5940,6 +5966,8 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -5973,6 +6001,8 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -6335,15 +6365,20 @@ fn big_numbers() -> StdResult<()> {
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
     assert_that(&res).is_equal_to(str_to_dec("2.2"));
 
-    let res = project
-        .lending_platform_query_conditional_deposit_apr(PlatformType::Main, &Some(AMOUNT))?;
+    let res = project.lending_platform_query_conditional_deposit_apr(
+        PlatformType::Main,
+        &Some(AMOUNT),
+        &None,
+    )?;
     assert_that(&res).is_equal_to(str_to_dec("0.08"));
 
     let res = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
         &Some(AMOUNT),
+        &None,
         &Some(2 * AMOUNT),
+        &None,
     )?;
     assert_that(&res).is_equal_to(str_to_dec("1.025"));
 
@@ -6388,13 +6423,18 @@ fn big_numbers() -> StdResult<()> {
     let _res = project.lending_platform_query_balances(PlatformType::Main)?;
     let _res =
         project.lending_platform_query_bgl_currency_to_main_currency_price(PlatformType::Main)?;
-    let _res = project
-        .lending_platform_query_conditional_deposit_apr(PlatformType::Main, &Some(AMOUNT))?;
+    let _res = project.lending_platform_query_conditional_deposit_apr(
+        PlatformType::Main,
+        &Some(AMOUNT),
+        &None,
+    )?;
     let _res = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
         &Some(AMOUNT),
+        &None,
         &Some(2 * AMOUNT),
+        &None,
     )?;
     let _res =
         project.lending_platform_query_total_available_to_borrow_liquidity(PlatformType::Main)?;
@@ -6989,6 +7029,8 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
 
     // 570 / 800 = 0.7125
@@ -7009,6 +7051,8 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7057,6 +7101,8 @@ fn marketplace_offer_liquidation() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7298,10 +7344,14 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let ltv_before_bob = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7368,10 +7418,14 @@ fn regular_bid_and_marketplace_offer_liquidation() -> StdResult<()> {
         ProjectAccount::Alice,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let ltv_after_bob = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7580,6 +7634,8 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     assert_that(&ltv.to_string().as_str()).is_equal_to("0.904761911934357709");
 
@@ -7601,6 +7657,8 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     let ltv = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7858,10 +7916,14 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         ProjectAccount::Alice,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let ltv_before_bob = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -7928,10 +7990,14 @@ fn regular_bid_and_marketplace_offer_liquidation_on_single_user() -> StdResult<(
         ProjectAccount::Alice,
         &None,
         &None,
+        &None,
+        &None,
     )?;
     let ltv_after_bob = project.lending_platform_query_conditional_ltv(
         PlatformType::Main,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -8183,6 +8249,8 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         ProjectAccount::Bob,
         &None,
         &None,
+        &None,
+        &None,
     )?;
 
     // 570 / 800 = 0.7125
@@ -8204,6 +8272,8 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Stable,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -8256,6 +8326,8 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
     let ltv_after = project.lending_platform_query_conditional_ltv(
         PlatformType::Stable,
         ProjectAccount::Bob,
+        &None,
+        &None,
         &None,
         &None,
     )?;
@@ -8573,6 +8645,8 @@ fn outdated_prices() -> StdResult<()> {
         ProjectAccount::Alice,
         &None,
         &None,
+        &None,
+        &None,
     )?;
 
     // collateral - pinjeons, deposit gopniks
@@ -8626,6 +8700,8 @@ fn outdated_prices() -> StdResult<()> {
         .lending_platform_query_conditional_ltv(
             PlatformType::Main,
             ProjectAccount::Bob,
+            &None,
+            &None,
             &None,
             &None,
         )
@@ -8683,6 +8759,8 @@ fn outdated_prices() -> StdResult<()> {
         .lending_platform_query_conditional_ltv(
             PlatformType::Main,
             ProjectAccount::John,
+            &None,
+            &None,
             &None,
             &None,
         )

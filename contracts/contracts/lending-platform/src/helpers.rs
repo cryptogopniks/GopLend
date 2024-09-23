@@ -1,6 +1,6 @@
 use std::cmp::max;
 
-use cosmwasm_std::{Addr, Decimal, Deps, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, Order, StdResult, Storage, Uint128};
 
 use goplend_base::{
     assets::{Currency, Funds, Token},
@@ -11,11 +11,12 @@ use goplend_base::{
             RATE_CONFIG,
         },
         types::{
-            Balances, BidType, BiddedCollateralItem, Borrower, Collateral, CollectionInfo,
-            LiquidationBid, Proposal, ProposalStatus, TokenItem, Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
+            CollectionInfo, CommonConfig, LiquidationBid, Proposal, ProposalStatus, RateConfig,
+            TokenItem, Vault,
         },
     },
-    oracle::types::PriceItem,
+    oracle::{self, types::PriceItem},
     utils::unwrap_field,
 };
 
@@ -428,6 +429,65 @@ pub fn get_collateral_value(
     )?;
 
     Ok(collateral_value)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn get_conditional_ltv(
+    deps: Deps,
+    address_config: &AddressConfig,
+    rate_config: &RateConfig,
+    common_config: &CommonConfig,
+    ltv_max: Decimal,
+    borrower_address: &Addr,
+    borrower: &Borrower,
+    block_time: u64,
+    amount_to_deposit: Option<Uint128>,
+    amount_to_withdraw: Option<Uint128>,
+    amount_to_borrow: Option<Uint128>,
+    amount_to_repay: Option<Uint128>,
+) -> StdResult<Decimal> {
+    let oracle = &unwrap_field(address_config.oracle.clone(), "oracle")?;
+
+    // get collaterals owned by borrower
+    let collection_and_collateral_list = COLLATERALS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
+    let collection_and_collateral_list =
+        get_collaterals_by_borrower(&collection_and_collateral_list, borrower_address);
+
+    let collection_addresses: Vec<String> = collection_and_collateral_list
+        .iter()
+        .map(|(collection, _collateral)| collection.to_string())
+        .collect();
+
+    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collection_addresses: Some(collection_addresses),
+            start_after: None,
+            limit: None,
+        },
+    )?;
+
+    let collateral_value = get_collateral_value(
+        &common_config.main_currency,
+        &collection_and_collateral_list,
+        &prices,
+    )?;
+
+    Ok(math::calc_conditional_ltv(
+        ltv_max,
+        rate_config.borrow_apr,
+        amount_to_borrow.unwrap_or_default(),
+        amount_to_repay.unwrap_or_default(),
+        borrower.accumulated_loan,
+        borrower.loan.amount,
+        amount_to_deposit.unwrap_or_default(),
+        amount_to_withdraw.unwrap_or_default(),
+        collateral_value,
+        block_time,
+        borrower.loan.creation_date,
+    ))
 }
 
 pub mod offchain {

@@ -1743,6 +1743,16 @@
                     "type": "null"
                   }
                 ]
+              },
+              "amount_to_withdraw": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Uint128"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -1802,6 +1812,26 @@
                 ]
               },
               "amount_to_deposit": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Uint128"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "amount_to_repay": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Uint128"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "amount_to_withdraw": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/Uint128"

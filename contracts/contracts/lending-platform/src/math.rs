@@ -74,21 +74,23 @@ pub fn calc_bgl_to_main_price(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn calc_conditional_deposit_apr(
     borrow_apr: Decimal,
     borrow_fee_rate: Decimal,
     amount_to_deposit: Uint128,
+    amount_to_withdraw: Uint128,
     total_deposited: Uint128,
     total_unbonded: Uint128,
     regular_borrowed: Uint128,
     reserve_borrowed: Uint128,
 ) -> Decimal {
-    if amount_to_deposit + total_deposited <= total_unbonded {
+    if amount_to_deposit + total_deposited <= amount_to_withdraw + total_unbonded {
         return str_to_dec(MAX_DEPOSIT_APR);
     }
 
     (borrow_apr - borrow_fee_rate) * u128_to_dec(regular_borrowed + reserve_borrowed)
-        / u128_to_dec(amount_to_deposit + total_deposited - total_unbonded)
+        / u128_to_dec(amount_to_deposit + total_deposited - (amount_to_withdraw + total_unbonded))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -96,20 +98,22 @@ pub fn calc_conditional_ltv(
     ltv_max: Decimal,
     borrow_apr: Decimal,
     amount_to_borrow: Uint128,
+    amount_to_repay: Uint128,
     accumulated_loan: Uint128,
     loan: Uint128,
     amount_to_deposit: Uint128,
+    amount_to_withdraw: Uint128,
     collateral: Uint128,
     block_time: u64,
     loan_creation_date: u64,
 ) -> Decimal {
-    let collateral = collateral + amount_to_deposit;
-    let accumulated_loan = accumulated_loan + amount_to_borrow;
-
     let borrow_duration = u128_to_dec(Uint128::from(block_time - loan_creation_date));
-    let loan = u128_to_dec(accumulated_loan)
+    let collateral = collateral + amount_to_deposit - amount_to_withdraw;
+    let accumulated_loan = u128_to_dec(accumulated_loan)
         + u128_to_dec(loan)
             * (Decimal::one() + borrow_apr * borrow_duration / u128_to_dec(YEAR_IN_SECONDS));
+
+    let loan = accumulated_loan + u128_to_dec(amount_to_borrow) - u128_to_dec(amount_to_repay);
 
     // if loan is zero then ltv is zero anyway
     if loan.is_zero() {
