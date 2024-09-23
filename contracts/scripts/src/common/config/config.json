@@ -47,7 +47,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\",\"minter\":\"stars1g0lqj70n4umzw89gmeumfkqf20pf5px6wl8um338jvd3664cy7xquqfc4l\",\"adapter_scheduler\":\"stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k\",\"adapter_marketplace\":\"stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93\"}}",
-              "CODE": 4635,
+              "CODE": 4636,
               "ADDRESS": "stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f"
             },
             {
@@ -56,7 +56,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\",\"minter\":\"stars1g0lqj70n4umzw89gmeumfkqf20pf5px6wl8um338jvd3664cy7xquqfc4l\",\"adapter_scheduler\":\"stars127fpkp99cqs6d5ttxsjnt2hvph0d95sacm8y58u09cpdwrv6jg9sa5jg0k\",\"adapter_marketplace\":\"stars14mx7224ty096wul494nvdh9gwudeghq2luc2fp9r6542dyn92sds0qtg93\"}}",
-              "CODE": 4635,
+              "CODE": 4636,
               "ADDRESS": "stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana"
             },
             {

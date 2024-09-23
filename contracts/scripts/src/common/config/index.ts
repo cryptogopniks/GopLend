@@ -219,7 +219,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4635,
+              CODE: 4636,
               ADDRESS:
                 "stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f",
             },
@@ -255,7 +255,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 4635,
+              CODE: 4636,
               ADDRESS:
                 "stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana",
             },
