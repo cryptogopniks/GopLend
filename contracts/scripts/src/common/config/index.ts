@@ -334,6 +334,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "market_maker_outpost.wasm",
               LABEL: "market_maker_outpost",
               PERMISSION: [
+                ADDRESS.STARGAZE.ADMIN,
                 "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t",
               ],
               INIT_MSG: toJson<MarketMakerOutpostTypes.InstantiateMsg>({}),
@@ -341,7 +342,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson({}),
-              CODE: 4634,
+              CODE: 4639,
               ADDRESS: "",
             },
 

@@ -90,12 +90,13 @@
               "WASM": "market_maker_outpost.wasm",
               "LABEL": "market_maker_outpost",
               "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1gj6flkt9k4c6l8mrxe2vzkm243xzuwwkdmggsaaqejy74g2wg5cs7lr32t"
               ],
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{}",
-              "CODE": 4634,
+              "CODE": 4639,
               "ADDRESS": ""
             },
             {

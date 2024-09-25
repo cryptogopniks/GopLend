@@ -46,7 +46,7 @@ pub fn try_set_offer(
         env.contract.address,
     );
 
-    let msg_list = vec![
+    let mut msg_list = vec![
         // set new offer
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: marketplace.to_string(),
@@ -57,12 +57,15 @@ pub fn try_set_offer(
             })?,
             funds: coins(asset_amount.u128(), asset_info.try_get_native()?),
         }),
-        // return previous offer to hub
-        CosmosMsg::Bank(BankMsg::Send {
+    ];
+
+    // return previous offer to hub
+    if !offer_price.is_zero() {
+        msg_list.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: hub.to_string(),
             amount: coins(offer_price.u128(), config.token.try_get_native()?),
-        }),
-    ];
+        }));
+    }
 
     Ok(Response::new()
         .add_messages(msg_list)
