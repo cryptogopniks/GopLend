@@ -1,9 +1,10 @@
 use cosmwasm_std::{
-    coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
-    WasmMsg,
+    coin, coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128, WasmMsg,
 };
 
 use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
+use stargaze_marketplace_v2::{msg::ExecuteMsg as MarketplaceV2ExecuteMsg, orders::OrderDetails};
 
 use goplend_base::{
     adapters::{
@@ -260,6 +261,21 @@ pub fn try_accept_offers(
         });
 
         msg_list.push(msg);
+
+        // let m = MarketplaceV2ExecuteMsg::AcceptCollectionBid {
+        //     id: "bid_id".to_string(),
+        //     token_id: token_item
+        //         .id
+        //         .parse()
+        //         .map_err(|_| ContractError::CustomError {
+        //             val: format!("{} token_id parsing error", token_item.id),
+        //         })?,
+        //     details: OrderDetails {
+        //         price: coin(bid_amount.u128(), "ustars"),
+        //         finder: None,
+        //         recipient: None,
+        //     },
+        // };
 
         // add accept offer msgs
         let accept_offer_msg = match bid_type {
