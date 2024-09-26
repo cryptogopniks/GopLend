@@ -24,6 +24,8 @@ use goplend_base::{
     },
 };
 
+use crate::helpers::wrap_collateral_list;
+
 pub fn try_accept_admin_role(
     deps: DepsMut,
     env: Env,
@@ -208,7 +210,7 @@ pub fn try_accept_offers(
         marketplace,
         oracle,
         adapter_dex,
-        ..
+        marketplace_version,
     } = CONFIG.load(deps.storage)?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
@@ -229,6 +231,21 @@ pub fn try_accept_offers(
     collection_list.sort_unstable();
     collection_list.dedup();
 
+    // query main currency
+    let CommonConfig { main_currency, .. } = deps.querier.query_wasm_smart(
+        unwrap_field(lending_platform_main, "lending_platform_main")?,
+        &goplend_base::lending_platform::msg::QueryMsg::QueryCommonConfig {},
+    )?;
+
+    let id_and_bidded_collateral_item_list = wrap_collateral_list(
+        &deps.querier,
+        &collection_list,
+        &bidded_collateral_item_list,
+        marketplace_version,
+        marketplace,
+        &main_currency.token.try_get_native()?,
+    );
+
     let mut msg_list = get_collection_operator_approvals(
         deps.querier,
         &collection_list,
@@ -238,16 +255,17 @@ pub fn try_accept_offers(
 
     let mut liquidated_value = Uint128::zero();
 
-    for BiddedCollateralItem {
-        collection,
-        token_item,
-        liquidator,
-        liquidation_price,
-        bid_amount,
-        bid_type,
-        ..
-    } in bidded_collateral_item_list
-    {
+    for (order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
+        let BiddedCollateralItem {
+            collection,
+            token_item,
+            liquidator,
+            liquidation_price,
+            bid_amount,
+            bid_type,
+            ..
+        } = bidded_collateral_item;
+
         liquidated_value += liquidation_price;
 
         // transfer nfts from platform
@@ -314,12 +332,6 @@ pub fn try_accept_offers(
 
         msg_list.push(msg);
     }
-
-    // query main currency
-    let CommonConfig { main_currency, .. } = deps.querier.query_wasm_smart(
-        unwrap_field(lending_platform_main, "lending_platform_main")?,
-        &goplend_base::lending_platform::msg::QueryMsg::QueryCommonConfig {},
-    )?;
 
     match route {
         Route::Empty => {
