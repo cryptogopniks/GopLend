@@ -371,7 +371,7 @@ pub fn try_create_cw20(
 
     let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
         admin: Some(config.admin.to_string()), // to allow migrate special cw20 based contracts
-        code_id: unwrap_field(CONFIG.load(deps.storage)?.cw20_code_id, "cw20_code_id")?,
+        code_id: cw20_code_id,
         label: format!("CW20 based token {}", symbol),
         msg: to_json_binary(&cw20_msg)?,
         funds: vec![],
