@@ -57,14 +57,17 @@ async function main() {
 
     const prepareConfigs = async () => {
       // setup minter
-      const name = NAME as "kujira" | "stargaze";
-      const isKujira = name === "kujira";
+      const isMainnet = TYPE === "main";
 
-      const bglDenomMain = isKujira ? "bglKUJI" : "bglSTARS";
-      const bglDenomStable = isKujira ? "bglUSK" : "bglUSDC";
-      const paymentAmount = isKujira ? 100_000_000 : 10_000_000_000;
-      const paymentDenomMain = isKujira ? TOKEN.KUJI : TOKEN.STARS;
-      const paymentDenomStable = isKujira ? TOKEN.USK : TOKEN.USDC;
+      const bglDenomMain = "bglSTARS";
+      const bglDenomStable = "bglUSDC";
+      const paymentAmount = 10_000_000_000;
+      const paymentDenomMain = isMainnet
+        ? TOKEN.MAINNET.STARS
+        : TOKEN.TESTNET.STARS;
+      const paymentDenomStable = isMainnet
+        ? TOKEN.MAINNET.STARS
+        : TOKEN.TESTNET.STARS;
       const bglDecimals = 6;
 
       const platforms: [PlatformType, string, string, string][] = [
@@ -82,22 +85,18 @@ async function main() {
         ],
       ];
 
-      const collectionList = isKujira
-        ? [
-            [COLLECTION.KUJIRA.BANDIT_1, "BANDIT_1"],
-            [COLLECTION.KUJIRA.BANDIT_2, "BANDIT_2"],
-            [COLLECTION.KUJIRA.BANDIT_3, "BANDIT_3"],
-          ]
+      const collectionList = isMainnet
+        ? [[COLLECTION.MAINNET.STARGAZE.PIGEON, "PIGEON"]]
         : [
-            [COLLECTION.STARGAZE.MOO, "MOO"],
-            [COLLECTION.STARGAZE.PIGEON, "PIGEON"],
-            [COLLECTION.STARGAZE.SHANE, "SHANE"],
+            [COLLECTION.TESTNET.STARGAZE.MOO, "MOO"],
+            [COLLECTION.TESTNET.STARGAZE.PIGEON, "PIGEON"],
+            [COLLECTION.TESTNET.STARGAZE.SHANE, "SHANE"],
 
-            [COLLECTION.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
-            [COLLECTION.STARGAZE.PLASTELINE, "PLASTELINE"],
-            [COLLECTION.STARGAZE.BIT_KIDS, "BIT_KIDS"],
-            [COLLECTION.STARGAZE.BAD_KIDS, "BAD_KIDS"],
-            [COLLECTION.STARGAZE.SLOTHS, "SLOTHS"],
+            [COLLECTION.TESTNET.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
+            [COLLECTION.TESTNET.STARGAZE.PLASTELINE, "PLASTELINE"],
+            [COLLECTION.TESTNET.STARGAZE.BIT_KIDS, "BIT_KIDS"],
+            [COLLECTION.TESTNET.STARGAZE.BAD_KIDS, "BAD_KIDS"],
+            [COLLECTION.TESTNET.STARGAZE.SLOTHS, "SLOTHS"],
           ];
 
       for (const [
@@ -127,7 +126,7 @@ async function main() {
 
         // setup lending
         const isMarketplaceInterfaceEnabled =
-          !isKujira && platformType === "main";
+          !isMainnet && platformType === "main";
 
         // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
         // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
@@ -144,54 +143,54 @@ async function main() {
               token: { native: { denom: bglDenomFull } },
               decimals: bglDecimals,
             },
-            collateralMinValue: 100,
-            unbondingPeriod: 60,
-            isMarketplaceInterfaceEnabled,
-            borrowersReserveFractionRatio: 0.45,
+            // collateralMinValue: 100,
+            // unbondingPeriod: 60,
+            // isMarketplaceInterfaceEnabled,
+            // borrowersReserveFractionRatio: 0.45,
           },
           gasPrice
         );
 
-        // deposit reserve liquidity
-        await h.lending.cwDepositReserveLiquidity(
-          platformType,
-          1_000_000_000,
-          { native: { denom: paymentDenom } },
-          gasPrice
-        );
+        // // deposit reserve liquidity
+        // await h.lending.cwDepositReserveLiquidity(
+        //   platformType,
+        //   1_000_000_000,
+        //   { native: { denom: paymentDenom } },
+        //   gasPrice
+        // );
 
-        // add collections
-        let i = 0;
+        // // add collections
+        // let i = 0;
 
-        for (const [collection_address, name] of collectionList) {
-          await h.lending.cwCreateProposal(
-            platformType,
-            {
-              proposal_type: {
-                add_collection: {
-                  collection: { name, owner },
-                  collection_address,
-                },
-              },
-              listing_price: {
-                amount: "1",
-                currency: {
-                  token: { native: { denom: paymentDenom } },
-                  decimals: 6,
-                },
-              },
-            },
-            gasPrice
-          );
+        // for (const [collection_address, name] of collectionList) {
+        //   await h.lending.cwCreateProposal(
+        //     platformType,
+        //     {
+        //       proposal_type: {
+        //         add_collection: {
+        //           collection: { name, owner },
+        //           collection_address,
+        //         },
+        //       },
+        //       listing_price: {
+        //         amount: "1",
+        //         currency: {
+        //           token: { native: { denom: paymentDenom } },
+        //           decimals: 6,
+        //         },
+        //       },
+        //     },
+        //     gasPrice
+        //   );
 
-          await h.lending.cwAcceptProposal(
-            platformType,
-            ++i,
-            1,
-            { native: { denom: paymentDenom } },
-            gasPrice
-          );
-        }
+        //   await h.lending.cwAcceptProposal(
+        //     platformType,
+        //     ++i,
+        //     1,
+        //     { native: { denom: paymentDenom } },
+        //     gasPrice
+        //   );
+        // }
       }
 
       // add market maker outposts
@@ -204,28 +203,28 @@ async function main() {
         outpostAmount = (await marketMaker.hub.cwQueryOutposts()).length;
       }
 
-      // set collection owners in market maker
-      const ownerList = hubConfig.worker
-        ? [hubConfig.admin, hubConfig.worker]
-        : [hubConfig.admin];
+      // // set collection owners in market maker
+      // const ownerList = hubConfig.worker
+      //   ? [hubConfig.admin, hubConfig.worker]
+      //   : [hubConfig.admin];
 
-      for (const [collection] of collectionList) {
-        await h.marketMaker.hub.cwSetCollection(
-          collection,
-          ownerList,
-          gasPrice
-        );
-      }
+      // for (const [collection] of collectionList) {
+      //   await h.marketMaker.hub.cwSetCollection(
+      //     collection,
+      //     ownerList,
+      //     gasPrice
+      //   );
+      // }
 
-      // add liquidity to maker maker
-      for (const [collection] of collectionList) {
-        await h.marketMaker.hub.cwDepositLiquidity(
-          collection,
-          floor(paymentAmount / maxOutpostAmount),
-          paymentDenomMain,
-          gasPrice
-        );
-      }
+      // // add liquidity to maker maker
+      // for (const [collection] of collectionList) {
+      //   await h.marketMaker.hub.cwDepositLiquidity(
+      //     collection,
+      //     floor(paymentAmount / maxOutpostAmount),
+      //     paymentDenomMain,
+      //     gasPrice
+      //   );
+      // }
     };
 
     await prepareConfigs();

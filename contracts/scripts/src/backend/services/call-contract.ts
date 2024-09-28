@@ -133,11 +133,11 @@ async function main() {
 
     const CURRENCY = {
       STARS: {
-        token: { native: { denom: TOKEN.STARS } },
+        token: { native: { denom: TOKEN.TESTNET.STARS } },
         decimals: 6,
       },
       USDC: {
-        token: { native: { denom: TOKEN.USDC } },
+        token: { native: { denom: TOKEN.TESTNET.USDC } },
         decimals: 6,
       },
     };
@@ -146,12 +146,12 @@ async function main() {
       0.0097,
       [
         {
-          collection_address: COLLECTION.STARGAZE.PIGEON,
+          collection_address: COLLECTION.TESTNET.STARGAZE.PIGEON,
           price: "10000000",
           usd_price: "97000",
         },
         {
-          collection_address: COLLECTION.STARGAZE.SHANE,
+          collection_address: COLLECTION.TESTNET.STARGAZE.SHANE,
           price: "20000000",
           usd_price: "194000",
         },
@@ -364,7 +364,7 @@ async function main() {
       "main",
       [
         {
-          collection_address: COLLECTION.KUJIRA.BANDIT_2,
+          collection_address: COLLECTION.TESTNET.KUJIRA.BANDIT_2,
           token_id_list: ["5"],
         },
       ],

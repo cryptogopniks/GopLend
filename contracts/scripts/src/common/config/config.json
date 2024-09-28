@@ -123,7 +123,7 @@
             "https://rpc.stargaze-apis.com:443"
           ],
           "GAS_PRICE_AMOUNT": 1.1,
-          "STORE_CODE_GAS_MULTIPLIER": 19.5,
+          "STORE_CODE_GAS_MULTIPLIER": 21.5,
           "CONTRACTS": [
             {
               "WASM": "adapter_dex_stargaze.wasm",
@@ -132,11 +132,11 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"adapter_marketplace\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"max_price_impact\":\"0.03\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_stable\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\"}}",
-              "CODE": 303,
-              "ADDRESS": "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv"
+              "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\",\"lending_platform_stable\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
+              "CODE": 360,
+              "ADDRESS": "stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl"
             },
             {
               "WASM": "adapter_marketplace_stargaze.wasm",
@@ -147,9 +147,9 @@
               ],
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"marketplace_version\":\"v1\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\",\"adapter_dex\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_dex]|ADDRESS!\",\"oracle\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\",\"adapter_dex\":\"stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl\",\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
+              "CODE": 361,
+              "ADDRESS": "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs"
             },
             {
               "WASM": "adapter_scheduler_common.wasm",
@@ -160,9 +160,9 @@
               ],
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\",\"execution_cooldown\":4}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS!\",\"lending_platform_stable\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS!\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\"}}",
+              "CODE": 362,
+              "ADDRESS": "stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp"
             },
             {
               "WASM": "lending_platform.wasm",
@@ -171,11 +171,11 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"!OPTIONS[CHAIN_ID=stargaze-1]|DENOM!\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"100000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"6300000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\",\"minter\":\"stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j\",\"adapter_scheduler\":\"stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp\",\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\"}}",
+              "CODE": 363,
+              "ADDRESS": "stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v"
             },
             {
               "WASM": "lending_platform.wasm",
@@ -184,11 +184,11 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6},\"borrow_apr\":\"0.16\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"1000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"50000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"adapter_scheduler\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_scheduler]|ADDRESS!\",\"adapter_marketplace\":\"!OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS!\"}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\",\"minter\":\"stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j\",\"adapter_scheduler\":\"stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp\",\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\"}}",
+              "CODE": 363,
+              "ADDRESS": "stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf"
             },
             {
               "WASM": "minter.wasm",
@@ -198,10 +198,10 @@
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
               "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.3.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"]}}",
-              "CODE": 0,
-              "ADDRESS": ""
+              "CODE": 364,
+              "ADDRESS": "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j"
             },
             {
               "WASM": "oracle.wasm",
@@ -210,11 +210,37 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"execution_cooldown\":4,\"max_price_update_period\":30}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"execution_cooldown\":4,\"max_price_update_period\":30,\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"stable_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 0,
+              "CODE": 365,
+              "ADDRESS": "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze"
+            },
+            {
+              "WASM": "market_maker_outpost.wasm",
+              "LABEL": "market_maker_outpost",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u"
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{}",
+              "CODE": 367,
               "ADDRESS": ""
+            },
+            {
+              "WASM": "market_maker_hub.wasm",
+              "LABEL": "market_maker_hub",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+              ],
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":367}}",
+              "CODE": 366,
+              "ADDRESS": "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u"
             }
           ],
           "IBC": []
