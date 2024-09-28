@@ -41,6 +41,7 @@ cw-multi-test = "0.17.0"
 speculoos = "0.11.0"
 semver = "1.0.20"
 bech32 = "0.11.0"
+sg-index-query = "0.1.1"
 
 goplend-base = { path = "./packages/goplend-base" }
 stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }
@@ -60,5 +61,6 @@ market-maker-outpost = { path = "./contracts/market-maker-outpost" }
 faucet = { path = "./contracts/faucet" }
 
 sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", rev = "b9780c36619adec7d6f79453ddbf449ae26b9112", version = "1.8.0", features = ["library"] }
+stargaze-marketplace-v2 = { git = "https://github.com/public-awesome/marketplace.git", rev = "17b4f74452393e120c05463bd9f773fb68125c8d", version = "0.5.0", features = ["library"] }
 # stargaze-marketplace-v2 = "0.1.0"
 # infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }

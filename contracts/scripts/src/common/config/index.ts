@@ -381,37 +381,15 @@ export const CHAIN_CONFIG: ChainConfig = {
           IBC: [],
         },
 
+        // TODO: SG MAIN
         {
           TYPE: "main",
           DENOM: "ustars",
           CHAIN_ID: "stargaze-1",
-          RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
+          RPC_LIST: ["https://rpc.stargaze-apis.com:443"],
           GAS_PRICE_AMOUNT: 1.1,
-          STORE_CODE_GAS_MULTIPLIER: 19.5,
+          STORE_CODE_GAS_MULTIPLIER: 21.5,
           CONTRACTS: [
-            // for tests
-            // {
-            //   WASM: "adapter_dex_stargaze.wasm",
-            //   LABEL: "adapter_dex",
-            //   PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
-            //   INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
-            //     worker: ADDRESS.STARGAZE.ADMIN,
-            //     adapter_marketplace: ADDRESS.STARGAZE.ADMIN,
-            //     recover_address: ADDRESS.STARGAZE.ADMIN,
-            //   }),
-            //   MIGRATE_MSG: toJson<AdapterDexStargazeTypes.MigrateMsg>({
-            //     version: "1.0.0",
-            //   }),
-            //   UPDATE_MSG: toJson<AdapterDexStargazeTypes.ExecuteMsg>({
-            //     update_config: {
-            //       lending_platform_stable: ADDRESS.STARGAZE.ADMIN,
-            //     },
-            //   }),
-            //   CODE: 303,
-            //   ADDRESS:
-            //     "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
-            // },
-
             {
               WASM: "adapter_dex_stargaze.wasm",
               LABEL: "adapter_dex",
@@ -434,9 +412,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 303,
+              CODE: 360,
               ADDRESS:
-                "stars139mxvn796fzgdkfkkstyzuq6wgyq5fyydqcl2y9muuy82jg7xunqalh8zv",
+                "stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl",
             },
 
             {
@@ -467,8 +445,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 361,
+              ADDRESS:
+                "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs",
             },
 
             {
@@ -498,8 +477,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 362,
+              ADDRESS:
+                "stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp",
             },
 
             {
@@ -520,7 +500,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 discount_min_rate: "0",
                 discount_max_rate: "0.2",
                 bid_min_rate: "0.1",
-                collateral_min_value: `${100_000_000}`,
+                collateral_min_value: `${6_300_000_000}`,
                 unbonding_period: 14 * 24 * 3600,
                 is_marketplace_interface_enabled: true,
                 borrowers_reserve_fraction_ratio: "0.45",
@@ -544,8 +524,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 363,
+              ADDRESS:
+                "stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v",
             },
 
             {
@@ -560,13 +541,13 @@ export const CHAIN_CONFIG: ChainConfig = {
                   },
                   decimals: 6,
                 },
-                borrow_apr: "0.16", // TODO: should we use it instead of 0.25?
+                borrow_apr: "0.25",
                 borrow_fee_rate: "0.05",
                 liquidation_fee_rate: "0.05",
                 discount_min_rate: "0",
                 discount_max_rate: "0.2",
                 bid_min_rate: "0.1",
-                collateral_min_value: `${1_000_000}`,
+                collateral_min_value: `${50_000_000}`,
                 unbonding_period: 14 * 24 * 3600,
                 is_marketplace_interface_enabled: true,
                 borrowers_reserve_fraction_ratio: "0.45",
@@ -590,8 +571,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 363,
+              ADDRESS:
+                "stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf",
             },
 
             {
@@ -600,15 +582,16 @@ export const CHAIN_CONFIG: ChainConfig = {
               PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
               INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
               MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
-                version: "1.0.0",
+                version: "1.3.0",
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
                   whitelist: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 364,
+              ADDRESS:
+                "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j",
             },
 
             {
@@ -644,8 +627,57 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 0,
+              CODE: 365,
+              ADDRESS:
+                "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze",
+            },
+
+            {
+              WASM: "market_maker_outpost.wasm",
+              LABEL: "market_maker_outpost",
+              PERMISSION: [
+                ADDRESS.STARGAZE.ADMIN,
+                "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u",
+              ],
+              INIT_MSG: toJson<MarketMakerOutpostTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MarketMakerOutpostTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson({}),
+              CODE: 367,
               ADDRESS: "",
+            },
+
+            {
+              WASM: "market_maker_hub.wasm",
+              LABEL: "market_maker_hub",
+              PERMISSION: [ADDRESS.STARGAZE.ADMIN, ADDRESS.STARGAZE.WORKER],
+              INIT_MSG: toJson<MarketMakerHubTypes.InstantiateMsg>({
+                worker: ADDRESS.STARGAZE.WORKER,
+                marketplace: ADDRESS.STARGAZE.MARKETPLACE,
+                controller: [
+                  ADDRESS.STARGAZE.ADMIN,
+                  ADDRESS.STARGAZE.WORKER,
+                  ADDRESS.STARGAZE.MARKET_MAKER_CONTROLLER,
+                ],
+                token: {
+                  native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                },
+                max_outpost_amount: 10,
+              }),
+              MIGRATE_MSG: toJson<MarketMakerHubTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<MarketMakerHubTypes.ExecuteMsg>({
+                update_config: {
+                  outpost_code_id: $(
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=market_maker_outpost]|CODE"
+                  ),
+                },
+              }),
+              CODE: 366,
+              ADDRESS:
+                "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u",
             },
           ],
           IBC: [],
