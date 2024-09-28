@@ -1,30 +1,14 @@
-use cosmwasm_std::{
-    coin, coins, to_json_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order,
-    QuerierWrapper, Response, StdResult, Uint128, WasmMsg,
-};
+use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 
 use sg_index_query::QueryOptions;
 use stargaze_marketplace_v2::{
     msg::PriceOffset,
-    orders::{Bid, CollectionBid, OrderDetails},
+    orders::{Bid, CollectionBid},
 };
 
 use goplend_base::{
-    adapters::{
-        dex::stargaze::types::Route,
-        marketplace::stargaze::{
-            state::{CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-            types::{Config, MarketplaceVersion, TransferAdminState},
-        },
-    },
-    converters::u128_to_dec,
-    error::ContractError,
-    lending_platform::types::{BidType, BiddedCollateralItem, CommonConfig},
-    oracle::types::PriceRatioItem,
-    utils::{
-        check_authorization, check_funds, get_collection_operator_approvals, get_transfer_msg,
-        unwrap_field, AuthType, FundsType,
-    },
+    adapters::marketplace::stargaze::types::MarketplaceVersion,
+    lending_platform::types::BiddedCollateralItem,
 };
 
 const BIDS_LIMIT: u32 = 20;

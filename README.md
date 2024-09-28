@@ -95,7 +95,7 @@ LTV_MAX = loan / BID_MAX
 LTV_MAX = 0.727
 ```
 
-Thus, at the minimum discount, the collateral is redeemed for 110 % of the loan value and 5 % of the profit goes to the `STARS` pool, and at the minimum discount, the collateral is redeemed for 137.5 % of the loan value and 32.5 % of the profit goes to the `STARS` pool. The discount itself varies from 0 to 20 %.
+Thus, at the maximum discount, the collateral is redeemed for 110 % of the loan value and 5 % of the profit goes to the `STARS` pool, and at the minimum discount, the collateral is redeemed for 137.5 % of the loan value and 32.5 % of the profit goes to the `STARS` pool. The discount itself varies from 0 to 20 %.
 
 ### Market Maker
 

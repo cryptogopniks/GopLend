@@ -1,10 +1,10 @@
 use cosmwasm_std::{
-    coin, coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
-    Uint128, WasmMsg,
+    coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    WasmMsg,
 };
 
 use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
-use stargaze_marketplace_v2::{msg::ExecuteMsg as MarketplaceV2ExecuteMsg, orders::OrderDetails};
+// use stargaze_marketplace_v2::{msg::ExecuteMsg as MarketplaceV2ExecuteMsg, orders::OrderDetails};
 
 use goplend_base::{
     adapters::{
@@ -255,7 +255,7 @@ pub fn try_accept_offers(
 
     let mut liquidated_value = Uint128::zero();
 
-    for (order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
+    for (_order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
         let BiddedCollateralItem {
             collection,
             token_item,
