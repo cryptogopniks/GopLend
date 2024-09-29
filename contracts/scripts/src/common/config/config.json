@@ -26,7 +26,7 @@
             {
               "WASM": "adapter_marketplace_stargaze.wasm",
               "LABEL": "adapter_marketplace",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\"}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1w6zh5x4wtszr6x2g53fr5zslwh9jtd6pqmad7kr5jrqyffh4sfhsusst4f\",\"lending_platform_stable\":\"stars1c4tsvax8hk5hhea3exmj7xczeqg3pfxz40grzy7u0gyr783rpx9qxwvana\",\"adapter_dex\":\"stars1l3uyhek47s0jn2xez7dxa9wh38lwyseucazqk0gxmhqt6hpcyanq7aky8y\",\"oracle\":\"stars1kr2gdlczxxj0v6n7qyr7nh66t4rfkk7rl3rqgjks5kgnysy2w0qs55c7e7\"}}",
               "CODE": 4526,
@@ -106,7 +106,7 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":4634}}",
               "CODE": 4633,
@@ -145,7 +145,7 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"marketplace_version\":\"v1\"}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"marketplace_version\":\"v1\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\",\"adapter_dex\":\"stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl\",\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
               "CODE": 361,
@@ -236,7 +236,7 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars18cszlvm6pze0x9sz32qnjq4vtd45xehqs8dq7cwy8yhq35wfnn3qgzs5gu\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":367}}",
               "CODE": 366,
