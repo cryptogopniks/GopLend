@@ -148,7 +148,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"marketplace_version\":\"v1\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\",\"adapter_dex\":\"stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl\",\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
-              "CODE": 361,
+              "CODE": 369,
               "ADDRESS": "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs"
             },
             {

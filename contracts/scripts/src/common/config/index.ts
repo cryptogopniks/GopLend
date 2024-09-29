@@ -477,7 +477,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 361,
+              CODE: 369,
               ADDRESS:
                 "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs",
             },
