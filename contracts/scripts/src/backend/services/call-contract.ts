@@ -68,6 +68,7 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    // await marketMaker.hub.cwQueryConfig(true);
     // await adapter.marketplace.stargaze.cwQueryConfig(true);
     // await adapter.scheduler[name].cwQueryConfig(true);
     const platforms: PlatformType[] = ["main", "stable"];
