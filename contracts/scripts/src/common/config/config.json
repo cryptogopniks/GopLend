@@ -134,7 +134,7 @@
               ],
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"max_price_impact\":\"0.03\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\",\"lending_platform_stable\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\"}}",
               "CODE": 360,
               "ADDRESS": "stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl"
             },

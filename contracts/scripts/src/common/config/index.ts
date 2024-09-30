@@ -437,7 +437,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                     "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=adapter_marketplace]|ADDRESS"
                   ),
                   lending_platform_stable: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_stable]|ADDRESS"
                   ),
                 },
               }),

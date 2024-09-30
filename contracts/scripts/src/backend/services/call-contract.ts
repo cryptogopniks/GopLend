@@ -68,6 +68,14 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    await getAllBalances(
+      "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze"
+    );
+    await getAllBalances(LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS);
+    await lending.cwQueryBalances("stable", true);
+    await lending.cwQueryPlatformRevenue("stable", true);
+    return;
+
     // await oracle.cwQueryPriceRatio(true);
     // return;
 
