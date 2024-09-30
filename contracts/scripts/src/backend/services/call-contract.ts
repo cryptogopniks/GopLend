@@ -68,6 +68,33 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    await getAllBalances(
+      "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze"
+    );
+    await getAllBalances(LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS);
+    await lending.cwQueryBalances("stable", true);
+    await lending.cwQueryPlatformRevenue("stable", true);
+    return;
+
+    // await oracle.cwQueryPriceRatio(true);
+    // return;
+
+    // const blockTime = await oracle.cwQueryBlockTime();
+    // await utils.pQueryMarketplaceCollectionOffers(
+    //   ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
+    //   COLLECTION.MAINNET.STARGAZE.PIGEON,
+    //   blockTime,
+    //   10,
+    //   10,
+    //   true
+    // );
+
+    await adapter.marketplace.stargaze.cwQueryCollectionOffers(
+      COLLECTION.MAINNET.STARGAZE.PIGEON,
+      10,
+      true
+    );
+    return;
     // await marketMaker.hub.cwQueryConfig(true);
     // await adapter.marketplace.stargaze.cwQueryConfig(true);
     // await adapter.scheduler[name].cwQueryConfig(true);

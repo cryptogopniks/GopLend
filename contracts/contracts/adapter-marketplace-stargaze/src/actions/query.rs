@@ -99,13 +99,23 @@ pub fn query_collection_offers(
 
     // this query is used to get collection main prices for oracle
     // then price_ratio_stable can be optional
-    let price_ratio_stable = deps
+    let price_ratio_item = deps
         .querier
         .query_wasm_smart::<PriceRatioItem>(
             &unwrap_field(oracle, "oracle")?,
             &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
         )
-        .map(|x| if x.is_outdated { None } else { Some(x.value) })?;
+        .unwrap_or(PriceRatioItem {
+            value: Decimal::zero(),
+            update_date: 0,
+            is_outdated: true,
+        });
+
+    let price_ratio_stable = if price_ratio_item.is_outdated {
+        None
+    } else {
+        Some(price_ratio_item.value)
+    };
 
     // get network fee rate
     let params_response: ParamsResponse = deps
