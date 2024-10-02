@@ -1633,7 +1633,7 @@ pub fn try_update_address_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.oracle = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -1644,7 +1644,7 @@ pub fn try_update_address_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.minter = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -1655,7 +1655,7 @@ pub fn try_update_address_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.adapter_scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -1666,7 +1666,7 @@ pub fn try_update_address_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -1810,7 +1810,7 @@ pub fn try_update_common_config(
     }
 
     if let Some(x) = is_marketplace_interface_enabled {
-        check_authorization(&sender_address, &admin, &worker, AuthType::AdminOrWorker)?;
+        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.is_marketplace_interface_enabled = x;
         is_config_updated = true;
     }
@@ -1840,7 +1840,7 @@ pub fn try_deposit_reserve_liquidity(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     let common_config = COMMON_CONFIG.load(deps.storage)?;
@@ -1875,7 +1875,7 @@ pub fn try_withdraw_reserve_liquidity(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     let common_config = COMMON_CONFIG.load(deps.storage)?;
@@ -1916,7 +1916,7 @@ pub fn try_reinforce_bgl_token(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
@@ -1982,7 +1982,7 @@ pub fn try_distribute_funds(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     // verify weights
@@ -2049,7 +2049,7 @@ pub fn try_remove_collection(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     // update state
@@ -2072,7 +2072,7 @@ pub fn try_create_proposal(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     // verify proposal fields
@@ -2172,7 +2172,7 @@ pub fn try_reject_proposal(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     // update proposal status

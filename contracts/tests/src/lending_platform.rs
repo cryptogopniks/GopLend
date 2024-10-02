@@ -6085,16 +6085,19 @@ fn authorization() -> StdResult<()> {
         .unwrap_err();
     assert_error(&res, ContractError::Unauthorized);
 
-    project.lending_platform_try_update_common_config(
-        ProjectAccount::Owner,
-        PlatformType::Main,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &Some(true),
-    )?;
+    let res = project
+        .lending_platform_try_update_common_config(
+            ProjectAccount::Owner,
+            PlatformType::Main,
+            &None,
+            &None,
+            &None,
+            &None,
+            &None,
+            &Some(true),
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::Unauthorized);
 
     // transfer admin
     project.lending_platform_try_update_address_config(
