@@ -177,7 +177,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.lending_platform_main = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -188,7 +188,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -199,7 +199,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.offchain_clock = Some(
             x.into_iter()
@@ -214,7 +214,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.clock_source = x;
         is_config_updated = true;
@@ -225,7 +225,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.execution_cooldown = x;
         is_config_updated = true;

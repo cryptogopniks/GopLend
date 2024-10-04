@@ -129,117 +129,118 @@
               "WASM": "adapter_dex_stargaze.wasm",
               "LABEL": "adapter_dex",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"recover_address\":\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"max_price_impact\":\"0.03\"}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"recover_address\":\"stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69\",\"max_price_impact\":\"0.03\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\"}}",
-              "CODE": 360,
+              "CODE": 378,
               "ADDRESS": "stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl"
             },
             {
               "WASM": "adapter_marketplace_stargaze.wasm",
               "LABEL": "adapter_marketplace",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"marketplace_version\":\"v1\"}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"marketplace_version\":\"v1\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\",\"adapter_dex\":\"stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl\",\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\"}}",
-              "CODE": 369,
+              "CODE": 379,
               "ADDRESS": "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs"
             },
             {
               "WASM": "adapter_scheduler_common.wasm",
               "LABEL": "adapter_scheduler",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"clock_source\":\"offchain\",\"execution_cooldown\":4}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"clock_source\":\"offchain\",\"execution_cooldown\":4}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\"],\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\"}}",
-              "CODE": 362,
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8\",\"stars130mtjylzwvs4xe7yc74h675g76hd24r6tzjel3\"],\"lending_platform_main\":\"stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v\",\"lending_platform_stable\":\"stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf\"}}",
+              "CODE": 380,
               "ADDRESS": "stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp"
             },
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform_main",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"6300000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"6300000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\",\"minter\":\"stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j\",\"adapter_scheduler\":\"stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp\",\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\"}}",
-              "CODE": 363,
+              "CODE": 381,
               "ADDRESS": "stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v"
             },
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform_stable",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"50000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"50000000\",\"unbonding_period\":1209600,\"is_marketplace_interface_enabled\":true,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze\",\"minter\":\"stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j\",\"adapter_scheduler\":\"stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp\",\"adapter_marketplace\":\"stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs\"}}",
-              "CODE": 363,
+              "CODE": 381,
               "ADDRESS": "stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf"
             },
             {
               "WASM": "minter.wasm",
               "LABEL": "minter",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.3.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"]}}",
-              "CODE": 364,
+              "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69\",\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"]}}",
+              "CODE": 382,
               "ADDRESS": "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j"
             },
             {
               "WASM": "oracle.wasm",
               "LABEL": "oracle",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"execution_cooldown\":4,\"max_price_update_period\":30,\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"stable_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6}}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"execution_cooldown\":4,\"max_price_update_period\":30,\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ustars\"}},\"decimals\":6},\"stable_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591\"}},\"decimals\":6}}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\"]}}",
-              "CODE": 365,
+              "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2\",\"stars1t95n48trupwxytc2ewms2mkhgalfucy2cldxf6\"]}}",
+              "CODE": 383,
               "ADDRESS": "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze"
             },
             {
               "WASM": "market_maker_outpost.wasm",
               "LABEL": "market_maker_outpost",
               "PERMISSION": [
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
                 "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u"
               ],
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{}",
-              "CODE": 367,
+              "CODE": 386,
               "ADDRESS": ""
             },
             {
               "WASM": "market_maker_hub.wasm",
               "LABEL": "market_maker_hub",
               "PERMISSION": [
-                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+                "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"controller\":[\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
+              "INIT_MSG": "{\"worker\":\"stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk\",\"marketplace\":\"stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl\",\"controller\":[\"stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5\"],\"token\":{\"native\":{\"denom\":\"ustars\"}},\"max_outpost_amount\":10}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":367}}",
-              "CODE": 366,
+              "UPDATE_MSG": "{\"update_config\":{\"outpost_code_id\":386}}",
+              "CODE": 385,
               "ADDRESS": "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u"
             }
           ],

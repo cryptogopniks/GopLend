@@ -127,7 +127,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.controller = Some(
             x.iter()
@@ -191,7 +191,7 @@ pub fn try_add_outpost(
         &sender_address,
         &config.admin,
         &config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     let outpost_amount = OUTPOSTS.load(deps.storage)?.len() as u8;
@@ -289,7 +289,7 @@ pub fn try_set_collection(
         &sender_address,
         &config.admin,
         &config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     let collection_address = deps.api.addr_validate(&collection_address)?;
@@ -315,7 +315,7 @@ pub fn try_remove_collections(
         &sender_address,
         &config.admin,
         &config.worker,
-        AuthType::AdminOrWorker,
+        AuthType::Admin,
     )?;
 
     for collection_address in collection_address_list {

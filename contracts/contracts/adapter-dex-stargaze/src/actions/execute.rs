@@ -128,7 +128,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -139,7 +139,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -150,7 +150,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.recover_address = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
@@ -161,7 +161,7 @@ pub fn try_update_config(
             &sender_address,
             current_admin,
             current_worker,
-            AuthType::AdminOrWorker,
+            AuthType::Admin,
         )?;
         config.max_price_impact = x;
         is_config_updated = true;
