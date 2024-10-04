@@ -31,6 +31,7 @@ import { MarketMakerOutpostQueryClient } from "../codegen/MarketMakerOutpost.cli
 import CONFIG_JSON from "../config/config.json";
 import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
+import { MsgUpdateAdmin } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import {
   PriceItemForFundsForToken,
@@ -52,6 +53,7 @@ import {
   SigningCosmWasmClient,
   CosmWasmClient,
   MsgExecuteContractEncodeObject,
+  MsgUpdateAdminEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
 import {
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -407,6 +409,26 @@ async function getCwExecHelpers(
   }
 
   // utils
+
+  async function cwTransferAdmin(
+    contract: string,
+    newAdmin: string,
+    gasPrice: string,
+    gasAdjustment: number = 1
+  ) {
+    const msg: MsgUpdateAdminEncodeObject = {
+      typeUrl: "/cosmwasm.wasm.v1.MsgUpdateAdmin",
+      value: MsgUpdateAdmin.fromPartial({
+        sender: owner,
+        contract,
+        newAdmin,
+      }),
+    };
+
+    const tx = await _signAndBroadcast([msg], gasPrice, gasAdjustment);
+    l("\n", tx, "\n");
+    return tx;
+  }
 
   async function cwRevoke(
     collectionAddress: string,
@@ -1803,7 +1825,7 @@ async function getCwExecHelpers(
   }
 
   return {
-    utils: { cwRevoke },
+    utils: { cwTransferAdmin, cwRevoke },
     adapter: {
       dex: {
         kujira: {},

@@ -72,17 +72,19 @@ export const ADDRESS = {
   },
   MAINNET: {
     STARGAZE: {
-      ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-      WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
-      LIQUIDATION_CONTROLLER: "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
+      // DAO
+      ADMIN: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+      // SUBDAO
+      WORKER:
+        "stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk",
       LIQUIDATION_CONTROLLER_LIST: [
-        "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-        "stars1zwq7nlqm94pcg879vrww2mtawtp28gdkd8uz2v",
-        "stars106jszpr7vxk8z6ww5p3dwuq5qpzr2mfmv04xtv",
-        "stars1a5d2m8dv4l5hzkv5glnwufxecqt6dzyg23zewf",
-        "stars17daccunykmpvrnkhnhe9v8axknwynzm8jnw5sx",
+        "stars1gfmrf0wgjtmk6mylnke6v8ma523cguyj6k9xy8",
+        "stars130mtjylzwvs4xe7yc74h675g76hd24r6tzjel3",
       ],
-      ORACLE_CONTROLLER: "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+      ORACLE_CONTROLLER_LIST: [
+        "stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2",
+        "stars1t95n48trupwxytc2ewms2mkhgalfucy2cldxf6",
+      ],
       MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
       MARKETPLACE:
         "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl",
@@ -421,7 +423,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "adapter_dex",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<AdapterDexStargazeTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -451,7 +453,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "adapter_marketplace",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<AdapterMarketplaceStargazeTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -487,7 +489,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "adapter_scheduler",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<AdapterSchedulerCommonTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -499,11 +501,8 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<AdapterSchedulerCommonTypes.ExecuteMsg>({
                 update_config: {
-                  offchain_clock: [
-                    ADDRESS.MAINNET.STARGAZE.ADMIN,
-                    ADDRESS.MAINNET.STARGAZE.WORKER,
-                    ADDRESS.MAINNET.STARGAZE.LIQUIDATION_CONTROLLER,
-                  ],
+                  offchain_clock:
+                    ADDRESS.MAINNET.STARGAZE.LIQUIDATION_CONTROLLER_LIST,
                   lending_platform_main: $(
                     "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform_main]|ADDRESS"
                   ),
@@ -522,7 +521,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "lending_platform_main",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -572,7 +571,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "lending_platform_stable",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -622,7 +621,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "minter",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
               MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
@@ -632,11 +631,12 @@ export const CHAIN_CONFIG: ChainConfig = {
                 update_config: {
                   whitelist: [
                     ADDRESS.MAINNET.STARGAZE.ADMIN,
-                    ADDRESS.MAINNET.STARGAZE.WORKER,
+                    ADDRESS.TESTNET.STARGAZE.ADMIN,
+                    ADDRESS.TESTNET.STARGAZE.WORKER,
                   ],
                 },
               }),
-              CODE: 364,
+              CODE: 377,
               ADDRESS:
                 "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j",
             },
@@ -646,7 +646,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "oracle",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
@@ -670,11 +670,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
-                  controller: [
-                    ADDRESS.MAINNET.STARGAZE.ADMIN,
-                    ADDRESS.MAINNET.STARGAZE.WORKER,
-                    ADDRESS.MAINNET.STARGAZE.ORACLE_CONTROLLER,
-                  ],
+                  controller: ADDRESS.MAINNET.STARGAZE.ORACLE_CONTROLLER_LIST,
                 },
               }),
               CODE: 365,
@@ -703,16 +699,12 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "market_maker_hub",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.MAINNET.STARGAZE.WORKER,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
               ],
               INIT_MSG: toJson<MarketMakerHubTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
                 marketplace: ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
-                controller: [
-                  ADDRESS.MAINNET.STARGAZE.ADMIN,
-                  ADDRESS.MAINNET.STARGAZE.WORKER,
-                  ADDRESS.MAINNET.STARGAZE.MARKET_MAKER_CONTROLLER,
-                ],
+                controller: [ADDRESS.MAINNET.STARGAZE.MARKET_MAKER_CONTROLLER],
                 token: {
                   native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
                 },

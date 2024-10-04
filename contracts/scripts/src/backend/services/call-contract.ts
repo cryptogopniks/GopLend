@@ -68,6 +68,20 @@ async function main() {
 
     const name = NAME as "kujira" | "stargaze";
 
+    const outpostList = [
+      "stars1na7rr9nlpugfsvtqwpjxgwj8txchppj3ks6k496znmnkufyj5avs4u4qfd",
+      "stars1g054fg5szcfnrqpgj6a557nht645kzmc0zclpawnjh358f898pcqr0m596",
+      "stars1h6sa9hseql2nf0a39n6krda2snf9d28pfd65zvfv5ezawd5uym6q6hhupe",
+      "stars1shh0mmnxsag7gsuhyjxl26yrqqxrmcqq5z43ctmdfhe9pnefpkxq0wsqsq",
+      "stars1uyr89jxsd0392hyve6ltxgfqzqkx5j7fdufwla24779620zpy9tq4t55fl",
+      "stars1yy0jw3jrevgfuvce9dal2le3f0puktqhnsccnl9mp2ez0vqzq86q3g6ty0",
+      "stars1v8ku8fz0sl7gnja63lz3d27qnevzuta04099mnrwq0sts7k5683qs43pvm",
+      "stars1h4jhzpkppul8pyguqmgvdfl03cuhr9jewann6elr45s3dhqc4c7qf87040",
+      "stars1qjxq66gqcmau7jvtql4svdwe320w758xuautgyfl3zgm05896s5qhs4fwr",
+      "stars14dvuxs9fzu9pex4ynufdjxldgdgrqqq4ne34gfegfd9he5rrzw2qstce26",
+    ];
+    return;
+
     await getAllBalances(
       "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze"
     );
@@ -98,12 +112,12 @@ async function main() {
     // await marketMaker.hub.cwQueryConfig(true);
     // await adapter.marketplace.stargaze.cwQueryConfig(true);
     // await adapter.scheduler[name].cwQueryConfig(true);
-    const platforms: PlatformType[] = ["main", "stable"];
-    for (const platformType of platforms) {
-      await lending.cwQueryAddressConfig(platformType, true);
-      await lending.cwQueryRateConfig(platformType, true);
-      await lending.cwQueryCommonConfig(platformType, true);
-    }
+    // const platforms: PlatformType[] = ["main", "stable"];
+    // for (const platformType of platforms) {
+    //   await lending.cwQueryAddressConfig(platformType, true);
+    //   await lending.cwQueryRateConfig(platformType, true);
+    //   await lending.cwQueryCommonConfig(platformType, true);
+    // }
     // await minter[name].cwQueryConfig(true);
     // await oracle.cwQueryConfig(true);
     return;
