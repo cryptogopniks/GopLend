@@ -443,7 +443,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 360,
+              CODE: 378,
               ADDRESS:
                 "stars1n2sa0qkn07saxgrvumhe327qqf59ezegtusls7y5trqemk6rrezq7zejfl",
             },
@@ -479,7 +479,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 369,
+              CODE: 379,
               ADDRESS:
                 "stars1p9frcrpgx38zp38d732rrfyy9ym38vhs53uhk7cdff8qn79ttygqhqq9vs",
             },
@@ -511,7 +511,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 362,
+              CODE: 380,
               ADDRESS:
                 "stars12942nrecn2g0x8newaz2lh5ymcnurwxunx29qf4839yzdzlwp93sdfg6sp",
             },
@@ -561,7 +561,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 363,
+              CODE: 381,
               ADDRESS:
                 "stars1wxu8yw7vmlydz92vmvk72mkquk6p65hahm28deljl8j8er4k26jszqk25v",
             },
@@ -611,7 +611,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 363,
+              CODE: 381,
               ADDRESS:
                 "stars1kew8r0qz6aw3d4m3vac68xntldxl06krq54nl2q695uxdssl0c2q96hmnf",
             },
@@ -636,7 +636,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 377,
+              CODE: 382,
               ADDRESS:
                 "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j",
             },
@@ -673,7 +673,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   controller: ADDRESS.MAINNET.STARGAZE.ORACLE_CONTROLLER_LIST,
                 },
               }),
-              CODE: 365,
+              CODE: 383,
               ADDRESS:
                 "stars1ypftsrdwz2fl63f2mmn39xave9hqfh9kwt0k76nxsmumfy0jksvshd8mze",
             },
@@ -683,6 +683,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "market_maker_outpost",
               PERMISSION: [
                 ADDRESS.MAINNET.STARGAZE.ADMIN,
+                ADDRESS.TESTNET.STARGAZE.ADMIN,
                 "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u",
               ],
               INIT_MSG: toJson<MarketMakerOutpostTypes.InstantiateMsg>({}),
@@ -690,7 +691,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson({}),
-              CODE: 367,
+              CODE: 386,
               ADDRESS: "",
             },
 
@@ -720,7 +721,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 366,
+              CODE: 385,
               ADDRESS:
                 "stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u",
             },

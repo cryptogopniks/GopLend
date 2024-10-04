@@ -23,13 +23,6 @@ yarn run get-targets "elgafar-1|"
 yarn run liquidate "elgafar-1|"
 
 yarn run json
-yarn run store "stargaze-1|adapter_dex"
-yarn run migrate "stargaze-1|adapter_dex"
-yarn run inst "stargaze-1|adapter_dex"
-yarn run config "stargaze-1|adapter_dex"
-yarn run call "stargaze-1|"
-
-yarn run json
 ./run.sh
 ./test.sh
 ./stop.sh
@@ -45,3 +38,33 @@ yarn run capture-ltvs "elgafar-1|"
 yarn run capture-user "elgafar-1|"
 yarn run capture-logs "elgafar-1|"
 yarn run oracle-controller "elgafar-1|"
+
+yarn run json
+yarn run store "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
+yarn run store "stargaze-1|minter,oracle,market_maker_hub"
+yarn run inst "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run store "stargaze-1|market_maker_outpost"
+yarn run config "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run prepare-contracts "stargaze-1|"
+yarn run call "stargaze-1|"
+
+yarn run capture-unbonders "stargaze-1|"
+yarn run capture-borrowers "stargaze-1|"
+yarn run capture-liquidators "stargaze-1|"
+yarn run capture-collaterals "stargaze-1|"
+yarn run capture-bids "stargaze-1|"
+yarn run capture-proposals "stargaze-1|"
+yarn run capture-collections "stargaze-1|"
+yarn run capture-ltvs "stargaze-1|"
+yarn run capture-user "stargaze-1|"
+yarn run capture-logs "stargaze-1|"
+yarn run oracle-controller "stargaze-1|"
+
+// codes
+https://stargaze-rest.publicnode.com/cosmwasm/wasm/v1/code?pagination.reverse=true
+
+// contracts
+https://stargaze-rest.publicnode.com/cosmwasm/wasm/v1/contract/stars145pjdze6lzxauaqj07uk4lrcx8pekkwd0avdk3ewwyat2pa9rd6qrdfm0u
+
+// explorer
+https://ping.pub/stargaze/account/stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu

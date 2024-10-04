@@ -30,8 +30,11 @@ import { MarketMakerOutpostQueryClient } from "../codegen/MarketMakerOutpost.cli
 
 import CONFIG_JSON from "../config/config.json";
 import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
-import { toBase64, fromUtf8 } from "@cosmjs/encoding";
-import { MsgUpdateAdmin } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { toBase64, fromUtf8, toUtf8 } from "@cosmjs/encoding";
+import {
+  MsgMigrateContract,
+  MsgUpdateAdmin,
+} from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import {
   PriceItemForFundsForToken,
@@ -54,6 +57,7 @@ import {
   CosmWasmClient,
   MsgExecuteContractEncodeObject,
   MsgUpdateAdminEncodeObject,
+  MsgMigrateContractEncodeObject,
 } from "@cosmjs/cosmwasm-stargate";
 import {
   ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -426,6 +430,30 @@ async function getCwExecHelpers(
     };
 
     const tx = await _signAndBroadcast([msg], gasPrice, gasAdjustment);
+    l("\n", tx, "\n");
+    return tx;
+  }
+
+  async function cwMigrateMultipleContracts(
+    contractList: string[],
+    codeId: number,
+    migrateMsg: any,
+    gasPrice: string,
+    gasAdjustment: number = 1
+  ) {
+    const msgList: MsgMigrateContractEncodeObject[] = contractList.map(
+      (contract) => ({
+        typeUrl: "/cosmwasm.wasm.v1.MsgMigrateContract",
+        value: MsgMigrateContract.fromPartial({
+          sender: owner,
+          contract,
+          codeId: BigInt(codeId),
+          msg: toUtf8(JSON.stringify(migrateMsg)),
+        }),
+      })
+    );
+
+    const tx = await _signAndBroadcast(msgList, gasPrice, gasAdjustment);
     l("\n", tx, "\n");
     return tx;
   }
@@ -1825,7 +1853,7 @@ async function getCwExecHelpers(
   }
 
   return {
-    utils: { cwTransferAdmin, cwRevoke },
+    utils: { cwTransferAdmin, cwMigrateMultipleContracts, cwRevoke },
     adapter: {
       dex: {
         kujira: {},
