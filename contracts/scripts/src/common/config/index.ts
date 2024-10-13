@@ -72,8 +72,9 @@ export const ADDRESS = {
   },
   MAINNET: {
     STARGAZE: {
-      // DAO
-      ADMIN: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+      // GOPNIKS_DAO: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
+      // Liquidity DAO
+      ADMIN: "stars1emkds0juacpjvrepkw0jlj503hcswy0msu3mpg0dud8nnq0wqp9s0jzz7a",
       // SUBDAO
       WORKER:
         "stars17rwa9fe7grauqdy3fka5yh0lakr5yffpkrmpymy3yakkl6xy9r2s7ccwgk",
@@ -625,7 +626,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               ],
               INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
               MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
-                version: "1.3.0",
+                version: "1.3.1",
               }),
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
@@ -636,7 +637,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 382,
+              CODE: 398,
               ADDRESS:
                 "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j",
             },
