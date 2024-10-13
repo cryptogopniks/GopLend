@@ -198,9 +198,9 @@
                 "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu"
               ],
               "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.3.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.3.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69\",\"stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu\",\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"]}}",
-              "CODE": 382,
+              "CODE": 398,
               "ADDRESS": "stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j"
             },
             {

@@ -66,47 +66,54 @@ pub fn try_accept_token_owner_role(
     let config = CONFIG.load(deps.storage)?;
     let mut transfer_owner_state_list = TRANSFER_OWNER_STATE.load(deps.storage).unwrap_or_default();
 
-    let (
+    let current_transfer_owner_state_list = transfer_owner_state_list
+        .iter()
+        .filter(|(_, transfer_state)| transfer_state.new_admin == sender_address)
+        .collect::<Vec<_>>();
+
+    if current_transfer_owner_state_list.is_empty() {
+        Err(ContractError::Unauthorized)?;
+    }
+
+    for (
         denom_or_address,
         TransferAdminState {
             new_admin: new_token_owner,
             deadline,
         },
-    ) = transfer_owner_state_list
-        .iter()
-        .find(|(_, transfer_state)| transfer_state.new_admin == sender_address)
-        .ok_or(ContractError::Unauthorized)?;
-
-    if &block_time >= deadline {
-        Err(ContractError::TransferAdminDeadline)?;
-    }
-
-    let mut currency_info = CURRENCIES.load(deps.storage, denom_or_address)?;
-    let current_owner_token_count = TOKEN_COUNT.load(deps.storage, &currency_info.owner)? - 1;
-    let new_owner_token_count = TOKEN_COUNT
-        .load(deps.storage, new_token_owner)
-        .unwrap_or_default()
-        + 1;
-
-    if !config.whitelist.contains(new_token_owner)
-        && new_owner_token_count > config.max_tokens_per_owner
+    ) in current_transfer_owner_state_list
     {
-        Err(ContractError::TokenLimit)?;
-    }
+        if &block_time >= deadline {
+            Err(ContractError::TransferAdminDeadline)?;
+        }
 
-    if current_owner_token_count == 0 {
-        TOKEN_COUNT.remove(deps.storage, &currency_info.owner);
-    } else {
-        TOKEN_COUNT.save(
-            deps.storage,
-            &currency_info.owner,
-            &current_owner_token_count,
-        )?;
-    }
-    TOKEN_COUNT.save(deps.storage, new_token_owner, &new_owner_token_count)?;
+        let mut currency_info = CURRENCIES.load(deps.storage, denom_or_address)?;
+        let current_owner_token_count = TOKEN_COUNT.load(deps.storage, &currency_info.owner)? - 1;
+        let new_owner_token_count = TOKEN_COUNT
+            .load(deps.storage, new_token_owner)
+            .unwrap_or_default()
+            + 1;
 
-    currency_info.owner = new_token_owner.to_owned();
-    CURRENCIES.save(deps.storage, denom_or_address, &currency_info)?;
+        if !config.whitelist.contains(new_token_owner)
+            && new_owner_token_count > config.max_tokens_per_owner
+        {
+            Err(ContractError::TokenLimit)?;
+        }
+
+        if current_owner_token_count == 0 {
+            TOKEN_COUNT.remove(deps.storage, &currency_info.owner);
+        } else {
+            TOKEN_COUNT.save(
+                deps.storage,
+                &currency_info.owner,
+                &current_owner_token_count,
+            )?;
+        }
+        TOKEN_COUNT.save(deps.storage, new_token_owner, &new_owner_token_count)?;
+
+        currency_info.owner = new_token_owner.to_owned();
+        CURRENCIES.save(deps.storage, denom_or_address, &currency_info)?;
+    }
 
     transfer_owner_state_list
         .retain(|(_, transfer_state)| transfer_state.new_admin != sender_address);
@@ -589,6 +596,8 @@ pub fn try_update_currency_info(
                 deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
             },
         ));
+
+        TRANSFER_OWNER_STATE.save(deps.storage, &transfer_owner_state_list)?;
 
         is_currency_info_updated = true;
     }
