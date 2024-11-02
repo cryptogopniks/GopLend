@@ -105,6 +105,7 @@ import {
   QueryReverseBidsSortedByPrice,
   QueryReverseCollectionBidsSortedByPrice,
 } from "../interfaces/stargaze-marketplace";
+import * as v2 from "../interfaces/stargaze-marketplace-v2";
 import {
   Cw20SendMsg,
   TokenUnverified,
@@ -2369,6 +2370,116 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     };
   }
 
+  // TODO: v2 queries
+
+  async function cwV2QueryAsksByCollectionDenom(
+    marketplace: string,
+    collection: string,
+    denom: string,
+    queryOptions: v2.QueryOptions<v2.PriceOffset> | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const queryMsg: v2.QueryAsksByCollectionDenom = {
+      asks_by_collection_denom: {
+        collection,
+        denom,
+        query_options: queryOptions,
+      },
+    };
+
+    const res: v2.Ask[] = await cosmwasmQueryClient.queryContractSmart(
+      marketplace,
+      queryMsg
+    );
+
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwV2QueryBidsByTokenPrice(
+    marketplace: string,
+    collection: string,
+    token_id: string,
+    denom: string,
+    queryOptions: v2.QueryOptions<v2.PriceOffset> | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const queryMsg: v2.QueryBidsByTokenPrice = {
+      bids_by_token_price: {
+        collection,
+        token_id,
+        denom,
+        query_options: queryOptions,
+      },
+    };
+
+    const res: v2.Bid[] = await cosmwasmQueryClient.queryContractSmart(
+      marketplace,
+      queryMsg
+    );
+
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwV2QueryBidsByCreatorCollection(
+    marketplace: string,
+    collection: string,
+    creator: string,
+    queryOptions: v2.QueryOptions<string> | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const queryMsg: v2.QueryBidsByCreatorCollection = {
+      bids_by_creator_collection: {
+        collection,
+        creator,
+        query_options: queryOptions,
+      },
+    };
+
+    const res: v2.Bid[] = await cosmwasmQueryClient.queryContractSmart(
+      marketplace,
+      queryMsg
+    );
+
+    return logAndReturn(res, isDisplayed);
+  }
+
+  // returns active bids in ascending (by default) price order
+  async function cwV2QueryCollectionBidsByPrice(
+    marketplace: string,
+    collection: string,
+    denom: string,
+    queryOptions: v2.QueryOptions<v2.PriceOffset> | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
+    const queryMsg: v2.QueryCollectionBidsByPrice = {
+      collection_bids_by_price: {
+        collection,
+        denom,
+        query_options: queryOptions,
+      },
+    };
+
+    const res: v2.CollectionBid[] =
+      await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
+
+    return logAndReturn(res, isDisplayed);
+  }
+
+  async function cwV2QueryCollectionBid(
+    marketplace: string,
+    order_id: v2.OrderId,
+    isDisplayed: boolean = false
+  ) {
+    const queryMsg: v2.QueryCollectionBid = {
+      collection_bid: order_id,
+    };
+
+    const res: v2.QueryCollectionBidResponse =
+      await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
+
+    return logAndReturn(res, isDisplayed);
+  }
+
   // adapter-dex-stargaze
 
   async function cwAdapterDexStargazeQueryConfig(isDisplayed: boolean = false) {
@@ -3340,6 +3451,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       pQueryMarketplaceTokenOffers,
       pQueryMarketplaceCollectionOffers,
       cwGetMarketplaceData,
+
+      cwV2QueryAsksByCollectionDenom,
+      cwV2QueryBidsByTokenPrice,
+      cwV2QueryBidsByCreatorCollection,
+      cwV2QueryCollectionBidsByPrice,
+      cwV2QueryCollectionBid,
     },
     adapter: {
       dex: {

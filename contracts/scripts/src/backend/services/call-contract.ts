@@ -66,6 +66,52 @@ async function main() {
     const { getBalance, getAllBalances, getTimeInNanos } = sgQueryHelpers;
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
 
+    // ?cwV2QueryAsksByCollectionDenom,
+    // cwV2QueryBidsByTokenPrice,
+    // cwV2QueryBidsByCreatorCollection,
+    // +cwV2QueryCollectionBidsByPrice,
+    // +cwV2QueryCollectionBid,
+
+    console.clear();
+    const TRADER = {
+      PANDA: "stars13gjvhglmljamj6rvl5s6klt4e4dr0uksj7jdzm",
+      NIKAN: "stars1e4pzleql4gm6hngv6dfcu5hla0ettrrxm9zlne",
+      NINCOMPOOP: "stars1w3346kf7csq53vu3lch405m095l58n30mprku6",
+    };
+
+    const blockTime = await oracle.cwQueryBlockTime();
+    await utils.pQueryMarketplaceTokenOffers(
+      ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
+      COLLECTION.MAINNET.STARGAZE.SIN_COMICS_V3W1,
+      blockTime,
+      50,
+      1_000,
+      true
+    );
+
+    // await utils.cwV2QueryBidsByCreatorCollection(
+    //   "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl",
+    //   COLLECTION.MAINNET.STARGAZE.SIN_COMICS_V3W1,
+    //   "stars1vl6w93hqwyxjtxdkyk6zgvrgpahsck2rd08yh3",
+    //   undefined,
+    //   true
+    // );
+    // return;
+
+    const collections = await utils.cwV2QueryCollectionBidsByPrice(
+      ADDRESS.MAINNET.STARGAZE.MARKETPLACE_V2,
+      COLLECTION.MAINNET.STARGAZE.PIGEON,
+      TOKEN.MAINNET.STARS,
+      { descending: true, limit: 2 },
+      true
+    );
+    await utils.cwV2QueryCollectionBid(
+      ADDRESS.MAINNET.STARGAZE.MARKETPLACE_V2,
+      collections[0].id,
+      true
+    );
+    return;
+
     const name = NAME as "kujira" | "stargaze";
 
     const outpostList = [

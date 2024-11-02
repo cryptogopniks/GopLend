@@ -31,6 +31,12 @@ export const COLLECTION = {
     STARGAZE: {
       PIGEON:
         "stars12c9nrpkqrfmdvrx4ex8d6qfs8rwrnclsk5jtk4r6u4gy9mjl97js626dtp",
+      REBBITS:
+        "stars12se30zklzhjf84ky669lrtx0wdlsk92lg4nad7yufk9d8qp08n2q8m58cw",
+      WEIRD_MULTIVERSE:
+        "stars12av6zj25mqy6fhwx7z9sha4w6vx0aqaaxxuztx2njyrkjxrt4ljszw00qy",
+      SIN_COMICS_V3W1:
+        "stars13fqth00aeamnlx0jrx3n5c0d0jdf9mcltn3auhfl7vp4mm9atm8skjfja7",
     },
   },
 };

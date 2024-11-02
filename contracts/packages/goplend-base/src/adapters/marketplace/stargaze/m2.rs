@@ -1,6 +1,21 @@
-use cosmwasm_std::Coin;
+use cosmwasm_std::{Addr, Coin};
 use cw_address_like::AddressLike;
-use sg_index_query::QueryOptions;
+
+pub enum QueryBound<T> {
+    Inclusive(T),
+    Exclusive(T),
+}
+
+pub struct QueryOptions<T> {
+    /// The number of items that will be returned
+    pub limit: Option<u32>,
+    /// Whether to sort items in ascending or descending order
+    pub descending: Option<bool>,
+    /// The minimum key value to fetch
+    pub min: Option<QueryBound<T>>,
+    /// The maximum key value to fetch
+    pub max: Option<QueryBound<T>>,
+}
 
 pub type Denom = String;
 pub type OrderId = String;
@@ -74,4 +89,29 @@ pub enum QueryMsg {
 
     // Option<CollectionBid>
     CollectionBid(String),
+}
+
+// responses
+
+pub struct Ask {
+    pub id: String,
+    pub creator: Addr,
+    pub collection: Addr,
+    pub token_id: TokenId,
+    pub details: OrderDetails<Addr>,
+}
+
+pub struct CollectionBid {
+    pub id: String,
+    pub creator: Addr,
+    pub collection: Addr,
+    pub details: OrderDetails<Addr>,
+}
+
+pub struct Bid {
+    pub id: String,
+    pub creator: Addr,
+    pub collection: Addr,
+    pub token_id: TokenId,
+    pub details: OrderDetails<Addr>,
 }

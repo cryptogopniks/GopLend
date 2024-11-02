@@ -89,6 +89,8 @@ export const ADDRESS = {
       MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
       MARKETPLACE:
         "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl",
+      MARKETPLACE_V2:
+        "stars1e6g3yhasf7cr2vnae7qxytrys4e8v8wchyj377juvxfk9k6t695s38jkgw",
     },
   },
 };
