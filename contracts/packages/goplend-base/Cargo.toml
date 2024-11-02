@@ -24,3 +24,6 @@ cw721 = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 sg-marketplace = { workspace = true }
+stargaze-marketplace-v2 = { workspace = true }
+sg-index-query = { workspace = true }
+cw-address-like = { workspace = true }

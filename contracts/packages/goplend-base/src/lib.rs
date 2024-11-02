@@ -51,6 +51,8 @@ pub mod adapters {
         }
 
         pub mod stargaze {
+            pub mod m1;
+            pub mod m2;
             pub mod msg;
             pub mod state;
             pub mod types;
