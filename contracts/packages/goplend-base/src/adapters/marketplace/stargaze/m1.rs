@@ -4,24 +4,24 @@ pub type Bidder = String;
 pub type Collection = String;
 pub type TokenId = u32;
 
-pub struct AskOffset {
+struct AskOffset {
     pub price: Uint128,
     pub token_id: TokenId,
 }
 
-pub struct BidOffset {
+struct BidOffset {
     pub price: Uint128,
     pub token_id: TokenId,
     pub bidder: Addr,
 }
 
-pub struct CollectionBidOffset {
+struct CollectionBidOffset {
     pub price: Uint128,
     pub collection: Collection,
     pub bidder: Bidder,
 }
 
-pub enum ExecuteMsg {
+enum ExecuteMsg {
     AcceptCollectionBid {
         collection: String,
         token_id: TokenId,
@@ -49,7 +49,7 @@ pub enum ExecuteMsg {
     },
 }
 
-pub enum QueryMsg {
+enum QueryMsg {
     // AsksResponse {
     //     pub asks: Vec<Ask>,
     // }

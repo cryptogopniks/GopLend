@@ -1122,9 +1122,10 @@ dependencies = [
  "goplend-base",
  "semver",
  "serde",
- "sg-marketplace",
+ "sg-index-query",
  "sg721 3.14.0",
  "sg721-base 3.14.0",
+ "stargaze-marketplace-v2",
 ]
 
 [[package]]

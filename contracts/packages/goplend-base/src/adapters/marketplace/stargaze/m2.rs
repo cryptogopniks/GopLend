@@ -1,12 +1,12 @@
 use cosmwasm_std::{Addr, Coin};
 use cw_address_like::AddressLike;
 
-pub enum QueryBound<T> {
+enum QueryBound<T> {
     Inclusive(T),
     Exclusive(T),
 }
 
-pub struct QueryOptions<T> {
+struct QueryOptions<T> {
     /// The number of items that will be returned
     pub limit: Option<u32>,
     /// Whether to sort items in ascending or descending order
@@ -21,18 +21,18 @@ pub type Denom = String;
 pub type OrderId = String;
 pub type TokenId = String;
 
-pub struct OrderDetails<T: AddressLike> {
+struct OrderDetails<T: AddressLike> {
     pub price: Coin,
     pub recipient: Option<T>,
     pub finder: Option<T>,
 }
 
-pub struct PriceOffset {
+struct PriceOffset {
     pub id: OrderId,
     pub amount: u128,
 }
 
-pub enum ExecuteMsg {
+enum ExecuteMsg {
     AcceptCollectionBid {
         id: OrderId,
         token_id: TokenId,
@@ -54,7 +54,7 @@ pub enum ExecuteMsg {
     },
 }
 
-pub enum QueryMsg {
+enum QueryMsg {
     // Vec<Ask>
     AsksByCollectionDenom {
         collection: String,
@@ -93,7 +93,7 @@ pub enum QueryMsg {
 
 // responses
 
-pub struct Ask {
+struct Ask {
     pub id: String,
     pub creator: Addr,
     pub collection: Addr,
@@ -101,14 +101,14 @@ pub struct Ask {
     pub details: OrderDetails<Addr>,
 }
 
-pub struct CollectionBid {
+struct CollectionBid {
     pub id: String,
     pub creator: Addr,
     pub collection: Addr,
     pub details: OrderDetails<Addr>,
 }
 
-pub struct Bid {
+struct Bid {
     pub id: String,
     pub creator: Addr,
     pub collection: Addr,

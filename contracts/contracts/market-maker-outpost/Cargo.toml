@@ -25,5 +25,5 @@ serde = { workspace = true }
 goplend-base = { workspace = true }
 semver = { workspace = true }
 
-sg-marketplace = { workspace = true }
-# stargaze-marketplace-v2 = { workspace = true }
+stargaze-marketplace-v2 = { workspace = true }
+sg-index-query = { workspace = true }

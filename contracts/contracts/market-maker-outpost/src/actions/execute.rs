@@ -1,18 +1,19 @@
 use cosmwasm_std::{
-    coins, to_json_binary, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
-    WasmMsg,
+    coin, coins, to_json_binary, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response,
+    StdResult, WasmMsg,
 };
+
+use stargaze_marketplace_v2::orders::OrderDetails;
 
 use goplend_base::{
     error::ContractError,
     lending_platform::types::CollectionInfo,
-    market_maker::outpost::state::{EXPIRATION_DELAY_IN_DAYS, FINDERS_FEE_BPS},
     utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
 
-use crate::helpers::get_config;
+use crate::helpers::{get_config, get_outpost_offer};
 
-use super::query::{get_offer_price, query_collateral, query_offer};
+use super::query::{get_offer_price, query_collateral};
 
 pub fn try_set_offer(
     deps: DepsMut,
@@ -50,11 +51,16 @@ pub fn try_set_offer(
         // set new offer
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: marketplace.to_string(),
-            msg: to_json_binary(&sg_marketplace::msg::ExecuteMsg::SetCollectionBid {
-                collection: collection_address,
-                expires: env.block.time.plus_days(EXPIRATION_DELAY_IN_DAYS),
-                finders_fee_bps: Some(FINDERS_FEE_BPS),
-            })?,
+            msg: to_json_binary(
+                &stargaze_marketplace_v2::msg::ExecuteMsg::SetCollectionBid {
+                    collection: collection_address,
+                    details: OrderDetails {
+                        price: coin(asset_amount.u128(), asset_info.try_get_native()?),
+                        finder: None,
+                        recipient: None,
+                    },
+                },
+            )?,
             funds: coins(asset_amount.u128(), asset_info.try_get_native()?),
         }),
     ];
@@ -90,18 +96,25 @@ pub fn try_remove_offer(
         },
     )?;
 
-    let offer_price = query_offer(deps.as_ref(), env, collection_address.clone())?;
+    let marketplace = unwrap_field(config.marketplace, "marketplace")?;
+    let offer = get_outpost_offer(
+        &deps.querier,
+        &marketplace,
+        collection_address,
+        env.contract.address,
+    )?;
+
     let msg_list = vec![
         CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: unwrap_field(config.marketplace, "marketplace")?.to_string(),
-            msg: to_json_binary(&sg_marketplace::msg::ExecuteMsg::RemoveCollectionBid {
-                collection: collection_address,
-            })?,
+            contract_addr: marketplace.to_string(),
+            msg: to_json_binary(
+                &stargaze_marketplace_v2::msg::ExecuteMsg::RemoveCollectionBid { id: offer.id },
+            )?,
             funds: vec![],
         }),
         CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient.unwrap_or(hub.to_string()),
-            amount: coins(offer_price.u128(), config.token.try_get_native()?),
+            amount: vec![offer.details.price],
         }),
     ];
 
