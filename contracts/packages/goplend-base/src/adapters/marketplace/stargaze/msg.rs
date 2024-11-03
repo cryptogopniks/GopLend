@@ -1,16 +1,9 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Decimal, Uint128};
-use sg_marketplace::{
-    msg::{BidOffset, CollectionBidOffset},
-    state::CollectionBid,
-};
 
-use crate::{
-    adapters::dex::stargaze::types::Route,
-    lending_platform::types::{BiddedCollateralItem, LiquidationBid},
-};
+use stargaze_marketplace_v2::orders::CollectionBid;
 
-use super::types::{MarketplaceVersion, PlatformType};
+use crate::{adapters::dex::stargaze::types::Route, lending_platform::types::BiddedCollateralItem};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -20,7 +13,6 @@ pub struct InstantiateMsg {
     pub oracle: Option<String>,
     pub marketplace: Option<String>,
     pub adapter_dex: Option<String>,
-    pub marketplace_version: Option<MarketplaceVersion>,
 }
 
 #[cw_serde]
@@ -42,7 +34,6 @@ pub enum ExecuteMsg {
         oracle: Option<String>,
         marketplace: Option<String>,
         adapter_dex: Option<String>,
-        marketplace_version: Option<MarketplaceVersion>,
     },
 
     // lending platform
@@ -63,10 +54,10 @@ pub enum QueryMsg {
         collection_address_list: Vec<String>,
     },
 
-    #[returns(Vec<(u32, Vec<sg_marketplace::state::Bid>)>)]
+    #[returns(Vec<(String, Vec<stargaze_marketplace_v2::orders::Bid>)>)]
     QueryTokenOffers {
         collection_address: String,
-        token_list: Vec<u32>,
+        token_list: Vec<String>,
         limit: u32,
     },
 
@@ -75,24 +66,6 @@ pub enum QueryMsg {
         collection_address: String,
         limit: u32,
     },
-
-    #[returns(QueryOffersByCollectionAddressResponse)]
-    QueryOffersByCollectionAddress {
-        platform_type: PlatformType,
-        collection_address: String,
-        /// to skip all offers that will be expired during paginated queries
-        expiration_delay: u64,
-        start_after_collection_offer: Option<CollectionBidOffset>,
-        start_after_token_offer: Option<BidOffset>,
-        limit: Option<u32>,
-    },
-}
-
-#[cw_serde]
-pub struct QueryOffersByCollectionAddressResponse {
-    pub offers: Vec<LiquidationBid>,
-    pub last_collection_offer: Option<CollectionBidOffset>,
-    pub last_token_offer: Option<BidOffset>,
 }
 
 #[cw_serde]

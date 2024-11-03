@@ -63,5 +63,4 @@ faucet = { path = "./contracts/faucet" }
 
 sg-marketplace = { git = "https://github.com/public-awesome/marketplace.git", rev = "b9780c36619adec7d6f79453ddbf449ae26b9112", version = "1.8.0", features = ["library"] }
 stargaze-marketplace-v2 = { git = "https://github.com/public-awesome/marketplace.git", rev = "cb300b15e2ba6e60058955cb4f58a06dcb638d28", version = "0.7.0", features = ["library"] }
-# stargaze-marketplace-v2 = "0.1.0"
-# infinity-factory = { git = "https://github.com/public-awesome/infinity-swap-contracts.git", version = "0.3.0" }
+stargaze-royalty-registry = { git = "https://github.com/public-awesome/core.git", rev = "6982c764996ea3fa0cbad4b4404a117f55f4c564", version = "0.3.0", features = ["library"] }

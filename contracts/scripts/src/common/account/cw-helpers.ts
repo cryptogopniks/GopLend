@@ -3472,7 +3472,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
           cwQueryFloorPrices,
           cwQueryTokenOffers,
           cwQueryCollectionOffers,
-          cwQueryOffersByCollectionAddress,
+          //   cwQueryOffersByCollectionAddress,
         },
       },
       scheduler: {

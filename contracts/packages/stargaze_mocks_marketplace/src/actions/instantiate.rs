@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw2::set_contract_version;
 
 use goplend_base::{
@@ -8,7 +8,7 @@ use goplend_base::{
 
 use crate::{
     msg::InstantiateMsg,
-    state::{COLLECTION_OFFERS, CONTRACT_NAME, TOKEN},
+    state::{COLLECTION_OFFERS, CONTRACT_NAME, ROYALTY_REGISTRY, TOKEN},
 };
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -43,6 +43,7 @@ pub fn try_instantiate(
 
     TOKEN.save(deps.storage, &asset_info)?;
     COLLECTION_OFFERS.save(deps.storage, &msg.bids)?;
+    ROYALTY_REGISTRY.save(deps.storage, &Addr::unchecked(String::default()))?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

@@ -5,7 +5,7 @@ use goplend_base::{
     adapters::marketplace::stargaze::{
         msg::InstantiateMsg,
         state::{CONFIG, CONTRACT_NAME},
-        types::{Config, MarketplaceVersion},
+        types::Config,
     },
     error::ContractError,
 };
@@ -48,7 +48,6 @@ pub fn try_instantiate(
                 .adapter_dex
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()?,
-            marketplace_version: msg.marketplace_version.unwrap_or(MarketplaceVersion::V1),
         },
     )?;
 

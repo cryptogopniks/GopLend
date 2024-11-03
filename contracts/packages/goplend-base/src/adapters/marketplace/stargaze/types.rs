@@ -8,12 +8,6 @@ pub enum PlatformType {
 }
 
 #[cw_serde]
-pub enum MarketplaceVersion {
-    V1,
-    V2,
-}
-
-#[cw_serde]
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
@@ -22,7 +16,6 @@ pub struct Config {
     pub oracle: Option<Addr>,
     pub marketplace: Option<Addr>,
     pub adapter_dex: Option<Addr>,
-    pub marketplace_version: MarketplaceVersion,
 }
 
 #[cw_serde]

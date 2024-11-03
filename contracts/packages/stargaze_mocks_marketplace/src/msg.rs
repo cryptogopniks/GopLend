@@ -10,4 +10,6 @@ pub struct InstantiateMsg {
 #[cw_serde]
 pub enum SudoMsg {
     SetBids { bids: Vec<Bid> },
+
+    SetRoyaltyRegistry(String),
 }

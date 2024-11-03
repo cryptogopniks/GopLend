@@ -26,6 +26,5 @@ goplend-base = { workspace = true }
 semver = { workspace = true }
 sg-index-query = { workspace = true }
 
-sg-marketplace = { workspace = true }
 stargaze-marketplace-v2 = { workspace = true }
-# infinity-factory = { workspace = true }
+stargaze-royalty-registry = { workspace = true }

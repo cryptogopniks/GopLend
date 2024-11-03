@@ -43,7 +43,6 @@ pub fn execute(
             oracle,
             marketplace,
             adapter_dex,
-            marketplace_version,
         } => e::try_update_config(
             deps,
             env,
@@ -55,7 +54,6 @@ pub fn execute(
             oracle,
             marketplace,
             adapter_dex,
-            marketplace_version,
         ),
 
         ExecuteMsg::AcceptOffers {
@@ -94,24 +92,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             deps,
             env,
             collection_address,
-            limit,
-        )?),
-
-        QueryMsg::QueryOffersByCollectionAddress {
-            platform_type,
-            collection_address,
-            expiration_delay,
-            start_after_collection_offer,
-            start_after_token_offer,
-            limit,
-        } => to_json_binary(&q::query_offers_by_collection_address(
-            deps,
-            env,
-            platform_type,
-            collection_address,
-            expiration_delay,
-            start_after_collection_offer,
-            start_after_token_offer,
             limit,
         )?),
     }

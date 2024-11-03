@@ -1,17 +1,16 @@
 use cosmwasm_std::{
-    coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
-    WasmMsg,
+    coin, coins, to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128, WasmMsg,
 };
 
-use sg_marketplace::msg::ExecuteMsg as MarketplaceExecuteMsg;
-// use stargaze_marketplace_v2::{msg::ExecuteMsg as MarketplaceV2ExecuteMsg, orders::OrderDetails};
+use stargaze_marketplace_v2::orders::OrderDetails;
 
 use goplend_base::{
     adapters::{
         dex::stargaze::types::Route,
         marketplace::stargaze::{
             state::{CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-            types::{Config, MarketplaceVersion, TransferAdminState},
+            types::{Config, TransferAdminState},
         },
     },
     converters::u128_to_dec,
@@ -77,7 +76,6 @@ pub fn try_update_config(
     oracle: Option<String>,
     marketplace: Option<String>,
     adapter_dex: Option<String>,
-    marketplace_version: Option<MarketplaceVersion>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -172,17 +170,6 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = marketplace_version {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.marketplace_version = x;
-        is_config_updated = true;
-    }
-
     // don't allow empty messages
     if !is_config_updated {
         Err(ContractError::NoParameters)?;
@@ -210,7 +197,6 @@ pub fn try_accept_offers(
         marketplace,
         oracle,
         adapter_dex,
-        marketplace_version,
     } = CONFIG.load(deps.storage)?;
     let marketplace = &unwrap_field(marketplace, "marketplace")?;
 
@@ -241,7 +227,6 @@ pub fn try_accept_offers(
         &deps.querier,
         &collection_list,
         &bidded_collateral_item_list,
-        marketplace_version,
         marketplace,
         &main_currency.token.try_get_native()?,
     );
@@ -255,11 +240,10 @@ pub fn try_accept_offers(
 
     let mut liquidated_value = Uint128::zero();
 
-    for (_order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
+    for (order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
         let BiddedCollateralItem {
             collection,
             token_item,
-            liquidator,
             liquidation_price,
             bid_amount,
             bid_type,
@@ -280,46 +264,31 @@ pub fn try_accept_offers(
 
         msg_list.push(msg);
 
-        // let m = MarketplaceV2ExecuteMsg::AcceptCollectionBid {
-        //     id: "bid_id".to_string(),
-        //     token_id: token_item
-        //         .id
-        //         .parse()
-        //         .map_err(|_| ContractError::CustomError {
-        //             val: format!("{} token_id parsing error", token_item.id),
-        //         })?,
-        //     details: OrderDetails {
-        //         price: coin(bid_amount.u128(), "ustars"),
-        //         finder: None,
-        //         recipient: None,
-        //     },
-        // };
-
         // add accept offer msgs
         let accept_offer_msg = match bid_type {
-            BidType::CollectionOffer => MarketplaceExecuteMsg::AcceptCollectionBid {
-                collection: collection.to_string(),
-                token_id: token_item
-                    .id
-                    .parse()
-                    .map_err(|_| ContractError::CustomError {
-                        val: format!("{} token_id parsing error", token_item.id),
-                    })?,
-                bidder: liquidator.to_string(),
-                finder: None,
-                amount: bid_amount,
-            },
-            BidType::TokenOffer => MarketplaceExecuteMsg::AcceptBid {
-                collection: collection.to_string(),
-                token_id: token_item
-                    .id
-                    .parse()
-                    .map_err(|_| ContractError::CustomError {
-                        val: format!("{} token_id parsing error", token_item.id),
-                    })?,
-                bidder: liquidator.to_string(),
-                finder: None,
-                amount: bid_amount,
+            BidType::CollectionOffer => {
+                stargaze_marketplace_v2::msg::ExecuteMsg::AcceptCollectionBid {
+                    id: order_id.clone(),
+                    token_id: token_item
+                        .id
+                        .parse()
+                        .map_err(|_| ContractError::CustomError {
+                            val: format!("{} token_id parsing error", token_item.id),
+                        })?,
+                    details: OrderDetails {
+                        price: coin(bid_amount.u128(), main_currency.token.try_get_native()?),
+                        finder: None,
+                        recipient: None,
+                    },
+                }
+            }
+            BidType::TokenOffer => stargaze_marketplace_v2::msg::ExecuteMsg::AcceptBid {
+                id: order_id,
+                details: OrderDetails {
+                    price: coin(bid_amount.u128(), main_currency.token.try_get_native()?),
+                    finder: None,
+                    recipient: None,
+                },
             },
             _ => unimplemented!(),
         };

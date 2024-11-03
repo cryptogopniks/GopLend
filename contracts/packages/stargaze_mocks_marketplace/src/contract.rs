@@ -3,7 +3,7 @@ use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
-use sg_marketplace::msg::{ExecuteMsg, QueryMsg};
+use stargaze_marketplace_v2::msg::{ExecuteMsg, QueryMsg};
 
 use goplend_base::error::ContractError;
 
@@ -33,24 +33,14 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::AcceptCollectionBid {
-            collection,
+            id,
             token_id,
-            bidder,
-            finder,
-            amount,
-        } => e::accept_collection_bid(
-            deps, env, info, collection, token_id, bidder, finder, amount,
-        ),
+            details,
+        } => e::accept_collection_bid(deps, env, info, id, token_id, details),
 
-        ExecuteMsg::AcceptBid {
-            collection,
-            token_id,
-            bidder,
-            finder,
-            amount,
-        } => e::accept_collection_bid(
-            deps, env, info, collection, token_id, bidder, finder, amount,
-        ),
+        ExecuteMsg::AcceptBid { id, details } => {
+            e::accept_collection_bid(deps, env, info, id, String::default(), details)
+        }
 
         _ => unimplemented!(),
     }
@@ -60,31 +50,7 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::ReverseCollectionBidsSortedByPrice {
-            collection,
-            start_before,
-            limit,
-        } => to_json_binary(&q::collection_bids_sorted_by_price(
-            deps,
-            env,
-            collection,
-            start_before,
-            limit,
-        )?),
-
-        QueryMsg::ReverseBidsSortedByPrice {
-            collection,
-            start_before,
-            limit,
-        } => to_json_binary(&q::bids_sorted_by_price(
-            deps,
-            env,
-            collection,
-            start_before,
-            limit,
-        )?),
-
-        QueryMsg::Params {} => to_json_binary(&q::params(deps, env)?),
+        QueryMsg::Config {} => to_json_binary(&q::config(deps, env)?),
 
         _ => unimplemented!(),
     }
@@ -95,5 +61,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
     match msg {
         SudoMsg::SetBids { bids } => e::try_set_bids(deps, env, bids),
+
+        SudoMsg::SetRoyaltyRegistry(royalty_registry) => {
+            e::try_set_royalty_registry(deps, env, royalty_registry)
+        }
     }
 }

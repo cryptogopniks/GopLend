@@ -17,6 +17,8 @@ pub fn migrate_contract(
 
     if version_new >= version_previous {
         set_contract_version(deps.storage, CONTRACT_NAME, version_new.to_string())?;
+
+        // TODO: migrate config
     }
 
     Ok(Response::new())
