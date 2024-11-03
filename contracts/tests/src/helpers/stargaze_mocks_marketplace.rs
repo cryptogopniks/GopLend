@@ -1,52 +1,43 @@
-use cosmwasm_std::{StdResult, Uint128};
+use cosmwasm_std::{Addr, StdResult};
 use cw_multi_test::{AppResponse, Executor};
 
-use sg_marketplace::msg::{
-    CollectionBidOffset, CollectionBidsResponse, CollectionOffset, ExecuteMsg, QueryMsg,
+use stargaze_marketplace_v2::{
+    msg::{ExecuteMsg, QueryMsg},
+    orders::OrderDetails,
+    state::Config,
 };
 
 use goplend_base::error::parse_err;
 use stargaze_mocks_marketplace::{msg::SudoMsg, state::Bid};
 
-use crate::helpers::suite::{
-    core::Project,
-    types::{ProjectAccount, ProjectNft},
-};
+use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait StargazeMocksMarketplaceExtension {
     fn stargaze_mocks_marketplace_try_accept_collection_bid(
         &mut self,
         sender: ProjectAccount,
-        collection: ProjectNft,
+        id: &str,
         token_id: &str,
-        bidder: ProjectAccount,
-        finder: &Option<&str>,
+        details: OrderDetails<String>,
     ) -> StdResult<AppResponse>;
 
     fn stargaze_mocks_marketplace_try_accept_bid(
         &mut self,
         sender: ProjectAccount,
-        collection: ProjectNft,
-        token_id: &str,
-        bidder: ProjectAccount,
-        finder: &Option<&str>,
+        id: &str,
+        details: OrderDetails<String>,
     ) -> StdResult<AppResponse>;
 
     fn stargaze_mocks_marketplace_try_set_bids(&mut self, bids: &[Bid]) -> StdResult<AppResponse>;
 
-    fn stargaze_mocks_marketplace_collection_bids_sorted_by_price(
-        &self,
-        collection: ProjectNft,
-        start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
-    ) -> StdResult<CollectionBidsResponse>;
+    fn stargaze_mocks_marketplace_try_set_royalty_registry(
+        &mut self,
+        royalty_registry: &Addr,
+    ) -> StdResult<AppResponse>;
 
-    fn stargaze_mocks_marketplace_collection_collection_bids_by_bidder(
+    fn stargaze_mocks_marketplace_query_config(
         &self,
-        bidder: ProjectAccount,
-        start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
-    ) -> StdResult<CollectionBidsResponse>;
+    ) -> StdResult<stargaze_marketplace_v2::state::Config<Addr>>;
 }
 
 impl StargazeMocksMarketplaceExtension for Project {
@@ -54,21 +45,18 @@ impl StargazeMocksMarketplaceExtension for Project {
     fn stargaze_mocks_marketplace_try_accept_collection_bid(
         &mut self,
         sender: ProjectAccount,
-        collection: ProjectNft,
+        id: &str,
         token_id: &str,
-        bidder: ProjectAccount,
-        finder: &Option<&str>,
+        details: OrderDetails<String>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_stargaze_mocks_marketplace_address(),
                 &ExecuteMsg::AcceptCollectionBid {
-                    collection: collection.to_string(),
-                    token_id: token_id.parse().unwrap(),
-                    bidder: bidder.to_string(),
-                    finder: finder.as_ref().map(|x| x.to_string()),
-                    amount: Uint128::zero(),
+                    id: id.to_string(),
+                    token_id: token_id.to_string(),
+                    details,
                 },
                 &[],
             )
@@ -79,21 +67,16 @@ impl StargazeMocksMarketplaceExtension for Project {
     fn stargaze_mocks_marketplace_try_accept_bid(
         &mut self,
         sender: ProjectAccount,
-        collection: ProjectNft,
-        token_id: &str,
-        bidder: ProjectAccount,
-        finder: &Option<&str>,
+        id: &str,
+        details: OrderDetails<String>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_stargaze_mocks_marketplace_address(),
                 &ExecuteMsg::AcceptBid {
-                    collection: collection.to_string(),
-                    token_id: token_id.parse().unwrap(),
-                    bidder: bidder.to_string(),
-                    finder: finder.as_ref().map(|x| x.to_string()),
-                    amount: Uint128::zero(),
+                    id: id.to_string(),
+                    details,
                 },
                 &[],
             )
@@ -113,43 +96,23 @@ impl StargazeMocksMarketplaceExtension for Project {
     }
 
     #[track_caller]
-    fn stargaze_mocks_marketplace_collection_bids_sorted_by_price(
-        &self,
-        collection: ProjectNft,
-        start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
-    ) -> StdResult<CollectionBidsResponse> {
-        self.app.wrap().query_wasm_smart(
-            self.get_stargaze_mocks_marketplace_address(),
-            &QueryMsg::CollectionBidsSortedByPrice {
-                collection: collection.to_string(),
-                start_after: start_after.as_ref().map(|x| CollectionBidOffset {
-                    collection: x.to_string(),
-                    bidder: String::default(),
-                    price: Uint128::default(),
-                }),
-                limit: limit.to_owned(),
-            },
-        )
+    fn stargaze_mocks_marketplace_try_set_royalty_registry(
+        &mut self,
+        royalty_registry: &Addr,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .wasm_sudo(
+                self.get_stargaze_mocks_marketplace_address(),
+                &SudoMsg::SetRoyaltyRegistry(royalty_registry.to_string()),
+            )
+            .map_err(parse_err)
     }
 
     #[track_caller]
-    fn stargaze_mocks_marketplace_collection_collection_bids_by_bidder(
-        &self,
-        bidder: ProjectAccount,
-        start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
-    ) -> StdResult<CollectionBidsResponse> {
+    fn stargaze_mocks_marketplace_query_config(&self) -> StdResult<Config<Addr>> {
         self.app.wrap().query_wasm_smart(
             self.get_stargaze_mocks_marketplace_address(),
-            &QueryMsg::CollectionBidsByBidder {
-                bidder: bidder.to_string(),
-                start_after: start_after.as_ref().map(|x| CollectionOffset {
-                    collection: x.to_string(),
-                    token_id: u32::default(),
-                }),
-                limit: limit.to_owned(),
-            },
+            &QueryMsg::Config {},
         )
     }
 }

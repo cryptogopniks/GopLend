@@ -5,13 +5,12 @@ use goplend_base::{
     adapters::{
         dex::stargaze::types::Route,
         marketplace::stargaze::{
-            msg::{ExecuteMsg, QueryMsg, QueryOffersByCollectionAddressResponse},
-            types::{Config, MarketplaceVersion, PlatformType},
+            msg::{ExecuteMsg, QueryCollectionOffersResponse, QueryMsg},
+            types::Config,
         },
     },
     error::parse_err,
 };
-use sg_marketplace::msg::{BidOffset, CollectionBidOffset};
 
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
@@ -32,7 +31,6 @@ pub trait AdapterMarketplaceStargazeExtension {
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
         adapter_dex: &Option<Addr>,
-        marketplace_version: &Option<MarketplaceVersion>,
     ) -> StdResult<AppResponse>;
 
     fn adapter_marketplace_stargaze_try_accept_offers(
@@ -42,17 +40,20 @@ pub trait AdapterMarketplaceStargazeExtension {
         route: &Route,
     ) -> StdResult<AppResponse>;
 
-    fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config>;
-
-    fn adapter_marketplace_stargaze_query_offers_by_collection_address(
+    fn adapter_marketplace_stargaze_query_token_offers(
         &self,
-        platform_type: PlatformType,
         collection_address: impl ToString,
-        expiration_delay: u64,
-        start_after_collection_offer: &Option<CollectionBidOffset>,
-        start_after_token_offer: &Option<BidOffset>,
-        limit: &Option<u32>,
-    ) -> StdResult<QueryOffersByCollectionAddressResponse>;
+        token_list: &[&str],
+        limit: u32,
+    ) -> StdResult<Vec<(String, Vec<stargaze_marketplace_v2::orders::Bid>)>>;
+
+    fn adapter_marketplace_stargaze_query_collection_offers(
+        &self,
+        collection_address: impl ToString,
+        limit: u32,
+    ) -> StdResult<QueryCollectionOffersResponse>;
+
+    fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config>;
 }
 
 impl AdapterMarketplaceStargazeExtension for Project {
@@ -82,7 +83,6 @@ impl AdapterMarketplaceStargazeExtension for Project {
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
         adapter_dex: &Option<Addr>,
-        marketplace_version: &Option<MarketplaceVersion>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -98,7 +98,6 @@ impl AdapterMarketplaceStargazeExtension for Project {
                     oracle: oracle.as_ref().map(|x| x.to_string()),
                     marketplace: marketplace.as_ref().map(|x| x.to_string()),
                     adapter_dex: adapter_dex.as_ref().map(|x| x.to_string()),
-                    marketplace_version: marketplace_version.to_owned(),
                 },
                 &[],
             )
@@ -126,33 +125,42 @@ impl AdapterMarketplaceStargazeExtension for Project {
     }
 
     #[track_caller]
-    fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config> {
+    fn adapter_marketplace_stargaze_query_token_offers(
+        &self,
+        collection_address: impl ToString,
+        token_list: &[&str],
+        limit: u32,
+    ) -> StdResult<Vec<(String, Vec<stargaze_marketplace_v2::orders::Bid>)>> {
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryConfig {},
+            &QueryMsg::QueryTokenOffers {
+                collection_address: collection_address.to_string(),
+                token_list: token_list.iter().map(|x| x.to_string()).collect(),
+                limit,
+            },
         )
     }
 
     #[track_caller]
-    fn adapter_marketplace_stargaze_query_offers_by_collection_address(
+    fn adapter_marketplace_stargaze_query_collection_offers(
         &self,
-        platform_type: PlatformType,
         collection_address: impl ToString,
-        expiration_delay: u64,
-        start_after_collection_offer: &Option<CollectionBidOffset>,
-        start_after_token_offer: &Option<BidOffset>,
-        limit: &Option<u32>,
-    ) -> StdResult<QueryOffersByCollectionAddressResponse> {
+        limit: u32,
+    ) -> StdResult<QueryCollectionOffersResponse> {
         self.app.wrap().query_wasm_smart(
             self.get_adapter_marketplace_stargaze_address(),
-            &QueryMsg::QueryOffersByCollectionAddress {
-                platform_type,
+            &QueryMsg::QueryCollectionOffers {
                 collection_address: collection_address.to_string(),
-                expiration_delay,
-                start_after_collection_offer: start_after_collection_offer.to_owned(),
-                start_after_token_offer: start_after_token_offer.to_owned(),
-                limit: limit.to_owned(),
+                limit,
             },
+        )
+    }
+
+    #[track_caller]
+    fn adapter_marketplace_stargaze_query_config(&self) -> StdResult<Config> {
+        self.app.wrap().query_wasm_smart(
+            self.get_adapter_marketplace_stargaze_address(),
+            &QueryMsg::QueryConfig {},
         )
     }
 }

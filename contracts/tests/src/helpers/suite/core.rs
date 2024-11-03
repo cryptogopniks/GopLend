@@ -26,6 +26,7 @@ use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
     oracle::OracleExtension,
+    stargaze_mocks_marketplace::StargazeMocksMarketplaceExtension,
     suite::{
         codes::WithCodes,
         types::{
@@ -51,6 +52,7 @@ pub struct Project {
     cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
     stargaze_mocks_marketplace_code_id: u64,
+    stargaze_mocks_royalty_registry_code_id: u64,
     adapter_dex_stargaze_mocks_code_id: u64,
 
     // contract code id
@@ -65,6 +67,7 @@ pub struct Project {
     gopniks_address: Addr,
     pinjeons_address: Addr,
     stargaze_mocks_marketplace_address: Addr,
+    stargaze_mocks_royalty_registry_address: Addr,
     adapter_dex_stargaze_mocks_address: Addr,
 
     // contract address
@@ -89,6 +92,7 @@ impl Project {
             cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
             stargaze_mocks_marketplace_code_id: 0,
+            stargaze_mocks_royalty_registry_code_id: 0,
             adapter_dex_stargaze_mocks_code_id: 0,
 
             lending_platform_code_id: 0,
@@ -101,6 +105,7 @@ impl Project {
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
             stargaze_mocks_marketplace_address: Addr::unchecked(""),
+            stargaze_mocks_royalty_registry_address: Addr::unchecked(""),
             adapter_dex_stargaze_mocks_address: Addr::unchecked(""),
 
             lending_platform_main_address: Addr::unchecked(""),
@@ -123,6 +128,8 @@ impl Project {
         let cw20_base_code_id = project.store_cw20_base_code();
         let cw721_base_code_id = project.store_cw721_base_code();
         let stargaze_mocks_marketplace_code_id = project.store_stargaze_mocks_marketplace_code();
+        let stargaze_mocks_royalty_registry_code_id =
+            project.store_stargaze_mocks_royalty_registry_code();
         let adapter_dex_stargaze_mocks_code_id = project.store_adapter_dex_stargaze_mocks_code();
 
         // contracts
@@ -172,21 +179,25 @@ impl Project {
             stargaze_mocks_marketplace_code_id,
             &[
                 Bid {
+                    id: "1".to_string(),
                     bidder: ProjectAccount::John.into(),
                     collection: ProjectNft::Gopniks.into(),
                     price: Uint128::new(700),
                 },
                 Bid {
+                    id: "2".to_string(),
                     bidder: ProjectAccount::John.into(),
                     collection: ProjectNft::Pinjeons.into(),
                     price: Uint128::new(700),
                 },
                 Bid {
+                    id: "3".to_string(),
                     bidder: ProjectAccount::Kate.into(),
                     collection: ProjectNft::Gopniks.into(),
                     price: Uint128::new(700),
                 },
                 Bid {
+                    id: "4".to_string(),
                     bidder: ProjectAccount::Kate.into(),
                     collection: ProjectNft::Pinjeons.into(),
                     price: Uint128::new(700),
@@ -195,6 +206,9 @@ impl Project {
             ProjectAccount::Admin.get_initial_funds_amount() / 10,
             ProjectCoin::Stars,
         );
+
+        let stargaze_mocks_royalty_registry_address = project
+            .instantiate_stargaze_mocks_royalty_registry(stargaze_mocks_royalty_registry_code_id);
 
         let adapter_dex_stargaze_mocks_address = project.instantiate_adapter_dex_stargaze_mocks(
             adapter_dex_stargaze_mocks_code_id,
@@ -296,7 +310,6 @@ impl Project {
                 &None,
                 &None,
                 &None,
-                &None,
             );
         let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
             adapter_marketplace_kujira_code_id,
@@ -307,6 +320,7 @@ impl Project {
         project = Self {
             cw20_base_code_id,
             stargaze_mocks_marketplace_code_id,
+            stargaze_mocks_royalty_registry_code_id,
             adapter_dex_stargaze_mocks_code_id,
 
             lending_platform_code_id,
@@ -319,6 +333,7 @@ impl Project {
             gopniks_address,
             pinjeons_address,
             stargaze_mocks_marketplace_address,
+            stargaze_mocks_royalty_registry_address,
             adapter_dex_stargaze_mocks_address,
 
             lending_platform_main_address,
@@ -454,18 +469,8 @@ impl Project {
                 &Some(project.get_oracle_address()),
                 &Some(project.get_stargaze_mocks_marketplace_address()),
                 &Some(project.get_adapter_dex_stargaze_mocks_address()),
-                &None,
             )
             .unwrap();
-
-        // project
-        //     .adapter_marketplace_kujira_try_update_config(
-        //         ProjectAccount::Admin,
-        //         &None,
-        //         &None,
-        //         &Some(project.get_lending_platform_address()),
-        //     )
-        //     .unwrap();
 
         // add 100k STARS initial liquidity
         project
@@ -487,6 +492,13 @@ impl Project {
             )
             .unwrap();
 
+        // specify royalty registry in marketplace
+        project
+            .stargaze_mocks_marketplace_try_set_royalty_registry(
+                &project.get_stargaze_mocks_royalty_registry_address(),
+            )
+            .unwrap();
+
         project
     }
 
@@ -497,6 +509,10 @@ impl Project {
 
     pub fn get_stargaze_mocks_marketplace_code_id(&self) -> u64 {
         self.stargaze_mocks_marketplace_code_id
+    }
+
+    pub fn get_stargaze_mocks_royalty_registry_code_id(&self) -> u64 {
+        self.stargaze_mocks_royalty_registry_code_id
     }
 
     pub fn get_adapter_dex_stargaze_mocks_code_id(&self) -> u64 {
@@ -538,6 +554,10 @@ impl Project {
 
     pub fn get_stargaze_mocks_marketplace_address(&self) -> Addr {
         self.stargaze_mocks_marketplace_address.clone()
+    }
+
+    pub fn get_stargaze_mocks_royalty_registry_address(&self) -> Addr {
+        self.stargaze_mocks_royalty_registry_address.clone()
     }
 
     pub fn get_adapter_dex_stargaze_mocks_address(&self) -> Addr {

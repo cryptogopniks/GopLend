@@ -22,7 +22,7 @@ cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw721 = { workspace = true }
 cw721-base = { workspace = true }
-sg-marketplace = { workspace = true }
+stargaze-marketplace-v2 = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
@@ -33,6 +33,7 @@ speculoos = { workspace = true }
 
 goplend-base = { workspace = true }
 stargaze-mocks-marketplace = { workspace = true }
+stargaze-mocks-royalty-registry = { workspace = true }
 adapter-dex-stargaze-mocks = { workspace = true }
 
 lending-platform = { workspace = true }

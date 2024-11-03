@@ -313,16 +313,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmwasm-storage"
-version = "1.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66de2ab9db04757bcedef2b5984fbe536903ada4a8a9766717a4a71197ef34f6"
-dependencies = [
- "cosmwasm-std",
- "serde",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -554,19 +544,6 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-utils 0.15.1",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a45a8794a5dd33b66af34caee52a7beceb690856adcc1682b6e3db88b2cdee62"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.16.0",
  "schemars",
  "serde",
 ]
@@ -1103,7 +1080,6 @@ dependencies = [
  "goplend-base",
  "semver",
  "serde",
- "sg-marketplace",
  "sg721 3.14.0",
  "sg721-base 3.14.0",
 ]
@@ -1623,22 +1599,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sg-controllers"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae7b01b8ef3d94a771e26e71fa009535780114c3164d765b03856c87846930b3"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "schemars",
- "serde",
- "sg-std 2.4.0",
- "thiserror",
-]
-
-[[package]]
 name = "sg-index-query"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1647,32 +1607,6 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
-]
-
-[[package]]
-name = "sg-marketplace"
-version = "1.8.0"
-source = "git+https://github.com/public-awesome/marketplace.git?rev=b9780c36619adec7d6f79453ddbf449ae26b9112#b9780c36619adec7d6f79453ddbf449ae26b9112"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "cw2 0.16.0",
- "cw20 0.16.0",
- "cw721 0.16.0",
- "cw721-base 0.16.0",
- "schemars",
- "semver",
- "serde",
- "sg-controllers",
- "sg-std 2.4.0",
- "sg1",
- "sg2",
- "sg721 2.4.0",
- "sg721-base 2.4.0",
- "thiserror",
 ]
 
 [[package]]
@@ -1718,35 +1652,6 @@ dependencies = [
  "cw721 0.18.0",
  "schemars",
  "serde",
- "thiserror",
-]
-
-[[package]]
-name = "sg1"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c691fbf35f3deb9e2944b0a82db7280798a1b4b17c7e9fe22b78d89c5276c8e"
-dependencies = [
- "cosmwasm-std",
- "cw-utils 0.16.0",
- "serde",
- "sg-std 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "sg2"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0accfb1855c12e486b5c1afbd858652fabdf00bdacd221a9f96121c1d1955a62"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "schemars",
- "serde",
- "sg721 2.4.0",
  "thiserror",
 ]
 
@@ -1918,14 +1823,29 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
- "cw-utils 0.16.0",
  "cw2 1.1.2",
  "cw721 0.18.0",
  "goplend-base",
  "semver",
  "serde",
- "sg-marketplace",
+ "sg-index-query",
  "stargaze-marketplace-v2",
+]
+
+[[package]]
+name = "stargaze-mocks-royalty-registry"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw721 0.18.0",
+ "goplend-base",
+ "semver",
+ "serde",
+ "sg-index-query",
+ "stargaze-royalty-registry 0.3.0 (git+https://github.com/public-awesome/core.git?rev=6982c764996ea3fa0cbad4b4404a117f55f4c564)",
 ]
 
 [[package]]
@@ -2072,9 +1992,10 @@ dependencies = [
  "minter-kujira",
  "oracle",
  "serde",
- "sg-marketplace",
  "speculoos",
+ "stargaze-marketplace-v2",
  "stargaze-mocks-marketplace",
+ "stargaze-mocks-royalty-registry",
  "strum",
  "strum_macros",
  "thiserror",

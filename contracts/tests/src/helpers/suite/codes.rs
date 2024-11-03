@@ -5,7 +5,7 @@ use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
-    adapters::{self, marketplace::stargaze::types::MarketplaceVersion},
+    adapters,
     assets::{Currency, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
@@ -21,6 +21,7 @@ pub trait WithCodes {
     fn store_cw20_base_code(&mut self) -> u64;
     fn store_cw721_base_code(&mut self) -> u64;
     fn store_stargaze_mocks_marketplace_code(&mut self) -> u64;
+    fn store_stargaze_mocks_royalty_registry_code(&mut self) -> u64;
     fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64;
 
     // store contracts
@@ -30,7 +31,6 @@ pub trait WithCodes {
     fn store_adapter_scheduler_common_code(&mut self) -> u64;
     fn store_adapter_marketplace_stargaze_code(&mut self) -> u64;
     fn store_adapter_marketplace_kujira_code(&mut self) -> u64;
-    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -41,6 +41,10 @@ pub trait WithCodes {
         bids: &[stargaze_mocks_marketplace::state::Bid],
         amount: u128,
         denom: ProjectCoin,
+    ) -> Addr;
+    fn instantiate_stargaze_mocks_royalty_registry(
+        &mut self,
+        stargaze_mocks_royalty_registry_code_id: u64,
     ) -> Addr;
     #[allow(clippy::too_many_arguments)]
     fn instantiate_adapter_dex_stargaze_mocks(
@@ -126,7 +130,6 @@ pub trait WithCodes {
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
         adapter_dex: &Option<Addr>,
-        marketplace_version: &Option<MarketplaceVersion>,
     ) -> Addr;
 
     fn instantiate_adapter_marketplace_kujira(
@@ -172,6 +175,14 @@ impl WithCodes for Project {
             )
             .with_sudo(stargaze_mocks_marketplace::contract::sudo),
         ))
+    }
+
+    fn store_stargaze_mocks_royalty_registry_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(ContractWrapper::new(
+            stargaze_mocks_royalty_registry::contract::execute,
+            stargaze_mocks_royalty_registry::contract::instantiate,
+            stargaze_mocks_royalty_registry::contract::query,
+        )))
     }
 
     fn store_adapter_dex_stargaze_mocks_code(&mut self) -> u64 {
@@ -230,19 +241,6 @@ impl WithCodes for Project {
             .with_migrate(adapter_scheduler_common::contract::migrate),
         ))
     }
-
-    // fn store_adapter_scheduler_stargaze_code(&mut self) -> u64 {
-    //     self.app.store_code(Box::new(
-    //         ContractWrapper::new(
-    //             adapter_scheduler_stargaze::contract::execute,
-    //             adapter_scheduler_stargaze::contract::instantiate,
-    //             adapter_scheduler_stargaze::contract::query,
-    //         )
-    //         .with_reply(adapter_scheduler_stargaze::contract::reply)
-    //         .with_migrate(adapter_scheduler_stargaze::contract::migrate)
-    //         .with_sudo(adapter_scheduler_stargaze::contract::sudo),
-    //     ))
-    // }
 
     fn store_adapter_marketplace_stargaze_code(&mut self) -> u64 {
         self.app.store_code(Box::new(
@@ -342,6 +340,22 @@ impl WithCodes for Project {
                 },
                 &coins(amount, denom.to_string()),
                 "stargaze_mocks_marketplace",
+                Some(ProjectAccount::Admin.to_string()),
+            )
+            .unwrap()
+    }
+
+    fn instantiate_stargaze_mocks_royalty_registry(
+        &mut self,
+        stargaze_mocks_royalty_registry_code_id: u64,
+    ) -> Addr {
+        self.app
+            .instantiate_contract(
+                stargaze_mocks_royalty_registry_code_id,
+                ProjectAccount::Admin.into(),
+                &stargaze_mocks_royalty_registry::msg::InstantiateMsg {},
+                &vec![],
+                "stargaze_mocks_royalty_registry",
                 Some(ProjectAccount::Admin.to_string()),
             )
             .unwrap()
@@ -521,7 +535,6 @@ impl WithCodes for Project {
         oracle: &Option<Addr>,
         marketplace: &Option<Addr>,
         adapter_dex: &Option<Addr>,
-        marketplace_version: &Option<MarketplaceVersion>,
     ) -> Addr {
         self.instantiate_contract(
             adapter_marketplace_stargaze_code_id,
@@ -533,7 +546,6 @@ impl WithCodes for Project {
                 oracle: oracle.as_ref().map(|x| x.to_string()),
                 marketplace: marketplace.as_ref().map(|x| x.to_string()),
                 adapter_dex: adapter_dex.as_ref().map(|x| x.to_string()),
-                marketplace_version: marketplace_version.to_owned(),
             },
         )
     }

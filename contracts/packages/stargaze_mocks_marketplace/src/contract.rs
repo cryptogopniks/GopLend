@@ -50,6 +50,32 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
+        QueryMsg::CollectionBidsByPrice {
+            collection,
+            denom,
+            query_options,
+        } => to_json_binary(&q::query_collection_bids_by_price(
+            deps,
+            env,
+            collection,
+            denom,
+            query_options,
+        )?),
+
+        QueryMsg::BidsByTokenPrice {
+            collection,
+            token_id,
+            denom,
+            query_options,
+        } => to_json_binary(&q::query_bids_by_token_price(
+            deps,
+            env,
+            collection,
+            token_id,
+            denom,
+            query_options,
+        )?),
+
         QueryMsg::Config {} => to_json_binary(&q::config(deps, env)?),
 
         _ => unimplemented!(),

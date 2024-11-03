@@ -1,65 +1,78 @@
-use cosmwasm_std::{Addr, Deps, Env, StdResult};
+use cosmwasm_std::{coin, Addr, Deps, Env, StdResult};
 
-use stargaze_marketplace_v2::state::Config;
+use goplend_base::adapters::marketplace::stargaze::state::{
+    PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
+};
+use sg_index_query::QueryOptions;
+use stargaze_marketplace_v2::{
+    msg::PriceOffset,
+    orders::{Bid, CollectionBid, OrderDetails},
+    state::{Config, Denom, TokenId},
+};
 
-use crate::state::ROYALTY_REGISTRY;
+use crate::state::{COLLECTION_OFFERS, ROYALTY_REGISTRY};
 
-// pub fn collection_bids_sorted_by_price(
-//     deps: Deps,
-//     env: Env,
-//     collection: Collection,
-//     _start_before: Option<CollectionBidOffset>,
-//     limit: Option<u32>,
-// ) -> StdResult<CollectionBidsResponse> {
-//     let limit = limit
-//         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-//         .min(PAGINATION_MAX_LIMIT) as usize;
+pub fn query_collection_bids_by_price(
+    deps: Deps,
+    _env: Env,
+    collection: String,
+    denom: Denom,
+    query_options: Option<QueryOptions<PriceOffset>>,
+) -> StdResult<Vec<CollectionBid>> {
+    let limit = query_options
+        .map(|x| x.limit.unwrap_or(PAGINATION_DEFAULT_LIMIT))
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
 
-//     let bids: Vec<CollectionBid> = COLLECTION_OFFERS
-//         .load(deps.storage)?
-//         .into_iter()
-//         .filter(|x| x.collection == collection)
-//         .take(limit)
-//         .map(|x| CollectionBid {
-//             collection: x.collection,
-//             bidder: x.bidder,
-//             price: x.price,
-//             finders_fee_bps: None,
-//             expires_at: env.block.time.plus_days(1_000),
-//         })
-//         .collect();
+    Ok(COLLECTION_OFFERS
+        .load(deps.storage)?
+        .into_iter()
+        .filter(|x| x.collection == collection)
+        .take(limit)
+        .map(|x| CollectionBid {
+            id: x.id,
+            creator: x.bidder,
+            collection: x.collection,
+            details: OrderDetails {
+                price: coin(x.price.u128(), denom.clone()),
+                finder: None,
+                recipient: None,
+            },
+        })
+        .collect())
+}
 
-//     Ok(CollectionBidsResponse { bids })
-// }
+pub fn query_bids_by_token_price(
+    deps: Deps,
+    _env: Env,
+    collection: String,
+    token_id: TokenId,
+    denom: Denom,
+    query_options: Option<QueryOptions<PriceOffset>>,
+) -> StdResult<Vec<Bid>> {
+    let limit = query_options
+        .map(|x| x.limit.unwrap_or(PAGINATION_DEFAULT_LIMIT))
+        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
+        .min(PAGINATION_MAX_LIMIT) as usize;
 
-// pub fn bids_sorted_by_price(
-//     deps: Deps,
-//     env: Env,
-//     collection: Collection,
-//     _start_before: Option<BidOffset>,
-//     limit: Option<u32>,
-// ) -> StdResult<BidsResponse> {
-//     let limit = limit
-//         .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-//         .min(PAGINATION_MAX_LIMIT) as usize;
-
-//     let bids: Vec<Bid> = COLLECTION_OFFERS
-//         .load(deps.storage)?
-//         .into_iter()
-//         .filter(|x| x.collection == collection)
-//         .take(limit)
-//         .map(|x| Bid {
-//             collection: x.collection,
-//             bidder: x.bidder,
-//             price: x.price,
-//             token_id: 5,
-//             finders_fee_bps: None,
-//             expires_at: env.block.time.plus_days(1_000),
-//         })
-//         .collect();
-
-//     Ok(BidsResponse { bids })
-// }
+    Ok(COLLECTION_OFFERS
+        .load(deps.storage)?
+        .into_iter()
+        .filter(|x| x.collection == collection)
+        .take(limit)
+        .map(|x| Bid {
+            id: x.id,
+            creator: x.bidder,
+            collection: x.collection,
+            token_id: token_id.to_string(),
+            details: OrderDetails {
+                price: coin(x.price.u128(), denom.clone()),
+                finder: None,
+                recipient: None,
+            },
+        })
+        .collect())
+}
 
 pub fn config(deps: Deps, env: Env) -> StdResult<Config<Addr>> {
     let royalty_registry = ROYALTY_REGISTRY.load(deps.storage)?;
