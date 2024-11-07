@@ -1020,6 +1020,7 @@ pub fn try_place_bid(
                     amount: asset_amount,
                     discount,
                     bid_type: BidType::LiquidationBid,
+                    order_id: None,
                 };
 
                 let bids = match x {
@@ -1238,6 +1239,7 @@ pub fn try_update_bid(
                                         amount: bid_amount,
                                         discount,
                                         bid_type: BidType::LiquidationBid,
+                                        order_id: None,
                                     }
                                 } else {
                                     z

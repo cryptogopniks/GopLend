@@ -356,6 +356,7 @@ pub fn match_collaterals_and_bids(
                         bid_amount: bid.amount,
                         bid_discount: bid.discount,
                         bid_type: bid.bid_type.clone(),
+                        order_id: bid.order_id.clone().unwrap_or_default(),
                     });
 
                     bid.amount = bid_amount - discounted_price;

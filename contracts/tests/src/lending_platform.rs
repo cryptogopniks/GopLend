@@ -18,8 +18,9 @@ use goplend_base::{
             MAX_DEPOSIT_APR,
         },
         types::{
-            Balances, BidType, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
-            LiquidationItem, Proposal, ProposalType, RegularBalances, ReserveBalances, Vault,
+            Balances, BidType, BiddedCollateralItem, Borrower, Collateral, Collection,
+            CollectionInfo, LiquidationBid, LiquidationItem, Proposal, ProposalType,
+            RegularBalances, ReserveBalances, TokenItem, Vault,
         },
     },
     oracle::types::RawPriceItem,
@@ -161,6 +162,7 @@ pub fn get_targets(
                             .iter()
                             .map(|x| x.id.to_owned())
                             .collect(),
+                        order_id: Some(x.id.clone()),
                     })
                     .collect();
 
@@ -3350,6 +3352,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -3538,6 +3541,7 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -3726,6 +3730,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -3914,6 +3919,7 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
                 amount: Uint128::new(LIQUIDATION_BID - COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -4096,6 +4102,7 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
                 amount: Uint128::new(LIQUIDATION_BID - 3 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -4284,6 +4291,7 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -4472,6 +4480,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -4660,6 +4669,7 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
                 amount: Uint128::new(LIQUIDATION_BID - 2 * COLLECTION_PRICE_AFTER),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -4863,6 +4873,7 @@ fn single_discount_liquidation() -> StdResult<()> {
                 ),
                 discount: str_to_dec(DISCOUNT),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         }];
 
@@ -5109,6 +5120,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                     ),
                     discount: str_to_dec(DISCOUNT_1),
                     bid_type: BidType::LiquidationBid,
+                    order_id: None,
                 },
                 LiquidationBid {
                     creation_date: 1571797429,
@@ -5123,6 +5135,7 @@ fn multiple_discount_liquidation() -> StdResult<()> {
                     ),
                     discount: str_to_dec(DISCOUNT_0),
                     bid_type: BidType::LiquidationBid,
+                    order_id: None,
                 },
             ],
         }];
@@ -5442,6 +5455,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 ),
                 discount: str_to_dec(DISCOUNT),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         },
         QueryLiquidationBidsByCollectionAddressListResponseItem {
@@ -5459,6 +5473,7 @@ fn multiple_collection_liquidation() -> StdResult<()> {
                 ),
                 discount: str_to_dec(DISCOUNT),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         },
     ];
@@ -8215,8 +8230,29 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         .into_iter()
         .map(|x| x.address.to_string())
         .collect::<Vec<String>>();
-    let targets = get_targets(&project, PlatformType::Stable, &borrowers)?;
-    println!("targets {:#?}", &targets);
+    let mut _targets = get_targets(&project, PlatformType::Stable, &borrowers)?;
+    // rewrite targets as we don't have v1
+    // project.adapter_marketplace_stargaze_query_offers_by_collection_address
+    // to get correct targets for tests anymore
+    let targets = vec![LiquidationItem {
+        borrower: ProjectAccount::Bob.to_string(),
+        liquidation_set: vec![BiddedCollateralItem {
+            collection: ProjectNft::Gopniks.into(),
+            token_item: TokenItem {
+                id: "4".to_string(),
+                creation_date: 1571797419,
+            },
+            owner: ProjectAccount::Bob.into(),
+            liquidator: ProjectAccount::John.into(),
+            bid_creation_date: 1571797519,
+            liquidation_price: Uint128::new(700),
+            collateral_price: Uint128::new(700),
+            bid_amount: Uint128::new(700),
+            bid_discount: str_to_dec("0.0002"),
+            bid_type: BidType::CollectionOffer,
+            order_id: "1".to_string(),
+        }],
+    }];
 
     project.adapter_scheduler_common_try_push(
         ProjectAccount::Scheduler,
@@ -8225,59 +8261,59 @@ fn marketplace_offer_liquidation_stablecoin_market() -> StdResult<()> {
         &Route::Neutron,
     )?;
 
-    // // check results
-    // let ltv_after = project.lending_platform_query_conditional_ltv(
-    //     PlatformType::Stable,
-    //     ProjectAccount::Bob,
-    //     &None,
-    //     &None,
-    //     &None,
-    //     &None,
-    // )?;
-    // let ltv_list_after =
-    //     project.lending_platform_query_ltv_list(PlatformType::Stable, &None, &None)?;
+    // check results
+    let ltv_after = project.lending_platform_query_conditional_ltv(
+        PlatformType::Stable,
+        ProjectAccount::Bob,
+        &None,
+        &None,
+        &None,
+        &None,
+    )?;
+    let ltv_list_after =
+        project.lending_platform_query_ltv_list(PlatformType::Stable, &None, &None)?;
 
-    // let borrower =
-    //     project.lending_platform_query_borrower(PlatformType::Stable, ProjectAccount::Bob)?;
-    // let collateral =
-    //     project.lending_platform_query_collateral(PlatformType::Stable, ProjectNft::Gopniks)?;
-    // let collateral_by_owner = project
-    //     .lending_platform_query_collateral_by_owner(PlatformType::Stable, ProjectAccount::Bob)?;
+    let borrower =
+        project.lending_platform_query_borrower(PlatformType::Stable, ProjectAccount::Bob)?;
+    let collateral =
+        project.lending_platform_query_collateral(PlatformType::Stable, ProjectNft::Gopniks)?;
+    let collateral_by_owner = project
+        .lending_platform_query_collateral_by_owner(PlatformType::Stable, ProjectAccount::Bob)?;
 
-    // let QueryCollectionOffersResponse {
-    //     collection_bids: offers,
-    //     ..
-    // } = &project.adapter_marketplace_stargaze_query_collection_offers(ProjectNft::Gopniks, 10)?;
+    let QueryCollectionOffersResponse {
+        collection_bids: offers,
+        ..
+    } = &project.adapter_marketplace_stargaze_query_collection_offers(ProjectNft::Gopniks, 10)?;
 
-    // // check balances
-    // let balances = project.lending_platform_query_balances(PlatformType::Stable)?;
-    // let platform_balance_after = project.query_balance(
-    //     project.get_lending_platform_stable_address(),
-    //     &ProjectCoin::Usdc,
-    // )?;
+    // check balances
+    let balances = project.lending_platform_query_balances(PlatformType::Stable)?;
+    let platform_balance_after = project.query_balance(
+        project.get_lending_platform_stable_address(),
+        &ProjectCoin::Usdc,
+    )?;
 
-    // assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
-    // // borrower was removed from storage
-    // assert_that(&ltv_list_after).is_equal_to(vec![]);
-    // // borrower was removed from storage
-    // assert_that(&borrower).is_equal_to(Borrower::default());
+    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    // borrower was removed from storage
+    assert_that(&ltv_list_after).is_equal_to(vec![]);
+    // borrower was removed from storage
+    assert_that(&borrower).is_equal_to(Borrower::default());
 
-    // // collateral is completely removed as it was sent to marketplace bidder
-    // assert_that(&collateral).is_equal_to(vec![]);
-    // assert_that(&collateral_by_owner).is_equal_to(vec![]);
-    // assert_that(&offers.len()).is_equal_to(1);
+    // collateral is completely removed as it was sent to marketplace bidder
+    assert_that(&collateral).is_equal_to(vec![]);
+    assert_that(&collateral_by_owner).is_equal_to(vec![]);
+    assert_that(&offers.len()).is_equal_to(1);
 
-    // // 570 + (700 - 570 - 0.05 * 700) = 665
-    // assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
-    // assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
-    // assert_that(&(platform_balance_after - platform_balance_before)).is_equal_to(665);
+    // 570 + (700 - 570 - 0.05 * 700) = 665
+    assert_that(&balances.regular.main_pool.u128()).is_equal_to(665);
+    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+    assert_that(&(platform_balance_after - platform_balance_before)).is_equal_to(665);
 
-    // let res = project.query_all_nft(ProjectAccount::John);
-    // let (_collection, token_info) = res
-    //     .iter()
-    //     .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
-    //     .ok_or(ContractError::CollectionIsNotFound)?;
-    // assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
+    let res = project.query_all_nft(ProjectAccount::John);
+    let (_collection, token_info) = res
+        .iter()
+        .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
+        .ok_or(ContractError::CollectionIsNotFound)?;
+    assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
 
     Ok(())
 }
@@ -9178,6 +9214,7 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
                 amount: Uint128::new(800),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         },
     ]);
@@ -9191,6 +9228,7 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
                 amount: Uint128::new(800),
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             }],
         },
     ]);

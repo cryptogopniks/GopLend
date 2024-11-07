@@ -52,6 +52,8 @@ pub struct LiquidationBid {
     pub amount: Uint128,
     pub discount: Decimal,
     pub bid_type: BidType,
+    /// only for CollectionOffer and TokenOffer
+    pub order_id: Option<String>,
 }
 
 #[derive(Eq)]
@@ -114,6 +116,7 @@ pub struct BiddedCollateralItem {
     pub bid_amount: Uint128,
     pub bid_discount: Decimal,
     pub bid_type: BidType,
+    pub order_id: String,
 }
 
 #[derive(Default)]

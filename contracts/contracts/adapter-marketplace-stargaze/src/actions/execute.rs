@@ -23,8 +23,6 @@ use goplend_base::{
     },
 };
 
-use crate::helpers::wrap_collateral_list;
-
 pub fn try_accept_admin_role(
     deps: DepsMut,
     env: Env,
@@ -223,14 +221,6 @@ pub fn try_accept_offers(
         &goplend_base::lending_platform::msg::QueryMsg::QueryCommonConfig {},
     )?;
 
-    let id_and_bidded_collateral_item_list = wrap_collateral_list(
-        &deps.querier,
-        &collection_list,
-        &bidded_collateral_item_list,
-        marketplace,
-        &main_currency.token.try_get_native()?,
-    );
-
     let mut msg_list = get_collection_operator_approvals(
         deps.querier,
         &collection_list,
@@ -240,13 +230,14 @@ pub fn try_accept_offers(
 
     let mut liquidated_value = Uint128::zero();
 
-    for (order_id, bidded_collateral_item) in id_and_bidded_collateral_item_list {
+    for bidded_collateral_item in bidded_collateral_item_list {
         let BiddedCollateralItem {
             collection,
             token_item,
             liquidation_price,
             bid_amount,
             bid_type,
+            order_id,
             ..
         } = bidded_collateral_item;
 

@@ -85,6 +85,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(75),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // out of scope
@@ -97,6 +98,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(750),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // 2 tokens bid, 1 token funds
@@ -109,6 +111,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -120,6 +123,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // offer
@@ -132,6 +136,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(900),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
+                order_id: None,
             },
         ),
         // pingeons
@@ -144,6 +149,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(150),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -155,6 +161,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -166,6 +173,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(120),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::CollectionOffer,
+                order_id: None,
             },
         ),
         (
@@ -177,6 +185,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -188,6 +197,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
                 amount: Uint128::new(225),
                 discount: str_to_dec("0.2"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
     ];
@@ -214,6 +224,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(300),
             bid_discount: str_to_dec("0.05"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
@@ -226,6 +237,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(900),
             bid_discount: str_to_dec("0"),
             bid_type: BidType::CollectionOffer,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Gopniks.into(),
@@ -238,6 +250,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(300),
             bid_discount: str_to_dec("0.1"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -250,6 +263,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(125),
             bid_discount: str_to_dec("0.05"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -262,6 +276,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(225),
             bid_discount: str_to_dec("0.2"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -274,6 +289,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(125),
             bid_discount: str_to_dec("0.1"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -286,6 +302,7 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
             bid_amount: Uint128::new(120),
             bid_discount: str_to_dec("0.05"),
             bid_type: BidType::CollectionOffer,
+            order_id: String::default(),
         },
     ]);
 
@@ -319,6 +336,7 @@ fn calc_liquidation_sets_default() {
         bid_amount: Uint128::new(100),
         bid_discount: u128_to_dec(discount as u128),
         bid_type: BidType::LiquidationBid,
+        order_id: String::default(),
     })
     .collect();
 
@@ -374,6 +392,7 @@ fn calc_liquidation_sets_default() {
             bid_amount: Uint128::new(100),
             bid_discount: u128_to_dec(10u128),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: Addr::unchecked("collection"),
@@ -386,6 +405,7 @@ fn calc_liquidation_sets_default() {
             bid_amount: Uint128::new(100),
             bid_discount: u128_to_dec(10u128),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: Addr::unchecked("collection"),
@@ -398,6 +418,7 @@ fn calc_liquidation_sets_default() {
             bid_amount: Uint128::new(100),
             bid_discount: u128_to_dec(8u128),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
     ]);
 }
@@ -474,6 +495,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(75),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // out of scope
@@ -486,6 +508,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(750),
                 discount: str_to_dec("0"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // 2 tokens bid, 1 token funds
@@ -498,6 +521,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -509,6 +533,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(300),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         // offer
@@ -521,6 +546,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(900),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
+                order_id: None,
             },
         ),
         // pingeons
@@ -533,6 +559,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(150),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -544,6 +571,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.1"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -555,6 +583,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(125),
                 discount: str_to_dec("0"),
                 bid_type: BidType::CollectionOffer,
+                order_id: None,
             },
         ),
         (
@@ -566,6 +595,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(125),
                 discount: str_to_dec("0.05"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
         (
@@ -577,6 +607,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
                 amount: Uint128::new(225),
                 discount: str_to_dec("0.2"),
                 bid_type: BidType::LiquidationBid,
+                order_id: None,
             },
         ),
     ];
@@ -638,6 +669,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             bid_amount: Uint128::new(300),
             bid_discount: str_to_dec("0.1"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -650,6 +682,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             bid_amount: Uint128::new(125),
             bid_discount: str_to_dec("0"),
             bid_type: BidType::CollectionOffer,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -662,6 +695,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             bid_amount: Uint128::new(125),
             bid_discount: str_to_dec("0.05"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -674,6 +708,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             bid_amount: Uint128::new(125),
             bid_discount: str_to_dec("0.1"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
         BiddedCollateralItem {
             collection: ProjectNft::Pinjeons.into(),
@@ -686,6 +721,7 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
             bid_amount: Uint128::new(225),
             bid_discount: str_to_dec("0.2"),
             bid_type: BidType::LiquidationBid,
+            order_id: String::default(),
         },
     ]);
 
