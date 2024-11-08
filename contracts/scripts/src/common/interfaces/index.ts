@@ -1,9 +1,10 @@
 import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
-import { PlatformType } from "../codegen/AdapterMarketplaceStargaze.types";
 import { BidType, Collateral } from "../codegen/LendingPlatform.types";
 import { Label, NetworkName, Wasm } from "../config";
-import { Bid, CollectionBid } from "./stargaze-marketplace";
+import * as v2 from "./stargaze-marketplace-v2";
+
+type PlatformType = "main" | "stable";
 
 interface TargetBorrower {
   platformType: PlatformType;
@@ -17,8 +18,8 @@ interface TargetBorrower {
 }
 
 interface MarketplaceData {
-  tokenOfferList: [string, Bid[]][];
-  collectionOfferList: [string, CollectionBid[]][];
+  tokenOfferList: [string, v2.Bid[]][];
+  collectionOfferList: [string, v2.CollectionBid[]][];
   discountBaseList: [string, number][];
 }
 
@@ -32,6 +33,7 @@ interface LiquidationBidExtended {
   platformType: PlatformType;
   collectionOfferId: number;
   collectionAddress: string;
+  orderId: string;
 }
 
 interface AssetDescription {
@@ -55,7 +57,6 @@ interface PoolDatabase {
 
 interface Offer {
   price: number;
-  expires_at: number;
   feeRate: number;
 }
 
@@ -428,6 +429,7 @@ export type {
   NetworkConfig,
   NetworkName,
   ContractsConfig,
+  PlatformType,
 };
 
 export {

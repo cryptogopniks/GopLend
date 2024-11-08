@@ -4,11 +4,10 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { MarketplaceVersion, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, PlatformType, CollectionBidOffset, BidOffset, MigrateMsg, Timestamp, Uint64, QueryCollectionOffersResponse, CollectionBid, Config, ArrayOfTupleOfAddrAndUint128, QueryOffersByCollectionAddressResponse, LiquidationBid, ArrayOfTupleOfuint32AndArrayOfBid, Bid } from "./AdapterMarketplaceStargaze.types";
+import { InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, Route, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, QueryCollectionOffersResponse, CollectionBid, OrderDetailsForAddr, Coin, Config, ArrayOfTupleOfAddrAndUint128, ArrayOfTupleOfStringAndArrayOfBid, Bid } from "./AdapterMarketplaceStargaze.types";
 export interface AdapterMarketplaceStargazeMsg {
   contractAddress: string;
   sender: string;
@@ -19,7 +18,6 @@ export interface AdapterMarketplaceStargazeMsg {
     lendingPlatformMain,
     lendingPlatformStable,
     marketplace,
-    marketplaceVersion,
     oracle,
     worker
   }: {
@@ -28,7 +26,6 @@ export interface AdapterMarketplaceStargazeMsg {
     lendingPlatformMain?: string;
     lendingPlatformStable?: string;
     marketplace?: string;
-    marketplaceVersion?: MarketplaceVersion;
     oracle?: string;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
@@ -69,7 +66,6 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
     lendingPlatformMain,
     lendingPlatformStable,
     marketplace,
-    marketplaceVersion,
     oracle,
     worker
   }: {
@@ -78,7 +74,6 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
     lendingPlatformMain?: string;
     lendingPlatformStable?: string;
     marketplace?: string;
-    marketplaceVersion?: MarketplaceVersion;
     oracle?: string;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -94,7 +89,6 @@ export class AdapterMarketplaceStargazeMsgComposer implements AdapterMarketplace
             lending_platform_main: lendingPlatformMain,
             lending_platform_stable: lendingPlatformStable,
             marketplace,
-            marketplace_version: marketplaceVersion,
             oracle,
             worker
           }

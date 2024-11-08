@@ -1,18 +1,15 @@
 import { l } from "../../../common/utils";
 import { calcPrice } from "../math";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig } from "../../../common/interfaces";
+import { ChainConfig, PlatformType } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { getSgQueryHelpers } from "../../../common/account/sg-helpers";
 import {
-  LiquidationBid,
-  PlatformType,
-} from "../../../common/codegen/AdapterMarketplaceStargaze.types";
-import {
   QueryLiquidationBidsByCollectionAddressListResponseItem,
   TokenItem,
   Addr,
+  LiquidationBid,
 } from "../../../common/codegen/LendingPlatform.types";
 import {
   ENCODING,
@@ -178,18 +175,19 @@ async function main(userAddress: string) {
             );
 
             const liquidationBids: LiquidationBid[] = bids.map((x) => {
-              const findersFeeRate = Number(x.finders_fee_bps) / 100;
+              const findersFeeRate = 0; // TODO: check
 
               return {
                 creation_date: blockTime,
-                liquidator: x.bidder,
+                liquidator: x.creator,
                 token_id_list: [x.token_id.toString()],
                 amount: calcPrice(
-                  Number(x.price),
+                  Number(x.details.price),
                   isMain ? 1 : priceRatioStable
                 ).toString(),
                 discount: (discountBase + findersFeeRate).toString(),
                 bid_type: "token_offer",
+                order_id: x.id,
               };
             });
 
@@ -208,7 +206,7 @@ async function main(userAddress: string) {
             );
 
             const liquidationBids: LiquidationBid[] = bids.map((x) => {
-              const findersFeeRate = Number(x.finders_fee_bps) / 100;
+              const findersFeeRate = 0; // TODO: check
               const tokenIdList = (
                 collateral.find((x) => x.address === collectionAddress)
                   ?.collateral || []
@@ -218,14 +216,15 @@ async function main(userAddress: string) {
 
               return {
                 creation_date: blockTime,
-                liquidator: x.bidder,
+                liquidator: x.creator,
                 token_id_list: tokenIdList,
                 amount: calcPrice(
-                  Number(x.price),
+                  Number(x.details.price),
                   isMain ? 1 : priceRatioStable
                 ).toString(),
                 discount: (discountBase + findersFeeRate).toString(),
                 bid_type: "collection_offer",
+                order_id: x.id,
               };
             });
 

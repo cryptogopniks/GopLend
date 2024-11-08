@@ -1,9 +1,8 @@
 import { getSigner } from "../account/signer";
 import { floor, getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
-import { ChainConfig } from "../../common/interfaces";
+import { ChainConfig, PlatformType } from "../../common/interfaces";
 import { COLLECTION, TOKEN } from "./constants";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   getChainOptionById,
   getContractByLabel,

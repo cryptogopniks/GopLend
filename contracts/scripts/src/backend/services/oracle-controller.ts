@@ -232,13 +232,12 @@ async function main(isInfiniteLoop: boolean) {
         const offers: Offer[] = collection_bids.map((x) => {
           // prices must be reduced by fees
           const discountBase = Number(discount_base);
-          const findersFeeRate = Number(x.finders_fee_bps) / 100;
-          const price = Number(x.price);
+          const findersFeeRate = 0; // TODO: check
+          const price = Number(x.details.price);
           const feeRate = discountBase + findersFeeRate;
 
           return {
             price,
-            expires_at: Math.floor(Number(x.expires_at) / 1e9),
             feeRate,
           };
         });

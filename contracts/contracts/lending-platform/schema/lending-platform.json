@@ -913,6 +913,7 @@
           "collection",
           "liquidation_price",
           "liquidator",
+          "order_id",
           "owner",
           "token_item"
         ],
@@ -942,6 +943,9 @@
           },
           "liquidator": {
             "$ref": "#/definitions/Addr"
+          },
+          "order_id": {
+            "type": "string"
           },
           "owner": {
             "$ref": "#/definitions/Addr"
@@ -2801,6 +2805,13 @@
             "liquidator": {
               "$ref": "#/definitions/Addr"
             },
+            "order_id": {
+              "description": "only for CollectionOffer and TokenOffer",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "token_id_list": {
               "type": "array",
               "items": {
@@ -2867,6 +2878,13 @@
             },
             "liquidator": {
               "$ref": "#/definitions/Addr"
+            },
+            "order_id": {
+              "description": "only for CollectionOffer and TokenOffer",
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "token_id_list": {
               "type": "array",
@@ -2954,6 +2972,13 @@
             "liquidator": {
               "$ref": "#/definitions/Addr"
             },
+            "order_id": {
+              "description": "only for CollectionOffer and TokenOffer",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "token_id_list": {
               "type": "array",
               "items": {
@@ -3039,6 +3064,13 @@
             },
             "liquidator": {
               "$ref": "#/definitions/Addr"
+            },
+            "order_id": {
+              "description": "only for CollectionOffer and TokenOffer",
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "token_id_list": {
               "type": "array",
@@ -3823,6 +3855,13 @@
             },
             "liquidator": {
               "$ref": "#/definitions/Addr"
+            },
+            "order_id": {
+              "description": "only for CollectionOffer and TokenOffer",
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "token_id_list": {
               "type": "array",

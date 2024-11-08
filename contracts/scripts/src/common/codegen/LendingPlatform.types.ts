@@ -183,6 +183,7 @@ export interface BiddedCollateralItem {
   collection: Addr;
   liquidation_price: Uint128;
   liquidator: Addr;
+  order_id: string;
   owner: Addr;
   token_item: TokenItem;
 }
@@ -417,6 +418,7 @@ export interface LiquidationBid {
   creation_date: number;
   discount: Decimal;
   liquidator: Addr;
+  order_id?: string | null;
   token_id_list: string[];
 }
 export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];

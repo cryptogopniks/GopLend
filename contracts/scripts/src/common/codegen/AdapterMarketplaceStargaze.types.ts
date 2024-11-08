@@ -4,13 +4,11 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-export type MarketplaceVersion = "v1" | "v2";
 export interface InstantiateMsg {
   adapter_dex?: string | null;
   lending_platform_main?: string | null;
   lending_platform_stable?: string | null;
   marketplace?: string | null;
-  marketplace_version?: MarketplaceVersion | null;
   oracle?: string | null;
   worker?: string | null;
 }
@@ -23,7 +21,6 @@ export type ExecuteMsg = {
     lending_platform_main?: string | null;
     lending_platform_stable?: string | null;
     marketplace?: string | null;
-    marketplace_version?: MarketplaceVersion | null;
     oracle?: string | null;
     worker?: string | null;
   };
@@ -47,6 +44,7 @@ export interface BiddedCollateralItem {
   collection: Addr;
   liquidation_price: Uint128;
   liquidator: Addr;
+  order_id: string;
   owner: Addr;
   token_item: TokenItem;
 }
@@ -64,50 +62,37 @@ export type QueryMsg = {
   query_token_offers: {
     collection_address: string;
     limit: number;
-    token_list: number[];
+    token_list: string[];
   };
 } | {
   query_collection_offers: {
     collection_address: string;
     limit: number;
   };
-} | {
-  query_offers_by_collection_address: {
-    collection_address: string;
-    expiration_delay: number;
-    limit?: number | null;
-    platform_type: PlatformType;
-    start_after_collection_offer?: CollectionBidOffset | null;
-    start_after_token_offer?: BidOffset | null;
-  };
 };
-export type PlatformType = "main" | "stable";
-export interface CollectionBidOffset {
-  bidder: string;
-  collection: string;
-  price: Uint128;
-}
-export interface BidOffset {
-  bidder: Addr;
-  price: Uint128;
-  token_id: number;
-}
 export interface MigrateMsg {
   version: string;
 }
-export type Timestamp = Uint64;
-export type Uint64 = string;
 export interface QueryCollectionOffersResponse {
   collection_bids: CollectionBid[];
   discount_base: Decimal;
   price_ratio_stable?: Decimal | null;
 }
 export interface CollectionBid {
-  bidder: Addr;
   collection: Addr;
-  expires_at: Timestamp;
-  finders_fee_bps?: number | null;
-  price: Uint128;
+  creator: Addr;
+  details: OrderDetailsForAddr;
+  id: string;
+}
+export interface OrderDetailsForAddr {
+  finder?: Addr | null;
+  price: Coin;
+  recipient?: Addr | null;
+}
+export interface Coin {
+  amount: Uint128;
+  denom: string;
+  [k: string]: unknown;
 }
 export interface Config {
   adapter_dex?: Addr | null;
@@ -115,30 +100,15 @@ export interface Config {
   lending_platform_main?: Addr | null;
   lending_platform_stable?: Addr | null;
   marketplace?: Addr | null;
-  marketplace_version: MarketplaceVersion;
   oracle?: Addr | null;
   worker?: Addr | null;
 }
 export type ArrayOfTupleOfAddrAndUint128 = [Addr, Uint128][];
-export interface QueryOffersByCollectionAddressResponse {
-  last_collection_offer?: CollectionBidOffset | null;
-  last_token_offer?: BidOffset | null;
-  offers: LiquidationBid[];
-}
-export interface LiquidationBid {
-  amount: Uint128;
-  bid_type: BidType;
-  creation_date: number;
-  discount: Decimal;
-  liquidator: Addr;
-  token_id_list: string[];
-}
-export type ArrayOfTupleOfuint32AndArrayOfBid = [number, Bid[]][];
+export type ArrayOfTupleOfStringAndArrayOfBid = [string, Bid[]][];
 export interface Bid {
-  bidder: Addr;
   collection: Addr;
-  expires_at: Timestamp;
-  finders_fee_bps?: number | null;
-  price: Uint128;
-  token_id: number;
+  creator: Addr;
+  details: OrderDetailsForAddr;
+  id: string;
+  token_id: string;
 }

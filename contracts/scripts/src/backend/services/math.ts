@@ -1,14 +1,11 @@
 import { floor, getLast } from "../../common/utils";
 import { PriceItemForFundsForToken } from "../../common/codegen/Oracle.types";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import * as v2 from "../../common/interfaces/stargaze-marketplace-v2";
 import {
   LiquidationBidExtended,
+  PlatformType,
   TargetBorrower,
 } from "../../common/interfaces";
-import {
-  Bid,
-  CollectionBid,
-} from "../../common/interfaces/stargaze-marketplace";
 import {
   Addr,
   BiddedCollateralItem,
@@ -185,6 +182,7 @@ export function matchCollateralsAndBidsLegacy(
             bid_amount: bid.amount,
             bid_discount: bid.discount,
             bid_type: bid.bid_type,
+            order_id: bid.order_id || "",
           };
 
           biddedCollateralList.push(biddedCollateralItem);
@@ -288,6 +286,7 @@ export function matchCollateralsAndBids(
             bid_amount: bid.amount.toString(),
             bid_discount: bid.discount.toString(),
             bid_type: bid.bidType,
+            order_id: bid.orderId,
           };
 
           biddedCollateralList.push(biddedCollateralItem);
@@ -685,8 +684,8 @@ export function distributeOffers(
   collectionList: string[],
   collateralListMain: QueryCollateralsResponseItem[],
   collateralListStable: QueryCollateralsResponseItem[],
-  tokenOfferList: [string, Bid[]][],
-  collectionOfferList: [string, CollectionBid[]][],
+  tokenOfferList: [string, v2.Bid[]][],
+  collectionOfferList: [string, v2.CollectionBid[]][],
   discountBaseList: [string, number][],
   priceRatioStable: number,
   blockTime: number,
@@ -721,8 +720,8 @@ export function distributeOffers(
     );
     if (!tokenListMain.length && !tokenListStable.length) continue;
 
-    for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
-      const findersFeeRate = Number(finders_fee_bps) / 100;
+    for (const { collection, creator, details, id, token_id } of tokenOffers) {
+      const findersFeeRate = 0; // TODO: check
       const tokenId = token_id.toString();
 
       const isMain = collateralMain.find((x) =>
@@ -735,19 +734,20 @@ export function distributeOffers(
 
       offers.push({
         creationDate: blockTime,
-        liquidator: bidder,
+        liquidator: creator,
         tokenIdList: [tokenId],
-        amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
+        amount: calcPrice(Number(details.price), isMain ? 1 : priceRatioStable),
         discount: discountBase + findersFeeRate,
         bidType: "token_offer",
         platformType: isMain ? "main" : "stable",
         collectionOfferId: -1,
         collectionAddress: collection,
+        orderId: id,
       });
     }
 
-    for (const { price, bidder, finders_fee_bps } of collectionOffers) {
-      const findersFeeRate = Number(finders_fee_bps) / 100;
+    for (const { collection, creator, details, id } of collectionOffers) {
+      const findersFeeRate = 0; // TODO: check
 
       for (const platformType of platformList) {
         const isMain = platformType === "main";
@@ -756,14 +756,18 @@ export function distributeOffers(
 
         offers.push({
           creationDate: blockTime,
-          liquidator: bidder,
+          liquidator: creator,
           tokenIdList,
-          amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
+          amount: calcPrice(
+            Number(details.price),
+            isMain ? 1 : priceRatioStable
+          ),
           discount: discountBase + findersFeeRate,
           bidType: "collection_offer",
           platformType,
           collectionOfferId,
           collectionAddress: collection,
+          orderId: id,
         });
       }
 
@@ -802,6 +806,7 @@ export function mergeBidsAndOffers(
         platformType: "main",
         collectionOfferId: -1,
         collectionAddress: collection_address,
+        orderId: x.order_id || "",
       }));
     });
 
@@ -818,6 +823,7 @@ export function mergeBidsAndOffers(
           platformType: "stable",
           collectionOfferId: -1,
           collectionAddress: collection_address,
+          orderId: x.order_id || "",
         }));
       }
     );

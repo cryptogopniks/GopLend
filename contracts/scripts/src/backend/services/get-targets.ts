@@ -1,9 +1,8 @@
 import { l, li } from "../../common/utils";
 import { readFile } from "fs/promises";
-import { ChainConfig } from "../../common/interfaces";
+import { ChainConfig, PlatformType } from "../../common/interfaces";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { queryTargets } from "./query-targets";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
 import { calcLtvMax } from "./math";
 import {

@@ -1,7 +1,7 @@
 import { l, li } from "../../common/utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getBlockTime, wrapListQuerier } from "./utils";
+import { PlatformType } from "../../common/interfaces";
 import {
   CommonConfig,
   LiquidationItem,

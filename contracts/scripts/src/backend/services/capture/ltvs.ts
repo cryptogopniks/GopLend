@@ -1,8 +1,7 @@
 import { getLast, l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig } from "../../../common/interfaces";
+import { ChainConfig, PlatformType } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { Addr, Decimal } from "../../../common/codegen/LendingPlatform.types";
 import {

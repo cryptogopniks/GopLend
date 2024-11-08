@@ -1,9 +1,13 @@
 import { access, readFile } from "fs/promises";
 import { decrypt, floor, getLast, l } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
-import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 import { Label } from "../../common/config";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import {
+  ChainType,
+  Wallets,
+  StoreArgs,
+  PlatformType,
+} from "../../common/interfaces";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");

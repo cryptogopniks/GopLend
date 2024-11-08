@@ -1,11 +1,10 @@
 import { getMultipleSigners, SignerData } from "../account/signer";
 import { l } from "../../common/utils";
 import { readFile } from "fs/promises";
-import { ChainConfig } from "../../common/interfaces";
+import { ChainConfig, PlatformType } from "../../common/interfaces";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
 import { queryTargets } from "./query-targets";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import { Route } from "../../common/codegen/AdapterDexStargaze.types";
 import { calcLtvMax } from "./math";
 import {

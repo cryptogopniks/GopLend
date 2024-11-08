@@ -42,12 +42,6 @@ import {
 } from "../codegen/Oracle.types";
 import { Route } from "../codegen/AdapterDexStargaze.types";
 import {
-  BidOffset,
-  CollectionBidOffset,
-  MarketplaceVersion,
-  PlatformType,
-} from "../codegen/AdapterMarketplaceStargaze.types";
-import {
   getCwClient,
   signAndBroadcastWrapper,
   getExecuteContractMsg,
@@ -93,18 +87,20 @@ import {
   CollectionOwnersForAddr,
   LiquidityInfo,
 } from "../codegen/MarketMakerHub.types";
-import {
-  Bid,
-  BidsResponse,
-  CollectionBid,
-  CollectionBidsResponse,
-  CollectionInfoResponse,
-  ParamsResponse,
-  QueryCollectionInfo,
-  QueryParams,
-  QueryReverseBidsSortedByPrice,
-  QueryReverseCollectionBidsSortedByPrice,
-} from "../interfaces/stargaze-marketplace";
+// import {
+//   Bid,
+//   BidOffset,
+//   BidsResponse,
+//   CollectionBid,
+//   CollectionBidOffset,
+//   CollectionBidsResponse,
+//   CollectionInfoResponse,
+//   ParamsResponse,
+//   QueryCollectionInfo,
+//   QueryParams,
+//   QueryReverseBidsSortedByPrice,
+//   QueryReverseCollectionBidsSortedByPrice,
+// } from "../interfaces/stargaze-marketplace";
 import * as v2 from "../interfaces/stargaze-marketplace-v2";
 import {
   Cw20SendMsg,
@@ -122,6 +118,7 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
   MarketplaceData,
+  PlatformType,
 } from "../interfaces";
 
 function addSingleTokenToComposerObj(
@@ -553,7 +550,6 @@ async function getCwExecHelpers(
       oracle,
       marketplace,
       adapterDex,
-      marketplaceVersion,
     }: {
       admin?: string;
       worker?: string;
@@ -562,7 +558,6 @@ async function getCwExecHelpers(
       oracle?: string;
       marketplace?: string;
       adapterDex?: string;
-      marketplaceVersion?: MarketplaceVersion;
     },
     gasPrice: string
   ) {
@@ -576,7 +571,6 @@ async function getCwExecHelpers(
           oracle,
           marketplace,
           adapterDex,
-          marketplaceVersion,
         }),
       ],
       gasPrice
@@ -2156,136 +2150,138 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryNetworkFee(
-    stargazeMarketplace: string,
-    isDisplayed: boolean = false
-  ) {
-    const queryMsg: QueryParams = {
-      params: {},
-    };
+  // TODO: replace
+  // async function cwQueryNetworkFee(
+  //   stargazeMarketplace: string,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   const queryMsg: QueryParams = {
+  //     params: {},
+  //   };
 
-    const res: ParamsResponse = await cosmwasmQueryClient.queryContractSmart(
-      stargazeMarketplace,
-      queryMsg
-    );
-    const networkFeeRate = Number(res.params.trading_fee_percent) / 100;
+  //   const res: ParamsResponse = await cosmwasmQueryClient.queryContractSmart(
+  //     stargazeMarketplace,
+  //     queryMsg
+  //   );
+  //   const networkFeeRate = Number(res.params.trading_fee_percent) / 100;
 
-    return logAndReturn(networkFeeRate, isDisplayed);
-  }
+  //   return logAndReturn(networkFeeRate, isDisplayed);
+  // }
 
-  async function cwQueryRoyaltyFee(
-    collectionAddress: string,
-    isDisplayed: boolean = false
-  ) {
-    const queryMsg: QueryCollectionInfo = {
-      collection_info: {},
-    };
+  // TODO: replace
+  // async function cwQueryRoyaltyFee(
+  //   collectionAddress: string,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   const queryMsg: QueryCollectionInfo = {
+  //     collection_info: {},
+  //   };
 
-    const res: CollectionInfoResponse =
-      await cosmwasmQueryClient.queryContractSmart(collectionAddress, queryMsg);
-    const royaltyFeeRate = Number(res.royalty_info?.share);
+  //   const res: CollectionInfoResponse =
+  //     await cosmwasmQueryClient.queryContractSmart(collectionAddress, queryMsg);
+  //   const royaltyFeeRate = Number(res.royalty_info?.share);
 
-    return logAndReturn(royaltyFeeRate, isDisplayed);
-  }
+  //   return logAndReturn(royaltyFeeRate, isDisplayed);
+  // }
 
-  async function pQueryMarketplaceTokenOffers(
-    marketplace: string,
-    collection: string,
-    blockTime: number,
-    maxPaginationAmount: number,
-    maxCount: number = 0,
-    isDisplayed: boolean = false
-  ) {
-    const defaultItem: BidOffset = { bidder: "", price: "", token_id: 0 };
+  // async function pQueryMarketplaceTokenOffers(
+  //   marketplace: string,
+  //   collection: string,
+  //   blockTime: number,
+  //   maxPaginationAmount: number,
+  //   maxCount: number = 0,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   const defaultItem: BidOffset = { bidder: "", price: "", token_id: 0 };
 
-    let allItems: Bid[] = [];
-    let lastItem: BidOffset | undefined = undefined;
-    let count: number = 0;
+  //   let allItems: Bid[] = [];
+  //   let lastItem: BidOffset | undefined = undefined;
+  //   let count: number = 0;
 
-    while (
-      JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
-      count < (maxCount || count + 1)
-    ) {
-      const queryMsg: QueryReverseBidsSortedByPrice = {
-        reverse_bids_sorted_by_price: {
-          collection,
-          limit: maxPaginationAmount,
-          start_before: lastItem,
-        },
-      };
+  //   while (
+  //     JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
+  //     count < (maxCount || count + 1)
+  //   ) {
+  //     const queryMsg: v2.QueryBidsByTokenPrice = {
+  //       bids_by_token_price: {
+  //         collection,
+  //         limit: maxPaginationAmount,
+  //         start_before: lastItem,
+  //       }
+  //     };
 
-      const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
-        marketplace,
-        queryMsg
-      );
+  //     const res: BidsResponse = await cosmwasmQueryClient.queryContractSmart(
+  //       marketplace,
+  //       queryMsg
+  //     );
 
-      const { bidder, price, token_id } = getLast(res.bids) || defaultItem;
-      lastItem = { bidder, price, token_id };
-      const items = res.bids.filter(
-        (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
-      );
-      allItems = [...allItems, ...items];
-      count += items.length;
-    }
+  //     const { bidder, price, token_id } = getLast(res.bids) || defaultItem;
+  //     lastItem = { bidder, price, token_id };
+  //     const items = res.bids.filter(
+  //       (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
+  //     );
+  //     allItems = [...allItems, ...items];
+  //     count += items.length;
+  //   }
 
-    if (maxCount) {
-      allItems = allItems.slice(0, maxCount);
-    }
+  //   if (maxCount) {
+  //     allItems = allItems.slice(0, maxCount);
+  //   }
 
-    return logAndReturn(allItems, isDisplayed);
-  }
+  //   return logAndReturn(allItems, isDisplayed);
+  // }
 
-  async function pQueryMarketplaceCollectionOffers(
-    marketplace: string,
-    collection: string,
-    blockTime: number,
-    maxPaginationAmount: number,
-    maxCount: number = 0,
-    isDisplayed: boolean = false
-  ) {
-    const defaultItem: CollectionBidOffset = {
-      bidder: "",
-      price: "",
-      collection: "",
-    };
-    let allItems: CollectionBid[] = [];
-    let lastItem: CollectionBidOffset | undefined = undefined;
-    let count: number = 0;
+  // async function pQueryMarketplaceCollectionOffers(
+  //   marketplace: string,
+  //   collection: string,
+  //   blockTime: number,
+  //   maxPaginationAmount: number,
+  //   maxCount: number = 0,
+  //   isDisplayed: boolean = false
+  // ) {
+  //   const defaultItem: CollectionBidOffset = {
+  //     bidder: "",
+  //     price: "",
+  //     collection: "",
+  //   };
+  //   let allItems: CollectionBid[] = [];
+  //   let lastItem: CollectionBidOffset | undefined = undefined;
+  //   let count: number = 0;
 
-    while (
-      JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
-      count < (maxCount || count + 1)
-    ) {
-      const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
-        reverse_collection_bids_sorted_by_price: {
-          collection,
-          limit: maxPaginationAmount,
-          start_before: lastItem,
-        },
-      };
+  //   while (
+  //     JSON.stringify(lastItem) !== JSON.stringify(defaultItem) &&
+  //     count < (maxCount || count + 1)
+  //   ) {
+  //     const queryMsg: QueryReverseCollectionBidsSortedByPrice = {
+  //       reverse_collection_bids_sorted_by_price: {
+  //         collection,
+  //         limit: maxPaginationAmount,
+  //         start_before: lastItem,
+  //       },
+  //     };
 
-      const res: CollectionBidsResponse =
-        await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
+  //     const res: CollectionBidsResponse =
+  //       await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
 
-      const {
-        bidder,
-        price,
-        collection: lastCollection,
-      } = getLast(res.bids) || defaultItem;
-      lastItem = { bidder, price, collection: lastCollection };
-      const items = res.bids.filter(
-        (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
-      );
-      allItems = [...allItems, ...items];
-      count += items.length;
-    }
+  //     const {
+  //       bidder,
+  //       price,
+  //       collection: lastCollection,
+  //     } = getLast(res.bids) || defaultItem;
+  //     lastItem = { bidder, price, collection: lastCollection };
+  //     const items = res.bids.filter(
+  //       (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
+  //     );
+  //     allItems = [...allItems, ...items];
+  //     count += items.length;
+  //   }
 
-    if (maxCount) {
-      allItems = allItems.slice(0, maxCount);
-    }
+  //   if (maxCount) {
+  //     allItems = allItems.slice(0, maxCount);
+  //   }
 
-    return logAndReturn(allItems, isDisplayed);
-  }
+  //   return logAndReturn(allItems, isDisplayed);
+  // }
 
   async function cwGetMarketplaceData(
     collectionAndTokensList: [string, string[]][],
@@ -2296,8 +2292,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     tokenOffersPaginationAmount: number
   ): Promise<MarketplaceData> {
     let promiseList: Promise<void>[] = [];
-    let tokenOfferList: [string, Bid[]][] = [];
-    let collectionOfferList: [string, CollectionBid[]][] = [];
+    let tokenOfferList: [string, v2.Bid[]][] = [];
+    let collectionOfferList: [string, v2.CollectionBid[]][] = [];
     let discountBaseList: [string, number][] = [];
 
     const fn = async (collection: string) => {
@@ -2309,13 +2305,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
             collectionOffersPaginationAmount
           );
 
-        // remove expired offers
-        const marketplaceCollectionOffers = collection_bids.filter(
-          (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
-        ) as CollectionBid[];
+        const marketplaceCollectionOffers =
+          collection_bids as v2.CollectionBid[];
 
         discountBaseList.push([collection, Number(discount_base)]);
-        if (marketplaceCollectionOffers.length) {
+        if (collection_bids.length) {
           collectionOfferList.push([collection, marketplaceCollectionOffers]);
         }
 
@@ -2330,17 +2324,11 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
             collection,
             tokenList,
             tokenOffersPaginationAmount
-          )) as [number, Bid[]][];
+          )) as [string, v2.Bid[]][];
 
-          // remove expired offers
           const tokenOffers = marketplaceTokenOffers.reduce(
-            (acc, [_tokenId, bidList]) => {
-              bidList = bidList.filter(
-                (x) => Math.floor(Number(x.expires_at) / 1e9) > blockTime
-              );
-              return [...acc, ...bidList];
-            },
-            [] as Bid[]
+            (acc, [_tokenId, bidList]) => [...acc, ...bidList],
+            [] as v2.Bid[]
           );
 
           if (tokenOffers.length) {
@@ -2514,7 +2502,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   ) {
     const res = await adapterMarketplaceStargazeQueryClient.queryTokenOffers({
       collectionAddress,
-      tokenList: tokenList.map(Number),
+      tokenList,
       limit,
     });
     return logAndReturn(res, isDisplayed);
@@ -2530,29 +2518,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
         collectionAddress,
         limit,
       });
-    return logAndReturn(res, isDisplayed);
-  }
-
-  async function cwQueryOffersByCollectionAddress(
-    platformType: PlatformType,
-    collectionAddress: string,
-    expirationDelay: number,
-    startAfterCollectionOffer?: CollectionBidOffset,
-    startAfterTokenOffer?: BidOffset,
-    limit: number = 10,
-    isDisplayed: boolean = false
-  ) {
-    const res =
-      await adapterMarketplaceStargazeQueryClient.queryOffersByCollectionAddress(
-        {
-          platformType,
-          collectionAddress,
-          expirationDelay,
-          startAfterCollectionOffer,
-          startAfterTokenOffer,
-          limit,
-        }
-      );
     return logAndReturn(res, isDisplayed);
   }
 
@@ -3446,10 +3411,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryApprovals,
       cwQueryBalanceInNft,
       cwQueryNftOwner,
-      cwQueryNetworkFee,
-      cwQueryRoyaltyFee,
-      pQueryMarketplaceTokenOffers,
-      pQueryMarketplaceCollectionOffers,
+      // cwQueryNetworkFee,
+      // cwQueryRoyaltyFee,
+      // pQueryMarketplaceTokenOffers,
+      // pQueryMarketplaceCollectionOffers,
       cwGetMarketplaceData,
 
       cwV2QueryAsksByCollectionDenom,

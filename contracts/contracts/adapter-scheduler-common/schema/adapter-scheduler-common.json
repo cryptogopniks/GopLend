@@ -200,6 +200,7 @@
           "collection",
           "liquidation_price",
           "liquidator",
+          "order_id",
           "owner",
           "token_item"
         ],
@@ -229,6 +230,9 @@
           },
           "liquidator": {
             "$ref": "#/definitions/Addr"
+          },
+          "order_id": {
+            "type": "string"
           },
           "owner": {
             "$ref": "#/definitions/Addr"

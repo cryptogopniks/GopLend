@@ -4,7 +4,6 @@ import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
 import { COLLECTION, TOKEN } from "./constants";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -80,14 +79,14 @@ async function main() {
     };
 
     const blockTime = await oracle.cwQueryBlockTime();
-    await utils.pQueryMarketplaceTokenOffers(
-      ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
-      COLLECTION.MAINNET.STARGAZE.SIN_COMICS_V3W1,
-      blockTime,
-      50,
-      1_000,
-      true
-    );
+    // await utils.pQueryMarketplaceTokenOffers(
+    //   ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
+    //   COLLECTION.MAINNET.STARGAZE.SIN_COMICS_V3W1,
+    //   blockTime,
+    //   50,
+    //   1_000,
+    //   true
+    // );
 
     // await utils.cwV2QueryBidsByCreatorCollection(
     //   "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl",
