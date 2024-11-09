@@ -12,13 +12,14 @@ use osmosis_std::types::{
 use goplend_base::{
     assets::{Currency, Token, TokenUnverified},
     error::ContractError,
+    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     minter::{
         state::{
             CONFIG, CURRENCIES, DEFAULT_DECIMALS, FAUCET_CONFIG, IS_PAUSED, LAST_CLAIM_DATE,
             SAVE_CW20_ADDRESS_REPLY, TEMPORARY_CURRENCY, TOKEN_COUNT, TRANSFER_ADMIN_STATE,
-            TRANSFER_ADMIN_TIMEOUT, TRANSFER_OWNER_STATE,
+            TRANSFER_OWNER_STATE,
         },
-        types::{Config, CurrencyInfo, DenomUnit, FaucetConfig, Metadata, TransferAdminState},
+        types::{Config, CurrencyInfo, DenomUnit, FaucetConfig, Metadata},
     },
     utils::{check_funds, unwrap_field, FundsType},
 };
@@ -1104,9 +1105,9 @@ fn get_full_denom(creator: &Addr, subdenom: &str) -> String {
 }
 
 /// user actions are disabled when the contract is paused
-fn check_pause_state(storage: &dyn Storage) -> Result<(), ContractError> {
+fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
     if IS_PAUSED.load(storage)? {
-        Err(ContractError::ContractIsLocked)?;
+        Err(ContractError::ContractIsPaused)?;
     }
 
     Ok(())

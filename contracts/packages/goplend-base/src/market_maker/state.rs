@@ -1,23 +1,23 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::market_maker::types::{HubConfig, TransferAdminState};
+use crate::{
+    lending_platform::types::{CollectionInfo, TransferAdminState},
+    market_maker::types::Config,
+};
 
-pub const CONTRACT_NAME: &str = "goplend-market-maker-hub";
+pub const CONTRACT_NAME: &str = "goplend-market-maker";
 
-pub const ADD_OUTPOST_REPLY: u64 = 1;
+/// Stores user functions pause flag
+pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
+pub const CONFIG: Item<Config> = Item::new("config");
+pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
 
-pub const PAGINATION_MAX_LIMIT: u32 = 100;
-pub const PAGINATION_DEFAULT_LIMIT: u32 = 10;
-pub const MAX_OUTPOST_AMOUNT: u8 = 10;
-pub const TRANSFER_ADMIN_TIMEOUT: u64 = 7 * 24 * 3600;
-
-pub const IS_LOCKED: Item<bool> = Item::new("is locked");
-pub const CONFIG: Item<HubConfig> = Item::new("config");
-pub const OUTPOSTS: Item<Vec<Addr>> = Item::new("outposts");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer admin state");
-
+/// collection offers sorted in descending order by collection address
+pub const OFFERS: Map<&Addr, Vec<Uint128>> = Map::new("offers_by_collection");
 /// collection owners by collection address
-pub const OWNERS: Map<&Addr, Vec<Addr>> = Map::new("owners by collection");
+pub const OWNERS: Map<&Addr, Vec<Addr>> = Map::new("owners_by_collection");
+/// liquidated collaterals by maker address
+pub const COLLATERALS: Map<&Addr, CollectionInfo<Addr>> = Map::new("collaterals_by_maker_address");
 /// undistributed collection liquidity by collection address
 pub const UNDISTRIBUTED_LIQUIDITY: Map<&Addr, Uint128> = Map::new("undistributed_liquidity");

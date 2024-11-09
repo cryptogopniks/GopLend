@@ -3,38 +3,6 @@
 version = 3
 
 [[package]]
-name = "adapter-marketplace-stargaze"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-index-query",
- "sg721 3.14.0",
- "sg721-base 3.14.0",
- "stargaze-marketplace-v2",
- "stargaze-royalty-registry 0.3.0 (git+https://github.com/public-awesome/core.git?rev=6982c764996ea3fa0cbad4b4404a117f55f4c564)",
-]
-
-[[package]]
-name = "adapter-scheduler-common"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -718,7 +686,7 @@ dependencies = [
 
 [[package]]
 name = "lending-platform"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -738,8 +706,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
-name = "market-maker-hub"
-version = "1.0.0"
+name = "market-maker"
+version = "2.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -792,7 +760,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "oracle"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -962,6 +930,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 
 [[package]]
+name = "scheduler"
+version = "2.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "semver",
+ "serde",
+]
+
+[[package]]
 name = "schemars"
 version = "0.8.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1088,7 +1069,7 @@ dependencies = [
  "cw721 0.18.0",
  "cw721-base 0.18.0",
  "serde",
- "stargaze-royalty-registry 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stargaze-royalty-registry",
  "thiserror",
 ]
 
@@ -1257,45 +1238,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "stargaze-mocks-marketplace"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-index-query",
- "stargaze-marketplace-v2",
-]
-
-[[package]]
 name = "stargaze-royalty-registry"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "552d49542e64baef99b84846bd787faeaf476afa0920676cb791a34a2be57772"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "schemars",
- "serde",
- "sg-index-query",
- "sg-std 2.4.0",
- "sg721 2.4.0",
- "sg721-base 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "stargaze-royalty-registry"
-version = "0.3.0"
-source = "git+https://github.com/public-awesome/core.git?rev=6982c764996ea3fa0cbad4b4404a117f55f4c564#6982c764996ea3fa0cbad4b4404a117f55f4c564"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",

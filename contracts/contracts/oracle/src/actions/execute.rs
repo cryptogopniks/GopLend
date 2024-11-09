@@ -3,12 +3,10 @@ use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Order, Response, St
 use goplend_base::{
     assets::{Currency, TokenUnverified},
     error::ContractError,
+    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     oracle::{
-        state::{
-            CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO, TRANSFER_ADMIN_STATE,
-            TRANSFER_ADMIN_TIMEOUT,
-        },
-        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem, TransferAdminState},
+        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO, TRANSFER_ADMIN_STATE},
+        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem},
     },
     utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };

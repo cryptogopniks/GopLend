@@ -42,13 +42,11 @@ sg-index-query = "0.1.1"
 cw-address-like = "1.0.4"
 
 goplend-base = { path = "./packages/goplend-base" }
-stargaze-mocks-marketplace = { path = "./packages/stargaze_mocks_marketplace" }
 
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }
 minter = { path = "./contracts/minter" }
 scheduler = { path = "./contracts/scheduler" }
-marketplace = { path = "./contracts/marketplace" }
 market-maker = { path = "./contracts/market-maker" }
 
 stargaze-marketplace-v2 = { git = "https://github.com/public-awesome/marketplace.git", rev = "cb300b15e2ba6e60058955cb4f58a06dcb638d28", version = "0.7.0", features = ["library"] }

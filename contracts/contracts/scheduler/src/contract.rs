@@ -10,7 +10,7 @@ use goplend_base::{
 };
 
 use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+    execute as e, instantiate::try_instantiate, migrate::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable

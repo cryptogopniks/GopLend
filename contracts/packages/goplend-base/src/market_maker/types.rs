@@ -13,7 +13,7 @@ pub struct CollectionOwners<T: ToString> {
 pub struct LiquidityInfo {
     pub collection_address: Addr,
     pub amount_undistributed: Uint128,
-    pub price_and_outpost_list: Vec<(Uint128, Addr)>,
+    pub price_list: Vec<Uint128>,
 }
 
 impl LiquidityInfo {
@@ -21,7 +21,7 @@ impl LiquidityInfo {
         Self {
             collection_address: collection_address.to_owned(),
             amount_undistributed: Uint128::zero(),
-            price_and_outpost_list: vec![],
+            price_list: vec![],
         }
     }
 }
@@ -29,35 +29,15 @@ impl LiquidityInfo {
 #[cw_serde]
 pub struct OffersResponse {
     pub collection_address: Addr,
-    pub price_and_outpost_list: Vec<(Uint128, Addr)>,
+    pub price_list: Vec<Uint128>,
 }
 
 #[cw_serde]
-pub struct CollateralResponse {
-    pub outpost: Addr,
-    pub collection_info: CollectionInfo<Addr>,
-}
-
-#[cw_serde]
-pub struct HubConfig {
+pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub marketplace: Option<Addr>,
     pub controller: Option<Vec<Addr>>,
+    pub lending_platform: Option<Addr>,
+    pub oracle: Option<Addr>,
     pub token: Token,
-    pub max_outpost_amount: u8,
-    pub outpost_code_id: Option<u64>,
-    // pub boundary_high: Decimal,
-    // pub boundary_low: Decimal,
-}
-
-#[cw_serde]
-pub struct OutpostConfig {
-    pub hub: Addr,
-}
-
-#[cw_serde]
-pub struct TransferAdminState {
-    pub new_admin: Addr,
-    pub deadline: u64,
 }

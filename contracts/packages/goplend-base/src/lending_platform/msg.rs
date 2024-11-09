@@ -4,11 +4,8 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 
 use crate::{
-    assets::{Currency, Token, TokenUnverified},
-    lending_platform::types::{
-        Borrower, Collateral, Collection, CollectionInfo, LiquidationBid, LiquidationItem,
-        Liquidator, Proposal, Unbonder, Vault,
-    },
+    assets::{Currency, TokenUnverified},
+    lending_platform::types::{CollectionInfo, LiquidationItem, Proposal},
 };
 
 #[cw_serde]
@@ -129,9 +126,9 @@ pub enum ExecuteMsg {
 
     ReinforceBglToken {},
 
-    Lock {},
+    Pause {},
 
-    Unlock {},
+    Unpause {},
 
     DistributeFunds {
         address_and_weight_list: Vec<(String, Decimal)>,
@@ -158,91 +155,91 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::lending_platform::types::AddressConfig)]
+    #[returns(super::types::AddressConfig)]
     QueryAddressConfig {},
 
-    #[returns(crate::lending_platform::types::RateConfig)]
+    #[returns(super::types::RateConfig)]
     QueryRateConfig {},
 
-    #[returns(crate::lending_platform::types::CommonConfig)]
+    #[returns(super::types::CommonConfig)]
     QueryCommonConfig {},
 
     #[returns(Vec<crate::assets::Funds<crate::assets::Token>>)]
     QueryPlatformRevenue {},
 
-    #[returns(crate::lending_platform::types::Balances)]
+    #[returns(super::types::Balances)]
     QueryBalances {},
 
-    #[returns(Vec<QueryUnbondersResponseItem>)]
+    #[returns(Vec<super::types::QueryUnbondersResponseItem>)]
     QueryUnbonderList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::lending_platform::types::Unbonder)]
+    #[returns(super::types::Unbonder)]
     QueryUnbonder { address: String },
 
-    #[returns(Vec<QueryBorrowersResponseItem>)]
+    #[returns(Vec<super::types::QueryBorrowersResponseItem>)]
     QueryBorrowerList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::lending_platform::types::Borrower)]
+    #[returns(super::types::Borrower)]
     QueryBorrower { address: String },
 
-    #[returns(Vec<QueryLiquidatorsResponseItem>)]
+    #[returns(Vec<super::types::QueryLiquidatorsResponseItem>)]
     QueryLiquidatorList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::lending_platform::types::Liquidator)]
+    #[returns(super::types::Liquidator)]
     QueryLiquidator { address: String },
 
-    #[returns(Vec<QueryCollateralsResponseItem>)]
+    #[returns(Vec<super::types::QueryCollateralsResponseItem>)]
     QueryCollateralList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(Vec<crate::lending_platform::types::Collateral>)]
+    #[returns(Vec<super::types::Collateral>)]
     QueryCollateral { collection_address: String },
 
-    #[returns(Vec<QueryCollateralsResponseItem>)]
+    #[returns(Vec<super::types::QueryCollateralsResponseItem>)]
     QueryCollateralByOwner { owner: String },
 
-    #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+    #[returns(Vec<super::types::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryLiquidationBidsByCollectionAddressList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(Vec<crate::lending_platform::types::LiquidationBid>)]
+    #[returns(Vec<super::types::LiquidationBid>)]
     QueryLiquidationBidsByCollectionAddress { address: String },
 
-    #[returns(Vec<QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
+    #[returns(Vec<super::types::QueryLiquidationBidsByLiquidatorAddressListResponseItem>)]
     QueryLiquidationBidsByLiquidatorAddressList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>)]
+    #[returns(Vec<super::types::QueryLiquidationBidsByCollectionAddressListResponseItem>)]
     QueryLiquidationBidsByLiquidatorAddress { address: String },
 
-    #[returns(Vec<QueryProposalsResponseItem>)]
+    #[returns(Vec<super::types::QueryProposalsResponseItem>)]
     QueryProposals {
+        amount: u32,
         start_after: Option<u32>,
-        limit: Option<u32>,
     },
 
-    #[returns(Vec<QueryCollectionsResponseItem>)]
+    #[returns(Vec<super::types::QueryCollectionsResponseItem>)]
     QueryCollectionList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::lending_platform::types::Collection<cosmwasm_std::Addr>)]
+    #[returns(super::types::Collection<Addr>)]
     QueryCollection { address: String },
 
     #[returns(Decimal)]
@@ -256,8 +253,8 @@ pub enum QueryMsg {
 
     #[returns(Vec<(Addr, Option<Decimal>)>)]
     QueryLtvList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
     #[returns(Decimal)]
@@ -278,81 +275,9 @@ pub enum QueryMsg {
         target_ltv: Option<Decimal>,
     },
 
-    #[returns(QueryAmountsResponse)]
+    #[returns(super::types::QueryAmountsResponse)]
     QueryAmounts {},
 
-    #[returns(QueryUserInfoResponse)]
+    #[returns(super::types::QueryUserInfoResponse)]
     QueryUserInfo { address: String },
-}
-
-#[cw_serde]
-pub struct QueryUnbondersResponseItem {
-    pub address: Addr,
-    pub unbonder: Unbonder,
-}
-
-#[cw_serde]
-pub struct QueryBorrowersResponseItem {
-    pub address: Addr,
-    pub borrower: Borrower,
-}
-
-#[cw_serde]
-pub struct QueryLiquidatorsResponseItem {
-    pub address: Addr,
-    pub liquidator: Liquidator,
-}
-
-#[cw_serde]
-pub struct QueryCollateralsResponseItem {
-    pub address: Addr,
-    pub collateral: Vec<Collateral>,
-}
-
-#[cw_serde]
-pub struct QueryLiquidationBidsByCollectionAddressListResponseItem {
-    pub collection_address: Addr,
-    pub liquidation_bids: Vec<LiquidationBid>,
-}
-
-#[cw_serde]
-pub struct QueryLiquidationBidsByLiquidatorAddressListResponseItem {
-    pub liquidator_address: Addr,
-    pub collection_and_liquidation_bids_list:
-        Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
-}
-
-#[cw_serde]
-pub struct QueryProposalsResponseItem {
-    pub id: u32,
-    pub proposal: Proposal<Addr, Token>,
-}
-
-#[cw_serde]
-pub struct QueryCollectionsResponseItem {
-    pub address: Addr,
-    pub collection: Collection<Addr>,
-}
-
-#[cw_serde]
-pub struct QueryAmountsResponse {
-    pub unbonders: u32,
-    pub borrowers: u32,
-    pub collaterals: u32,
-    pub liquidators: u32,
-    pub liquidation_bids: u32,
-    pub proposals: u32,
-    pub collections: u32,
-}
-
-#[cw_serde]
-pub struct QueryUserInfoResponse {
-    pub main_token_balance: Uint128,
-    pub bgl_token_balance: Uint128,
-    pub returned_and_unbonded: Vec<(Uint128, Vault)>,
-    pub loan: Uint128,
-    pub collateral: Vec<QueryCollateralsResponseItem>,
-    pub ltv: Decimal,
-    pub available_to_borrow: Uint128,
-    pub liquidation_bids: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
 }

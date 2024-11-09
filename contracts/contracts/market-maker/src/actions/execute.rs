@@ -6,19 +6,17 @@ use cosmwasm_std::{
 use goplend_base::{
     assets::TokenUnverified,
     error::ContractError,
+    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     market_maker::{
-        state::{
-            ADD_OUTPOST_REPLY, CONFIG, IS_LOCKED, OUTPOSTS, OWNERS, TRANSFER_ADMIN_STATE,
-            TRANSFER_ADMIN_TIMEOUT, UNDISTRIBUTED_LIQUIDITY,
-        },
-        types::{HubConfig, TransferAdminState},
+        state::{CONFIG, IS_PAUSED, OWNERS, TRANSFER_ADMIN_STATE, UNDISTRIBUTED_LIQUIDITY},
+        types::Config,
     },
     utils::{
         check_authorization, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
     },
 };
 
-use super::query::{get_price_and_outpost_list, query_collateral};
+use super::query::get_price_and_outpost_list;
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -27,7 +25,7 @@ pub fn try_accept_admin_role(
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let block_time = env.block.time.seconds();
-    let HubConfig { admin, worker, .. } = CONFIG.load(deps.storage)?;
+    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
     let TransferAdminState {
         new_admin,
         deadline,
@@ -46,7 +44,7 @@ pub fn try_accept_admin_role(
         Err(ContractError::TransferAdminDeadline)?;
     }
 
-    CONFIG.update(deps.storage, |mut x| -> StdResult<HubConfig> {
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
         x.admin = sender_address;
         Ok(x)
     })?;
@@ -66,11 +64,10 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    marketplace: Option<String>,
     controller: Option<Vec<String>>,
+    lending_platform: Option<String>,
+    oracle: Option<String>,
     token: Option<TokenUnverified>,
-    max_outpost_amount: Option<u8>,
-    outpost_code_id: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -110,17 +107,6 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = marketplace {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.marketplace = Some(deps.api.addr_validate(&x)?);
-        is_config_updated = true;
-    }
-
     if let Some(x) = controller {
         check_authorization(
             &sender_address,
@@ -136,6 +122,28 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
+    if let Some(x) = lending_platform {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
+        config.lending_platform = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
+    if let Some(x) = oracle {
+        check_authorization(
+            &sender_address,
+            current_admin,
+            current_worker,
+            AuthType::Admin,
+        )?;
+        config.oracle = Some(deps.api.addr_validate(&x)?);
+        is_config_updated = true;
+    }
+
     if let Some(x) = token {
         check_authorization(
             &sender_address,
@@ -144,28 +152,6 @@ pub fn try_update_config(
             AuthType::Admin,
         )?;
         config.token = x.verify(deps.api)?;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = max_outpost_amount {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.max_outpost_amount = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = outpost_code_id {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.outpost_code_id = Some(x);
         is_config_updated = true;
     }
 
@@ -179,73 +165,7 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
-pub fn try_add_outpost(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let config = CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &config.admin,
-        &config.worker,
-        AuthType::Admin,
-    )?;
-
-    let outpost_amount = OUTPOSTS.load(deps.storage)?.len() as u8;
-    if outpost_amount >= config.max_outpost_amount {
-        Err(ContractError::ExceededOutpostMaxAmount)?;
-    }
-
-    // let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
-    //     admin: Some(config.admin.to_string()),
-    //     code_id: unwrap_field(config.outpost_code_id, "outpost_code_id")?,
-    //     label: CONTRACT_NAME.to_string(),
-    //     msg: to_json_binary(&goplend_base::market_maker::outpost::msg::InstantiateMsg {})?,
-    //     funds: vec![],
-    // });
-
-    // let submsg = SubMsg::reply_on_success(msg, ADD_OUTPOST_REPLY);
-
-    Ok(Response::new()
-        // .add_submessage(submsg)
-        .add_attribute("action", "try_add_outpost"))
-}
-
-pub fn add_outpost_reply(
-    deps: DepsMut,
-    _env: Env,
-    result: &SubMsgResult,
-) -> Result<Response, ContractError> {
-    let res = result
-        .to_owned()
-        .into_result()
-        .map_err(|e| ContractError::CustomError { val: e })?;
-
-    let instantiate_event = unwrap_field(
-        res.events.iter().find(|x| x.ty == "instantiate"),
-        "instantiate_event",
-    )?;
-
-    let outpost_address = &unwrap_field(
-        instantiate_event
-            .attributes
-            .iter()
-            .find(|x| x.key == "_contract_address"),
-        "outpost_address",
-    )?
-    .value;
-
-    OUTPOSTS.update(deps.storage, |mut x| -> StdResult<Vec<Addr>> {
-        x.push(deps.api.addr_validate(outpost_address)?);
-        Ok(x)
-    })?;
-
-    Ok(Response::new())
-}
-
-pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let config = CONFIG.load(deps.storage)?;
     check_authorization(
@@ -255,12 +175,12 @@ pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response,
         AuthType::AdminOrWorker,
     )?;
 
-    IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
+    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_lock")]))
+    Ok(Response::new().add_attributes([("action", "try_pause")]))
 }
 
-pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let config = CONFIG.load(deps.storage)?;
     check_authorization(
@@ -270,16 +190,16 @@ pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respons
         AuthType::AdminOrWorker,
     )?;
 
-    IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
+    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_unlock")]))
+    Ok(Response::new().add_attributes([("action", "try_unpause")]))
 }
 
 pub fn try_set_collection(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    collection_address: String,
+    collection: String,
     owner_list: Vec<String>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -291,7 +211,7 @@ pub fn try_set_collection(
         AuthType::Admin,
     )?;
 
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let owner_list = owner_list
         .iter()
         .map(|x| deps.api.addr_validate(x))
@@ -306,7 +226,7 @@ pub fn try_remove_collections(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    collection_address_list: Vec<String>,
+    collection_list: Vec<String>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let config = CONFIG.load(deps.storage)?;
@@ -317,7 +237,7 @@ pub fn try_remove_collections(
         AuthType::Admin,
     )?;
 
-    for collection_address in collection_address_list {
+    for collection_address in collection_list {
         let collection_address = deps.api.addr_validate(&collection_address)?;
         OWNERS.remove(deps.storage, &collection_address);
     }
@@ -329,9 +249,9 @@ pub fn try_deposit_liquidity(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    collection_address: String,
+    collection: String,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.storage)?;
+    check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) = check_funds(
         deps.as_ref(),
         &info,
@@ -341,7 +261,7 @@ pub fn try_deposit_liquidity(
         },
     )?;
 
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
     check_authorization(
@@ -375,15 +295,15 @@ pub fn try_withdraw_liquidity(
     _env: Env,
     info: MessageInfo,
     amount: Uint128,
-    collection_address: String,
+    collection: String,
 ) -> Result<Response, ContractError> {
     let mut response = Response::new().add_attribute("action", "try_withdraw_liquidity");
-    check_lockout(deps.storage)?;
+    check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
+    let outpost_list = vec![];
     check_authorization(
         &sender_address,
         &config.admin,
@@ -448,11 +368,11 @@ pub fn try_withdraw_collateral(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    collection_address: String,
+    collection: String,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.storage)?;
+    check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
     check_authorization(
@@ -491,12 +411,12 @@ pub fn try_update_offers(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    collection_address: String,
-    from_to_price_and_outpost_list: Vec<(Uint128, Uint128, String)>,
+    collection: String,
+    from_to_price_list: Vec<(Uint128, Uint128)>,
 ) -> Result<Response, ContractError> {
-    check_lockout(deps.storage)?;
+    check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
     check_authorization(
         &sender_address,
@@ -545,9 +465,10 @@ pub fn try_update_offers(
         .add_attribute("action", "try_update_offers"))
 }
 
-fn check_lockout(storage: &dyn Storage) -> StdResult<()> {
-    if IS_LOCKED.load(storage)? {
-        Err(ContractError::ContractIsLocked)?;
+/// user actions are disabled when the contract is paused
+pub fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
+    if IS_PAUSED.load(storage)? {
+        Err(ContractError::ContractIsPaused)?;
     }
 
     Ok(())

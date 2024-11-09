@@ -4,11 +4,9 @@ use cw2::set_contract_version;
 use goplend_base::{
     error::ContractError,
     market_maker::{
-        types::HubConfig,
-        {
-            msg::InstantiateMsg,
-            state::{CONFIG, CONTRACT_NAME, IS_LOCKED, MAX_OUTPOST_AMOUNT, OUTPOSTS},
-        },
+        msg::InstantiateMsg,
+        state::{CONFIG, CONTRACT_NAME, IS_PAUSED},
+        types::Config,
     },
 };
 
@@ -26,15 +24,10 @@ pub fn try_instantiate(
 
     CONFIG.save(
         deps.storage,
-        &HubConfig {
+        &Config {
             admin: sender.to_owned(),
             worker: msg
                 .worker
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
-            marketplace: msg
-                .marketplace
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
@@ -42,14 +35,21 @@ pub fn try_instantiate(
                 .controller
                 .map(|x| x.iter().map(|y| deps.api.addr_validate(y)).collect())
                 .transpose()?,
+            lending_platform: msg
+                .lending_platform
+                .map(|x| deps.api.addr_validate(&x))
+                .transpose()
+                .unwrap_or(Some(sender.to_owned())),
+            oracle: msg
+                .oracle
+                .map(|x| deps.api.addr_validate(&x))
+                .transpose()
+                .unwrap_or(Some(sender.to_owned())),
             token: msg.token.verify(deps.api)?,
-            max_outpost_amount: msg.max_outpost_amount.unwrap_or(MAX_OUTPOST_AMOUNT),
-            outpost_code_id: msg.outpost_code_id,
         },
     )?;
 
-    IS_LOCKED.save(deps.storage, &false)?;
-    OUTPOSTS.save(deps.storage, &vec![])?;
+    IS_PAUSED.save(deps.storage, &false)?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

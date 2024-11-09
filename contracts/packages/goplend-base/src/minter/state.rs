@@ -1,11 +1,12 @@
 use cosmwasm_std::Addr;
 use cw_storage_plus::{Deque, Item, Map};
 
-use crate::minter::types::{Config, CurrencyInfo, FaucetConfig, TransferAdminState};
+use crate::{
+    lending_platform::types::TransferAdminState,
+    minter::types::{Config, CurrencyInfo, FaucetConfig},
+};
 
-pub const CONTRACT_NAME: &str = "minter";
-
-pub const TRANSFER_ADMIN_TIMEOUT: u64 = 3600;
+pub const CONTRACT_NAME: &str = "goplend-minter";
 
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 

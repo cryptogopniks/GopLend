@@ -1,19 +1,15 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
 use goplend_base::{
     error::ContractError,
-    market_maker::{
-        msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-        state::ADD_OUTPOST_REPLY,
-    },
+    market_maker::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
 use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+    execute as e, instantiate::try_instantiate, migrate::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -41,62 +37,55 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            marketplace,
             controller,
+            lending_platform,
+            oracle,
             token,
-            max_outpost_amount,
-            outpost_code_id,
         } => e::try_update_config(
             deps,
             env,
             info,
             admin,
             worker,
-            marketplace,
             controller,
+            lending_platform,
+            oracle,
             token,
-            max_outpost_amount,
-            outpost_code_id,
         ),
 
-        ExecuteMsg::AddOutpost {} => e::try_add_outpost(deps, env, info),
+        ExecuteMsg::Pause {} => e::try_pause(deps, env, info),
 
-        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
-
-        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
+        ExecuteMsg::Unpause {} => e::try_unpause(deps, env, info),
 
         ExecuteMsg::SetCollection {
-            collection_address,
+            collection,
             owner_list,
-        } => e::try_set_collection(deps, env, info, collection_address, owner_list),
+        } => e::try_set_collection(deps, env, info, collection, owner_list),
 
-        ExecuteMsg::RemoveCollections {
-            collection_address_list,
-        } => e::try_remove_collections(deps, env, info, collection_address_list),
-
-        ExecuteMsg::DepositLiquidity { collection_address } => {
-            e::try_deposit_liquidity(deps, env, info, collection_address)
+        ExecuteMsg::RemoveCollections { collection_list } => {
+            e::try_remove_collections(deps, env, info, collection_list)
         }
 
-        ExecuteMsg::WithdrawLiquidity {
-            amount,
-            collection_address,
-        } => e::try_withdraw_liquidity(deps, env, info, amount, collection_address),
+        ExecuteMsg::DepositLiquidity { collection } => {
+            e::try_deposit_liquidity(deps, env, info, collection)
+        }
 
-        ExecuteMsg::WithdrawCollateral { collection_address } => {
-            e::try_withdraw_collateral(deps, env, info, collection_address)
+        ExecuteMsg::WithdrawLiquidity { amount, collection } => {
+            e::try_withdraw_liquidity(deps, env, info, amount, collection)
+        }
+
+        ExecuteMsg::WithdrawCollateral { collection } => {
+            e::try_withdraw_collateral(deps, env, info, collection)
         }
 
         ExecuteMsg::UpdateOffers {
-            collection_address,
-            from_to_price_and_outpost_list,
-        } => e::try_update_offers(
-            deps,
-            env,
-            info,
-            collection_address,
-            from_to_price_and_outpost_list,
-        ),
+            collection,
+            from_to_price_list,
+        } => e::try_update_offers(deps, env, info, collection, from_to_price_list),
+
+        ExecuteMsg::AcceptOffers {
+            bidded_collateral_item_list,
+        } => unimplemented!(),
     }
 }
 
@@ -106,42 +95,46 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryOutposts {} => to_json_binary(&q::query_outposts(deps, env)?),
+        // #[returns(Vec<super::types::OffersResponse>)]
+        QueryMsg::QueryOfferPricesList {
+            amount,
+            start_after,
+        } => unimplemented!(),
 
-        QueryMsg::QueryCollectionOwnersList { start_after, limit } => to_json_binary(
-            &q::query_collection_owners_list(deps, env, start_after, limit)?,
-        ),
+        // #[returns(super::types::OffersResponse)]
+        QueryMsg::QueryOfferPrices { collection: String } => unimplemented!(),
 
-        QueryMsg::QueryCollectionOwners { collection_address } => {
-            to_json_binary(&q::query_collection_owners(deps, env, collection_address)?)
+        QueryMsg::QueryCollectionOwnersList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_collection_owners_list(
+            deps,
+            env,
+            amount,
+            start_after,
+        )?),
+
+        QueryMsg::QueryCollectionOwners { collection } => {
+            to_json_binary(&q::query_collection_owners(deps, env, collection)?)
         }
 
-        QueryMsg::QueryLiquidityList { start_after, limit } => {
-            to_json_binary(&q::query_liquidity_list(deps, env, start_after, limit)?)
+        QueryMsg::QueryLiquidityList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_liquidity_list(deps, env, amount, start_after)?),
+
+        QueryMsg::QueryLiquidity { collection } => {
+            to_json_binary(&q::query_liquidity(deps, env, collection)?)
         }
 
-        QueryMsg::QueryLiquidity { collection_address } => {
-            to_json_binary(&q::query_liquidity(deps, env, collection_address)?)
+        QueryMsg::QueryCollateralList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_collateral_list(deps, env, amount, start_after)?),
+
+        QueryMsg::QueryCollateral { collection } => {
+            to_json_binary(&q::query_collateral(deps, env, collection)?)
         }
-
-        QueryMsg::QueryCollateralList { start_after, limit } => {
-            to_json_binary(&q::query_collateral_list(deps, env, start_after, limit)?)
-        }
-
-        QueryMsg::QueryCollateral { collection_address } => {
-            to_json_binary(&q::query_collateral(deps, env, collection_address)?)
-        }
-    }
-}
-
-/// Exposes all the replies available in the contract
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
-    let Reply { id, result } = reply;
-
-    match id {
-        ADD_OUTPOST_REPLY => e::add_outpost_reply(deps, env, &result),
-        _ => Err(ContractError::UndefinedReplyId),
     }
 }
 

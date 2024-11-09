@@ -56,9 +56,3 @@ pub struct FaucetConfig {
     /// in seconds
     pub claim_cooldown: u64,
 }
-
-#[cw_serde]
-pub struct TransferAdminState {
-    pub new_admin: Addr,
-    pub deadline: u64,
-}

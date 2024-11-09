@@ -10,7 +10,7 @@ use goplend_base::{
         state::{
             ADDRESS_CONFIG, BALANCES, BID_MIN_RATE, BORROWERS_RESERVE_FRACTION_RATIO, BORROW_APR,
             BORROW_FEE_RATE, COLLATERAL_MIN_VALUE, COMMON_CONFIG, CONTRACT_NAME, DISCOUNT_MAX_RATE,
-            DISCOUNT_MIN_RATE, IS_LOCKED, IS_MARKETPLACE_INTERFACE_ENABLED, LIQUIDATION_FEE_RATE,
+            DISCOUNT_MIN_RATE, IS_MARKETPLACE_INTERFACE_ENABLED, IS_PAUSED, LIQUIDATION_FEE_RATE,
             PLATFORM_REVENUE, PROPOSAL_COUNTER, RATE_CONFIG, UNBONDING_PERIOD,
         },
         types::{AddressConfig, Balances, CommonConfig, RateConfig},
@@ -107,7 +107,7 @@ pub fn try_instantiate(
 
     PROPOSAL_COUNTER.save(deps.storage, &1)?;
     PLATFORM_REVENUE.save(deps.storage, &vec![])?;
-    IS_LOCKED.save(deps.storage, &false)?;
+    IS_PAUSED.save(deps.storage, &false)?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

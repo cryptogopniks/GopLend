@@ -36,25 +36,22 @@ pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
 
 pub const BLOCK_TIME_OFFSET: u64 = 60;
 
-pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
-pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;
-
 pub const TRANSFER_ADMIN_TIMEOUT: u64 = 7 * 24 * 3600;
 
-pub const IS_LOCKED: Item<bool> = Item::new("is locked");
-pub const ADDRESS_CONFIG: Item<AddressConfig> = Item::new("address config");
-pub const RATE_CONFIG: Item<RateConfig> = Item::new("rate config");
-pub const COMMON_CONFIG: Item<CommonConfig> = Item::new("common config");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer admin state");
+pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
+pub const ADDRESS_CONFIG: Item<AddressConfig> = Item::new("address_config");
+pub const RATE_CONFIG: Item<RateConfig> = Item::new("rate_config");
+pub const COMMON_CONFIG: Item<CommonConfig> = Item::new("common_config");
+pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
 pub const BALANCES: Item<Balances> = Item::new("balances");
-pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform revenue");
-pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal counter");
+pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform_revenue");
+pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal_counter");
 
-pub const UNBONDERS: Map<&Addr, Unbonder> = Map::new("unbonder by address");
-pub const BORROWERS: Map<&Addr, Borrower> = Map::new("borrower by address");
-pub const COLLATERALS: Map<&Addr, Vec<Collateral>> = Map::new("collaterals by collection address");
-pub const LIQUIDATORS: Map<&Addr, Liquidator> = Map::new("liquidator by address");
+pub const UNBONDERS: Map<&Addr, Unbonder> = Map::new("unbonder_byaddress");
+pub const BORROWERS: Map<&Addr, Borrower> = Map::new("borrower_by_address");
+pub const COLLATERALS: Map<&Addr, Vec<Collateral>> = Map::new("collaterals_by_collection_address");
+pub const LIQUIDATORS: Map<&Addr, Liquidator> = Map::new("liquidator_by_address");
 pub const LIQUIDATION_BIDS: Map<&Addr, Vec<LiquidationBid>> =
-    Map::new("liquidation bids by collection address");
-pub const PROPOSALS: Map<u32, Proposal<Addr, Token>> = Map::new("proposal by id");
-pub const COLLECTIONS: Map<&Addr, Collection<Addr>> = Map::new("collection by address");
+    Map::new("liquidation_bids_by_collection_address");
+pub const PROPOSALS: Map<u32, Proposal<Addr, Token>> = Map::new("proposal_by_id");
+pub const COLLECTIONS: Map<&Addr, Collection<Addr>> = Map::new("collection_by_address");

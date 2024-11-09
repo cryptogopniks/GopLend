@@ -4,10 +4,7 @@ use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Funds, Token},
     oracle::{
-        state::{
-            CONFIG, LOG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PRICE_AND_DATE_LIST,
-            PRICE_RATIO,
-        },
+        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO},
         types::{Config, Log, PriceItem, PriceRatioItem},
     },
 };
@@ -19,9 +16,9 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 pub fn query_prices(
     deps: Deps,
     env: Env,
-    collection_addresses: Option<Vec<String>>,
+    amount: u32,
     start_after: Option<String>,
-    limit: Option<u32>,
+    collection_addresses: Option<Vec<String>>,
 ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
     let block_time = env.block.time.seconds();
     let Config {
@@ -60,10 +57,6 @@ pub fn query_prices(
             .collect();
     }
 
-    let limit = limit
-        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-        .min(PAGINATION_MAX_LIMIT) as usize;
-
     let binding;
     let start_bound = match start_after {
         Some(addr) => {
@@ -75,7 +68,7 @@ pub fn query_prices(
 
     Ok(PRICE_AND_DATE_LIST
         .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
+        .take(amount as usize)
         .map(|x| {
             let (address, price_item) = x.unwrap();
 

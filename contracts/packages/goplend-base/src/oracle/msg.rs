@@ -58,32 +58,22 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::oracle::types::Config)]
+    #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<crate::oracle::types::PriceItem<crate::assets::Funds<crate::assets::Token> >>)]
+    #[returns(Vec<super::types::PriceItem<crate::assets::Funds<crate::assets::Token>>>)]
     QueryPrices {
-        collection_addresses: Option<Vec<String>>,
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
+        collection_addresses: Option<Vec<String>>,
     },
 
-    #[returns(crate::oracle::types::PriceRatioItem)]
+    #[returns(super::types::PriceRatioItem)]
     QueryPriceRatio {},
 
     #[returns(u64)]
     QueryBlockTime {},
 
-    #[returns(Vec<crate::oracle::types::Log>)]
+    #[returns(Vec<super::types::Log>)]
     QueryLog {},
 }
-
-// TODO: add offers per token in v2
-// #[cw_serde]
-// pub struct QueryPricesResponseItem {
-//     pub address: Addr,
-//     pub currency: Currency<Token>,
-//     pub token_and_price_list: Vec<(String, Uint128)>,
-//     pub collection_price: Uint128,
-//     pub price_update_date: u64,
-// }

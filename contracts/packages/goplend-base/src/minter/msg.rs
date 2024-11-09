@@ -141,32 +141,32 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::minter::types::Config)]
+    #[returns(super::types::Config)]
     Config {},
 
-    #[returns(crate::minter::types::FaucetConfig)]
+    #[returns(super::types::FaucetConfig)]
     FaucetConfig { denom_or_address: String },
 
-    #[returns(crate::minter::types::CurrencyInfo)]
+    #[returns(super::types::CurrencyInfo)]
     CurrencyInfo { denom_or_address: String },
 
-    #[returns(Vec<crate::minter::types::CurrencyInfo>)]
+    #[returns(Vec<super::types::CurrencyInfo>)]
     CurrencyInfoList {
         amount: u32,
-        start_from: Option<String>,
+        start_after: Option<String>,
     },
 
-    #[returns(Vec<crate::minter::types::CurrencyInfo>)]
+    #[returns(Vec<super::types::CurrencyInfo>)]
     CurrencyInfoListByOwner {
         owner: String,
         amount: u32,
-        start_from: Option<String>,
+        start_after: Option<String>,
     },
 
     #[returns(Vec<(Addr, u16)>)]
     TokenCountList {
         amount: u32,
-        start_from: Option<String>,
+        start_after: Option<String>,
     },
 
     #[returns(u64)]

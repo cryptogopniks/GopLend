@@ -32,9 +32,9 @@ pub fn query_currency_info_list(
     deps: Deps,
     _env: Env,
     amount: u32,
-    start_from: Option<String>,
+    start_after: Option<String>,
 ) -> StdResult<Vec<CurrencyInfo>> {
-    let start_bound = start_from.as_ref().map(|x| Bound::exclusive(x.as_str()));
+    let start_bound = start_after.as_ref().map(|x| Bound::exclusive(x.as_str()));
 
     Ok(CURRENCIES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -51,9 +51,9 @@ pub fn query_currency_info_list_by_owner(
     _env: Env,
     owner: String,
     amount: u32,
-    start_from: Option<String>,
+    start_after: Option<String>,
 ) -> StdResult<Vec<CurrencyInfo>> {
-    let start_bound = start_from.as_ref().map(|x| Bound::exclusive(x.as_str()));
+    let start_bound = start_after.as_ref().map(|x| Bound::exclusive(x.as_str()));
 
     Ok(CURRENCIES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -68,10 +68,10 @@ pub fn query_token_count_list(
     deps: Deps,
     _env: Env,
     amount: u32,
-    start_from: Option<String>,
+    start_after: Option<String>,
 ) -> StdResult<Vec<(Addr, u16)>> {
     let address;
-    let start_bound = match start_from {
+    let start_bound = match start_after {
         None => None,
         Some(x) => {
             address = deps.api.addr_validate(&x)?;

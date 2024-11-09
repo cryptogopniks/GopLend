@@ -12,7 +12,7 @@ use goplend_base::{
     lending_platform::{
         state::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
-            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
+            IS_PAUSED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
@@ -38,7 +38,7 @@ pub fn try_deposit(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -92,7 +92,7 @@ pub fn try_deposit(
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_deposit")]))
+        .add_attribute("action", "try_deposit"))
 }
 
 pub fn try_unbond(
@@ -102,7 +102,7 @@ pub fn try_unbond(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -175,11 +175,11 @@ pub fn try_unbond(
         Ok(unbonder)
     })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_unbond")]))
+    Ok(Response::new().add_attribute("action", "try_unbond"))
 }
 
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -274,7 +274,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
 
     Ok(Response::new()
         .add_messages(msg_list)
-        .add_attributes(vec![("action", "try_withdraw")]))
+        .add_attribute("action", "try_withdraw"))
 }
 
 pub fn try_deposit_collateral(
@@ -283,7 +283,7 @@ pub fn try_deposit_collateral(
     info: MessageInfo,
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -438,8 +438,8 @@ pub fn try_deposit_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses_full),
+            amount: 50, // TODO: replace
             start_after: None,
-            limit: None,
         },
     )?;
 
@@ -481,7 +481,7 @@ pub fn try_deposit_collateral(
 
     Ok(Response::new()
         .add_messages(msg_list)
-        .add_attributes(vec![("action", "try_deposit_collateral")]))
+        .add_attribute("action", "try_deposit_collateral"))
 }
 
 pub fn try_withdraw_collateral(
@@ -490,7 +490,7 @@ pub fn try_withdraw_collateral(
     info: MessageInfo,
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -605,8 +605,8 @@ pub fn try_withdraw_collateral(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
+            amount: 50, // TODO: replace
             start_after: None,
-            limit: None,
         },
     )?;
 
@@ -660,7 +660,7 @@ pub fn try_withdraw_collateral(
 
     Ok(Response::new()
         .add_messages(msg_list)
-        .add_attributes(vec![("action", "try_withdraw_collateral")]))
+        .add_attribute("action", "try_withdraw_collateral"))
 }
 
 pub fn try_borrow(
@@ -669,7 +669,7 @@ pub fn try_borrow(
     info: MessageInfo,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -766,7 +766,7 @@ pub fn try_borrow(
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_borrow")]))
+        .add_attribute("action", "try_borrow"))
 }
 
 pub fn try_repay(
@@ -778,7 +778,7 @@ pub fn try_repay(
 ) -> Result<Response, ContractError> {
     let mut response = Response::new().add_attribute("action", "try_repay");
 
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -898,7 +898,7 @@ pub fn try_place_bid(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1091,7 +1091,7 @@ pub fn try_place_bid(
         Ok(x)
     })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_place_bid")]))
+    Ok(Response::new().add_attribute("action", "try_place_bid"))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1106,7 +1106,7 @@ pub fn try_update_bid(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1253,7 +1253,7 @@ pub fn try_update_bid(
         )?;
     }
 
-    let response = Response::new().add_attributes(vec![("action", "try_update_bid")]);
+    let response = Response::new().add_attribute("action", "try_update_bid");
 
     if new_bid_value >= current_bid_value && current_bid_value + asset_amount >= new_bid_value {
         let amount_to_return = current_bid_value + asset_amount - new_bid_value;
@@ -1301,7 +1301,7 @@ pub fn try_remove_bid(
     collection_addresses: Vec<String>,
     creation_date: u64,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1382,7 +1382,7 @@ pub fn try_remove_bid(
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_remove_bid")]))
+        .add_attribute("action", "try_remove_bid"))
 }
 
 pub fn try_liquidate(
@@ -1391,7 +1391,7 @@ pub fn try_liquidate(
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
     let block_time = env.block.time.seconds();
@@ -1484,7 +1484,7 @@ pub fn try_liquidate(
     )?;
 
     // send messages to marketplace
-    let mut response = Response::new().add_attributes(vec![("action", "try_liquidate")]);
+    let mut response = Response::new().add_attribute("action", "try_liquidate");
 
     if common_config.is_marketplace_interface_enabled
         && !marketplace_bidded_collateral_item_list.is_empty()
@@ -1500,12 +1500,6 @@ pub fn try_liquidate(
         collection_list.sort_unstable();
         collection_list.dedup();
 
-        // use different adapters depending on chain id
-        let accept_bids_msg =
-            to_json_binary(&goplend_base::marketplace::msg::ExecuteMsg::AcceptOffers {
-                bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-            })?;
-
         response = response
             .add_messages(get_collection_operator_approvals(
                 deps.querier,
@@ -1515,7 +1509,9 @@ pub fn try_liquidate(
             )?)
             .add_message(WasmMsg::Execute {
                 contract_addr: adapter_marketplace.to_string(),
-                msg: accept_bids_msg,
+                msg: to_json_binary(&goplend_base::market_maker::msg::ExecuteMsg::AcceptOffers {
+                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+                })?,
                 funds: vec![],
             });
     }
@@ -1574,7 +1570,7 @@ pub fn try_update_address_config(
     adapter_scheduler: Option<String>,
     adapter_marketplace: Option<String>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
     helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
@@ -1681,7 +1677,7 @@ pub fn try_update_rate_config(
     discount_max_rate: Option<Decimal>,
     bid_min_rate: Option<Decimal>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
@@ -1747,7 +1743,7 @@ pub fn try_update_common_config(
     borrowers_reserve_fraction_ratio: Option<Decimal>,
     is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
@@ -1819,7 +1815,7 @@ pub fn try_deposit_reserve_liquidity(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1846,7 +1842,7 @@ pub fn try_deposit_reserve_liquidity(
         Ok(x)
     })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_deposit_reserve_liquidity")]))
+    Ok(Response::new().add_attribute("action", "try_deposit_reserve_liquidity"))
 }
 
 pub fn try_withdraw_reserve_liquidity(
@@ -1855,7 +1851,7 @@ pub fn try_withdraw_reserve_liquidity(
     info: MessageInfo,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1885,7 +1881,7 @@ pub fn try_withdraw_reserve_liquidity(
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_withdraw_reserve_liquidity")]))
+        .add_attribute("action", "try_withdraw_reserve_liquidity"))
 }
 
 pub fn try_reinforce_bgl_token(
@@ -1895,7 +1891,7 @@ pub fn try_reinforce_bgl_token(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
@@ -1923,10 +1919,10 @@ pub fn try_reinforce_bgl_token(
         Ok(x)
     })?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_reinforce_bgl_token")]))
+    Ok(Response::new().add_attribute("action", "try_reinforce_bgl_token"))
 }
 
-pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1936,12 +1932,12 @@ pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response,
         AuthType::AdminOrWorker,
     )?;
 
-    IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
+    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_lock")]))
+    Ok(Response::new().add_attribute("action", "try_pause"))
 }
 
-pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -1951,9 +1947,9 @@ pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respons
         AuthType::AdminOrWorker,
     )?;
 
-    IS_LOCKED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
+    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_unlock")]))
+    Ok(Response::new().add_attribute("action", "try_unpause"))
 }
 
 pub fn try_distribute_funds(
@@ -1962,7 +1958,7 @@ pub fn try_distribute_funds(
     info: MessageInfo,
     address_and_weight_list: Vec<(String, Decimal)>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2020,7 +2016,7 @@ pub fn try_distribute_funds(
 
     Ok(Response::new()
         .add_messages(msg_list)
-        .add_attributes([("action", "try_distribute_funds")]))
+        .add_attribute("action", "try_distribute_funds"))
 }
 
 pub fn try_remove_collection(
@@ -2029,7 +2025,7 @@ pub fn try_remove_collection(
     info: MessageInfo,
     address: String,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2043,7 +2039,7 @@ pub fn try_remove_collection(
     let collection_address = &deps.api.addr_validate(&address)?;
     COLLECTIONS.remove(deps.storage, collection_address);
 
-    Ok(Response::new().add_attributes([("action", "try_remove_collection")]))
+    Ok(Response::new().add_attribute("action", "try_remove_collection"))
 }
 
 pub fn try_create_proposal(
@@ -2052,7 +2048,7 @@ pub fn try_create_proposal(
     info: MessageInfo,
     proposal: Proposal<String, TokenUnverified>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2152,7 +2148,7 @@ pub fn try_reject_proposal(
     info: MessageInfo,
     id: u32,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     check_authorization(
@@ -2179,7 +2175,7 @@ pub fn try_reject_proposal(
         },
     )?;
 
-    Ok(Response::new().add_attributes([("action", "try_reject_proposal")]))
+    Ok(Response::new().add_attribute("action", "try_reject_proposal"))
 }
 
 pub fn try_accept_proposal(
@@ -2190,7 +2186,7 @@ pub fn try_accept_proposal(
     sender: Option<String>,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
-    helpers::check_lockout(deps.as_ref())?;
+    helpers::check_pause_state(deps.storage)?;
     let (sender_address, asset_amount, asset_info) =
         check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
 
@@ -2300,5 +2296,5 @@ pub fn try_accept_proposal(
         },
     )?;
 
-    Ok(Response::new().add_attributes([("action", "try_accept_proposal")]))
+    Ok(Response::new().add_attribute("action", "try_accept_proposal"))
 }

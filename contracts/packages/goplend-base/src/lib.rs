@@ -28,12 +28,6 @@ pub mod scheduler {
     pub mod types;
 }
 
-pub mod marketplace {
-    pub mod msg;
-    pub mod state;
-    pub mod types;
-}
-
 pub mod assets;
 pub mod constants;
 pub mod converters;

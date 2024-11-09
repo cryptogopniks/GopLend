@@ -1,16 +1,15 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::assets::TokenUnverified;
+use crate::{assets::TokenUnverified, lending_platform::types::BiddedCollateralItem};
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub marketplace: Option<String>,
     pub controller: Option<Vec<String>>,
+    pub lending_platform: Option<String>,
+    pub oracle: Option<String>,
     pub token: TokenUnverified,
-    pub max_outpost_amount: Option<u8>,
-    pub outpost_code_id: Option<u64>,
 }
 
 #[cw_serde]
@@ -27,86 +26,94 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        marketplace: Option<String>,
         controller: Option<Vec<String>>,
+        lending_platform: Option<String>,
+        oracle: Option<String>,
         token: Option<TokenUnverified>,
-        max_outpost_amount: Option<u8>,
-        outpost_code_id: Option<u64>,
     },
 
-    AddOutpost {},
-
     // admin, worker
-    Lock {},
+    Pause {},
 
-    Unlock {},
+    Unpause {},
 
     // collection owners
     /// add new collection or rewrite existing
     SetCollection {
-        collection_address: String,
+        collection: String,
         owner_list: Vec<String>,
     },
 
     RemoveCollections {
-        collection_address_list: Vec<String>,
+        collection_list: Vec<String>,
     },
 
     DepositLiquidity {
-        collection_address: String,
+        collection: String,
     },
 
     /// can remove offers if it's required to get enough liquidity
     WithdrawLiquidity {
         amount: Uint128,
-        collection_address: String,
+        collection: String,
     },
 
     /// withdraw all bought NFT's
     WithdrawCollateral {
-        collection_address: String,
+        collection: String,
     },
 
     // controller
     UpdateOffers {
-        collection_address: String,
-        from_to_price_and_outpost_list: Vec<(Uint128, Uint128, String)>,
+        collection: String,
+        from_to_price_list: Vec<(Uint128, Uint128)>,
+    },
+
+    // lending platform
+    AcceptOffers {
+        bidded_collateral_item_list: Vec<BiddedCollateralItem>,
     },
 }
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::market_maker::types::HubConfig)]
+    #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<Addr>)]
-    QueryOutposts {},
+    #[returns(Vec<super::types::OffersResponse>)]
+    QueryOfferPricesList {
+        amount: u32,
+        start_after: Option<String>,
+    },
 
-    #[returns(Vec<crate::market_maker::types::CollectionOwners<Addr>>)]
+    #[returns(super::types::OffersResponse)]
+    QueryOfferPrices { collection: String },
+
+    #[returns(Vec<super::types::CollectionOwners<Addr>>)]
     QueryCollectionOwnersList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::market_maker::types::CollectionOwners<Addr>)]
-    QueryCollectionOwners { collection_address: String },
+    #[returns(super::types::CollectionOwners<Addr>)]
+    QueryCollectionOwners { collection: String },
 
-    #[returns(Vec<crate::market_maker::types::LiquidityInfo>)]
+    #[returns(Vec<super::types::LiquidityInfo>)]
     QueryLiquidityList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
-    #[returns(crate::market_maker::types::LiquidityInfo)]
-    QueryLiquidity { collection_address: String },
+    #[returns(super::types::LiquidityInfo)]
+    QueryLiquidity { collection: String },
 
     #[returns(Vec<crate::lending_platform::types::CollectionInfo<Addr>>)]
     QueryCollateralList {
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
     },
 
     #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
-    QueryCollateral { collection_address: String },
+    QueryCollateral { collection: String },
 }

@@ -10,7 +10,7 @@ use goplend_base::{
 };
 
 use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+    execute as e, instantiate::try_instantiate, migrate::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -77,15 +77,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
         QueryMsg::QueryPrices {
-            collection_addresses,
+            amount,
             start_after,
-            limit,
+            collection_addresses,
         } => to_json_binary(&q::query_prices(
             deps,
             env,
-            collection_addresses,
+            amount,
             start_after,
-            limit,
+            collection_addresses,
         )?),
 
         QueryMsg::QueryPriceRatio {} => to_json_binary(&q::query_price_ratio(deps, env)?),

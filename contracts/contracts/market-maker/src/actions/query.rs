@@ -1,36 +1,26 @@
 use cosmwasm_std::{Addr, Deps, Env, Order, QuerierWrapper, StdResult, Uint128};
 
+use cw721::TokensResponse;
 use cw_storage_plus::Bound;
 
 use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
-        state::{
-            CONFIG, OUTPOSTS, OWNERS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
-            UNDISTRIBUTED_LIQUIDITY,
-        },
-        types::{CollateralResponse, CollectionOwners, HubConfig, LiquidityInfo},
+        state::{CONFIG, OFFERS, OWNERS, UNDISTRIBUTED_LIQUIDITY},
+        types::{CollectionOwners, Config, LiquidityInfo},
     },
 };
 
-pub fn query_config(deps: Deps, _env: Env) -> StdResult<HubConfig> {
+pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
-}
-
-pub fn query_outposts(deps: Deps, _env: Env) -> StdResult<Vec<Addr>> {
-    OUTPOSTS.load(deps.storage)
 }
 
 pub fn query_collection_owners_list(
     deps: Deps,
     _env: Env,
+    amount: u32,
     start_after: Option<String>,
-    limit: Option<u32>,
 ) -> StdResult<Vec<CollectionOwners<Addr>>> {
-    let limit = limit
-        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-        .min(PAGINATION_MAX_LIMIT) as usize;
-
     let binding;
     let start_bound = match start_after {
         Some(addr) => {
@@ -42,7 +32,7 @@ pub fn query_collection_owners_list(
 
     OWNERS
         .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
+        .take(amount as usize)
         .map(|x| {
             let (collection_address, owner_list) = x.unwrap();
 
@@ -57,9 +47,9 @@ pub fn query_collection_owners_list(
 pub fn query_collection_owners(
     deps: Deps,
     _env: Env,
-    collection_address: String,
+    collection: String,
 ) -> StdResult<CollectionOwners<Addr>> {
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
     let owner_list = OWNERS.load(deps.storage, &collection_address)?;
 
     Ok(CollectionOwners {
@@ -71,14 +61,9 @@ pub fn query_collection_owners(
 pub fn query_liquidity_list(
     deps: Deps,
     _env: Env,
+    amount: u32,
     start_after: Option<String>,
-    limit: Option<u32>,
 ) -> StdResult<Vec<LiquidityInfo>> {
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let limit = limit
-        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-        .min(PAGINATION_MAX_LIMIT) as usize;
-
     let binding;
     let start_bound = match start_after {
         Some(addr) => {
@@ -90,98 +75,87 @@ pub fn query_liquidity_list(
 
     UNDISTRIBUTED_LIQUIDITY
         .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
+        .take(amount as usize)
         .map(|x| {
             let (collection_address, amount_undistributed) = x.unwrap();
-            let price_and_outpost_list =
-                get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
+            let price_list = OFFERS.load(deps.storage, &collection_address)?;
 
             Ok(LiquidityInfo {
                 collection_address,
                 amount_undistributed,
-                price_and_outpost_list,
+                price_list,
             })
         })
-        .collect::<StdResult<Vec<_>>>()
+        .collect()
 }
 
-pub fn query_liquidity(
-    deps: Deps,
-    _env: Env,
-    collection_address: String,
-) -> StdResult<LiquidityInfo> {
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+pub fn query_liquidity(deps: Deps, _env: Env, collection: String) -> StdResult<LiquidityInfo> {
+    let collection_address = deps.api.addr_validate(&collection)?;
     let amount_undistributed = UNDISTRIBUTED_LIQUIDITY.load(deps.storage, &collection_address)?;
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let price_and_outpost_list =
-        get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
+    let price_list = OFFERS.load(deps.storage, &collection_address)?;
 
     Ok(LiquidityInfo {
         collection_address,
         amount_undistributed,
-        price_and_outpost_list,
+        price_list,
     })
 }
 
 pub fn query_collateral_list(
     deps: Deps,
     _env: Env,
+    amount: u32,
     start_after: Option<String>,
-    limit: Option<u32>,
-) -> StdResult<Vec<CollateralResponse>> {
-    let outpost_list = OUTPOSTS.load(deps.storage)?;
-    let limit = limit
-        .unwrap_or(PAGINATION_DEFAULT_LIMIT)
-        .min(PAGINATION_MAX_LIMIT) as usize;
+) -> StdResult<Vec<CollectionInfo<Addr>>> {
+    // let binding;
+    // let start_bound = match start_after {
+    //     Some(addr) => {
+    //         binding = deps.api.addr_validate(&addr)?;
+    //         Some(Bound::exclusive(&binding))
+    //     }
+    //     None => None,
+    // };
 
-    let binding;
-    let start_bound = match start_after {
-        Some(addr) => {
-            binding = deps.api.addr_validate(&addr)?;
-            Some(Bound::exclusive(&binding))
-        }
-        None => None,
-    };
+    //  Ok(OFFERS
+    //     .keys(deps.storage, start_bound, None, Order::Ascending)
+    //     .take(amount as usize)
+    //     .map(|x| {
 
-    let collection_list = OWNERS
-        .keys(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
-        .collect::<StdResult<Vec<Addr>>>()?;
+    //     })
+    //     .collect())
 
-    Ok(outpost_list
-        .iter()
-        .flat_map(|outpost| {
-            collection_list
-                .iter()
-                .map(|collection| {
-                    Ok(CollateralResponse {
-                        outpost: outpost.to_owned(),
-                        collection_info: get_collection_info(&deps.querier, collection, outpost)?,
-                    })
-                })
-                .collect::<StdResult<Vec<CollateralResponse>>>()
-                .unwrap_or_default()
-        })
-        .collect())
+    // Ok(collection_list
+    //             .iter()
+    //             .map(|collection| {
+    //                 Ok(CollectionInfo<Addr> {
+    //                     outpost: outpost.to_owned(),
+    //                     collection_info: get_collection_info(&deps.querier, collection, outpost)?,
+    //                 })
+    //             })
+    //     .collect())
+
+    unimplemented!()
 }
 
 pub fn query_collateral(
     deps: Deps,
     _env: Env,
-    collection_address: String,
-) -> StdResult<Vec<CollateralResponse>> {
-    let collection_address = deps.api.addr_validate(&collection_address)?;
+    collection: String,
+) -> StdResult<Vec<CollectionInfo<Addr>>> {
+    let collection_address = deps.api.addr_validate(&collection)?;
 
-    OUTPOSTS
-        .load(deps.storage)?
-        .iter()
-        .map(|outpost| {
-            Ok(CollateralResponse {
-                outpost: outpost.to_owned(),
-                collection_info: get_collection_info(&deps.querier, &collection_address, outpost)?,
-            })
-        })
-        .collect()
+    // OUTPOSTS
+    //     .load(deps.storage)?
+    //     .iter()
+    //     .map(|outpost| {
+    //         Ok(CollectionInfo<Addr> {
+    //             outpost: outpost.to_owned(),
+    //             collection_info: get_collection_info(&deps.querier, &collection_address, outpost)?,
+    //         })
+    //     })
+    //     .collect()
+
+    unimplemented!()
 }
 
 pub fn get_price_and_outpost_list(
@@ -219,4 +193,22 @@ fn get_collection_info(
     // )
 
     unimplemented!()
+}
+
+fn get_token_id_list(
+    querier: &QuerierWrapper,
+    collection: impl ToString,
+    owner: impl ToString,
+) -> Vec<String> {
+    querier
+        .query_wasm_smart::<TokensResponse>(
+            collection.to_string(),
+            &cw721::Cw721QueryMsg::Tokens {
+                owner: owner.to_string(),
+                start_after: None,
+                limit: Some(50), // TODO: replace
+            },
+        )
+        .map(|x| x.tokens)
+        .unwrap_or_default()
 }

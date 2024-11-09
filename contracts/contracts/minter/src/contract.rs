@@ -223,21 +223,32 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_currency_info(deps, env, denom_or_address)?)
         }
 
-        QueryMsg::CurrencyInfoList { amount, start_from } => {
-            to_json_binary(&q::query_currency_info_list(deps, env, amount, start_from)?)
-        }
+        QueryMsg::CurrencyInfoList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_currency_info_list(
+            deps,
+            env,
+            amount,
+            start_after,
+        )?),
 
         QueryMsg::CurrencyInfoListByOwner {
             owner,
             amount,
-            start_from,
+            start_after,
         } => to_json_binary(&q::query_currency_info_list_by_owner(
-            deps, env, owner, amount, start_from,
+            deps,
+            env,
+            owner,
+            amount,
+            start_after,
         )?),
 
-        QueryMsg::TokenCountList { amount, start_from } => {
-            to_json_binary(&q::query_token_count_list(deps, env, amount, start_from)?)
-        }
+        QueryMsg::TokenCountList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_token_count_list(deps, env, amount, start_after)?),
 
         QueryMsg::LastClaimDate {
             user,

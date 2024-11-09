@@ -181,8 +181,8 @@ pub enum ContractError {
     #[error("{value:?} config is not found!")]
     ParameterIsNotFound { value: String },
 
-    #[error("The contract is temporary locked to stop bad guys")]
-    ContractIsLocked,
+    #[error("The contract is temporary paused")]
+    ContractIsPaused,
 
     #[error("Denom already exists!")]
     DenomExists,

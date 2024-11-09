@@ -7,7 +7,7 @@ use goplend_base::{
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BORROWERS, COLLATERALS, IS_LOCKED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
+            BALANCES, BORROWERS, COLLATERALS, IS_PAUSED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
             RATE_CONFIG,
         },
         types::{
@@ -33,9 +33,10 @@ pub fn choose_price(
     }
 }
 
-pub fn check_lockout(deps: Deps) -> StdResult<()> {
-    if IS_LOCKED.load(deps.storage)? {
-        Err(ContractError::ContractIsLocked)?;
+/// user actions are disabled when the contract is paused
+pub fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
+    if IS_PAUSED.load(storage)? {
+        Err(ContractError::ContractIsPaused)?;
     }
 
     Ok(())
@@ -465,7 +466,7 @@ pub fn get_conditional_ltv(
         &oracle::msg::QueryMsg::QueryPrices {
             collection_addresses: Some(collection_addresses),
             start_after: None,
-            limit: None,
+            amount: 50, // TODO: replace
         },
     )?;
 
@@ -496,11 +497,12 @@ pub mod offchain {
     use goplend_base::{
         assets::{Funds, Token},
         lending_platform::{
-            msg::{
-                QueryBorrowersResponseItem, QueryCollateralsResponseItem,
-                QueryLiquidationBidsByCollectionAddressListResponseItem, QueryMsg,
+            msg::QueryMsg,
+            types::{
+                Collateral, LiquidationBid, QueryBorrowersResponseItem,
+                QueryCollateralsResponseItem,
+                QueryLiquidationBidsByCollectionAddressListResponseItem,
             },
-            types::{Collateral, LiquidationBid},
         },
         oracle::{self, types::PriceItem},
     };
@@ -514,8 +516,8 @@ pub mod offchain {
             .query_wasm_smart::<Vec<QueryBorrowersResponseItem>>(
                 lending_platform_address,
                 &QueryMsg::QueryBorrowerList {
+                    amount: 50,
                     start_after: None,
-                    limit: None,
                 },
             )?;
         borrower_list.retain(|x| borrowers.contains(&x.address.to_string()));
@@ -558,8 +560,8 @@ pub mod offchain {
             oracle_address,
             &oracle::msg::QueryMsg::QueryPrices {
                 collection_addresses,
+                amount: 50, // TODO: replace
                 start_after: None,
-                limit: None,
             },
         )
     }

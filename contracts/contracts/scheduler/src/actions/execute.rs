@@ -4,10 +4,13 @@ use cosmwasm_std::{
 
 use goplend_base::{
     error::ContractError,
-    lending_platform::types::LiquidationItem,
+    lending_platform::{
+        state::TRANSFER_ADMIN_TIMEOUT,
+        types::{LiquidationItem, TransferAdminState},
+    },
     scheduler::{
-        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-        types::{Config, Log, TransferAdminState},
+        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE},
+        types::{Config, Log},
     },
     utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
