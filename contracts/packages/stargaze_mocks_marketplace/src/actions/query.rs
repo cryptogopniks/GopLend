@@ -1,8 +1,6 @@
 use cosmwasm_std::{coin, Addr, Deps, Env, StdResult};
 
-use goplend_base::adapters::marketplace::stargaze::state::{
-    PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT,
-};
+use goplend_base::marketplace::state::{PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT};
 use sg_index_query::QueryOptions;
 use stargaze_marketplace_v2::{
     msg::PriceOffset,

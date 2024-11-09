@@ -754,24 +754,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "market-maker-outpost"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-index-query",
- "sg721 3.14.0",
- "sg721-base 3.14.0",
- "stargaze-marketplace-v2",
-]
-
-[[package]]
 name = "minter"
 version = "1.4.1"
 dependencies = [

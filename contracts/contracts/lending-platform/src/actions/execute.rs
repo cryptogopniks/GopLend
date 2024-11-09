@@ -1501,11 +1501,10 @@ pub fn try_liquidate(
         collection_list.dedup();
 
         // use different adapters depending on chain id
-        let accept_bids_msg = to_json_binary(
-            &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
+        let accept_bids_msg =
+            to_json_binary(&goplend_base::marketplace::msg::ExecuteMsg::AcceptOffers {
                 bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-            },
-        )?;
+            })?;
 
         response = response
             .add_messages(get_collection_operator_approvals(

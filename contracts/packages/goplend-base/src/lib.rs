@@ -17,36 +17,21 @@ pub mod minter {
 }
 
 pub mod market_maker {
+    pub mod msg;
+    pub mod state;
     pub mod types;
-
-    pub mod hub {
-        pub mod msg;
-        pub mod state;
-    }
-
-    pub mod outpost {
-        pub mod msg;
-        pub mod state;
-    }
 }
 
-pub mod adapters {
-    pub mod marketplace {
+pub mod scheduler {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
+}
 
-        pub mod stargaze {
-            pub mod msg;
-            pub mod state;
-            pub mod types;
-        }
-    }
-
-    pub mod scheduler {
-        pub mod common {
-            pub mod msg;
-            pub mod state;
-            pub mod types;
-        }
-    }
+pub mod marketplace {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
 }
 
 pub mod assets;
