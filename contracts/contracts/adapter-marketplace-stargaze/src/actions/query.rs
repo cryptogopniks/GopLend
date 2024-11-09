@@ -8,7 +8,6 @@ use goplend_base::{
         msg::QueryCollectionOffersResponse, state::CONFIG, types::Config,
     },
     oracle::types::PriceRatioItem,
-    utils::unwrap_field,
 };
 
 use crate::helpers::{get_discount_base, get_main_denom};
@@ -39,7 +38,6 @@ pub fn query_floor_prices(
                     collection: collection.to_owned(),
                     denom: main_denom.clone(),
                     query_options: Some(QueryOptions {
-                        // TODO: will it give FP?
                         descending: Some(false),
                         limit: Some(1),
                         min: None,

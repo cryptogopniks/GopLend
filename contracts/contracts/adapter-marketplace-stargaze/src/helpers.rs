@@ -7,7 +7,7 @@ use stargaze_marketplace_v2::{
 };
 use stargaze_royalty_registry::state::RoyaltyProtocol;
 
-use goplend_base::{converters::u128_to_dec, utils::unwrap_field};
+use goplend_base::converters::u128_to_dec;
 
 const BIDS_LIMIT: u32 = 20;
 

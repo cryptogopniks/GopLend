@@ -14,7 +14,7 @@ use goplend_base::{
     lending_platform::types::{BidType, BiddedCollateralItem, CommonConfig},
     utils::{
         check_authorization, check_funds, get_collection_operator_approvals, get_transfer_msg,
-        unwrap_field, AuthType, FundsType,
+        AuthType, FundsType,
     },
 };
 
@@ -161,7 +161,7 @@ pub fn try_accept_offers(
         worker,
         lending_platform,
         marketplace,
-        oracle,
+        ..
     } = CONFIG.load(deps.storage)?;
 
     check_authorization(

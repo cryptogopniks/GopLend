@@ -53,6 +53,9 @@ pub enum ContractError {
     #[error("Come back in {remaining_time_in_mins:?} minutes!")]
     ClaimCooldown { remaining_time_in_mins: u64 },
 
+    #[error("Faucet is disabled!")]
+    FaucetIsDisabled,
+
     // ------------------------------ adapter-scheduler ----------------------------------------
     #[error("Scheduler is executed too early!")]
     EarlyExecution,

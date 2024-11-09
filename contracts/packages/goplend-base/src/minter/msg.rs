@@ -109,6 +109,12 @@ pub enum ExecuteMsg {
         address: String,
     },
 
+    UpdateFaucetConfig {
+        denom_or_address: String,
+        claimable_amount: Option<Uint128>,
+        claim_cooldown: Option<u64>,
+    },
+
     // token whitelist -------------------------------------------------------------------------
     Mint {
         denom_or_address: String,
@@ -116,8 +122,18 @@ pub enum ExecuteMsg {
         recipient: Option<String>,
     },
 
+    MintMultiple {
+        denom_or_address: String,
+        account_and_amount_list: Vec<(String, Uint128)>,
+    },
+
     // token whitelist or any holders (if permissionless burning is enabled) -------------------
     Burn {},
+
+    // any account
+    Claim {
+        denom_or_address: String,
+    },
 
     Receive(cw20::Cw20ReceiveMsg),
 }
@@ -127,6 +143,9 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(crate::minter::types::Config)]
     Config {},
+
+    #[returns(crate::minter::types::FaucetConfig)]
+    FaucetConfig { denom_or_address: String },
 
     #[returns(crate::minter::types::CurrencyInfo)]
     CurrencyInfo { denom_or_address: String },
@@ -149,4 +168,14 @@ pub enum QueryMsg {
         amount: u32,
         start_from: Option<String>,
     },
+
+    #[returns(u64)]
+    LastClaimDate {
+        user: String,
+        denom_or_address: String,
+    },
+
+    /// returns list of (amount, denom_or_address) for tokens registered in minter
+    #[returns(Vec<(Uint128, String)>)]
+    Balances { account: String },
 }
