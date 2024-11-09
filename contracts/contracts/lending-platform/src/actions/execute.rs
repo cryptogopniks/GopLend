@@ -6,15 +6,13 @@ use cosmwasm_std::{
 use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
-    adapters::dex::stargaze::types::Route,
     assets::{Currency, Funds, Token, TokenUnverified},
     converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
         state::{
-            ADDRESS_CONFIG, BALANCES, BORROWERS, CHAIN_ID_KUJIRA_MAIN, CHAIN_ID_KUJIRA_TEST,
-            CHAIN_ID_STARGAZE_MAIN, CHAIN_ID_STARGAZE_TEST, COLLATERALS, COLLECTIONS,
-            COMMON_CONFIG, IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
+            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
+            IS_LOCKED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
             PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
@@ -1020,7 +1018,6 @@ pub fn try_place_bid(
                     amount: asset_amount,
                     discount,
                     bid_type: BidType::LiquidationBid,
-                    order_id: None,
                 };
 
                 let bids = match x {
@@ -1239,7 +1236,6 @@ pub fn try_update_bid(
                                         amount: bid_amount,
                                         discount,
                                         bid_type: BidType::LiquidationBid,
-                                        order_id: None,
                                     }
                                 } else {
                                     z
@@ -1394,7 +1390,6 @@ pub fn try_liquidate(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
-    route: Route,
 ) -> Result<Response, ContractError> {
     helpers::check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1506,20 +1501,11 @@ pub fn try_liquidate(
         collection_list.dedup();
 
         // use different adapters depending on chain id
-        let accept_bids_msg = match env.block.chain_id.split('-').collect::<Vec<&str>>()[0] {
-            CHAIN_ID_STARGAZE_MAIN | CHAIN_ID_STARGAZE_TEST => to_json_binary(
-                &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
-                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-                    route,
-                },
-            )?,
-            CHAIN_ID_KUJIRA_MAIN | CHAIN_ID_KUJIRA_TEST => to_json_binary(
-                &goplend_base::adapters::marketplace::kujira::msg::ExecuteMsg::AcceptOffers {
-                    bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
-                },
-            )?,
-            _ => Err(ContractError::ChainIdIsNotFound)?,
-        };
+        let accept_bids_msg = to_json_binary(
+            &goplend_base::adapters::marketplace::stargaze::msg::ExecuteMsg::AcceptOffers {
+                bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
+            },
+        )?;
 
         response = response
             .add_messages(get_collection_operator_approvals(

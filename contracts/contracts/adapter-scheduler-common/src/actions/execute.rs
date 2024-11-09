@@ -3,12 +3,9 @@ use cosmwasm_std::{
 };
 
 use goplend_base::{
-    adapters::{
-        dex::stargaze::types::Route,
-        scheduler::common::{
-            state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
-            types::{ClockSource, Config, Log, TransferAdminState},
-        },
+    adapters::scheduler::common::{
+        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        types::{Config, Log, TransferAdminState},
     },
     error::ContractError,
     lending_platform::types::LiquidationItem,
@@ -21,34 +18,21 @@ pub fn try_push(
     env: Env,
     info: MessageInfo,
     targets: Vec<LiquidationItem>,
-    route: Route,
 ) -> Result<Response, ContractError> {
     let block_time = env.block.time.seconds();
     let sender = info.sender;
     let Config {
-        lending_platform_main,
-        lending_platform_stable,
+        lending_platform,
         offchain_clock,
-        clock_source,
         ..
     } = CONFIG.load(deps.storage)?;
 
-    if let ClockSource::Onchain = clock_source {
+    if !offchain_clock.contains(&sender) {
         Err(ContractError::Unauthorized)?;
-    }
-
-    if let ClockSource::Offchain = clock_source {
-        if !unwrap_field(offchain_clock, "offchain_clock")?.contains(&sender) {
-            Err(ContractError::Unauthorized)?;
-        }
     }
 
     let Log { counter, .. } = unwrap_field(LOG.back(deps.storage)?, "log")?;
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
-
-    // if block_time < block_time_prev + execution_cooldown {
-    //     Err(ContractError::EarlyExecution)?;
-    // }
 
     if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
         LOG.pop_front(deps.storage)?;
@@ -58,21 +42,14 @@ pub fn try_push(
         &Log {
             block_time,
             sender,
-            route: route.clone(),
             counter,
         },
     )?;
 
-    // select lending platform depending on route
-    let lending_platform = match route {
-        Route::Empty => unwrap_field(lending_platform_main, "lending_platform_main")?,
-        _ => unwrap_field(lending_platform_stable, "lending_platform_stable")?,
-    };
-
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: lending_platform.to_string(),
         msg: to_json_binary(
-            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets, route },
+            &goplend_base::lending_platform::msg::ExecuteMsg::Liquidate { targets },
         )?,
         funds: vec![],
     });
@@ -128,10 +105,8 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    lending_platform_main: Option<String>,
-    lending_platform_stable: Option<String>,
+    lending_platform: Option<String>,
     offchain_clock: Option<Vec<String>>,
-    clock_source: Option<ClockSource>,
     execution_cooldown: Option<u64>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -172,25 +147,14 @@ pub fn try_update_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = lending_platform_main {
+    if let Some(x) = lending_platform {
         check_authorization(
             &sender_address,
             current_admin,
             current_worker,
             AuthType::Admin,
         )?;
-        config.lending_platform_main = Some(deps.api.addr_validate(&x)?);
-        is_config_updated = true;
-    }
-
-    if let Some(x) = lending_platform_stable {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.lending_platform_stable = Some(deps.api.addr_validate(&x)?);
+        config.lending_platform = deps.api.addr_validate(&x)?;
         is_config_updated = true;
     }
 
@@ -201,22 +165,10 @@ pub fn try_update_config(
             current_worker,
             AuthType::Admin,
         )?;
-        config.offchain_clock = Some(
-            x.into_iter()
-                .map(|y| deps.api.addr_validate(&y))
-                .collect::<StdResult<Vec<Addr>>>()?,
-        );
-        is_config_updated = true;
-    }
-
-    if let Some(x) = clock_source {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        config.clock_source = x;
+        config.offchain_clock = x
+            .into_iter()
+            .map(|y| deps.api.addr_validate(&y))
+            .collect::<StdResult<Vec<Addr>>>()?;
         is_config_updated = true;
     }
 

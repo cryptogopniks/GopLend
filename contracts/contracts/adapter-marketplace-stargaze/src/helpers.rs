@@ -59,9 +59,7 @@ pub fn get_bids(
     )
 }
 
-pub fn get_main_denom(querier: &QuerierWrapper, oracle: &Option<Addr>) -> StdResult<String> {
-    let oracle = &unwrap_field(oracle.to_owned(), "oracle")?;
-
+pub fn get_main_denom(querier: &QuerierWrapper, oracle: &Addr) -> StdResult<String> {
     let goplend_base::oracle::types::Config { main_currency, .. } =
         querier.query_wasm_smart(oracle, &goplend_base::oracle::msg::QueryMsg::QueryConfig {})?;
 

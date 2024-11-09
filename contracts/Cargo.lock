@@ -3,19 +3,6 @@
 version = 3
 
 [[package]]
-name = "adapter-dex-stargaze-mocks"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
 name = "adapter-marketplace-stargaze"
 version = "1.0.0"
 dependencies = [
@@ -1301,22 +1288,6 @@ dependencies = [
  "serde",
  "sg-index-query",
  "stargaze-marketplace-v2",
-]
-
-[[package]]
-name = "stargaze-mocks-royalty-registry"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-index-query",
- "stargaze-royalty-registry 0.3.0 (git+https://github.com/public-awesome/core.git?rev=6982c764996ea3fa0cbad4b4404a117f55f4c564)",
 ]
 
 [[package]]

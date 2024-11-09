@@ -52,8 +52,6 @@ pub struct LiquidationBid {
     pub amount: Uint128,
     pub discount: Decimal,
     pub bid_type: BidType,
-    /// only for CollectionOffer and TokenOffer
-    pub order_id: Option<String>,
 }
 
 #[derive(Eq)]
@@ -61,7 +59,6 @@ pub struct LiquidationBid {
 pub enum BidType {
     LiquidationBid,
     CollectionOffer,
-    TokenOffer,
 }
 
 // bids.sort_unstable_by_key(|(_, bid)| bid.bid_type) will give
@@ -71,9 +68,6 @@ impl Ord for BidType {
         match (self, other) {
             (BidType::LiquidationBid, BidType::LiquidationBid) => Ordering::Equal,
             (BidType::LiquidationBid, _) => Ordering::Less,
-            (BidType::TokenOffer, BidType::TokenOffer) => Ordering::Equal,
-            (BidType::TokenOffer, BidType::LiquidationBid) => Ordering::Greater,
-            (BidType::TokenOffer, BidType::CollectionOffer) => Ordering::Less,
             (BidType::CollectionOffer, BidType::CollectionOffer) => Ordering::Equal,
             (BidType::CollectionOffer, _) => Ordering::Greater,
         }
@@ -116,7 +110,6 @@ pub struct BiddedCollateralItem {
     pub bid_amount: Uint128,
     pub bid_discount: Decimal,
     pub bid_type: BidType,
-    pub order_id: String,
 }
 
 #[derive(Default)]

@@ -38,28 +38,23 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform_main,
-            lending_platform_stable,
+            lending_platform,
             oracle,
             marketplace,
-            adapter_dex,
         } => e::try_update_config(
             deps,
             env,
             info,
             admin,
             worker,
-            lending_platform_main,
-            lending_platform_stable,
+            lending_platform,
             oracle,
             marketplace,
-            adapter_dex,
         ),
 
         ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
-            route,
-        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list, route),
+        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),
     }
 }
 

@@ -134,9 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Liquidate { targets, route } => {
-            e::try_liquidate(deps, env, info, targets, route)
-        }
+        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
@@ -371,14 +369,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
     }
 }
-
-// /// Exposes all the replies available in the contract
-// #[cfg_attr(not(feature = "library"), entry_point)]
-// pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-//     let Reply { id: _, result: _ } = reply;
-
-//     Err(ContractError::UndefinedReplyId)
-// }
 
 /// Exposes all migration functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]

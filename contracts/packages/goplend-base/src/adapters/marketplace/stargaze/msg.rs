@@ -3,16 +3,14 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 
 use stargaze_marketplace_v2::orders::CollectionBid;
 
-use crate::{adapters::dex::stargaze::types::Route, lending_platform::types::BiddedCollateralItem};
+use crate::lending_platform::types::BiddedCollateralItem;
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub lending_platform_main: Option<String>,
-    pub lending_platform_stable: Option<String>,
+    pub lending_platform: Option<String>,
     pub oracle: Option<String>,
     pub marketplace: Option<String>,
-    pub adapter_dex: Option<String>,
 }
 
 #[cw_serde]
@@ -29,17 +27,14 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        lending_platform_main: Option<String>,
-        lending_platform_stable: Option<String>,
+        lending_platform: Option<String>,
         oracle: Option<String>,
         marketplace: Option<String>,
-        adapter_dex: Option<String>,
     },
 
     // lending platform
     AcceptOffers {
         bidded_collateral_item_list: Vec<BiddedCollateralItem>,
-        route: Route,
     },
 }
 

@@ -27,7 +27,6 @@ pub fn query_floor_prices(
         oracle,
         ..
     } = CONFIG.load(deps.storage)?;
-    let marketplace = &unwrap_field(marketplace, "marketplace")?;
     let main_denom = get_main_denom(&deps.querier, &oracle)?;
 
     collection_address_list
@@ -35,7 +34,7 @@ pub fn query_floor_prices(
         .map(|collection| {
             let collection_address = deps.api.addr_validate(collection)?;
             let asks: Vec<Ask> = deps.querier.query_wasm_smart(
-                marketplace,
+                marketplace.clone(),
                 &stargaze_marketplace_v2::msg::QueryMsg::AsksByCollectionDenom {
                     collection: collection.to_owned(),
                     denom: main_denom.clone(),
@@ -70,14 +69,13 @@ pub fn query_token_offers(
         oracle,
         ..
     } = CONFIG.load(deps.storage)?;
-    let marketplace = &unwrap_field(marketplace, "marketplace")?;
     let main_denom = get_main_denom(&deps.querier, &oracle)?;
 
     token_list
         .into_iter()
         .map(|token_id| -> StdResult<(String, Vec<Bid>)> {
             let bids: Vec<Bid> = deps.querier.query_wasm_smart(
-                marketplace,
+                marketplace.clone(),
                 &stargaze_marketplace_v2::msg::QueryMsg::BidsByTokenPrice {
                     collection: collection_address.clone(),
                     token_id: token_id.clone(),
@@ -107,7 +105,6 @@ pub fn query_collection_offers(
         marketplace,
         ..
     } = CONFIG.load(deps.storage)?;
-    let marketplace = &unwrap_field(marketplace, "marketplace")?;
     let main_denom = get_main_denom(&deps.querier, &oracle)?;
 
     // this query is used to get collection main prices for oracle
@@ -115,7 +112,7 @@ pub fn query_collection_offers(
     let price_ratio_item = deps
         .querier
         .query_wasm_smart::<PriceRatioItem>(
-            &unwrap_field(oracle, "oracle")?,
+            &oracle,
             &goplend_base::oracle::msg::QueryMsg::QueryPriceRatio {},
         )
         .unwrap_or(PriceRatioItem {
@@ -130,7 +127,7 @@ pub fn query_collection_offers(
         Some(price_ratio_item.value)
     };
 
-    let discount_base = get_discount_base(&deps.querier, marketplace, &collection_address)?;
+    let discount_base = get_discount_base(&deps.querier, &marketplace, &collection_address)?;
 
     let collection_bids: Vec<CollectionBid> = deps.querier.query_wasm_smart(
         marketplace,

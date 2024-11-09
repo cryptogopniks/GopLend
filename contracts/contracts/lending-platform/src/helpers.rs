@@ -221,7 +221,7 @@ pub fn update_liquidation_storages(
         current_liquidation_value += liquidation_price;
 
         // update bids if it's required
-        if matches!(bid_type, BidType::TokenOffer | BidType::CollectionOffer) {
+        if matches!(bid_type, BidType::CollectionOffer) {
             continue;
         }
 

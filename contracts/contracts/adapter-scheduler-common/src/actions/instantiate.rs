@@ -2,13 +2,10 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
-    adapters::{
-        dex::stargaze::types::Route,
-        scheduler::common::{
-            msg::InstantiateMsg,
-            state::{CLOCK_SOURCE, CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER},
-            types::{Config, Log},
-        },
+    adapters::scheduler::common::{
+        msg::InstantiateMsg,
+        state::{CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER},
+        types::{Config, Log},
     },
     error::ContractError,
 };
@@ -44,16 +41,12 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            lending_platform_main: msg
-                .lending_platform_main
+            lending_platform: msg
+                .lending_platform
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
-            lending_platform_stable: msg
-                .lending_platform_stable
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
-            offchain_clock,
-            clock_source: msg.clock_source.unwrap_or(CLOCK_SOURCE),
+                .transpose()?
+                .unwrap_or(sender.to_owned()),
+            offchain_clock: offchain_clock.unwrap_or_default(),
             execution_cooldown: msg.execution_cooldown.unwrap_or(EXECUTION_COOLDOWN),
         },
     )?;
@@ -63,7 +56,6 @@ pub fn try_instantiate(
         &Log {
             block_time,
             sender: sender.to_owned(),
-            route: Route::Empty,
             counter: LOG_COUNTER,
         },
     )?;

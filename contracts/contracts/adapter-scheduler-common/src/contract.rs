@@ -33,17 +33,15 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Push { targets, route } => e::try_push(deps, env, info, targets, route),
+        ExecuteMsg::Push { targets } => e::try_push(deps, env, info, targets),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            lending_platform_main,
-            lending_platform_stable,
+            lending_platform,
             offchain_clock,
-            clock_source,
             execution_cooldown,
         } => e::try_update_config(
             deps,
@@ -51,10 +49,8 @@ pub fn execute(
             info,
             admin,
             worker,
-            lending_platform_main,
-            lending_platform_stable,
+            lending_platform,
             offchain_clock,
-            clock_source,
             execution_cooldown,
         ),
     }

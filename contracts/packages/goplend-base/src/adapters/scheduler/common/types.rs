@@ -1,22 +1,12 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 
-use crate::adapters::dex::stargaze::types::Route;
-
-#[cw_serde]
-pub enum ClockSource {
-    Onchain,
-    Offchain,
-}
-
 #[cw_serde]
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub lending_platform_main: Option<Addr>,
-    pub lending_platform_stable: Option<Addr>,
-    pub offchain_clock: Option<Vec<Addr>>,
-    pub clock_source: ClockSource,
+    pub lending_platform: Addr,
+    pub offchain_clock: Vec<Addr>,
     pub execution_cooldown: u64,
 }
 
@@ -30,6 +20,5 @@ pub struct TransferAdminState {
 pub struct Log {
     pub block_time: u64,
     pub sender: Addr,
-    pub route: Route,
     pub counter: u8,
 }

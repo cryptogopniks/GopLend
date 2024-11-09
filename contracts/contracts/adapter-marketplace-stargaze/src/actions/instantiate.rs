@@ -26,28 +26,22 @@ pub fn try_instantiate(
         deps.storage,
         &Config {
             admin: sender.to_owned(),
-            worker: msg
-                .worker
+            worker: msg.worker.map(|x| deps.api.addr_validate(&x)).transpose()?,
+            lending_platform: msg
+                .lending_platform
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
-            lending_platform_main: msg
-                .lending_platform_main
+                .transpose()?
+                .unwrap_or(sender.to_owned()),
+            oracle: msg
+                .oracle
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
-            lending_platform_stable: msg
-                .lending_platform_stable
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
-            oracle: msg.oracle.map(|x| deps.api.addr_validate(&x)).transpose()?,
+                .transpose()?
+                .unwrap_or(sender.to_owned()),
             marketplace: msg
                 .marketplace
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
-            adapter_dex: msg
-                .adapter_dex
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()?,
+                .transpose()?
+                .unwrap_or(sender.to_owned()),
         },
     )?;
 

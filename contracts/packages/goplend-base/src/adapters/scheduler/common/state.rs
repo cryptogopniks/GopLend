@@ -1,10 +1,9 @@
 use cw_storage_plus::{Deque, Item};
 
-use crate::adapters::scheduler::common::types::{ClockSource, Config, Log, TransferAdminState};
+use crate::adapters::scheduler::common::types::{Config, Log, TransferAdminState};
 
 pub const CONTRACT_NAME: &str = "goplend-adapter-scheduler-common";
 
-pub const CLOCK_SOURCE: ClockSource = ClockSource::Offchain;
 pub const EXECUTION_COOLDOWN: u64 = 4;
 pub const LOG_COUNTER: u8 = 0;
 

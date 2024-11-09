@@ -29,9 +29,7 @@ sg721 = "3.14.0"
 sg721-base = { version = "3.14.0", features = ["library"] }
 cw721 = "0.18.0"
 cw721-base = { version = "0.18.0", features = ["library"] }
-kujira = "1.0.1"
 osmosis-std = "0.21.0"
-anybuf = "0.5.0"
 serde = "1.0.163"
 strum = "0.24.1"
 strum_macros = "0.24.3"
@@ -40,7 +38,6 @@ anyhow = "1.0.71"
 cw-multi-test = "0.17.0"
 speculoos = "0.11.0"
 semver = "1.0.20"
-bech32 = "0.11.0"
 sg-index-query = "0.1.1"
 cw-address-like = "1.0.4"
 
