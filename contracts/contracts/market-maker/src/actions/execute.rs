@@ -1,22 +1,24 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
-    Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
+    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Storage,
+    Uint128, WasmMsg,
 };
 
 use goplend_base::{
     assets::TokenUnverified,
     error::ContractError,
-    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
+    lending_platform::{
+        state::TRANSFER_ADMIN_TIMEOUT,
+        types::{BiddedCollateralItem, CollectionInfo, TransferAdminState},
+    },
     market_maker::{
-        state::{CONFIG, IS_PAUSED, OWNERS, TRANSFER_ADMIN_STATE, UNDISTRIBUTED_LIQUIDITY},
+        state::{
+            COLLATERALS, CONFIG, IS_PAUSED, OFFERS, OWNERS, TRANSFER_ADMIN_STATE,
+            UNDISTRIBUTED_LIQUIDITY,
+        },
         types::Config,
     },
-    utils::{
-        check_authorization, check_funds, get_transfer_msg, unwrap_field, AuthType, FundsType,
-    },
+    utils::{check_authorization, check_funds, get_transfer_msg, AuthType, FundsType},
 };
-
-use super::query::get_price_and_outpost_list;
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -165,6 +167,45 @@ pub fn try_update_config(
     Ok(Response::new().add_attribute("action", "try_update_config"))
 }
 
+pub fn try_remove_offers(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    collection: String,
+    recipient: Option<String>,
+) -> Result<Response, ContractError> {
+    check_pause_state(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
+    let config = CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::Admin,
+    )?;
+
+    let recipient = recipient
+        .map(|x| deps.api.addr_validate(&x))
+        .transpose()?
+        .unwrap_or(sender_address);
+    let amount = OFFERS
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default()
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur);
+
+    if amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
+    OFFERS.remove(deps.storage, &collection_address);
+
+    Ok(Response::new()
+        .add_message(get_transfer_msg(&recipient, amount, &config.token)?)
+        .add_attribute("action", "try_remove_offers"))
+}
+
 pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let config = CONFIG.load(deps.storage)?;
@@ -177,7 +218,7 @@ pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
 
     IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_pause")]))
+    Ok(Response::new().add_attribute("action", "try_pause"))
 }
 
 pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
@@ -192,7 +233,7 @@ pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respon
 
     IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
 
-    Ok(Response::new().add_attributes([("action", "try_unpause")]))
+    Ok(Response::new().add_attribute("action", "try_unpause"))
 }
 
 pub fn try_set_collection(
@@ -200,7 +241,7 @@ pub fn try_set_collection(
     _env: Env,
     info: MessageInfo,
     collection: String,
-    owner_list: Vec<String>,
+    owner: String,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let config = CONFIG.load(deps.storage)?;
@@ -212,12 +253,9 @@ pub fn try_set_collection(
     )?;
 
     let collection_address = deps.api.addr_validate(&collection)?;
-    let owner_list = owner_list
-        .iter()
-        .map(|x| deps.api.addr_validate(x))
-        .collect::<StdResult<Vec<_>>>()?;
+    let owner = deps.api.addr_validate(&owner)?;
 
-    OWNERS.save(deps.storage, &collection_address, &owner_list)?;
+    OWNERS.save(deps.storage, &collection_address, &owner)?;
 
     Ok(Response::new().add_attribute("action", "try_set_collections"))
 }
@@ -263,13 +301,13 @@ pub fn try_deposit_liquidity(
 
     let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
-    let owner_list = OWNERS.load(deps.storage, &collection_address)?;
+    let owner = OWNERS.load(deps.storage, &collection_address)?;
     check_authorization(
         &sender_address,
         &config.admin,
         &config.worker,
         AuthType::Specified {
-            allowlist: owner_list.into_iter().map(Some).collect(),
+            allowlist: vec![Some(owner)],
         },
     )?;
 
@@ -290,121 +328,81 @@ pub fn try_deposit_liquidity(
     Ok(Response::new().add_attribute("action", "try_deposit_liquidity"))
 }
 
-pub fn try_withdraw_liquidity(
+pub fn try_withdraw_undistributed_liquidity(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    amount: Uint128,
     collection: String,
 ) -> Result<Response, ContractError> {
-    let mut response = Response::new().add_attribute("action", "try_withdraw_liquidity");
     check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
-    let owner_list = OWNERS.load(deps.storage, &collection_address)?;
-    let outpost_list = vec![];
+    let owner = OWNERS.load(deps.storage, &collection_address)?;
     check_authorization(
         &sender_address,
         &config.admin,
         &config.worker,
         AuthType::Specified {
-            allowlist: owner_list.into_iter().map(Some).collect(),
+            allowlist: vec![Some(owner)],
         },
     )?;
 
-    let mut amount_undistributed =
-        UNDISTRIBUTED_LIQUIDITY.load(deps.storage, &collection_address)?;
+    let amount = UNDISTRIBUTED_LIQUIDITY
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default();
 
-    // we have enough undistributed liquidity
-    if amount <= amount_undistributed {
-        amount_undistributed -= amount;
-        UNDISTRIBUTED_LIQUIDITY.save(deps.storage, &collection_address, &amount_undistributed)?;
-
-        return Ok(response.add_message(get_transfer_msg(&sender_address, amount, &config.token)?));
+    if amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
     }
 
-    // we need to extract liquidity from offers starting from higher
-    let mut price_and_outpost_list =
-        get_price_and_outpost_list(&deps.querier, &collection_address, &outpost_list)?;
-    // sort descending by price
-    price_and_outpost_list.sort_unstable_by_key(|(price, _)| Uint128::MAX - price);
+    UNDISTRIBUTED_LIQUIDITY.remove(deps.storage, &collection_address);
 
-    for (price, outpost) in price_and_outpost_list {
-        // ignore outposts without offers
-        if price.is_zero() {
-            continue;
-        }
-
-        // let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        //     contract_addr: outpost.to_string(),
-        //     msg: to_json_binary(
-        //         &goplend_base::market_maker::outpost::msg::ExecuteMsg::RemoveOffer {
-        //             collection_address: collection_address.to_string(),
-        //             recipient: Some(sender_address.to_string()),
-        //         },
-        //     )?,
-        //     funds: vec![],
-        // });
-        // response = response.add_message(msg);
-
-        amount_undistributed += price;
-        if amount_undistributed >= amount {
-            amount_undistributed -= amount;
-            break;
-        }
-    }
-
-    if amount_undistributed < amount {
-        Err(ContractError::ExceededAvailableAssetAmount)?;
-    }
-
-    UNDISTRIBUTED_LIQUIDITY.save(deps.storage, &collection_address, &amount_undistributed)?;
-
-    Ok(response)
+    Ok(Response::new()
+        .add_message(get_transfer_msg(&sender_address, amount, &config.token)?)
+        .add_attribute("action", "try_withdraw_undistributed_liquidity"))
 }
 
 pub fn try_withdraw_collateral(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     collection: String,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new().add_attribute("action", "try_withdraw_collateral");
     check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
-    let owner_list = OWNERS.load(deps.storage, &collection_address)?;
+    let owner = OWNERS.load(deps.storage, &collection_address)?;
+    let CollectionInfo { token_id_list, .. } = COLLATERALS.load(deps.storage, &owner)?;
     check_authorization(
         &sender_address,
         &config.admin,
         &config.worker,
         AuthType::Specified {
-            allowlist: owner_list.into_iter().map(Some).collect(),
+            allowlist: vec![Some(owner.clone())],
         },
     )?;
 
-    // // we need to extract liquidity from offers starting from higher
-    // let msg_list = query_collateral(deps.as_ref(), env, collection_address.to_string())?
-    //     .into_iter()
-    //     .filter(|x| !x.collection_info.token_id_list.is_empty())
-    //     .map(|x| {
-    //         Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-    //             contract_addr: x.outpost.to_string(),
-    //             msg: to_json_binary(
-    //                 &goplend_base::market_maker::outpost::msg::ExecuteMsg::WithdrawCollateral {
-    //                     collection_address: collection_address.to_string(),
-    //                     recipient: Some(sender_address.to_string()),
-    //                 },
-    //             )?,
-    //             funds: vec![],
-    //         }))
-    //     })
-    //     .collect::<StdResult<Vec<_>>>()?;
+    if token_id_list.is_empty() {
+        Err(ContractError::CollateralIsNotFound)?;
+    }
 
-    Ok(Response::new()
-        // .add_messages(msg_list)
-        .add_attribute("action", "try_withdraw_collateral"))
+    for token_id in token_id_list {
+        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: collection.to_string(),
+            msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
+                recipient: owner.to_string(),
+                token_id,
+            })?,
+            funds: vec![],
+        }));
+    }
+
+    COLLATERALS.remove(deps.storage, &owner);
+
+    Ok(response)
 }
 
 pub fn try_update_offers(
@@ -432,24 +430,21 @@ pub fn try_update_offers(
 
     let mut liquidity_to_add: Uint128 = Uint128::zero();
     let mut liquidity_to_sub: Uint128 = Uint128::zero();
+    let mut offers = OFFERS
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default();
 
-    // let msg_list = from_to_price_and_outpost_list
-    //     .iter()
-    //     .map(|(price_before, price_after, outpost)| {
-    //         liquidity_to_add += price_before;
-    //         liquidity_to_sub += price_after;
+    for (price_before, price_after) in from_to_price_list {
+        liquidity_to_add += price_before;
+        liquidity_to_sub += price_after;
+        offers = offers
+            .into_iter()
+            .map(|x| if x == price_before { price_after } else { x })
+            .collect();
+    }
 
-    //         Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-    //             contract_addr: outpost.to_string(),
-    //             msg: to_json_binary(
-    //                 &goplend_base::market_maker::outpost::msg::ExecuteMsg::SetOffer {
-    //                     collection_address: collection_address.to_string(),
-    //                 },
-    //             )?,
-    //             funds: coins(price_after.u128(), config.token.try_get_native()?),
-    //         }))
-    //     })
-    //     .collect::<StdResult<Vec<_>>>()?;
+    offers.sort_unstable_by(|a, b| b.cmp(a));
+    OFFERS.save(deps.storage, &collection_address, &offers)?;
 
     // previous offers will be removed, new offers will be set
     UNDISTRIBUTED_LIQUIDITY.update(
@@ -460,13 +455,82 @@ pub fn try_update_offers(
         },
     )?;
 
-    Ok(Response::new()
-        // .add_messages(msg_list)
-        .add_attribute("action", "try_update_offers"))
+    Ok(Response::new().add_attribute("action", "try_update_offers"))
+}
+
+pub fn try_accept_offers(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    bidded_collateral_item_list: Vec<BiddedCollateralItem>,
+) -> Result<Response, ContractError> {
+    let mut response = Response::new().add_attribute("action", "try_accept_offers");
+    check_pause_state(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let config = CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::Specified {
+            allowlist: vec![config.lending_platform],
+        },
+    )?;
+
+    let mut amount_to_send = Uint128::zero();
+
+    for BiddedCollateralItem {
+        collection,
+        token_item,
+        liquidation_price,
+        ..
+    } in bidded_collateral_item_list
+    {
+        // summarize executed offers to send to lending platform
+        amount_to_send += liquidation_price;
+
+        // remove executed offers
+        OFFERS.update(deps.storage, &collection, |x| -> StdResult<Vec<Uint128>> {
+            let mut offers = x.unwrap_or_default();
+            offers.retain(|x| x != liquidation_price);
+            Ok(offers)
+        })?;
+
+        // update liquidated collaterals
+        COLLATERALS.update(
+            deps.storage,
+            &collection,
+            |x| -> StdResult<CollectionInfo<Addr>> {
+                let mut token_id_list = x.map(|x| x.token_id_list).unwrap_or_default();
+                token_id_list.push(token_item.id.clone());
+
+                Ok(CollectionInfo {
+                    collection_address: collection.clone(),
+                    token_id_list,
+                })
+            },
+        )?;
+
+        // transfer liquidated nfts from lending platform
+        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: collection.to_string(),
+            msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
+                recipient: env.contract.address.to_string(),
+                token_id: token_item.id,
+            })?,
+            funds: vec![],
+        }));
+    }
+
+    Ok(response.add_message(get_transfer_msg(
+        &sender_address,
+        amount_to_send,
+        &config.token,
+    )?))
 }
 
 /// user actions are disabled when the contract is paused
-pub fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
+fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
     if IS_PAUSED.load(storage)? {
         Err(ContractError::ContractIsPaused)?;
     }

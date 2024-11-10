@@ -7,7 +7,7 @@ use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
         state::{CONFIG, OFFERS, OWNERS, UNDISTRIBUTED_LIQUIDITY},
-        types::{CollectionOwners, Config, LiquidityInfo},
+        types::{CollectionOwner, Config, LiquidityInfo},
     },
 };
 
@@ -15,12 +15,12 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
     CONFIG.load(deps.storage)
 }
 
-pub fn query_collection_owners_list(
+pub fn query_collection_owner_list(
     deps: Deps,
     _env: Env,
     amount: u32,
     start_after: Option<String>,
-) -> StdResult<Vec<CollectionOwners<Addr>>> {
+) -> StdResult<Vec<CollectionOwner<Addr>>> {
     let binding;
     let start_bound = match start_after {
         Some(addr) => {
@@ -34,27 +34,27 @@ pub fn query_collection_owners_list(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(amount as usize)
         .map(|x| {
-            let (collection_address, owner_list) = x.unwrap();
+            let (collection_address, owner) = x.unwrap();
 
-            Ok(CollectionOwners {
+            Ok(CollectionOwner {
                 collection_address,
-                owner_list,
+                owner,
             })
         })
         .collect::<StdResult<Vec<_>>>()
 }
 
-pub fn query_collection_owners(
+pub fn query_collection_owner(
     deps: Deps,
     _env: Env,
     collection: String,
-) -> StdResult<CollectionOwners<Addr>> {
+) -> StdResult<CollectionOwner<Addr>> {
     let collection_address = deps.api.addr_validate(&collection)?;
-    let owner_list = OWNERS.load(deps.storage, &collection_address)?;
+    let owner = OWNERS.load(deps.storage, &collection_address)?;
 
-    Ok(CollectionOwners {
+    Ok(CollectionOwner {
         collection_address,
-        owner_list,
+        owner,
     })
 }
 

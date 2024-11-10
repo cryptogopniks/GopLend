@@ -32,16 +32,21 @@ pub enum ExecuteMsg {
         token: Option<TokenUnverified>,
     },
 
+    RemoveOffers {
+        collection: String,
+        recipient: Option<String>,
+    },
+
     // admin, worker
     Pause {},
 
     Unpause {},
 
-    // collection owners
+    // collection owner
     /// add new collection or rewrite existing
     SetCollection {
         collection: String,
-        owner_list: Vec<String>,
+        owner: String,
     },
 
     RemoveCollections {
@@ -52,13 +57,11 @@ pub enum ExecuteMsg {
         collection: String,
     },
 
-    /// can remove offers if it's required to get enough liquidity
-    WithdrawLiquidity {
-        amount: Uint128,
+    WithdrawUndistributedLiquidity {
         collection: String,
     },
 
-    /// withdraw all bought NFT's
+    /// withdraw all bought NFTs
     WithdrawCollateral {
         collection: String,
     },
@@ -90,14 +93,14 @@ pub enum QueryMsg {
     #[returns(super::types::OffersResponse)]
     QueryOfferPrices { collection: String },
 
-    #[returns(Vec<super::types::CollectionOwners<Addr>>)]
-    QueryCollectionOwnersList {
+    #[returns(Vec<super::types::CollectionOwner<Addr>>)]
+    QueryCollectionOwnerList {
         amount: u32,
         start_after: Option<String>,
     },
 
-    #[returns(super::types::CollectionOwners<Addr>)]
-    QueryCollectionOwners { collection: String },
+    #[returns(super::types::CollectionOwner<Addr>)]
+    QueryCollectionOwner { collection: String },
 
     #[returns(Vec<super::types::LiquidityInfo>)]
     QueryLiquidityList {

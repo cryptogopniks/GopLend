@@ -113,7 +113,7 @@ pub fn try_set_prices(
         },
     )?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_set_prices")]))
+    Ok(Response::new().add_attribute("action", "try_set_prices"))
 }
 
 // update prices for specified collections
@@ -216,7 +216,7 @@ pub fn try_update_prices(
         },
     )?;
 
-    Ok(Response::new().add_attributes(vec![("action", "try_update_prices")]))
+    Ok(Response::new().add_attribute("action", "try_update_prices"))
 }
 
 // clear prices for specified collections
@@ -238,7 +238,7 @@ pub fn try_remove_prices(
         PRICE_AND_DATE_LIST.remove(deps.storage, &collection_address);
     }
 
-    Ok(Response::new().add_attributes(vec![("action", "try_remove_prices")]))
+    Ok(Response::new().add_attribute("action", "try_remove_prices"))
 }
 
 pub fn try_accept_admin_role(

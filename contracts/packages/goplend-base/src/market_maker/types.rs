@@ -1,12 +1,12 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::{assets::Token, lending_platform::types::CollectionInfo};
+use crate::assets::Token;
 
 #[cw_serde]
-pub struct CollectionOwners<T: ToString> {
+pub struct CollectionOwner<T: ToString> {
     pub collection_address: T,
-    pub owner_list: Vec<T>,
+    pub owner: T,
 }
 
 #[cw_serde]

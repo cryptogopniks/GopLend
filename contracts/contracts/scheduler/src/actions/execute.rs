@@ -59,7 +59,7 @@ pub fn try_push(
 
     Ok(Response::new()
         .add_message(msg)
-        .add_attributes(vec![("action", "try_push")]))
+        .add_attribute("action", "try_push"))
 }
 
 pub fn try_accept_admin_role(

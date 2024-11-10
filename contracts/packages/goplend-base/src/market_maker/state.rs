@@ -15,9 +15,9 @@ pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_a
 
 /// collection offers sorted in descending order by collection address
 pub const OFFERS: Map<&Addr, Vec<Uint128>> = Map::new("offers_by_collection");
-/// collection owners by collection address
-pub const OWNERS: Map<&Addr, Vec<Addr>> = Map::new("owners_by_collection");
-/// liquidated collaterals by maker address
+/// collection owner by collection address
+pub const OWNERS: Map<&Addr, Addr> = Map::new("owners_by_collection");
+/// liquidated collaterals by collection owner address
 pub const COLLATERALS: Map<&Addr, CollectionInfo<Addr>> = Map::new("collaterals_by_maker_address");
 /// undistributed collection liquidity by collection address
 pub const UNDISTRIBUTED_LIQUIDITY: Map<&Addr, Uint128> = Map::new("undistributed_liquidity");

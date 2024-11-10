@@ -53,14 +53,18 @@ pub fn execute(
             token,
         ),
 
+        ExecuteMsg::RemoveOffers {
+            collection,
+            recipient,
+        } => e::try_remove_offers(deps, env, info, collection, recipient),
+
         ExecuteMsg::Pause {} => e::try_pause(deps, env, info),
 
         ExecuteMsg::Unpause {} => e::try_unpause(deps, env, info),
 
-        ExecuteMsg::SetCollection {
-            collection,
-            owner_list,
-        } => e::try_set_collection(deps, env, info, collection, owner_list),
+        ExecuteMsg::SetCollection { collection, owner } => {
+            e::try_set_collection(deps, env, info, collection, owner)
+        }
 
         ExecuteMsg::RemoveCollections { collection_list } => {
             e::try_remove_collections(deps, env, info, collection_list)
@@ -70,8 +74,8 @@ pub fn execute(
             e::try_deposit_liquidity(deps, env, info, collection)
         }
 
-        ExecuteMsg::WithdrawLiquidity { amount, collection } => {
-            e::try_withdraw_liquidity(deps, env, info, amount, collection)
+        ExecuteMsg::WithdrawUndistributedLiquidity { collection } => {
+            e::try_withdraw_undistributed_liquidity(deps, env, info, collection)
         }
 
         ExecuteMsg::WithdrawCollateral { collection } => {
@@ -85,7 +89,7 @@ pub fn execute(
 
         ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
-        } => unimplemented!(),
+        } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),
     }
 }
 
@@ -104,18 +108,18 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         // #[returns(super::types::OffersResponse)]
         QueryMsg::QueryOfferPrices { collection: String } => unimplemented!(),
 
-        QueryMsg::QueryCollectionOwnersList {
+        QueryMsg::QueryCollectionOwnerList {
             amount,
             start_after,
-        } => to_json_binary(&q::query_collection_owners_list(
+        } => to_json_binary(&q::query_collection_owner_list(
             deps,
             env,
             amount,
             start_after,
         )?),
 
-        QueryMsg::QueryCollectionOwners { collection } => {
-            to_json_binary(&q::query_collection_owners(deps, env, collection)?)
+        QueryMsg::QueryCollectionOwner { collection } => {
+            to_json_binary(&q::query_collection_owner(deps, env, collection)?)
         }
 
         QueryMsg::QueryLiquidityList {

@@ -302,7 +302,6 @@ pub fn try_deposit_collateral(
         .iter()
         .map(|x| x.collection_address.to_string())
         .collect();
-
     collection_addresses.sort_unstable();
     collection_addresses.dedup();
 
