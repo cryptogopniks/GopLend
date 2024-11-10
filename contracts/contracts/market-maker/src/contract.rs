@@ -99,14 +99,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        // #[returns(Vec<super::types::OffersResponse>)]
         QueryMsg::QueryOfferPricesList {
             amount,
             start_after,
-        } => unimplemented!(),
+        } => to_json_binary(&q::query_offer_prices_list(deps, env, amount, start_after)?),
 
-        // #[returns(super::types::OffersResponse)]
-        QueryMsg::QueryOfferPrices { collection: String } => unimplemented!(),
+        QueryMsg::QueryOfferPrices { collection } => {
+            to_json_binary(&q::query_offer_prices(deps, env, collection)?)
+        }
 
         QueryMsg::QueryCollectionOwnerList {
             amount,
