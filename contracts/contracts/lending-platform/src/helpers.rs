@@ -1,19 +1,18 @@
 use std::cmp::max;
 
-use cosmwasm_std::{Addr, Decimal, Deps, Order, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, Order, QuerierWrapper, StdResult, Storage, Uint128};
 
 use goplend_base::{
     assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
         state::{
-            BALANCES, BORROWERS, COLLATERALS, IS_PAUSED, LIQUIDATION_BIDS, PLATFORM_REVENUE,
-            RATE_CONFIG,
+            BALANCES, BORROWERS, COLLATERALS, IS_PAUSED, LIQUIDATION_BIDS, PAGINATION_PRICES_LIMIT,
+            PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, CommonConfig, LiquidationBid, Proposal, ProposalStatus, RateConfig,
-            TokenItem, Vault,
+            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem, Vault,
         },
     },
     oracle::{self, types::PriceItem},
@@ -21,17 +20,6 @@ use goplend_base::{
 };
 
 use crate::math;
-
-pub fn choose_price(
-    main_currency: &Currency<Token>,
-    price_item: &PriceItem<Funds<Token>>,
-) -> Uint128 {
-    if main_currency == &price_item.price.currency {
-        price_item.price.amount
-    } else {
-        price_item.usd_price.amount
-    }
-}
 
 /// user actions are disabled when the contract is paused
 pub fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
@@ -403,7 +391,6 @@ pub fn get_collaterals_by_borrower(
 }
 
 pub fn get_collateral_value(
-    main_currency: &Currency<Token>,
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
     prices: &[PriceItem<Funds<Token>>],
 ) -> StdResult<Uint128> {
@@ -423,7 +410,7 @@ pub fn get_collateral_value(
                 })?;
             }
 
-            let price = choose_price(main_currency, price_item);
+            let price = price_item.usd_price.amount;
 
             Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
         },
@@ -437,7 +424,6 @@ pub fn get_conditional_ltv(
     deps: Deps,
     address_config: &AddressConfig,
     rate_config: &RateConfig,
-    common_config: &CommonConfig,
     ltv_max: Decimal,
     borrower_address: &Addr,
     borrower: &Borrower,
@@ -461,20 +447,8 @@ pub fn get_conditional_ltv(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            start_after: None,
-            amount: 50, // TODO: replace
-        },
-    )?;
-
-    let collateral_value = get_collateral_value(
-        &common_config.main_currency,
-        &collection_and_collateral_list,
-        &prices,
-    )?;
+    let prices = get_prices(&deps.querier, oracle, Some(&collection_addresses))?;
+    let collateral_value = get_collateral_value(&collection_and_collateral_list, &prices)?;
 
     Ok(math::calc_conditional_ltv(
         ltv_max,
@@ -491,6 +465,22 @@ pub fn get_conditional_ltv(
     ))
 }
 
+/// if collections isn't specified will return higher 50 prices
+pub fn get_prices(
+    querier: &QuerierWrapper,
+    oracle: &Addr,
+    collections: Option<&[String]>,
+) -> StdResult<Vec<oracle::types::PriceItem<Funds<Token>>>> {
+    querier.query_wasm_smart(
+        oracle,
+        &oracle::msg::QueryMsg::QueryPrices {
+            collections: collections.map(|x| x.to_owned()),
+            start_after: None,
+            amount: PAGINATION_PRICES_LIMIT,
+        },
+    )
+}
+
 pub mod offchain {
     use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 
@@ -504,8 +494,10 @@ pub mod offchain {
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
             },
         },
-        oracle::{self, types::PriceItem},
+        oracle::types::PriceItem,
     };
+
+    use super::get_prices;
 
     pub fn get_borrowers(
         querier_wrapper: &QuerierWrapper,
@@ -549,21 +541,12 @@ pub mod offchain {
         collection_addresses_by_borrowers.sort_unstable();
         collection_addresses_by_borrowers.dedup();
 
-        let collection_addresses = Some(
-            collection_addresses_by_borrowers
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>(),
-        );
+        let collections = &collection_addresses_by_borrowers
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>();
 
-        querier_wrapper.query_wasm_smart::<Vec<PriceItem<Funds<Token>>>>(
-            oracle_address,
-            &oracle::msg::QueryMsg::QueryPrices {
-                collection_addresses,
-                amount: 50, // TODO: replace
-                start_after: None,
-            },
-        )
+        get_prices(querier_wrapper, oracle_address, Some(collections))
     }
 
     // find bids containing at least 1 borrower's collateral token

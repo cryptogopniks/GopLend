@@ -1,5 +1,4 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Decimal;
 
 use crate::{
     assets::{Currency, TokenUnverified},
@@ -12,7 +11,6 @@ pub struct InstantiateMsg {
     pub controller: Option<Vec<String>>,
     pub execution_cooldown: Option<u64>,
     pub max_price_update_period: Option<u64>,
-    pub main_currency: Currency<TokenUnverified>,
     pub stable_currency: Currency<TokenUnverified>,
 }
 
@@ -33,22 +31,13 @@ pub enum ExecuteMsg {
         controller: Option<Vec<String>>,
         execution_cooldown: Option<u64>,
         max_price_update_period: Option<u64>,
-        main_currency: Option<Currency<TokenUnverified>>,
         stable_currency: Option<Currency<TokenUnverified>>,
     },
 
     // controller
-    SetPrices {
-        // price_ratio must be decreased offchain due to price_impact
-        price_ratio: Decimal,
-        data: Vec<RawPriceItem>,
-    },
+    SetPrices(Vec<RawPriceItem>),
 
-    UpdatePrices {
-        // price_ratio must be decreased offchain due to price_impact
-        price_ratio: Decimal,
-        data: Vec<RawPriceItem>,
-    },
+    UpdatePrices(Vec<RawPriceItem>),
 
     RemovePrices {
         collections: Vec<String>,
@@ -65,11 +54,8 @@ pub enum QueryMsg {
     QueryPrices {
         amount: u32,
         start_after: Option<String>,
-        collection_addresses: Option<Vec<String>>,
+        collections: Option<Vec<String>>,
     },
-
-    #[returns(super::types::PriceRatioItem)]
-    QueryPriceRatio {},
 
     #[returns(u64)]
     QueryBlockTime {},

@@ -18,7 +18,6 @@ use goplend_base::{
             RateConfig, Unbonder,
         },
     },
-    oracle,
     utils::unwrap_field,
 };
 
@@ -445,7 +444,6 @@ pub fn query_ltv_list(
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
@@ -466,19 +464,12 @@ pub fn query_ltv_list(
         .range(deps.storage, None, None, Order::Ascending)
         .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
 
-    let collection_addresses = all_collaterals
+    let collection_addresses: Vec<String> = all_collaterals
         .iter()
         .map(|(address, _)| address.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            amount: 50, // TODO: replace
-            start_after: None,
-        },
-    )?;
+    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses))?;
 
     BORROWERS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -489,11 +480,8 @@ pub fn query_ltv_list(
             let collection_and_collateral_list =
                 helpers::get_collaterals_by_borrower(&all_collaterals, &borrower_address);
 
-            let collateral_value_option = helpers::get_collateral_value(
-                &common_config.main_currency,
-                &collection_and_collateral_list,
-                &prices,
-            );
+            let collateral_value_option =
+                helpers::get_collateral_value(&collection_and_collateral_list, &prices);
 
             Ok(match collateral_value_option {
                 Err(_) => (borrower_address, None),
@@ -531,7 +519,6 @@ pub fn query_conditional_ltv(
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let common_config = COMMON_CONFIG.load(deps.storage)?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
         .load(deps.storage, &borrower_address)
@@ -546,7 +533,6 @@ pub fn query_conditional_ltv(
         deps,
         &address_config,
         &rate_config,
-        &common_config,
         ltv_max,
         &borrower_address,
         &borrower,
@@ -608,7 +594,6 @@ pub fn query_available_to_borrow(
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let common_config = COMMON_CONFIG.load(deps.storage)?;
     let oracle = &unwrap_field(address_config.oracle, "oracle")?;
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
@@ -627,20 +612,8 @@ pub fn query_available_to_borrow(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            amount: 50, // TODO: replace
-            start_after: None,
-        },
-    )?;
-
-    let collateral_value = helpers::get_collateral_value(
-        &common_config.main_currency,
-        &collection_and_collateral_list,
-        &prices,
-    )?;
+    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses))?;
+    let collateral_value = helpers::get_collateral_value(&collection_and_collateral_list, &prices)?;
 
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
@@ -768,17 +741,8 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            amount: 50, // TODO: replace
-            start_after: None,
-        },
-    )?;
-
-    let collateral_value =
-        helpers::get_collateral_value(&main_currency, &collection_and_collateral_list, &prices)?;
+    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses))?;
+    let collateral_value = helpers::get_collateral_value(&collection_and_collateral_list, &prices)?;
 
     let ltv_max = math::calc_ltv_max(bid_min_rate, discount_max_rate, discount_min_rate);
     let ltv = math::calc_conditional_ltv(

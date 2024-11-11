@@ -4,8 +4,8 @@ use cw_storage_plus::Bound;
 use goplend_base::{
     assets::{Funds, Token},
     oracle::{
-        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO},
-        types::{Config, Log, PriceItem, PriceRatioItem},
+        state::{CONFIG, LOG, PRICE_AND_DATE_LIST},
+        types::{Config, Log, PriceItem},
     },
 };
 
@@ -18,19 +18,18 @@ pub fn query_prices(
     env: Env,
     amount: u32,
     start_after: Option<String>,
-    collection_addresses: Option<Vec<String>>,
+    collections: Option<Vec<String>>,
 ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
     let block_time = env.block.time.seconds();
     let Config {
         max_price_update_period,
-        main_currency,
         stable_currency,
         ..
     } = CONFIG.load(deps.storage)?;
     let decreased_block_time =
         std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
 
-    if let Some(x) = collection_addresses {
+    if let Some(x) = collections {
         return x
             .iter()
             .map(|y| {
@@ -40,7 +39,6 @@ pub fn query_prices(
                         .load(deps.storage, &address)
                         .unwrap_or(PriceItem {
                             address: address.to_owned(),
-                            price: Uint128::zero(),
                             usd_price: Uint128::zero(),
                             update_date: 0,
                             is_outdated: true,
@@ -48,7 +46,6 @@ pub fn query_prices(
 
                 Ok(PriceItem {
                     address,
-                    price: Funds::new(price_item.price, &main_currency),
                     usd_price: Funds::new(price_item.usd_price, &stable_currency),
                     update_date: price_item.update_date,
                     is_outdated: decreased_block_time > price_item.update_date,
@@ -74,25 +71,12 @@ pub fn query_prices(
 
             PriceItem {
                 address,
-                price: Funds::new(price_item.price, &main_currency),
                 usd_price: Funds::new(price_item.usd_price, &stable_currency),
                 update_date: price_item.update_date,
                 is_outdated: decreased_block_time > price_item.update_date,
             }
         })
         .collect())
-}
-
-pub fn query_price_ratio(deps: Deps, env: Env) -> StdResult<PriceRatioItem> {
-    let block_time = env.block.time.seconds();
-    let Config {
-        max_price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-    let mut price_ratio = PRICE_RATIO.load(deps.storage)?;
-    price_ratio.is_outdated = block_time > price_ratio.update_date + max_price_update_period;
-
-    Ok(price_ratio)
 }
 
 pub fn query_block_time(_deps: Deps, env: Env) -> StdResult<u64> {

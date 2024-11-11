@@ -36,6 +36,8 @@ pub const IS_MARKETPLACE_INTERFACE_ENABLED: bool = false;
 
 pub const BLOCK_TIME_OFFSET: u64 = 60;
 
+pub const PAGINATION_PRICES_LIMIT: u32 = 50;
+
 pub const TRANSFER_ADMIN_TIMEOUT: u64 = 7 * 24 * 3600;
 
 pub const IS_PAUSED: Item<bool> = Item::new("is_paused");

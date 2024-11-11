@@ -1,12 +1,12 @@
-use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdResult};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Order, Response, StdResult};
 
 use goplend_base::{
     assets::{Currency, TokenUnverified},
     error::ContractError,
     lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     oracle::{
-        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, PRICE_RATIO, TRANSFER_ADMIN_STATE},
-        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem},
+        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, TRANSFER_ADMIN_STATE},
+        types::{Config, Log, PriceItem, RawPriceItem},
     },
     utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
@@ -16,8 +16,7 @@ pub fn try_set_prices(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    price_ratio: Decimal,
-    data: Vec<RawPriceItem>,
+    price_list: Vec<RawPriceItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let block_time = env.block.time.seconds();
@@ -32,7 +31,7 @@ pub fn try_set_prices(
         Err(ContractError::Unauthorized)?;
     }
 
-    if data.is_empty() {
+    if price_list.is_empty() {
         Err(ContractError::EmptyRawPriceItemVector)?;
     }
 
@@ -72,16 +71,15 @@ pub fn try_set_prices(
     PRICE_AND_DATE_LIST.clear(deps.storage);
 
     for RawPriceItem {
-        collection_address,
-        price,
+        collection,
         usd_price,
-    } in data
+    } in price_list
     {
-        if price.is_zero() {
+        if usd_price.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
-        let collection_address = &deps.api.addr_validate(&collection_address)?;
+        let collection_address = &deps.api.addr_validate(&collection)?;
 
         if let Ok(PriceItem { update_date, .. }) =
             PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
@@ -96,22 +94,12 @@ pub fn try_set_prices(
             collection_address,
             &PriceItem {
                 address: collection_address.to_owned(),
-                price,
                 usd_price,
                 update_date: block_time,
                 is_outdated: false,
             },
         )?;
     }
-
-    PRICE_RATIO.save(
-        deps.storage,
-        &PriceRatioItem {
-            value: price_ratio,
-            update_date: block_time,
-            is_outdated: false,
-        },
-    )?;
 
     Ok(Response::new().add_attribute("action", "try_set_prices"))
 }
@@ -121,8 +109,7 @@ pub fn try_update_prices(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    price_ratio: Decimal,
-    data: Vec<RawPriceItem>,
+    price_list: Vec<RawPriceItem>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let block_time = env.block.time.seconds();
@@ -137,7 +124,7 @@ pub fn try_update_prices(
         Err(ContractError::Unauthorized)?;
     }
 
-    if data.is_empty() {
+    if price_list.is_empty() {
         Err(ContractError::EmptyRawPriceItemVector)?;
     }
 
@@ -175,16 +162,15 @@ pub fn try_update_prices(
     )?;
 
     for RawPriceItem {
-        collection_address,
-        price,
+        collection,
         usd_price,
-    } in data
+    } in price_list
     {
-        if price.is_zero() {
+        if usd_price.is_zero() {
             Err(ContractError::ZerosInPrices)?;
         }
 
-        let collection_address = &deps.api.addr_validate(&collection_address)?;
+        let collection_address = &deps.api.addr_validate(&collection)?;
 
         if let Ok(PriceItem { update_date, .. }) =
             PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
@@ -199,22 +185,12 @@ pub fn try_update_prices(
             collection_address,
             &PriceItem {
                 address: collection_address.to_owned(),
-                price,
                 usd_price,
                 update_date: block_time,
                 is_outdated: false,
             },
         )?;
     }
-
-    PRICE_RATIO.save(
-        deps.storage,
-        &PriceRatioItem {
-            value: price_ratio,
-            update_date: block_time,
-            is_outdated: false,
-        },
-    )?;
 
     Ok(Response::new().add_attribute("action", "try_update_prices"))
 }
@@ -290,7 +266,6 @@ pub fn try_update_config(
     controller: Option<Vec<String>>,
     execution_cooldown: Option<u64>,
     max_price_update_period: Option<u64>,
-    main_currency: Option<Currency<TokenUnverified>>,
     stable_currency: Option<Currency<TokenUnverified>>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -365,18 +340,6 @@ pub fn try_update_config(
             AuthType::AdminOrWorker,
         )?;
         config.max_price_update_period = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = main_currency {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::AdminOrWorker,
-        )?;
-
-        config.main_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
         is_config_updated = true;
     }
 

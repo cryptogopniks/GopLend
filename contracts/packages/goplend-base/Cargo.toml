@@ -23,5 +23,3 @@ cw20-base = { workspace = true }
 cw721 = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
-stargaze-marketplace-v2 = { workspace = true }
-sg-index-query = { workspace = true }

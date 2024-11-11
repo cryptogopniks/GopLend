@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use goplend_base::{
-    assets::{Currency, Funds, Token},
+    assets::{Funds, Token},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
@@ -12,8 +12,6 @@ use goplend_base::{
     },
     oracle::types::PriceItem,
 };
-
-use crate::helpers::choose_price;
 
 pub fn calc_shifted_block_time(block_time: u64) -> u64 {
     block_time + BLOCK_TIME_OFFSET
@@ -299,7 +297,6 @@ pub fn calc_total_available_to_borrow_liquidity(
 /// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
 /// but the liquidation price is 190. After liquidation the offer will be consumed completely
 pub fn match_collaterals_and_bids(
-    main_currency: &Currency<Token>,
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
     collection_and_bid_list: &[(Addr, LiquidationBid)],
     price_list: &[PriceItem<Funds<Token>>],
@@ -323,7 +320,7 @@ pub fn match_collaterals_and_bids(
                 val: collateral_collection.to_string(),
             })?;
 
-        let price = choose_price(main_currency, price_item);
+        let price = price_item.usd_price.amount;
 
         for token_item in collateral.token_item_list.clone() {
             for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {

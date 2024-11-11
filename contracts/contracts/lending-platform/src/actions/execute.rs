@@ -22,7 +22,7 @@ use goplend_base::{
             Proposal, ProposalStatus, ProposalType, TokenItem, TransferAdminState, Unbonder, Vault,
         },
     },
-    minter, oracle,
+    minter,
     utils::{
         add_funds_to_exec_msg, check_authorization, check_funds, get_collection_operator_approvals,
         get_transfer_msg, unwrap_field, AuthType, FundsType,
@@ -433,14 +433,7 @@ pub fn try_deposit_collateral(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses_full),
-            amount: 50, // TODO: replace
-            start_after: None,
-        },
-    )?;
+    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses_full))?;
 
     // don't allow to deposit collateral with outdated price
     for collection_address in collection_addresses {
@@ -459,11 +452,8 @@ pub fn try_deposit_collateral(
     }
 
     // don't allow to deposit if final collateral amount will be too low
-    let collateral_value_result = helpers::get_collateral_value(
-        &common_config.main_currency,
-        &collection_and_collateral_list,
-        &prices,
-    );
+    let collateral_value_result =
+        helpers::get_collateral_value(&collection_and_collateral_list, &prices);
 
     if let Ok(collateral_value) = collateral_value_result {
         if collateral_value < common_config.collateral_min_value {
@@ -600,20 +590,8 @@ pub fn try_withdraw_collateral(
         .collect();
     let is_collateral_withdrawn_completely = collection_addresses.is_empty();
 
-    let prices: Vec<oracle::types::PriceItem<Funds<Token>>> = deps.querier.query_wasm_smart(
-        oracle,
-        &oracle::msg::QueryMsg::QueryPrices {
-            collection_addresses: Some(collection_addresses),
-            amount: 50, // TODO: replace
-            start_after: None,
-        },
-    )?;
-
-    let collateral_value = helpers::get_collateral_value(
-        &common_config.main_currency,
-        &collection_and_collateral_list,
-        &prices,
-    )?;
+    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses))?;
+    let collateral_value = helpers::get_collateral_value(&collection_and_collateral_list, &prices)?;
 
     if !is_collateral_withdrawn_completely && collateral_value < common_config.collateral_min_value
     {
@@ -642,7 +620,6 @@ pub fn try_withdraw_collateral(
         deps.as_ref(),
         &address_config,
         &rate_config,
-        &common_config,
         ltv_max,
         &sender_address,
         &borrower,
@@ -706,7 +683,6 @@ pub fn try_borrow(
         deps.as_ref(),
         &address_config,
         &rate_config,
-        &common_config,
         ltv_max,
         &sender_address,
         &borrower,
