@@ -3,11 +3,10 @@ use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
     assets::{Currency, Funds, Token, TokenUnverified},
-    converters::str_to_dec,
     error::parse_err,
     oracle::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{Config, Log, PriceItem, PriceRatioItem, RawPriceItem},
+        types::{Config, Log, PriceItem, RawPriceItem},
     },
 };
 
@@ -28,22 +27,19 @@ pub trait OracleExtension {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        main_currency: &Option<Currency<TokenUnverified>>,
         stable_currency: &Option<Currency<TokenUnverified>>,
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_set_prices(
         &mut self,
         sender: ProjectAccount,
-        price_ratio: &str,
-        data: &[RawPriceItem],
+        price_list: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        price_ratio: &str,
-        data: &[RawPriceItem],
+        price_list: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_remove_prices(
@@ -56,12 +52,10 @@ pub trait OracleExtension {
 
     fn oracle_query_prices(
         &self,
-        collection_addresses: &Option<Vec<ProjectNft>>,
+        amount: u32,
         start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
+        collections: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<PriceItem<Funds<Token>>>>;
-
-    fn oracle_query_price_ratio(&self) -> StdResult<PriceRatioItem>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
 
@@ -90,7 +84,6 @@ impl OracleExtension for Project {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        main_currency: &Option<Currency<TokenUnverified>>,
         stable_currency: &Option<Currency<TokenUnverified>>,
     ) -> StdResult<AppResponse> {
         self.app
@@ -105,7 +98,6 @@ impl OracleExtension for Project {
                         .map(|x| x.iter().map(|y| y.to_string()).collect()),
                     execution_cooldown: execution_cooldown.to_owned(),
                     max_price_update_period: max_price_update_period.to_owned(),
-                    main_currency: main_currency.as_ref().map(|x| x.to_owned()),
                     stable_currency: stable_currency.as_ref().map(|x| x.to_owned()),
                 },
                 &[],
@@ -117,17 +109,13 @@ impl OracleExtension for Project {
     fn oracle_try_set_prices(
         &mut self,
         sender: ProjectAccount,
-        price_ratio: &str,
-        data: &[RawPriceItem],
+        price_list: &[RawPriceItem],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_oracle_address(),
-                &ExecuteMsg::SetPrices {
-                    price_ratio: str_to_dec(price_ratio),
-                    data: data.to_owned(),
-                },
+                &ExecuteMsg::SetPrices(price_list.to_owned()),
                 &[],
             )
             .map_err(parse_err)
@@ -137,17 +125,13 @@ impl OracleExtension for Project {
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        price_ratio: &str,
-        data: &[RawPriceItem],
+        price_list: &[RawPriceItem],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_oracle_address(),
-                &ExecuteMsg::UpdatePrices {
-                    price_ratio: str_to_dec(price_ratio),
-                    data: data.to_owned(),
-                },
+                &ExecuteMsg::UpdatePrices(price_list.to_owned()),
                 &[],
             )
             .map_err(parse_err)
@@ -181,29 +165,22 @@ impl OracleExtension for Project {
     #[track_caller]
     fn oracle_query_prices(
         &self,
-        collection_addresses: &Option<Vec<ProjectNft>>,
+        amount: u32,
         start_after: &Option<ProjectNft>,
-        limit: &Option<u32>,
+        collections: &Option<Vec<ProjectNft>>,
     ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
-        let collection_addresses = collection_addresses
+        let collections = collections
             .as_ref()
             .map(|x| x.iter().map(|y| y.to_string()).collect());
 
         self.app.wrap().query_wasm_smart(
             self.get_oracle_address(),
             &QueryMsg::QueryPrices {
-                collection_addresses,
+                collections,
                 start_after: start_after.as_ref().map(|x| x.to_string()),
-                limit: limit.to_owned(),
+                amount,
             },
         )
-    }
-
-    #[track_caller]
-    fn oracle_query_price_ratio(&self) -> StdResult<PriceRatioItem> {
-        self.app
-            .wrap()
-            .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryPriceRatio {})
     }
 
     #[track_caller]

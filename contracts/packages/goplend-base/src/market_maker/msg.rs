@@ -118,5 +118,5 @@ pub enum QueryMsg {
     },
 
     #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
-    QueryCollateral { collection: String },
+    QueryCollateral { collection_owner: String },
 }

@@ -136,8 +136,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             start_after,
         } => to_json_binary(&q::query_collateral_list(deps, env, amount, start_after)?),
 
-        QueryMsg::QueryCollateral { collection } => {
-            to_json_binary(&q::query_collateral(deps, env, collection)?)
+        QueryMsg::QueryCollateral { collection_owner } => {
+            to_json_binary(&q::query_collateral(deps, env, collection_owner)?)
         }
     }
 }

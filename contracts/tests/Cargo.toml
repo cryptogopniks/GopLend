@@ -22,7 +22,6 @@ cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw721 = { workspace = true }
 cw721-base = { workspace = true }
-stargaze-marketplace-v2 = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
@@ -32,15 +31,9 @@ cw-multi-test = { workspace = true }
 speculoos = { workspace = true }
 
 goplend-base = { workspace = true }
-stargaze-mocks-marketplace = { workspace = true }
-stargaze-mocks-royalty-registry = { workspace = true }
-adapter-dex-stargaze-mocks = { workspace = true }
 
 lending-platform = { workspace = true }
 oracle = { workspace = true }
 minter = { workspace = true }
-minter-kujira = { workspace = true }
-adapter-scheduler-common = { workspace = true }
-adapter-scheduler-stargaze = { workspace = true }
-adapter-marketplace-kujira = { workspace = true }
-adapter-marketplace-stargaze = { workspace = true }
+scheduler = { workspace = true }
+market-maker = { workspace = true }

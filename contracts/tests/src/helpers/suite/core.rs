@@ -59,7 +59,7 @@ pub struct Project {
     lending_platform_code_id: u64,
     oracle_code_id: u64,
     minter_code_id: u64,
-    adapter_scheduler_common_code_id: u64,
+    scheduler_code_id: u64,
     adapter_marketplace_stargaze_code_id: u64,
     adapter_marketplace_kujira_code_id: u64,
 
@@ -71,11 +71,10 @@ pub struct Project {
     adapter_dex_stargaze_mocks_address: Addr,
 
     // contract address
-    lending_platform_main_address: Addr,
-    lending_platform_stable_address: Addr,
+    lending_platform_address: Addr,
     oracle_address: Addr,
     minter_address: Addr,
-    adapter_scheduler_common_address: Addr,
+    scheduler_address: Addr,
     adapter_marketplace_stargaze_address: Addr,
     adapter_marketplace_kujira_address: Addr,
     //
@@ -98,7 +97,7 @@ impl Project {
             lending_platform_code_id: 0,
             oracle_code_id: 0,
             minter_code_id: 0,
-            adapter_scheduler_common_code_id: 0,
+            scheduler_code_id: 0,
             adapter_marketplace_stargaze_code_id: 0,
             adapter_marketplace_kujira_code_id: 0,
 
@@ -108,11 +107,10 @@ impl Project {
             stargaze_mocks_royalty_registry_address: Addr::unchecked(""),
             adapter_dex_stargaze_mocks_address: Addr::unchecked(""),
 
-            lending_platform_main_address: Addr::unchecked(""),
-            lending_platform_stable_address: Addr::unchecked(""),
+            lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
-            adapter_scheduler_common_address: Addr::unchecked(""),
+            scheduler_address: Addr::unchecked(""),
             adapter_marketplace_stargaze_address: Addr::unchecked(""),
             adapter_marketplace_kujira_address: Addr::unchecked(""),
         }
@@ -136,7 +134,7 @@ impl Project {
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
-        let adapter_scheduler_common_code_id = project.store_adapter_scheduler_common_code();
+        let scheduler_code_id = project.store_adapter_scheduler_common_code();
         let adapter_marketplace_stargaze_code_id =
             project.store_adapter_marketplace_stargaze_code();
         let adapter_marketplace_kujira_code_id = project.store_adapter_marketplace_kujira_code();
@@ -223,7 +221,7 @@ impl Project {
 
         // instantiate goplend contracts
 
-        let lending_platform_main_address = project.instantiate_lending_platform(
+        let lending_platform_address = project.instantiate_lending_platform(
             lending_platform_code_id,
             &None,
             &None,
@@ -239,29 +237,6 @@ impl Project {
             &Currency::new(
                 &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
                 ProjectCoin::Stars.get_decimals(),
-            ),
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-        );
-        let lending_platform_stable_address = project.instantiate_lending_platform(
-            lending_platform_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                ProjectCoin::Usdc.get_decimals(),
             ),
             &None,
             &None,
@@ -292,8 +267,8 @@ impl Project {
             &None,
             &None,
         );
-        let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
-            adapter_scheduler_common_code_id,
+        let scheduler_address = project.instantiate_adapter_scheduler_common(
+            scheduler_code_id,
             &None,
             &None,
             &None,
@@ -326,7 +301,7 @@ impl Project {
             lending_platform_code_id,
             oracle_code_id,
             minter_code_id,
-            adapter_scheduler_common_code_id,
+            scheduler_code_id,
             adapter_marketplace_stargaze_code_id,
             adapter_marketplace_kujira_code_id,
 
@@ -336,11 +311,10 @@ impl Project {
             stargaze_mocks_royalty_registry_address,
             adapter_dex_stargaze_mocks_address,
 
-            lending_platform_main_address,
-            lending_platform_stable_address,
+            lending_platform_address,
             oracle_address,
             minter_address,
-            adapter_scheduler_common_address,
+            scheduler_address,
             adapter_marketplace_stargaze_address,
             adapter_marketplace_kujira_address,
 
@@ -415,7 +389,7 @@ impl Project {
                     &Some(ProjectAccount::Owner),
                     &Some(project.get_oracle_address()),
                     &Some(project.get_minter_address()),
-                    &Some(project.get_adapter_scheduler_common_address()),
+                    &Some(project.get_scheduler_address()),
                     &Some(project.get_adapter_marketplace_stargaze_address()),
                 )
                 .unwrap();
@@ -531,8 +505,8 @@ impl Project {
         self.minter_code_id
     }
 
-    pub fn get_adapter_scheduler_common_code_id(&self) -> u64 {
-        self.adapter_scheduler_common_code_id
+    pub fn get_scheduler_code_id(&self) -> u64 {
+        self.scheduler_code_id
     }
 
     pub fn get_adapter_marketplace_stargaze_code_id(&self) -> u64 {
@@ -565,12 +539,8 @@ impl Project {
     }
 
     // contract address getters
-    pub fn get_lending_platform_main_address(&self) -> Addr {
-        self.lending_platform_main_address.clone()
-    }
-
-    pub fn get_lending_platform_stable_address(&self) -> Addr {
-        self.lending_platform_stable_address.clone()
+    pub fn get_lending_platform_address(&self) -> Addr {
+        self.lending_platform_address.clone()
     }
 
     pub fn get_oracle_address(&self) -> Addr {
@@ -581,8 +551,8 @@ impl Project {
         self.minter_address.clone()
     }
 
-    pub fn get_adapter_scheduler_common_address(&self) -> Addr {
-        self.adapter_scheduler_common_address.clone()
+    pub fn get_scheduler_address(&self) -> Addr {
+        self.scheduler_address.clone()
     }
 
     pub fn get_adapter_marketplace_stargaze_address(&self) -> Addr {

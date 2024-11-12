@@ -167,8 +167,8 @@ pub fn query_collateral_list(
 pub fn query_collateral(
     deps: Deps,
     _env: Env,
-    collection: String,
+    collection_owner: String,
 ) -> StdResult<CollectionInfo<Addr>> {
-    let collection_address = deps.api.addr_validate(&collection)?;
-    COLLATERALS.load(deps.storage, &collection_address)
+    let collection_owner = deps.api.addr_validate(&collection_owner)?;
+    COLLATERALS.load(deps.storage, &collection_owner)
 }
