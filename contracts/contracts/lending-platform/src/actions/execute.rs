@@ -1373,14 +1373,14 @@ pub fn try_liquidate(
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let adapter_scheduler = unwrap_field(address_config.adapter_scheduler, "adapter_scheduler")?;
+    let scheduler = unwrap_field(address_config.scheduler, "scheduler")?;
 
     check_authorization(
         &sender_address,
         &address_config.admin,
         &address_config.worker,
         AuthType::Specified {
-            allowlist: vec![Some(adapter_scheduler)],
+            allowlist: vec![Some(scheduler)],
         },
     )?;
 
@@ -1461,11 +1461,8 @@ pub fn try_liquidate(
     // send messages to marketplace
     let mut response = Response::new().add_attribute("action", "try_liquidate");
 
-    if common_config.is_marketplace_interface_enabled
-        && !marketplace_bidded_collateral_item_list.is_empty()
-    {
-        let adapter_marketplace =
-            unwrap_field(address_config.adapter_marketplace, "adapter_marketplace")?;
+    if !marketplace_bidded_collateral_item_list.is_empty() {
+        let market_maker = unwrap_field(address_config.market_maker, "market_maker")?;
 
         // check operator and add approvals if it's required
         let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
@@ -1480,10 +1477,10 @@ pub fn try_liquidate(
                 deps.querier,
                 &collection_list,
                 env.contract.address,
-                &adapter_marketplace,
+                &market_maker,
             )?)
             .add_message(WasmMsg::Execute {
-                contract_addr: adapter_marketplace.to_string(),
+                contract_addr: market_maker.to_string(),
                 msg: to_json_binary(&goplend_base::market_maker::msg::ExecuteMsg::AcceptOffers {
                     bidded_collateral_item_list: marketplace_bidded_collateral_item_list,
                 })?,
@@ -1542,8 +1539,8 @@ pub fn try_update_address_config(
     worker: Option<String>,
     oracle: Option<String>,
     minter: Option<String>,
-    adapter_scheduler: Option<String>,
-    adapter_marketplace: Option<String>,
+    scheduler: Option<String>,
+    market_maker: Option<String>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1608,25 +1605,25 @@ pub fn try_update_address_config(
         is_config_updated = true;
     }
 
-    if let Some(x) = adapter_scheduler {
+    if let Some(x) = scheduler {
         check_authorization(
             &sender_address,
             current_admin,
             current_worker,
             AuthType::Admin,
         )?;
-        config.adapter_scheduler = Some(deps.api.addr_validate(&x)?);
+        config.scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
-    if let Some(x) = adapter_marketplace {
+    if let Some(x) = market_maker {
         check_authorization(
             &sender_address,
             current_admin,
             current_worker,
             AuthType::Admin,
         )?;
-        config.adapter_marketplace = Some(deps.api.addr_validate(&x)?);
+        config.market_maker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -1716,7 +1713,6 @@ pub fn try_update_common_config(
     unbonding_period: Option<u64>,
     collateral_min_value: Option<Uint128>,
     borrowers_reserve_fraction_ratio: Option<Decimal>,
-    is_marketplace_interface_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
@@ -1764,12 +1760,6 @@ pub fn try_update_common_config(
     if let Some(x) = borrowers_reserve_fraction_ratio {
         check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
         config.borrowers_reserve_fraction_ratio = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = is_marketplace_interface_enabled {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
-        config.is_marketplace_interface_enabled = x;
         is_config_updated = true;
     }
 

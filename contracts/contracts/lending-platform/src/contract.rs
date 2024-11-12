@@ -143,8 +143,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            adapter_scheduler,
-            adapter_marketplace,
+            scheduler,
+            market_maker,
         } => e::try_update_address_config(
             deps,
             env,
@@ -153,8 +153,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            adapter_scheduler,
-            adapter_marketplace,
+            scheduler,
+            market_maker,
         ),
 
         ExecuteMsg::UpdateRateConfig {
@@ -182,7 +182,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            is_marketplace_interface_enabled,
         } => e::try_update_common_config(
             deps,
             env,
@@ -192,7 +191,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            is_marketplace_interface_enabled,
         ),
 
         ExecuteMsg::DepositReserveLiquidity {} => {

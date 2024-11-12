@@ -13,8 +13,8 @@ pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub oracle: Option<String>,
     pub minter: Option<String>,
-    pub adapter_scheduler: Option<String>,
-    pub adapter_marketplace: Option<String>,
+    pub scheduler: Option<String>,
+    pub market_maker: Option<String>,
 
     pub borrow_apr: Option<Decimal>,
     pub borrow_fee_rate: Option<Decimal>,
@@ -28,7 +28,6 @@ pub struct InstantiateMsg {
     pub unbonding_period: Option<u64>,
     pub collateral_min_value: Option<Uint128>,
     pub borrowers_reserve_fraction_ratio: Option<Decimal>,
-    pub is_marketplace_interface_enabled: Option<bool>,
 }
 
 #[cw_serde]
@@ -95,8 +94,8 @@ pub enum ExecuteMsg {
         worker: Option<String>,
         oracle: Option<String>,
         minter: Option<String>,
-        adapter_scheduler: Option<String>,
-        adapter_marketplace: Option<String>,
+        scheduler: Option<String>,
+        market_maker: Option<String>,
     },
 
     UpdateRateConfig {
@@ -114,7 +113,6 @@ pub enum ExecuteMsg {
         unbonding_period: Option<u64>,
         collateral_min_value: Option<Uint128>,
         borrowers_reserve_fraction_ratio: Option<Decimal>,
-        is_marketplace_interface_enabled: Option<bool>,
     },
 
     // admin, worker
