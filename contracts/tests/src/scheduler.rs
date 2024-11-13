@@ -472,11 +472,11 @@ fn migrate_default() {
         .app
         .migrate_contract(
             ProjectAccount::Admin.into(),
-            project.get_adapter_scheduler_common_address(),
+            project.get_scheduler_address(),
             &MigrateMsg {
                 version: "1.0.0".to_string(),
             },
-            project.get_adapter_scheduler_common_code_id(),
+            project.get_scheduler_code_id(),
         )
         .unwrap();
 }
