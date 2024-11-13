@@ -112,8 +112,8 @@ pub trait LendingPlatformExtension {
         worker: &Option<ProjectAccount>,
         oracle: &Option<Addr>,
         minter: &Option<Addr>,
-        adapter_scheduler: &Option<Addr>,
-        adapter_marketplace: &Option<Addr>,
+        scheduler: &Option<Addr>,
+        market_maker: &Option<Addr>,
     ) -> StdResult<AppResponse>;
 
     #[allow(clippy::too_many_arguments)]
@@ -137,7 +137,6 @@ pub trait LendingPlatformExtension {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse>;
 
     fn lending_platform_try_deposit_reserve_liquidity(
@@ -595,7 +594,6 @@ impl LendingPlatformExtension for Project {
         unbonding_period: &Option<u64>,
         collateral_min_value: &Option<u128>,
         borrowers_reserve_fraction_ratio: &Option<&str>,
-        is_marketplace_interface_enabled: &Option<bool>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
