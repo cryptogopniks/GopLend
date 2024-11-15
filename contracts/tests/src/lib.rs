@@ -1,13 +1,13 @@
-// #[cfg(test)]
-// pub mod lending_platform;
+#[cfg(test)]
+pub mod lending_platform;
 #[cfg(test)]
 pub mod math;
 #[cfg(test)]
 pub mod minter;
 #[cfg(test)]
 pub mod oracle;
-// #[cfg(test)]
-// pub mod scheduler;
+#[cfg(test)]
+pub mod scheduler;
 
 pub mod helpers {
     pub mod lending_platform;

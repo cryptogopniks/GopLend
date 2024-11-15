@@ -16,6 +16,7 @@ use crate::helpers::{
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
     oracle::OracleExtension,
+    scheduler::SchedulerExtension,
     suite::{
         codes::WithCodes,
         types::{
@@ -268,6 +269,17 @@ impl Project {
                 )),
                 &None,
                 &None,
+                &None,
+            )
+            .unwrap();
+
+        project
+            .scheduler_try_update_config(
+                ProjectAccount::Admin,
+                &None,
+                &None,
+                &Some(project.get_lending_platform_address()),
+                &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
             )
             .unwrap();

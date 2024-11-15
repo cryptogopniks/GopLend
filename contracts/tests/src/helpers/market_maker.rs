@@ -99,7 +99,10 @@ pub trait MarketMakerExtension {
         start_after: &Option<ProjectNft>,
     ) -> StdResult<Vec<OffersResponse>>;
 
-    fn market_maker_query_offer_prices(&self, collection: ProjectNft) -> StdResult<OffersResponse>;
+    fn market_maker_query_offer_prices(
+        &self,
+        collection: impl ToString,
+    ) -> StdResult<OffersResponse>;
 
     fn market_maker_query_collection_owner_list(
         &self,
@@ -109,7 +112,7 @@ pub trait MarketMakerExtension {
 
     fn market_maker_query_collection_owner(
         &self,
-        collection: ProjectNft,
+        collection: impl ToString,
     ) -> StdResult<CollectionOwner<Addr>>;
 
     fn market_maker_query_liquidity_list(
@@ -380,7 +383,10 @@ impl MarketMakerExtension for Project {
     }
 
     #[track_caller]
-    fn market_maker_query_offer_prices(&self, collection: ProjectNft) -> StdResult<OffersResponse> {
+    fn market_maker_query_offer_prices(
+        &self,
+        collection: impl ToString,
+    ) -> StdResult<OffersResponse> {
         self.app.wrap().query_wasm_smart(
             self.get_market_maker_address(),
             &QueryMsg::QueryOfferPrices {
@@ -407,7 +413,7 @@ impl MarketMakerExtension for Project {
     #[track_caller]
     fn market_maker_query_collection_owner(
         &self,
-        collection: ProjectNft,
+        collection: impl ToString,
     ) -> StdResult<CollectionOwner<Addr>> {
         self.app.wrap().query_wasm_smart(
             self.get_market_maker_address(),
