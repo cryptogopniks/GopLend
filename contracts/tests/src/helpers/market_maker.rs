@@ -274,7 +274,7 @@ impl MarketMakerExtension for Project {
         add_funds_to_exec_msg(
             self,
             sender,
-            &self.get_lending_platform_address(),
+            &self.get_market_maker_address(),
             &ExecuteMsg::DepositLiquidity {
                 collection: collection.to_string(),
             },

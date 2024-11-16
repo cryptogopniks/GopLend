@@ -437,10 +437,17 @@ pub fn try_update_offers(
     for (price_before, price_after) in from_to_price_list {
         liquidity_to_add += price_before;
         liquidity_to_sub += price_after;
+
+        // replace price
         offers = offers
             .into_iter()
             .map(|x| if x == price_before { price_after } else { x })
             .collect();
+
+        // add new price
+        if price_before.is_zero() {
+            offers.push(price_after);
+        }
     }
 
     offers.sort_unstable_by(|a, b| b.cmp(a));

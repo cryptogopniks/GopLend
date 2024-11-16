@@ -45,7 +45,9 @@ pub fn query_offer_prices_list(
 
 pub fn query_offer_prices(deps: Deps, _env: Env, collection: String) -> StdResult<OffersResponse> {
     let collection_address = deps.api.addr_validate(&collection)?;
-    let price_list = OFFERS.load(deps.storage, &collection_address)?;
+    let price_list = OFFERS
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default();
 
     Ok(OffersResponse {
         collection_address,
@@ -129,8 +131,12 @@ pub fn query_liquidity_list(
 
 pub fn query_liquidity(deps: Deps, _env: Env, collection: String) -> StdResult<LiquidityInfo> {
     let collection_address = deps.api.addr_validate(&collection)?;
-    let amount_undistributed = UNDISTRIBUTED_LIQUIDITY.load(deps.storage, &collection_address)?;
-    let price_list = OFFERS.load(deps.storage, &collection_address)?;
+    let amount_undistributed = UNDISTRIBUTED_LIQUIDITY
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default();
+    let price_list = OFFERS
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default();
 
     Ok(LiquidityInfo {
         collection_address,
