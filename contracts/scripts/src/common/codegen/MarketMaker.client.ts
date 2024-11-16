@@ -6,211 +6,250 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, QueryMsg, MigrateMsg, Addr, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
-export interface MarketMakerHubReadOnlyInterface {
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
+export interface MarketMakerReadOnlyInterface {
   contractAddress: string;
-  queryConfig: () => Promise<HubConfig>;
-  queryOutposts: () => Promise<ArrayOfAddr>;
-  queryCollectionOwnersList: ({
-    limit,
+  queryConfig: () => Promise<Config>;
+  queryOfferPricesList: ({
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
-  }) => Promise<ArrayOfCollectionOwnersForAddr>;
-  queryCollectionOwners: ({
-    collectionAddress
+  }) => Promise<ArrayOfOffersResponse>;
+  queryOfferPrices: ({
+    collection
   }: {
-    collectionAddress: string;
-  }) => Promise<CollectionOwnersForAddr>;
-  queryLiquidityList: ({
-    limit,
+    collection: string;
+  }) => Promise<OffersResponse>;
+  queryCollectionOwnerList: ({
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
+    startAfter?: string;
+  }) => Promise<ArrayOfCollectionOwnerForAddr>;
+  queryCollectionOwner: ({
+    collection
+  }: {
+    collection: string;
+  }) => Promise<CollectionOwnerForAddr>;
+  queryLiquidityList: ({
+    amount,
+    startAfter
+  }: {
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfLiquidityInfo>;
   queryLiquidity: ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }) => Promise<LiquidityInfo>;
   queryCollateralList: ({
-    limit,
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfCollectionInfoForAddr>;
   queryCollateral: ({
-    collectionAddress
+    collectionOwner
   }: {
-    collectionAddress: string;
+    collectionOwner: string;
   }) => Promise<CollectionInfoForAddr>;
 }
-export class MarketMakerHubQueryClient implements MarketMakerHubReadOnlyInterface {
+export class MarketMakerQueryClient implements MarketMakerReadOnlyInterface {
   client: CosmWasmClient;
   contractAddress: string;
   constructor(client: CosmWasmClient, contractAddress: string) {
     this.client = client;
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
-    this.queryOutposts = this.queryOutposts.bind(this);
-    this.queryCollectionOwnersList = this.queryCollectionOwnersList.bind(this);
-    this.queryCollectionOwners = this.queryCollectionOwners.bind(this);
+    this.queryOfferPricesList = this.queryOfferPricesList.bind(this);
+    this.queryOfferPrices = this.queryOfferPrices.bind(this);
+    this.queryCollectionOwnerList = this.queryCollectionOwnerList.bind(this);
+    this.queryCollectionOwner = this.queryCollectionOwner.bind(this);
     this.queryLiquidityList = this.queryLiquidityList.bind(this);
     this.queryLiquidity = this.queryLiquidity.bind(this);
     this.queryCollateralList = this.queryCollateralList.bind(this);
     this.queryCollateral = this.queryCollateral.bind(this);
   }
-  queryConfig = async (): Promise<HubConfig> => {
+  queryConfig = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_config: {}
     });
   };
-  queryOutposts = async (): Promise<ArrayOfAddr> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      query_outposts: {}
-    });
-  };
-  queryCollectionOwnersList = async ({
-    limit,
+  queryOfferPricesList = async ({
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
-  }): Promise<ArrayOfCollectionOwnersForAddr> => {
+  }): Promise<ArrayOfOffersResponse> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collection_owners_list: {
-        limit,
+      query_offer_prices_list: {
+        amount,
         start_after: startAfter
       }
     });
   };
-  queryCollectionOwners = async ({
-    collectionAddress
+  queryOfferPrices = async ({
+    collection
   }: {
-    collectionAddress: string;
-  }): Promise<CollectionOwnersForAddr> => {
+    collection: string;
+  }): Promise<OffersResponse> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_collection_owners: {
-        collection_address: collectionAddress
+      query_offer_prices: {
+        collection
+      }
+    });
+  };
+  queryCollectionOwnerList = async ({
+    amount,
+    startAfter
+  }: {
+    amount: number;
+    startAfter?: string;
+  }): Promise<ArrayOfCollectionOwnerForAddr> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collection_owner_list: {
+        amount,
+        start_after: startAfter
+      }
+    });
+  };
+  queryCollectionOwner = async ({
+    collection
+  }: {
+    collection: string;
+  }): Promise<CollectionOwnerForAddr> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      query_collection_owner: {
+        collection
       }
     });
   };
   queryLiquidityList = async ({
-    limit,
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfLiquidityInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidity_list: {
-        limit,
+        amount,
         start_after: startAfter
       }
     });
   };
   queryLiquidity = async ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }): Promise<LiquidityInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidity: {
-        collection_address: collectionAddress
+        collection
       }
     });
   };
   queryCollateralList = async ({
-    limit,
+    amount,
     startAfter
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfCollectionInfoForAddr> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral_list: {
-        limit,
+        amount,
         start_after: startAfter
       }
     });
   };
   queryCollateral = async ({
-    collectionAddress
+    collectionOwner
   }: {
-    collectionAddress: string;
+    collectionOwner: string;
   }): Promise<CollectionInfoForAddr> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral: {
-        collection_address: collectionAddress
+        collection_owner: collectionOwner
       }
     });
   };
 }
-export interface MarketMakerHubInterface extends MarketMakerHubReadOnlyInterface {
+export interface MarketMakerInterface extends MarketMakerReadOnlyInterface {
   contractAddress: string;
   sender: string;
   acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
     admin,
     controller,
-    marketplace,
-    maxOutpostAmount,
-    outpostCodeId,
+    lendingPlatform,
+    oracle,
     token,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    marketplace?: string;
-    maxOutpostAmount?: number;
-    outpostCodeId?: number;
+    lendingPlatform?: string;
+    oracle?: string;
     token?: TokenUnverified;
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  addOutpost: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  setCollection: ({
-    collectionAddress,
-    ownerList
+  removeOffers: ({
+    collection,
+    recipient
   }: {
-    collectionAddress: string;
-    ownerList: string[];
+    collection: string;
+    recipient?: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  pause: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  unpause: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  setCollection: ({
+    collection,
+    owner
+  }: {
+    collection: string;
+    owner: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   removeCollections: ({
-    collectionAddressList
+    collectionList
   }: {
-    collectionAddressList: string[];
+    collectionList: string[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   depositLiquidity: ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  withdrawLiquidity: ({
-    amount,
-    collectionAddress
+  withdrawUndistributedLiquidity: ({
+    collection
   }: {
-    amount: Uint128;
-    collectionAddress: string;
+    collection: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   withdrawCollateral: ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateOffers: ({
-    collectionAddress,
-    fromToPriceAndOutpostList
+    collection,
+    fromToPriceList
   }: {
-    collectionAddress: string;
-    fromToPriceAndOutpostList: Uint128[][];
+    collection: string;
+    fromToPriceList: Uint128[][];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  acceptOffers: ({
+    biddedCollateralItemList
+  }: {
+    biddedCollateralItemList: BiddedCollateralItem[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
-export class MarketMakerHubClient extends MarketMakerHubQueryClient implements MarketMakerHubInterface {
+export class MarketMakerClient extends MarketMakerQueryClient implements MarketMakerInterface {
   client: SigningCosmWasmClient;
   sender: string;
   contractAddress: string;
@@ -221,15 +260,16 @@ export class MarketMakerHubClient extends MarketMakerHubQueryClient implements M
     this.contractAddress = contractAddress;
     this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
-    this.addOutpost = this.addOutpost.bind(this);
-    this.lock = this.lock.bind(this);
-    this.unlock = this.unlock.bind(this);
+    this.removeOffers = this.removeOffers.bind(this);
+    this.pause = this.pause.bind(this);
+    this.unpause = this.unpause.bind(this);
     this.setCollection = this.setCollection.bind(this);
     this.removeCollections = this.removeCollections.bind(this);
     this.depositLiquidity = this.depositLiquidity.bind(this);
-    this.withdrawLiquidity = this.withdrawLiquidity.bind(this);
+    this.withdrawUndistributedLiquidity = this.withdrawUndistributedLiquidity.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
     this.updateOffers = this.updateOffers.bind(this);
+    this.acceptOffers = this.acceptOffers.bind(this);
   }
   acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
@@ -239,17 +279,15 @@ export class MarketMakerHubClient extends MarketMakerHubQueryClient implements M
   updateConfig = async ({
     admin,
     controller,
-    marketplace,
-    maxOutpostAmount,
-    outpostCodeId,
+    lendingPlatform,
+    oracle,
     token,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    marketplace?: string;
-    maxOutpostAmount?: number;
-    outpostCodeId?: number;
+    lendingPlatform?: string;
+    oracle?: string;
     token?: TokenUnverified;
     worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
@@ -257,101 +295,117 @@ export class MarketMakerHubClient extends MarketMakerHubQueryClient implements M
       update_config: {
         admin,
         controller,
-        marketplace,
-        max_outpost_amount: maxOutpostAmount,
-        outpost_code_id: outpostCodeId,
+        lending_platform: lendingPlatform,
+        oracle,
         token,
         worker
       }
     }, fee, memo, _funds);
   };
-  addOutpost = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  removeOffers = async ({
+    collection,
+    recipient
+  }: {
+    collection: string;
+    recipient?: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      add_outpost: {}
+      remove_offers: {
+        collection,
+        recipient
+      }
     }, fee, memo, _funds);
   };
-  lock = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  pause = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      lock: {}
+      pause: {}
     }, fee, memo, _funds);
   };
-  unlock = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  unpause = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      unlock: {}
+      unpause: {}
     }, fee, memo, _funds);
   };
   setCollection = async ({
-    collectionAddress,
-    ownerList
+    collection,
+    owner
   }: {
-    collectionAddress: string;
-    ownerList: string[];
+    collection: string;
+    owner: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       set_collection: {
-        collection_address: collectionAddress,
-        owner_list: ownerList
+        collection,
+        owner
       }
     }, fee, memo, _funds);
   };
   removeCollections = async ({
-    collectionAddressList
+    collectionList
   }: {
-    collectionAddressList: string[];
+    collectionList: string[];
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       remove_collections: {
-        collection_address_list: collectionAddressList
+        collection_list: collectionList
       }
     }, fee, memo, _funds);
   };
   depositLiquidity = async ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       deposit_liquidity: {
-        collection_address: collectionAddress
+        collection
       }
     }, fee, memo, _funds);
   };
-  withdrawLiquidity = async ({
-    amount,
-    collectionAddress
+  withdrawUndistributedLiquidity = async ({
+    collection
   }: {
-    amount: Uint128;
-    collectionAddress: string;
+    collection: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      withdraw_liquidity: {
-        amount,
-        collection_address: collectionAddress
+      withdraw_undistributed_liquidity: {
+        collection
       }
     }, fee, memo, _funds);
   };
   withdrawCollateral = async ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       withdraw_collateral: {
-        collection_address: collectionAddress
+        collection
       }
     }, fee, memo, _funds);
   };
   updateOffers = async ({
-    collectionAddress,
-    fromToPriceAndOutpostList
+    collection,
+    fromToPriceList
   }: {
-    collectionAddress: string;
-    fromToPriceAndOutpostList: Uint128[][];
+    collection: string;
+    fromToPriceList: Uint128[][];
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_offers: {
-        collection_address: collectionAddress,
-        from_to_price_and_outpost_list: fromToPriceAndOutpostList
+        collection,
+        from_to_price_list: fromToPriceList
+      }
+    }, fee, memo, _funds);
+  };
+  acceptOffers = async ({
+    biddedCollateralItemList
+  }: {
+    biddedCollateralItemList: BiddedCollateralItem[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_offers: {
+        bidded_collateral_item_list: biddedCollateralItemList
       }
     }, fee, memo, _funds);
   };

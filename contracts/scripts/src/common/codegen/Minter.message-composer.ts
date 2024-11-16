@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
+import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, ArrayOfTupleOfUint128AndString, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, FaucetConfig, Uint64, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
 export interface MinterMsg {
   contractAddress: string;
   sender: string;
@@ -130,6 +130,15 @@ export interface MinterMsg {
   }: {
     address: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateFaucetConfig: ({
+    claimCooldown,
+    claimableAmount,
+    denomOrAddress
+  }: {
+    claimCooldown?: number;
+    claimableAmount?: Uint128;
+    denomOrAddress: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   mint: ({
     amount,
     denomOrAddress,
@@ -139,7 +148,19 @@ export interface MinterMsg {
     denomOrAddress: string;
     recipient?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  mintMultiple: ({
+    accountAndAmountList,
+    denomOrAddress
+  }: {
+    accountAndAmountList: string[][];
+    denomOrAddress: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   burn: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  claim: ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   receive: ({
     amount,
     msg,
@@ -170,8 +191,11 @@ export class MinterMsgComposer implements MinterMsg {
     this.updateMetadataCw20 = this.updateMetadataCw20.bind(this);
     this.excludeNative = this.excludeNative.bind(this);
     this.excludeCw20 = this.excludeCw20.bind(this);
+    this.updateFaucetConfig = this.updateFaucetConfig.bind(this);
     this.mint = this.mint.bind(this);
+    this.mintMultiple = this.mintMultiple.bind(this);
     this.burn = this.burn.bind(this);
+    this.claim = this.claim.bind(this);
     this.receive = this.receive.bind(this);
   }
   acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -512,6 +536,31 @@ export class MinterMsgComposer implements MinterMsg {
       })
     };
   };
+  updateFaucetConfig = ({
+    claimCooldown,
+    claimableAmount,
+    denomOrAddress
+  }: {
+    claimCooldown?: number;
+    claimableAmount?: Uint128;
+    denomOrAddress: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_faucet_config: {
+            claim_cooldown: claimCooldown,
+            claimable_amount: claimableAmount,
+            denom_or_address: denomOrAddress
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
   mint = ({
     amount,
     denomOrAddress,
@@ -537,6 +586,28 @@ export class MinterMsgComposer implements MinterMsg {
       })
     };
   };
+  mintMultiple = ({
+    accountAndAmountList,
+    denomOrAddress
+  }: {
+    accountAndAmountList: string[][];
+    denomOrAddress: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          mint_multiple: {
+            account_and_amount_list: accountAndAmountList,
+            denom_or_address: denomOrAddress
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
   burn = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -545,6 +616,25 @@ export class MinterMsgComposer implements MinterMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           burn: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  claim = ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          claim: {
+            denom_or_address: denomOrAddress
+          }
         })),
         funds: _funds
       })

@@ -6,10 +6,15 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
+import { InstantiateMsg, ExecuteMsg, Logo, EmbeddedLogo, Binary, Uint128, InstantiateMarketingInfo, Metadata, DenomUnit, Cw20ReceiveMsg, QueryMsg, MigrateMsg, ArrayOfTupleOfUint128AndString, Addr, Config, Token, CurrencyInfo, CurrencyForToken, ArrayOfCurrencyInfo, FaucetConfig, Uint64, ArrayOfTupleOfAddrAndUint16 } from "./Minter.types";
 export interface MinterReadOnlyInterface {
   contractAddress: string;
   config: () => Promise<Config>;
+  faucetConfig: ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }) => Promise<FaucetConfig>;
   currencyInfo: ({
     denomOrAddress
   }: {
@@ -17,27 +22,39 @@ export interface MinterReadOnlyInterface {
   }) => Promise<CurrencyInfo>;
   currencyInfoList: ({
     amount,
-    startFrom
+    startAfter
   }: {
     amount: number;
-    startFrom?: string;
+    startAfter?: string;
   }) => Promise<ArrayOfCurrencyInfo>;
   currencyInfoListByOwner: ({
     amount,
     owner,
-    startFrom
+    startAfter
   }: {
     amount: number;
     owner: string;
-    startFrom?: string;
+    startAfter?: string;
   }) => Promise<ArrayOfCurrencyInfo>;
   tokenCountList: ({
     amount,
-    startFrom
+    startAfter
   }: {
     amount: number;
-    startFrom?: string;
+    startAfter?: string;
   }) => Promise<ArrayOfTupleOfAddrAndUint16>;
+  lastClaimDate: ({
+    denomOrAddress,
+    user
+  }: {
+    denomOrAddress: string;
+    user: string;
+  }) => Promise<Uint64>;
+  balances: ({
+    account
+  }: {
+    account: string;
+  }) => Promise<ArrayOfTupleOfUint128AndString>;
 }
 export class MinterQueryClient implements MinterReadOnlyInterface {
   client: CosmWasmClient;
@@ -46,14 +63,28 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
     this.client = client;
     this.contractAddress = contractAddress;
     this.config = this.config.bind(this);
+    this.faucetConfig = this.faucetConfig.bind(this);
     this.currencyInfo = this.currencyInfo.bind(this);
     this.currencyInfoList = this.currencyInfoList.bind(this);
     this.currencyInfoListByOwner = this.currencyInfoListByOwner.bind(this);
     this.tokenCountList = this.tokenCountList.bind(this);
+    this.lastClaimDate = this.lastClaimDate.bind(this);
+    this.balances = this.balances.bind(this);
   }
   config = async (): Promise<Config> => {
     return this.client.queryContractSmart(this.contractAddress, {
       config: {}
+    });
+  };
+  faucetConfig = async ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }): Promise<FaucetConfig> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      faucet_config: {
+        denom_or_address: denomOrAddress
+      }
     });
   };
   currencyInfo = async ({
@@ -69,46 +100,71 @@ export class MinterQueryClient implements MinterReadOnlyInterface {
   };
   currencyInfoList = async ({
     amount,
-    startFrom
+    startAfter
   }: {
     amount: number;
-    startFrom?: string;
+    startAfter?: string;
   }): Promise<ArrayOfCurrencyInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
       currency_info_list: {
         amount,
-        start_from: startFrom
+        start_after: startAfter
       }
     });
   };
   currencyInfoListByOwner = async ({
     amount,
     owner,
-    startFrom
+    startAfter
   }: {
     amount: number;
     owner: string;
-    startFrom?: string;
+    startAfter?: string;
   }): Promise<ArrayOfCurrencyInfo> => {
     return this.client.queryContractSmart(this.contractAddress, {
       currency_info_list_by_owner: {
         amount,
         owner,
-        start_from: startFrom
+        start_after: startAfter
       }
     });
   };
   tokenCountList = async ({
     amount,
-    startFrom
+    startAfter
   }: {
     amount: number;
-    startFrom?: string;
+    startAfter?: string;
   }): Promise<ArrayOfTupleOfAddrAndUint16> => {
     return this.client.queryContractSmart(this.contractAddress, {
       token_count_list: {
         amount,
-        start_from: startFrom
+        start_after: startAfter
+      }
+    });
+  };
+  lastClaimDate = async ({
+    denomOrAddress,
+    user
+  }: {
+    denomOrAddress: string;
+    user: string;
+  }): Promise<Uint64> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      last_claim_date: {
+        denom_or_address: denomOrAddress,
+        user
+      }
+    });
+  };
+  balances = async ({
+    account
+  }: {
+    account: string;
+  }): Promise<ArrayOfTupleOfUint128AndString> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      balances: {
+        account
       }
     });
   };
@@ -234,6 +290,15 @@ export interface MinterInterface extends MinterReadOnlyInterface {
   }: {
     address: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updateFaucetConfig: ({
+    claimCooldown,
+    claimableAmount,
+    denomOrAddress
+  }: {
+    claimCooldown?: number;
+    claimableAmount?: Uint128;
+    denomOrAddress: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   mint: ({
     amount,
     denomOrAddress,
@@ -243,7 +308,19 @@ export interface MinterInterface extends MinterReadOnlyInterface {
     denomOrAddress: string;
     recipient?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  mintMultiple: ({
+    accountAndAmountList,
+    denomOrAddress
+  }: {
+    accountAndAmountList: string[][];
+    denomOrAddress: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   burn: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  claim: ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   receive: ({
     amount,
     msg,
@@ -277,8 +354,11 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
     this.updateMetadataCw20 = this.updateMetadataCw20.bind(this);
     this.excludeNative = this.excludeNative.bind(this);
     this.excludeCw20 = this.excludeCw20.bind(this);
+    this.updateFaucetConfig = this.updateFaucetConfig.bind(this);
     this.mint = this.mint.bind(this);
+    this.mintMultiple = this.mintMultiple.bind(this);
     this.burn = this.burn.bind(this);
+    this.claim = this.claim.bind(this);
     this.receive = this.receive.bind(this);
   }
   acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
@@ -507,6 +587,23 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
       }
     }, fee, memo, _funds);
   };
+  updateFaucetConfig = async ({
+    claimCooldown,
+    claimableAmount,
+    denomOrAddress
+  }: {
+    claimCooldown?: number;
+    claimableAmount?: Uint128;
+    denomOrAddress: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      update_faucet_config: {
+        claim_cooldown: claimCooldown,
+        claimable_amount: claimableAmount,
+        denom_or_address: denomOrAddress
+      }
+    }, fee, memo, _funds);
+  };
   mint = async ({
     amount,
     denomOrAddress,
@@ -524,9 +621,34 @@ export class MinterClient extends MinterQueryClient implements MinterInterface {
       }
     }, fee, memo, _funds);
   };
+  mintMultiple = async ({
+    accountAndAmountList,
+    denomOrAddress
+  }: {
+    accountAndAmountList: string[][];
+    denomOrAddress: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      mint_multiple: {
+        account_and_amount_list: accountAndAmountList,
+        denom_or_address: denomOrAddress
+      }
+    }, fee, memo, _funds);
+  };
   burn = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       burn: {}
+    }, fee, memo, _funds);
+  };
+  claim = async ({
+    denomOrAddress
+  }: {
+    denomOrAddress: string;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      claim: {
+        denom_or_address: denomOrAddress
+      }
     }, fee, memo, _funds);
   };
   receive = async ({

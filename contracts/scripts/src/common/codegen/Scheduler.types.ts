@@ -4,34 +4,37 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-export type ClockSource = "onchain" | "offchain";
 export interface InstantiateMsg {
-  clock_source?: ClockSource | null;
+  execution_cooldown?: number | null;
   lending_platform?: string | null;
-  min_clock_period?: number | null;
   offchain_clock?: string[] | null;
+  worker?: string | null;
 }
 export type ExecuteMsg = {
+  accept_admin_role: {};
+} | {
   update_config: {
-    clock_source?: ClockSource | null;
+    admin?: string | null;
+    execution_cooldown?: number | null;
     lending_platform?: string | null;
-    min_clock_period?: number | null;
     offchain_clock?: string[] | null;
+    worker?: string | null;
   };
 } | {
   push: {
     targets: LiquidationItem[];
   };
 };
-export type Decimal = string;
-export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
 export type Uint128 = string;
+export type Decimal = string;
+export type BidType = "liquidation_bid" | "collection_offer";
 export type Addr = string;
 export interface LiquidationItem {
   borrower: string;
   liquidation_set: BiddedCollateralItem[];
 }
 export interface BiddedCollateralItem {
+  bid_amount: Uint128;
   bid_creation_date: number;
   bid_discount: Decimal;
   bid_type: BidType;
@@ -49,18 +52,21 @@ export interface TokenItem {
 export type QueryMsg = {
   query_config: {};
 } | {
-  query_log: {
-    amount: number;
-  };
+  query_log: {};
 };
 export interface MigrateMsg {
   version: string;
 }
 export interface Config {
   admin: Addr;
-  clock_source: ClockSource;
-  lending_platform?: Addr | null;
-  min_clock_period: number;
-  offchain_clock?: Addr[] | null;
+  execution_cooldown: number;
+  lending_platform: Addr;
+  offchain_clock: Addr[];
+  worker?: Addr | null;
 }
-export type ArrayOfTupleOfUint64AndUint32 = [number, number][];
+export type ArrayOfLog = Log[];
+export interface Log {
+  block_time: number;
+  counter: number;
+  sender: Addr;
+}

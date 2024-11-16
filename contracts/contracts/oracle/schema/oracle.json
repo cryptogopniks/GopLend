@@ -1,13 +1,12 @@
 {
   "contract_name": "oracle",
-  "contract_version": "1.0.0",
+  "contract_version": "2.0.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
     "type": "object",
     "required": [
-      "main_currency",
       "stable_currency"
     ],
     "properties": {
@@ -27,9 +26,6 @@
         ],
         "format": "uint64",
         "minimum": 0.0
-      },
-      "main_currency": {
-        "$ref": "#/definitions/Currency_for_TokenUnverified"
       },
       "max_price_update_period": {
         "type": [
@@ -166,16 +162,6 @@
                 "format": "uint64",
                 "minimum": 0.0
               },
-              "main_currency": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/Currency_for_TokenUnverified"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
               "max_price_update_period": {
                 "type": [
                   "integer",
@@ -213,23 +199,10 @@
         ],
         "properties": {
           "set_prices": {
-            "type": "object",
-            "required": [
-              "data",
-              "price_ratio"
-            ],
-            "properties": {
-              "data": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/RawPriceItem"
-                }
-              },
-              "price_ratio": {
-                "$ref": "#/definitions/Decimal"
-              }
-            },
-            "additionalProperties": false
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/RawPriceItem"
+            }
           }
         },
         "additionalProperties": false
@@ -241,23 +214,10 @@
         ],
         "properties": {
           "update_prices": {
-            "type": "object",
-            "required": [
-              "data",
-              "price_ratio"
-            ],
-            "properties": {
-              "data": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/RawPriceItem"
-                }
-              },
-              "price_ratio": {
-                "$ref": "#/definitions/Decimal"
-              }
-            },
-            "additionalProperties": false
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/RawPriceItem"
+            }
           }
         },
         "additionalProperties": false
@@ -306,23 +266,15 @@
         },
         "additionalProperties": false
       },
-      "Decimal": {
-        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-        "type": "string"
-      },
       "RawPriceItem": {
         "type": "object",
         "required": [
-          "collection_address",
-          "price",
+          "collection",
           "usd_price"
         ],
         "properties": {
-          "collection_address": {
+          "collection": {
             "type": "string"
-          },
-          "price": {
-            "$ref": "#/definitions/Uint128"
           },
           "usd_price": {
             "$ref": "#/definitions/Uint128"
@@ -407,8 +359,16 @@
         "properties": {
           "query_prices": {
             "type": "object",
+            "required": [
+              "amount"
+            ],
             "properties": {
-              "collection_addresses": {
+              "amount": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "collections": {
                 "type": [
                   "array",
                   "null"
@@ -417,14 +377,6 @@
                   "type": "string"
                 }
               },
-              "limit": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint32",
-                "minimum": 0.0
-              },
               "start_after": {
                 "type": [
                   "string",
@@ -432,19 +384,6 @@
                 ]
               }
             },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "query_price_ratio"
-        ],
-        "properties": {
-          "query_price_ratio": {
-            "type": "object",
             "additionalProperties": false
           }
         },
@@ -508,7 +447,6 @@
       "required": [
         "admin",
         "execution_cooldown",
-        "main_currency",
         "max_price_update_period",
         "stable_currency"
       ],
@@ -529,9 +467,6 @@
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
-        },
-        "main_currency": {
-          "$ref": "#/definitions/Currency_for_Token"
         },
         "max_price_update_period": {
           "type": "integer",
@@ -669,36 +604,6 @@
         }
       }
     },
-    "query_price_ratio": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PriceRatioItem",
-      "type": "object",
-      "required": [
-        "is_outdated",
-        "update_date",
-        "value"
-      ],
-      "properties": {
-        "is_outdated": {
-          "type": "boolean"
-        },
-        "update_date": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
-        },
-        "value": {
-          "$ref": "#/definitions/Decimal"
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
     "query_prices": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Array_of_PriceItem_for_Funds_for_Token",
@@ -750,7 +655,6 @@
           "required": [
             "address",
             "is_outdated",
-            "price",
             "update_date",
             "usd_price"
           ],
@@ -760,9 +664,6 @@
             },
             "is_outdated": {
               "type": "boolean"
-            },
-            "price": {
-              "$ref": "#/definitions/Funds_for_Token"
             },
             "update_date": {
               "type": "integer",

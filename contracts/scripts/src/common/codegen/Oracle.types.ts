@@ -16,7 +16,6 @@ export type TokenUnverified = {
 export interface InstantiateMsg {
   controller?: string[] | null;
   execution_cooldown?: number | null;
-  main_currency: CurrencyForTokenUnverified;
   max_price_update_period?: number | null;
   stable_currency: CurrencyForTokenUnverified;
   worker?: string | null;
@@ -32,43 +31,32 @@ export type ExecuteMsg = {
     admin?: string | null;
     controller?: string[] | null;
     execution_cooldown?: number | null;
-    main_currency?: CurrencyForTokenUnverified | null;
     max_price_update_period?: number | null;
     stable_currency?: CurrencyForTokenUnverified | null;
     worker?: string | null;
   };
 } | {
-  set_prices: {
-    data: RawPriceItem[];
-    price_ratio: Decimal;
-  };
+  set_prices: RawPriceItem[];
 } | {
-  update_prices: {
-    data: RawPriceItem[];
-    price_ratio: Decimal;
-  };
+  update_prices: RawPriceItem[];
 } | {
   remove_prices: {
     collections: string[];
   };
 };
 export type Uint128 = string;
-export type Decimal = string;
 export interface RawPriceItem {
-  collection_address: string;
-  price: Uint128;
+  collection: string;
   usd_price: Uint128;
 }
 export type QueryMsg = {
   query_config: {};
 } | {
   query_prices: {
-    collection_addresses?: string[] | null;
-    limit?: number | null;
+    amount: number;
+    collections?: string[] | null;
     start_after?: string | null;
   };
-} | {
-  query_price_ratio: {};
 } | {
   query_block_time: {};
 } | {
@@ -92,7 +80,6 @@ export interface Config {
   admin: Addr;
   controller?: Addr[] | null;
   execution_cooldown: number;
-  main_currency: CurrencyForToken;
   max_price_update_period: number;
   stable_currency: CurrencyForToken;
   worker?: Addr | null;
@@ -108,16 +95,10 @@ export interface Log {
   outdated_price_collections: Addr[];
   sender: Addr;
 }
-export interface PriceRatioItem {
-  is_outdated: boolean;
-  update_date: number;
-  value: Decimal;
-}
 export type ArrayOfPriceItemForFundsForToken = PriceItemForFundsForToken[];
 export interface PriceItemForFundsForToken {
   address: Addr;
   is_outdated: boolean;
-  price: FundsForToken;
   update_date: number;
   usd_price: FundsForToken;
 }

@@ -18,7 +18,6 @@ import {
   CurrencyForTokenUnverified,
   ExecuteMsg,
   Binary,
-  Route,
   BidType,
   Addr,
   ProposalStatus,
@@ -82,34 +81,34 @@ export interface LendingPlatformReadOnlyInterface {
   queryPlatformRevenue: () => Promise<ArrayOfFundsForToken>;
   queryBalances: () => Promise<Balances>;
   queryUnbonderList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryUnbondersResponseItem>;
   queryUnbonder: ({ address }: { address: string }) => Promise<Unbonder>;
   queryBorrowerList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryBorrowersResponseItem>;
   queryBorrower: ({ address }: { address: string }) => Promise<Borrower>;
   queryLiquidatorList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidatorsResponseItem>;
   queryLiquidator: ({ address }: { address: string }) => Promise<Liquidator>;
   queryCollateralList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryCollateralsResponseItem>;
   queryCollateral: ({
@@ -123,10 +122,10 @@ export interface LendingPlatformReadOnlyInterface {
     owner: string;
   }) => Promise<ArrayOfQueryCollateralsResponseItem>;
   queryLiquidationBidsByCollectionAddressList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
   queryLiquidationBidsByCollectionAddress: ({
@@ -135,10 +134,10 @@ export interface LendingPlatformReadOnlyInterface {
     address: string;
   }) => Promise<ArrayOfLiquidationBid>;
   queryLiquidationBidsByLiquidatorAddressList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem>;
   queryLiquidationBidsByLiquidatorAddress: ({
@@ -147,17 +146,17 @@ export interface LendingPlatformReadOnlyInterface {
     address: string;
   }) => Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem>;
   queryProposals: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: number;
   }) => Promise<ArrayOfQueryProposalsResponseItem>;
   queryCollectionList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfQueryCollectionsResponseItem>;
   queryCollection: ({
@@ -174,10 +173,10 @@ export interface LendingPlatformReadOnlyInterface {
     amountToWithdraw?: Uint128;
   }) => Promise<Decimal>;
   queryLtvList: ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }) => Promise<ArrayOfTupleOfAddrAndNullable_Decimal>;
   queryConditionalLtv: ({
@@ -279,15 +278,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryUnbonderList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryUnbondersResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_unbonder_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -304,15 +303,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryBorrowerList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryBorrowersResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_borrower_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -329,15 +328,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryLiquidatorList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryLiquidatorsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidator_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -354,15 +353,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryCollateralList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryCollateralsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -390,15 +389,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryLiquidationBidsByCollectionAddressList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidation_bids_by_collection_address_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -415,15 +414,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryLiquidationBidsByLiquidatorAddressList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryLiquidationBidsByLiquidatorAddressListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_liquidation_bids_by_liquidator_address_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -440,29 +439,29 @@ export class LendingPlatformQueryClient
     });
   };
   queryProposals = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: number;
   }): Promise<ArrayOfQueryProposalsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_proposals: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
   };
   queryCollectionList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfQueryCollectionsResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collection_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -498,15 +497,15 @@ export class LendingPlatformQueryClient
     });
   };
   queryLtvList = async ({
-    limit,
+    amount,
     startAfter,
   }: {
-    limit?: number;
+    amount: number;
     startAfter?: string;
   }): Promise<ArrayOfTupleOfAddrAndNullable_Decimal> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_ltv_list: {
-        limit,
+        amount,
         start_after: startAfter,
       },
     });
@@ -680,10 +679,8 @@ export interface LendingPlatformInterface
   ) => Promise<ExecuteResult>;
   liquidate: (
     {
-      route,
       targets,
     }: {
-      route: Route;
       targets: LiquidationItem[];
     },
     fee?: number | StdFee | "auto",
@@ -697,18 +694,18 @@ export interface LendingPlatformInterface
   ) => Promise<ExecuteResult>;
   updateAddressConfig: (
     {
-      adapterMarketplace,
-      adapterScheduler,
       admin,
+      marketMaker,
       minter,
       oracle,
+      scheduler,
       worker,
     }: {
-      adapterMarketplace?: string;
-      adapterScheduler?: string;
       admin?: string;
+      marketMaker?: string;
       minter?: string;
       oracle?: string;
+      scheduler?: string;
       worker?: string;
     },
     fee?: number | StdFee | "auto",
@@ -740,14 +737,12 @@ export interface LendingPlatformInterface
       bglCurrency,
       borrowersReserveFractionRatio,
       collateralMinValue,
-      isMarketplaceInterfaceEnabled,
       mainCurrency,
       unbondingPeriod,
     }: {
       bglCurrency?: CurrencyForTokenUnverified;
       borrowersReserveFractionRatio?: Decimal;
       collateralMinValue?: Uint128;
-      isMarketplaceInterfaceEnabled?: boolean;
       mainCurrency?: CurrencyForTokenUnverified;
       unbondingPeriod?: number;
     },
@@ -775,12 +770,12 @@ export interface LendingPlatformInterface
     memo?: string,
     _funds?: Coin[]
   ) => Promise<ExecuteResult>;
-  lock: (
+  pause: (
     fee?: number | StdFee | "auto",
     memo?: string,
     _funds?: Coin[]
   ) => Promise<ExecuteResult>;
-  unlock: (
+  unpause: (
     fee?: number | StdFee | "auto",
     memo?: string,
     _funds?: Coin[]
@@ -871,8 +866,8 @@ export class LendingPlatformClient
     this.depositReserveLiquidity = this.depositReserveLiquidity.bind(this);
     this.withdrawReserveLiquidity = this.withdrawReserveLiquidity.bind(this);
     this.reinforceBglToken = this.reinforceBglToken.bind(this);
-    this.lock = this.lock.bind(this);
-    this.unlock = this.unlock.bind(this);
+    this.pause = this.pause.bind(this);
+    this.unpause = this.unpause.bind(this);
     this.distributeFunds = this.distributeFunds.bind(this);
     this.removeCollection = this.removeCollection.bind(this);
     this.createProposal = this.createProposal.bind(this);
@@ -1127,10 +1122,8 @@ export class LendingPlatformClient
   };
   liquidate = async (
     {
-      route,
       targets,
     }: {
-      route: Route;
       targets: LiquidationItem[];
     },
     fee: number | StdFee | "auto" = "auto",
@@ -1142,7 +1135,6 @@ export class LendingPlatformClient
       this.contractAddress,
       {
         liquidate: {
-          route,
           targets,
         },
       },
@@ -1169,18 +1161,18 @@ export class LendingPlatformClient
   };
   updateAddressConfig = async (
     {
-      adapterMarketplace,
-      adapterScheduler,
       admin,
+      marketMaker,
       minter,
       oracle,
+      scheduler,
       worker,
     }: {
-      adapterMarketplace?: string;
-      adapterScheduler?: string;
       admin?: string;
+      marketMaker?: string;
       minter?: string;
       oracle?: string;
+      scheduler?: string;
       worker?: string;
     },
     fee: number | StdFee | "auto" = "auto",
@@ -1192,11 +1184,11 @@ export class LendingPlatformClient
       this.contractAddress,
       {
         update_address_config: {
-          adapter_marketplace: adapterMarketplace,
-          adapter_scheduler: adapterScheduler,
           admin,
+          market_maker: marketMaker,
           minter,
           oracle,
+          scheduler,
           worker,
         },
       },
@@ -1248,14 +1240,12 @@ export class LendingPlatformClient
       bglCurrency,
       borrowersReserveFractionRatio,
       collateralMinValue,
-      isMarketplaceInterfaceEnabled,
       mainCurrency,
       unbondingPeriod,
     }: {
       bglCurrency?: CurrencyForTokenUnverified;
       borrowersReserveFractionRatio?: Decimal;
       collateralMinValue?: Uint128;
-      isMarketplaceInterfaceEnabled?: boolean;
       mainCurrency?: CurrencyForTokenUnverified;
       unbondingPeriod?: number;
     },
@@ -1271,7 +1261,6 @@ export class LendingPlatformClient
           bgl_currency: bglCurrency,
           borrowers_reserve_fraction_ratio: borrowersReserveFractionRatio,
           collateral_min_value: collateralMinValue,
-          is_marketplace_interface_enabled: isMarketplaceInterfaceEnabled,
           main_currency: mainCurrency,
           unbonding_period: unbondingPeriod,
         },
@@ -1336,7 +1325,7 @@ export class LendingPlatformClient
       _funds
     );
   };
-  lock = async (
+  pause = async (
     fee: number | StdFee | "auto" = "auto",
     memo?: string,
     _funds?: Coin[]
@@ -1345,14 +1334,14 @@ export class LendingPlatformClient
       this.sender,
       this.contractAddress,
       {
-        lock: {},
+        pause: {},
       },
       fee,
       memo,
       _funds
     );
   };
-  unlock = async (
+  unpause = async (
     fee: number | StdFee | "auto" = "auto",
     memo?: string,
     _funds?: Coin[]
@@ -1361,7 +1350,7 @@ export class LendingPlatformClient
       this.sender,
       this.contractAddress,
       {
-        unlock: {},
+        unpause: {},
       },
       fee,
       memo,

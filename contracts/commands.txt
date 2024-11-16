@@ -1,21 +1,16 @@
 
 ./build.sh
 
-./codegen.sh adapter-dex-stargaze && \
-  ./codegen.sh adapter-marketplace-stargaze && \
-  ./codegen.sh adapter-scheduler-common && \
+./codegen.sh scheduler && \
   ./codegen.sh lending-platform && \
   ./codegen.sh minter && \
   ./codegen.sh oracle && \
-  ./codegen.sh market-maker-hub && \
-  ./codegen.sh market-maker-outpost
+  ./codegen.sh market-maker
 
 yarn run json
-yarn run store "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
-yarn run store "elgafar-1|lending_platform_stable,minter,oracle,market_maker_hub"
-yarn run inst "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
-yarn run store "elgafar-1|market_maker_outpost"
-yarn run config "elgafar-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run store "elgafar-1|minter,oracle,scheduler,lending_platform"
+yarn run inst "elgafar-1|minter,oracle,scheduler,lending_platform"
+yarn run config "elgafar-1|minter,oracle,scheduler,lending_platform"
 yarn run prepare-contracts "elgafar-1|"
 yarn run call "elgafar-1|"
 

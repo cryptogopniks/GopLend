@@ -6,17 +6,13 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { ClockSource, InstantiateMsg, ExecuteMsg, Decimal, BidType, Uint128, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfTupleOfUint64AndUint32 } from "./AdapterSchedulerStargaze.types";
-export interface AdapterSchedulerStargazeReadOnlyInterface {
+import { InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./Scheduler.types";
+export interface SchedulerReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
-  queryLog: ({
-    amount
-  }: {
-    amount: number;
-  }) => Promise<ArrayOfTupleOfUint64AndUint32>;
+  queryLog: () => Promise<ArrayOfLog>;
 }
-export class AdapterSchedulerStargazeQueryClient implements AdapterSchedulerStargazeReadOnlyInterface {
+export class SchedulerQueryClient implements SchedulerReadOnlyInterface {
   client: CosmWasmClient;
   contractAddress: string;
   constructor(client: CosmWasmClient, contractAddress: string) {
@@ -30,31 +26,28 @@ export class AdapterSchedulerStargazeQueryClient implements AdapterSchedulerStar
       query_config: {}
     });
   };
-  queryLog = async ({
-    amount
-  }: {
-    amount: number;
-  }): Promise<ArrayOfTupleOfUint64AndUint32> => {
+  queryLog = async (): Promise<ArrayOfLog> => {
     return this.client.queryContractSmart(this.contractAddress, {
-      query_log: {
-        amount
-      }
+      query_log: {}
     });
   };
 }
-export interface AdapterSchedulerStargazeInterface extends AdapterSchedulerStargazeReadOnlyInterface {
+export interface SchedulerInterface extends SchedulerReadOnlyInterface {
   contractAddress: string;
   sender: string;
+  acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
-    clockSource,
+    admin,
+    executionCooldown,
     lendingPlatform,
-    minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
-    clockSource?: ClockSource;
+    admin?: string;
+    executionCooldown?: number;
     lendingPlatform?: string;
-    minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   push: ({
     targets
@@ -62,7 +55,7 @@ export interface AdapterSchedulerStargazeInterface extends AdapterSchedulerStarg
     targets: LiquidationItem[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
-export class AdapterSchedulerStargazeClient extends AdapterSchedulerStargazeQueryClient implements AdapterSchedulerStargazeInterface {
+export class SchedulerClient extends SchedulerQueryClient implements SchedulerInterface {
   client: SigningCosmWasmClient;
   sender: string;
   contractAddress: string;
@@ -71,26 +64,35 @@ export class AdapterSchedulerStargazeClient extends AdapterSchedulerStargazeQuer
     this.client = client;
     this.sender = sender;
     this.contractAddress = contractAddress;
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.push = this.push.bind(this);
   }
+  acceptAdminRole = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      accept_admin_role: {}
+    }, fee, memo, _funds);
+  };
   updateConfig = async ({
-    clockSource,
+    admin,
+    executionCooldown,
     lendingPlatform,
-    minClockPeriod,
-    offchainClock
+    offchainClock,
+    worker
   }: {
-    clockSource?: ClockSource;
+    admin?: string;
+    executionCooldown?: number;
     lendingPlatform?: string;
-    minClockPeriod?: number;
     offchainClock?: string[];
+    worker?: string;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       update_config: {
-        clock_source: clockSource,
+        admin,
+        execution_cooldown: executionCooldown,
         lending_platform: lendingPlatform,
-        min_clock_period: minClockPeriod,
-        offchain_clock: offchainClock
+        offchain_clock: offchainClock,
+        worker
       }
     }, fee, memo, _funds);
   };

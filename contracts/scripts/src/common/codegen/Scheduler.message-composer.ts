@@ -8,44 +8,65 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg, Addr, CollateralResponse, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, Uint128, ArrayOfOffersResponse, OffersResponse } from "./MarketMakerOutpost.types";
-export interface MarketMakerOutpostMsg {
+import { InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, LiquidationItem, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, Config, ArrayOfLog, Log } from "./Scheduler.types";
+export interface SchedulerMsg {
   contractAddress: string;
   sender: string;
-  setOffer: ({
-    collectionAddress
+  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateConfig: ({
+    admin,
+    executionCooldown,
+    lendingPlatform,
+    offchainClock,
+    worker
   }: {
-    collectionAddress: string;
+    admin?: string;
+    executionCooldown?: number;
+    lendingPlatform?: string;
+    offchainClock?: string[];
+    worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  removeOffer: ({
-    collectionAddress,
-    recipient
+  push: ({
+    targets
   }: {
-    collectionAddress: string;
-    recipient?: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  withdrawCollateral: ({
-    collectionAddress,
-    recipient
-  }: {
-    collectionAddress: string;
-    recipient?: string;
+    targets: LiquidationItem[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
-export class MarketMakerOutpostMsgComposer implements MarketMakerOutpostMsg {
+export class SchedulerMsgComposer implements SchedulerMsg {
   sender: string;
   contractAddress: string;
   constructor(sender: string, contractAddress: string) {
     this.sender = sender;
     this.contractAddress = contractAddress;
-    this.setOffer = this.setOffer.bind(this);
-    this.removeOffer = this.removeOffer.bind(this);
-    this.withdrawCollateral = this.withdrawCollateral.bind(this);
+    this.acceptAdminRole = this.acceptAdminRole.bind(this);
+    this.updateConfig = this.updateConfig.bind(this);
+    this.push = this.push.bind(this);
   }
-  setOffer = ({
-    collectionAddress
+  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_admin_role: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateConfig = ({
+    admin,
+    executionCooldown,
+    lendingPlatform,
+    offchainClock,
+    worker
   }: {
-    collectionAddress: string;
+    admin?: string;
+    executionCooldown?: number;
+    lendingPlatform?: string;
+    offchainClock?: string[];
+    worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -53,20 +74,22 @@ export class MarketMakerOutpostMsgComposer implements MarketMakerOutpostMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          set_offer: {
-            collection_address: collectionAddress
+          update_config: {
+            admin,
+            execution_cooldown: executionCooldown,
+            lending_platform: lendingPlatform,
+            offchain_clock: offchainClock,
+            worker
           }
         })),
         funds: _funds
       })
     };
   };
-  removeOffer = ({
-    collectionAddress,
-    recipient
+  push = ({
+    targets
   }: {
-    collectionAddress: string;
-    recipient?: string;
+    targets: LiquidationItem[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -74,31 +97,8 @@ export class MarketMakerOutpostMsgComposer implements MarketMakerOutpostMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          remove_offer: {
-            collection_address: collectionAddress,
-            recipient
-          }
-        })),
-        funds: _funds
-      })
-    };
-  };
-  withdrawCollateral = ({
-    collectionAddress,
-    recipient
-  }: {
-    collectionAddress: string;
-    recipient?: string;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
-    return {
-      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-      value: MsgExecuteContract.fromPartial({
-        sender: this.sender,
-        contract: this.contractAddress,
-        msg: toUtf8(JSON.stringify({
-          withdraw_collateral: {
-            collection_address: collectionAddress,
-            recipient
+          push: {
+            targets
           }
         })),
         funds: _funds

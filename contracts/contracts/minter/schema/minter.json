@@ -1,6 +1,6 @@
 {
   "contract_name": "minter",
-  "contract_version": "1.3.1",
+  "contract_version": "1.4.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -548,6 +548,45 @@
       {
         "type": "object",
         "required": [
+          "update_faucet_config"
+        ],
+        "properties": {
+          "update_faucet_config": {
+            "type": "object",
+            "required": [
+              "denom_or_address"
+            ],
+            "properties": {
+              "claim_cooldown": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "claimable_amount": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Uint128"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "denom_or_address": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "mint"
         ],
         "properties": {
@@ -579,11 +618,70 @@
       {
         "type": "object",
         "required": [
+          "mint_multiple"
+        ],
+        "properties": {
+          "mint_multiple": {
+            "type": "object",
+            "required": [
+              "account_and_amount_list",
+              "denom_or_address"
+            ],
+            "properties": {
+              "account_and_amount_list": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "denom_or_address": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "burn"
         ],
         "properties": {
           "burn": {
             "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "claim"
+        ],
+        "properties": {
+          "claim": {
+            "type": "object",
+            "required": [
+              "denom_or_address"
+            ],
+            "properties": {
+              "denom_or_address": {
+                "type": "string"
+              }
+            },
             "additionalProperties": false
           }
         },
@@ -822,6 +920,27 @@
       {
         "type": "object",
         "required": [
+          "faucet_config"
+        ],
+        "properties": {
+          "faucet_config": {
+            "type": "object",
+            "required": [
+              "denom_or_address"
+            ],
+            "properties": {
+              "denom_or_address": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
           "currency_info"
         ],
         "properties": {
@@ -857,7 +976,7 @@
                 "format": "uint32",
                 "minimum": 0.0
               },
-              "start_from": {
+              "start_after": {
                 "type": [
                   "string",
                   "null"
@@ -890,7 +1009,7 @@
               "owner": {
                 "type": "string"
               },
-              "start_from": {
+              "start_after": {
                 "type": [
                   "string",
                   "null"
@@ -919,11 +1038,58 @@
                 "format": "uint32",
                 "minimum": 0.0
               },
-              "start_from": {
+              "start_after": {
                 "type": [
                   "string",
                   "null"
                 ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "last_claim_date"
+        ],
+        "properties": {
+          "last_claim_date": {
+            "type": "object",
+            "required": [
+              "denom_or_address",
+              "user"
+            ],
+            "properties": {
+              "denom_or_address": {
+                "type": "string"
+              },
+              "user": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "returns list of (amount, denom_or_address) for tokens registered in minter",
+        "type": "object",
+        "required": [
+          "balances"
+        ],
+        "properties": {
+          "balances": {
+            "type": "object",
+            "required": [
+              "account"
+            ],
+            "properties": {
+              "account": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -949,6 +1115,30 @@
   },
   "sudo": null,
   "responses": {
+    "balances": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Array_of_Tuple_of_Uint128_and_String",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/Uint128"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      },
+      "definitions": {
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
     "config": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Config",
@@ -1029,7 +1219,7 @@
           "minimum": 0.0
         },
         "owner": {
-          "description": "can update the token CurrencyInfo",
+          "description": "can update the token CurrencyInfo and FaucetConfig",
           "allOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -1154,7 +1344,7 @@
               "minimum": 0.0
             },
             "owner": {
-              "description": "can update the token CurrencyInfo",
+              "description": "can update the token CurrencyInfo and FaucetConfig",
               "allOf": [
                 {
                   "$ref": "#/definitions/Addr"
@@ -1275,7 +1465,7 @@
               "minimum": 0.0
             },
             "owner": {
-              "description": "can update the token CurrencyInfo",
+              "description": "can update the token CurrencyInfo and FaucetConfig",
               "allOf": [
                 {
                   "$ref": "#/definitions/Addr"
@@ -1361,6 +1551,45 @@
           ]
         }
       }
+    },
+    "faucet_config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FaucetConfig",
+      "type": "object",
+      "required": [
+        "claim_cooldown",
+        "claimable_amount"
+      ],
+      "properties": {
+        "claim_cooldown": {
+          "description": "in seconds",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "claimable_amount": {
+          "description": "if zero then faucet is disabled",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "last_claim_date": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "uint64",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     },
     "token_count_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",

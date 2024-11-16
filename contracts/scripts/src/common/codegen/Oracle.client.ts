@@ -6,20 +6,19 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, Decimal, RawPriceItem, QueryMsg, MigrateMsg, Uint64, Addr, Token, Config, CurrencyForToken, ArrayOfLog, Log, PriceRatioItem, ArrayOfPriceItemForFundsForToken, PriceItemForFundsForToken, FundsForToken } from "./Oracle.types";
+import { TokenUnverified, InstantiateMsg, CurrencyForTokenUnverified, ExecuteMsg, Uint128, RawPriceItem, QueryMsg, MigrateMsg, Uint64, Addr, Token, Config, CurrencyForToken, ArrayOfLog, Log, ArrayOfPriceItemForFundsForToken, PriceItemForFundsForToken, FundsForToken } from "./Oracle.types";
 export interface OracleReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
   queryPrices: ({
-    collectionAddresses,
-    limit,
+    amount,
+    collections,
     startAfter
   }: {
-    collectionAddresses?: string[];
-    limit?: number;
+    amount: number;
+    collections?: string[];
     startAfter?: string;
   }) => Promise<ArrayOfPriceItemForFundsForToken>;
-  queryPriceRatio: () => Promise<PriceRatioItem>;
   queryBlockTime: () => Promise<Uint64>;
   queryLog: () => Promise<ArrayOfLog>;
 }
@@ -31,7 +30,6 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
     this.queryPrices = this.queryPrices.bind(this);
-    this.queryPriceRatio = this.queryPriceRatio.bind(this);
     this.queryBlockTime = this.queryBlockTime.bind(this);
     this.queryLog = this.queryLog.bind(this);
   }
@@ -41,25 +39,20 @@ export class OracleQueryClient implements OracleReadOnlyInterface {
     });
   };
   queryPrices = async ({
-    collectionAddresses,
-    limit,
+    amount,
+    collections,
     startAfter
   }: {
-    collectionAddresses?: string[];
-    limit?: number;
+    amount: number;
+    collections?: string[];
     startAfter?: string;
   }): Promise<ArrayOfPriceItemForFundsForToken> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_prices: {
-        collection_addresses: collectionAddresses,
-        limit,
+        amount,
+        collections,
         start_after: startAfter
       }
-    });
-  };
-  queryPriceRatio = async (): Promise<PriceRatioItem> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      query_price_ratio: {}
     });
   };
   queryBlockTime = async (): Promise<Uint64> => {
@@ -81,7 +74,6 @@ export interface OracleInterface extends OracleReadOnlyInterface {
     admin,
     controller,
     executionCooldown,
-    mainCurrency,
     maxPriceUpdatePeriod,
     stableCurrency,
     worker
@@ -89,25 +81,12 @@ export interface OracleInterface extends OracleReadOnlyInterface {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
-    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
     stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  setPrices: ({
-    data,
-    priceRatio
-  }: {
-    data: RawPriceItem[];
-    priceRatio: Decimal;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updatePrices: ({
-    data,
-    priceRatio
-  }: {
-    data: RawPriceItem[];
-    priceRatio: Decimal;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  setPrices: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updatePrices: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   removePrices: ({
     collections
   }: {
@@ -138,7 +117,6 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
     admin,
     controller,
     executionCooldown,
-    mainCurrency,
     maxPriceUpdatePeriod,
     stableCurrency,
     worker
@@ -146,7 +124,6 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
     admin?: string;
     controller?: string[];
     executionCooldown?: number;
-    mainCurrency?: CurrencyForTokenUnverified;
     maxPriceUpdatePeriod?: number;
     stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
@@ -156,39 +133,20 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
         admin,
         controller,
         execution_cooldown: executionCooldown,
-        main_currency: mainCurrency,
         max_price_update_period: maxPriceUpdatePeriod,
         stable_currency: stableCurrency,
         worker
       }
     }, fee, memo, _funds);
   };
-  setPrices = async ({
-    data,
-    priceRatio
-  }: {
-    data: RawPriceItem[];
-    priceRatio: Decimal;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  setPrices = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      set_prices: {
-        data,
-        price_ratio: priceRatio
-      }
+      set_prices: {}
     }, fee, memo, _funds);
   };
-  updatePrices = async ({
-    data,
-    priceRatio
-  }: {
-    data: RawPriceItem[];
-    priceRatio: Decimal;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  updatePrices = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      update_prices: {
-        data,
-        price_ratio: priceRatio
-      }
+      update_prices: {}
     }, fee, memo, _funds);
   };
   removePrices = async ({

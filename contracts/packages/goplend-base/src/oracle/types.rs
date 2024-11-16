@@ -9,6 +9,13 @@ pub struct RawPriceItem {
     pub usd_price: Uint128,
 }
 
+// TODO: store neutron address postfix as string
+// For example
+// stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu -> neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2
+// neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2 -> f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2
+// prices can be expressed in USD with decimals 2 and stored in u32
+// For example
+// 100_000_510_000 uusdc -> 100_000.51 $ -> 10000051
 // NFT price
 #[cw_serde]
 pub struct PriceItem<T> {

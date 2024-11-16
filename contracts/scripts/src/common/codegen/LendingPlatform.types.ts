@@ -16,8 +16,6 @@ export type TokenUnverified = {
 export type Decimal = string;
 export type Uint128 = string;
 export interface InstantiateMsg {
-  adapter_marketplace?: string | null;
-  adapter_scheduler?: string | null;
   bgl_currency?: CurrencyForTokenUnverified | null;
   bid_min_rate?: Decimal | null;
   borrow_apr?: Decimal | null;
@@ -26,11 +24,12 @@ export interface InstantiateMsg {
   collateral_min_value?: Uint128 | null;
   discount_max_rate?: Decimal | null;
   discount_min_rate?: Decimal | null;
-  is_marketplace_interface_enabled?: boolean | null;
   liquidation_fee_rate?: Decimal | null;
   main_currency: CurrencyForTokenUnverified;
+  market_maker?: string | null;
   minter?: string | null;
   oracle?: string | null;
+  scheduler?: string | null;
   unbonding_period?: number | null;
   worker?: string | null;
 }
@@ -79,18 +78,17 @@ export type ExecuteMsg = {
   };
 } | {
   liquidate: {
-    route: Route;
     targets: LiquidationItem[];
   };
 } | {
   accept_admin_role: {};
 } | {
   update_address_config: {
-    adapter_marketplace?: string | null;
-    adapter_scheduler?: string | null;
     admin?: string | null;
+    market_maker?: string | null;
     minter?: string | null;
     oracle?: string | null;
+    scheduler?: string | null;
     worker?: string | null;
   };
 } | {
@@ -107,7 +105,6 @@ export type ExecuteMsg = {
     bgl_currency?: CurrencyForTokenUnverified | null;
     borrowers_reserve_fraction_ratio?: Decimal | null;
     collateral_min_value?: Uint128 | null;
-    is_marketplace_interface_enabled?: boolean | null;
     main_currency?: CurrencyForTokenUnverified | null;
     unbonding_period?: number | null;
   };
@@ -120,9 +117,9 @@ export type ExecuteMsg = {
 } | {
   reinforce_bgl_token: {};
 } | {
-  lock: {};
+  pause: {};
 } | {
-  unlock: {};
+  unpause: {};
 } | {
   distribute_funds: {
     address_and_weight_list: [string, Decimal][];
@@ -145,8 +142,7 @@ export type ExecuteMsg = {
   };
 };
 export type Binary = string;
-export type Route = "empty" | "neutron" | "osmosis";
-export type BidType = "liquidation_bid" | "collection_offer" | "token_offer";
+export type BidType = "liquidation_bid" | "collection_offer";
 export type Addr = string;
 export type ProposalStatus = "active" | "accepted" | "rejected";
 export type ProposalTypeForString = {
@@ -183,7 +179,6 @@ export interface BiddedCollateralItem {
   collection: Addr;
   liquidation_price: Uint128;
   liquidator: Addr;
-  order_id: string;
   owner: Addr;
   token_item: TokenItem;
 }
@@ -216,7 +211,7 @@ export type QueryMsg = {
   query_balances: {};
 } | {
   query_unbonder_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -225,7 +220,7 @@ export type QueryMsg = {
   };
 } | {
   query_borrower_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -234,7 +229,7 @@ export type QueryMsg = {
   };
 } | {
   query_liquidator_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -243,7 +238,7 @@ export type QueryMsg = {
   };
 } | {
   query_collateral_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -256,7 +251,7 @@ export type QueryMsg = {
   };
 } | {
   query_liquidation_bids_by_collection_address_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -265,7 +260,7 @@ export type QueryMsg = {
   };
 } | {
   query_liquidation_bids_by_liquidator_address_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -274,12 +269,12 @@ export type QueryMsg = {
   };
 } | {
   query_proposals: {
-    limit?: number | null;
+    amount: number;
     start_after?: number | null;
   };
 } | {
   query_collection_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -295,7 +290,7 @@ export type QueryMsg = {
   };
 } | {
   query_ltv_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
@@ -324,11 +319,11 @@ export interface MigrateMsg {
   version: string;
 }
 export interface AddressConfig {
-  adapter_marketplace?: Addr | null;
-  adapter_scheduler?: Addr | null;
   admin: Addr;
+  market_maker?: Addr | null;
   minter?: Addr | null;
   oracle?: Addr | null;
+  scheduler?: Addr | null;
   worker?: Addr | null;
 }
 export interface QueryAmountsResponse {
@@ -403,7 +398,6 @@ export interface CommonConfig {
   bgl_currency?: CurrencyForToken | null;
   borrowers_reserve_fraction_ratio: Decimal;
   collateral_min_value: Uint128;
-  is_marketplace_interface_enabled: boolean;
   main_currency: CurrencyForToken;
   unbonding_period: number;
 }
@@ -418,7 +412,6 @@ export interface LiquidationBid {
   creation_date: number;
   discount: Decimal;
   liquidator: Addr;
-  order_id?: string | null;
   token_id_list: string[];
 }
 export type ArrayOfQueryLiquidationBidsByCollectionAddressListResponseItem = QueryLiquidationBidsByCollectionAddressListResponseItem[];

@@ -15,9 +15,8 @@ export type TokenUnverified = {
 };
 export interface InstantiateMsg {
   controller?: string[] | null;
-  marketplace?: string | null;
-  max_outpost_amount?: number | null;
-  outpost_code_id?: number | null;
+  lending_platform?: string | null;
+  oracle?: string | null;
   token: TokenUnverified;
   worker?: string | null;
 }
@@ -27,93 +26,123 @@ export type ExecuteMsg = {
   update_config: {
     admin?: string | null;
     controller?: string[] | null;
-    marketplace?: string | null;
-    max_outpost_amount?: number | null;
-    outpost_code_id?: number | null;
+    lending_platform?: string | null;
+    oracle?: string | null;
     token?: TokenUnverified | null;
     worker?: string | null;
   };
 } | {
-  add_outpost: {};
+  remove_offers: {
+    collection: string;
+    recipient?: string | null;
+  };
 } | {
-  lock: {};
+  pause: {};
 } | {
-  unlock: {};
+  unpause: {};
 } | {
   set_collection: {
-    collection_address: string;
-    owner_list: string[];
+    collection: string;
+    owner: string;
   };
 } | {
   remove_collections: {
-    collection_address_list: string[];
+    collection_list: string[];
   };
 } | {
   deposit_liquidity: {
-    collection_address: string;
+    collection: string;
   };
 } | {
-  withdraw_liquidity: {
-    amount: Uint128;
-    collection_address: string;
+  withdraw_undistributed_liquidity: {
+    collection: string;
   };
 } | {
   withdraw_collateral: {
-    collection_address: string;
+    collection: string;
   };
 } | {
   update_offers: {
-    collection_address: string;
-    from_to_price_and_outpost_list: [Uint128, Uint128, string][];
+    collection: string;
+    from_to_price_list: [Uint128, Uint128][];
+  };
+} | {
+  accept_offers: {
+    bidded_collateral_item_list: BiddedCollateralItem[];
   };
 };
 export type Uint128 = string;
+export type Decimal = string;
+export type BidType = "liquidation_bid" | "collection_offer";
+export type Addr = string;
+export interface BiddedCollateralItem {
+  bid_amount: Uint128;
+  bid_creation_date: number;
+  bid_discount: Decimal;
+  bid_type: BidType;
+  collateral_price: Uint128;
+  collection: Addr;
+  liquidation_price: Uint128;
+  liquidator: Addr;
+  owner: Addr;
+  token_item: TokenItem;
+}
+export interface TokenItem {
+  creation_date: number;
+  id: string;
+}
 export type QueryMsg = {
   query_config: {};
 } | {
-  query_outposts: {};
-} | {
-  query_collection_owners_list: {
-    limit?: number | null;
+  query_offer_prices_list: {
+    amount: number;
     start_after?: string | null;
   };
 } | {
-  query_collection_owners: {
-    collection_address: string;
+  query_offer_prices: {
+    collection: string;
+  };
+} | {
+  query_collection_owner_list: {
+    amount: number;
+    start_after?: string | null;
+  };
+} | {
+  query_collection_owner: {
+    collection: string;
   };
 } | {
   query_liquidity_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
   query_liquidity: {
-    collection_address: string;
+    collection: string;
   };
 } | {
   query_collateral_list: {
-    limit?: number | null;
+    amount: number;
     start_after?: string | null;
   };
 } | {
   query_collateral: {
-    collection_address: string;
+    collection_owner: string;
   };
 };
 export interface MigrateMsg {
   version: string;
 }
-export type Addr = string;
 export interface CollectionInfoForAddr {
   collection_address: Addr;
   token_id_list: string[];
 }
 export type ArrayOfCollectionInfoForAddr = CollectionInfoForAddr[];
-export interface CollectionOwnersForAddr {
+export interface CollectionOwnerForAddr {
   collection_address: Addr;
-  owner_list: Addr[];
+  owner: Addr;
 }
-export type ArrayOfCollectionOwnersForAddr = CollectionOwnersForAddr[];
+export type ArrayOfCollectionOwnerForAddr = CollectionOwnerForAddr[];
 export type Token = {
   native: {
     denom: string;
@@ -123,19 +152,22 @@ export type Token = {
     address: Addr;
   };
 };
-export interface HubConfig {
+export interface Config {
   admin: Addr;
   controller?: Addr[] | null;
-  marketplace?: Addr | null;
-  max_outpost_amount: number;
-  outpost_code_id?: number | null;
+  lending_platform?: Addr | null;
+  oracle?: Addr | null;
   token: Token;
   worker?: Addr | null;
 }
 export interface LiquidityInfo {
   amount_undistributed: Uint128;
   collection_address: Addr;
-  price_and_outpost_list: [Uint128, Addr][];
+  price_list: Uint128[];
 }
 export type ArrayOfLiquidityInfo = LiquidityInfo[];
-export type ArrayOfAddr = Addr[];
+export interface OffersResponse {
+  collection_address: Addr;
+  price_list: Uint128[];
+}
+export type ArrayOfOffersResponse = OffersResponse[];

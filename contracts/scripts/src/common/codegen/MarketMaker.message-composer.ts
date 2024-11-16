@@ -8,69 +8,76 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, QueryMsg, MigrateMsg, Addr, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnersForAddr, ArrayOfCollectionOwnersForAddr, Token, HubConfig, LiquidityInfo, ArrayOfLiquidityInfo, ArrayOfAddr } from "./MarketMakerHub.types";
-export interface MarketMakerHubMsg {
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
+export interface MarketMakerMsg {
   contractAddress: string;
   sender: string;
   acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
     admin,
     controller,
-    marketplace,
-    maxOutpostAmount,
-    outpostCodeId,
+    lendingPlatform,
+    oracle,
     token,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    marketplace?: string;
-    maxOutpostAmount?: number;
-    outpostCodeId?: number;
+    lendingPlatform?: string;
+    oracle?: string;
     token?: TokenUnverified;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  addOutpost: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  lock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  unlock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  setCollection: ({
-    collectionAddress,
-    ownerList
+  removeOffers: ({
+    collection,
+    recipient
   }: {
-    collectionAddress: string;
-    ownerList: string[];
+    collection: string;
+    recipient?: string;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  pause: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  unpause: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  setCollection: ({
+    collection,
+    owner
+  }: {
+    collection: string;
+    owner: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   removeCollections: ({
-    collectionAddressList
+    collectionList
   }: {
-    collectionAddressList: string[];
+    collectionList: string[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   depositLiquidity: ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  withdrawLiquidity: ({
-    amount,
-    collectionAddress
+  withdrawUndistributedLiquidity: ({
+    collection
   }: {
-    amount: Uint128;
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   withdrawCollateral: ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateOffers: ({
-    collectionAddress,
-    fromToPriceAndOutpostList
+    collection,
+    fromToPriceList
   }: {
-    collectionAddress: string;
-    fromToPriceAndOutpostList: Uint128[][];
+    collection: string;
+    fromToPriceList: Uint128[][];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  acceptOffers: ({
+    biddedCollateralItemList
+  }: {
+    biddedCollateralItemList: BiddedCollateralItem[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
-export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
+export class MarketMakerMsgComposer implements MarketMakerMsg {
   sender: string;
   contractAddress: string;
   constructor(sender: string, contractAddress: string) {
@@ -78,15 +85,16 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
     this.contractAddress = contractAddress;
     this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
-    this.addOutpost = this.addOutpost.bind(this);
-    this.lock = this.lock.bind(this);
-    this.unlock = this.unlock.bind(this);
+    this.removeOffers = this.removeOffers.bind(this);
+    this.pause = this.pause.bind(this);
+    this.unpause = this.unpause.bind(this);
     this.setCollection = this.setCollection.bind(this);
     this.removeCollections = this.removeCollections.bind(this);
     this.depositLiquidity = this.depositLiquidity.bind(this);
-    this.withdrawLiquidity = this.withdrawLiquidity.bind(this);
+    this.withdrawUndistributedLiquidity = this.withdrawUndistributedLiquidity.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
     this.updateOffers = this.updateOffers.bind(this);
+    this.acceptOffers = this.acceptOffers.bind(this);
   }
   acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -104,17 +112,15 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
   updateConfig = ({
     admin,
     controller,
-    marketplace,
-    maxOutpostAmount,
-    outpostCodeId,
+    lendingPlatform,
+    oracle,
     token,
     worker
   }: {
     admin?: string;
     controller?: string[];
-    marketplace?: string;
-    maxOutpostAmount?: number;
-    outpostCodeId?: number;
+    lendingPlatform?: string;
+    oracle?: string;
     token?: TokenUnverified;
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -127,9 +133,8 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
           update_config: {
             admin,
             controller,
-            marketplace,
-            max_outpost_amount: maxOutpostAmount,
-            outpost_code_id: outpostCodeId,
+            lending_platform: lendingPlatform,
+            oracle,
             token,
             worker
           }
@@ -138,51 +143,60 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
       })
     };
   };
-  addOutpost = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  removeOffers = ({
+    collection,
+    recipient
+  }: {
+    collection: string;
+    recipient?: string;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          add_outpost: {}
+          remove_offers: {
+            collection,
+            recipient
+          }
         })),
         funds: _funds
       })
     };
   };
-  lock = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  pause = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          lock: {}
+          pause: {}
         })),
         funds: _funds
       })
     };
   };
-  unlock = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  unpause = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          unlock: {}
+          unpause: {}
         })),
         funds: _funds
       })
     };
   };
   setCollection = ({
-    collectionAddress,
-    ownerList
+    collection,
+    owner
   }: {
-    collectionAddress: string;
-    ownerList: string[];
+    collection: string;
+    owner: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -191,8 +205,8 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           set_collection: {
-            collection_address: collectionAddress,
-            owner_list: ownerList
+            collection,
+            owner
           }
         })),
         funds: _funds
@@ -200,9 +214,9 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
     };
   };
   removeCollections = ({
-    collectionAddressList
+    collectionList
   }: {
-    collectionAddressList: string[];
+    collectionList: string[];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -211,7 +225,7 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           remove_collections: {
-            collection_address_list: collectionAddressList
+            collection_list: collectionList
           }
         })),
         funds: _funds
@@ -219,9 +233,9 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
     };
   };
   depositLiquidity = ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -230,19 +244,17 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           deposit_liquidity: {
-            collection_address: collectionAddress
+            collection
           }
         })),
         funds: _funds
       })
     };
   };
-  withdrawLiquidity = ({
-    amount,
-    collectionAddress
+  withdrawUndistributedLiquidity = ({
+    collection
   }: {
-    amount: Uint128;
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -250,9 +262,8 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          withdraw_liquidity: {
-            amount,
-            collection_address: collectionAddress
+          withdraw_undistributed_liquidity: {
+            collection
           }
         })),
         funds: _funds
@@ -260,9 +271,9 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
     };
   };
   withdrawCollateral = ({
-    collectionAddress
+    collection
   }: {
-    collectionAddress: string;
+    collection: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -271,7 +282,7 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           withdraw_collateral: {
-            collection_address: collectionAddress
+            collection
           }
         })),
         funds: _funds
@@ -279,11 +290,11 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
     };
   };
   updateOffers = ({
-    collectionAddress,
-    fromToPriceAndOutpostList
+    collection,
+    fromToPriceList
   }: {
-    collectionAddress: string;
-    fromToPriceAndOutpostList: Uint128[][];
+    collection: string;
+    fromToPriceList: Uint128[][];
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -292,8 +303,27 @@ export class MarketMakerHubMsgComposer implements MarketMakerHubMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           update_offers: {
-            collection_address: collectionAddress,
-            from_to_price_and_outpost_list: fromToPriceAndOutpostList
+            collection,
+            from_to_price_list: fromToPriceList
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  acceptOffers = ({
+    biddedCollateralItemList
+  }: {
+    biddedCollateralItemList: BiddedCollateralItem[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          accept_offers: {
+            bidded_collateral_item_list: biddedCollateralItemList
           }
         })),
         funds: _funds
