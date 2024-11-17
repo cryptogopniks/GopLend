@@ -1,15 +1,12 @@
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use goplend_base::{
-    assets::Currency,
     error::ContractError,
     oracle::{
         msg::InstantiateMsg,
-        state::{
-            CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, LOG, LOG_COUNTER, MAX_PRICE_UPDATE_PERIOD,
-        },
-        types::{Config, Log},
+        state::{CONFIG, CONTRACT_NAME, EXECUTION_COOLDOWN, MAX_PRICE_UPDATE_PERIOD, UPDATE_DATE},
+        types::Config,
     },
 };
 
@@ -26,15 +23,6 @@ pub fn try_instantiate(
     let sender = &info.sender;
     let block_time = env.block.time.seconds();
 
-    let controller = match msg.controller {
-        None => None,
-        Some(x) => Some(
-            x.into_iter()
-                .map(|y| deps.api.addr_validate(&y))
-                .collect::<StdResult<Vec<Addr>>>()?,
-        ),
-    };
-
     CONFIG.save(
         deps.storage,
         &Config {
@@ -42,29 +30,25 @@ pub fn try_instantiate(
             worker: msg
                 .worker
                 .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
-            controller,
+                .transpose()?
+                .unwrap_or(sender.to_owned()),
+            controller: msg
+                .controller
+                .map(|x| {
+                    x.iter()
+                        .map(|y| deps.api.addr_validate(y))
+                        .collect::<StdResult<_>>()
+                })
+                .transpose()?
+                .unwrap_or(vec![sender.to_owned()]),
             execution_cooldown: msg.execution_cooldown.unwrap_or(EXECUTION_COOLDOWN),
             max_price_update_period: msg
                 .max_price_update_period
                 .unwrap_or(MAX_PRICE_UPDATE_PERIOD),
-            stable_currency: Currency::new(
-                &msg.stable_currency.token.verify(deps.api)?,
-                msg.stable_currency.decimals,
-            ),
         },
     )?;
 
-    LOG.push_back(
-        deps.storage,
-        &Log {
-            block_time,
-            sender: sender.to_owned(),
-            outdated_price_collections: vec![],
-            counter: LOG_COUNTER,
-        },
-    )?;
+    UPDATE_DATE.save(deps.storage, &block_time)?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

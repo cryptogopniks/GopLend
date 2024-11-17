@@ -1,17 +1,11 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
-use crate::{
-    assets::{Currency, TokenUnverified},
-    oracle::types::RawPriceItem,
-};
-
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub controller: Option<Vec<String>>,
     pub execution_cooldown: Option<u64>,
     pub max_price_update_period: Option<u64>,
-    pub stable_currency: Currency<TokenUnverified>,
 }
 
 #[cw_serde]
@@ -31,16 +25,12 @@ pub enum ExecuteMsg {
         controller: Option<Vec<String>>,
         execution_cooldown: Option<u64>,
         max_price_update_period: Option<u64>,
-        stable_currency: Option<Currency<TokenUnverified>>,
     },
 
     // controller
-    SetPrices {
-        price_list: Vec<RawPriceItem>,
-    },
-
     UpdatePrices {
-        price_list: Vec<RawPriceItem>,
+        /// list of (collection_address_postfix, usd_price_with_decimals_2)
+        data: Vec<(String, u32)>,
     },
 
     RemovePrices {
@@ -54,7 +44,7 @@ pub enum QueryMsg {
     #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<super::types::PriceItem<crate::assets::Funds<crate::assets::Token>>>)]
+    #[returns(super::types::QueryPricesResponse)]
     QueryPrices {
         amount: u32,
         start_after: Option<String>,
@@ -63,7 +53,4 @@ pub enum QueryMsg {
 
     #[returns(u64)]
     QueryBlockTime {},
-
-    #[returns(Vec<super::types::Log>)]
-    QueryLog {},
 }

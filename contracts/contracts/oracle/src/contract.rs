@@ -32,11 +32,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetPrices { price_list } => e::try_set_prices(deps, env, info, price_list),
-
-        ExecuteMsg::UpdatePrices { price_list } => {
-            e::try_update_prices(deps, env, info, price_list)
-        }
+        ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
 
         ExecuteMsg::RemovePrices { collections } => {
             e::try_remove_prices(deps, env, info, collections)
@@ -50,7 +46,6 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
-            stable_currency,
         } => e::try_update_config(
             deps,
             env,
@@ -60,7 +55,6 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
-            stable_currency,
         ),
     }
 }
@@ -84,8 +78,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
 
         QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
-
-        QueryMsg::QueryLog {} => to_json_binary(&q::query_log(deps, env)?),
     }
 }
 

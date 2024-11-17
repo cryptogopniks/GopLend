@@ -1,198 +1,49 @@
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Order, Response, StdResult};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
 
 use goplend_base::{
-    assets::{Currency, TokenUnverified},
     error::ContractError,
     lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     oracle::{
-        state::{CONFIG, LOG, PRICE_AND_DATE_LIST, TRANSFER_ADMIN_STATE},
-        types::{Config, Log, PriceItem, RawPriceItem},
+        state::{CONFIG, PRICES, TRANSFER_ADMIN_STATE, UPDATE_DATE},
+        types::Config,
     },
-    utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
+    utils::{check_authorization, check_funds, AuthType, FundsType},
 };
-
-// clear storage and set prices for specified collections
-pub fn try_set_prices(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    price_list: Vec<RawPriceItem>,
-) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let block_time = env.block.time.seconds();
-    let Config {
-        controller,
-        execution_cooldown,
-        max_price_update_period,
-        ..
-    } = CONFIG.load(deps.storage)?;
-
-    if !unwrap_field(controller, "controller")?.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
-    }
-
-    if price_list.is_empty() {
-        Err(ContractError::EmptyRawPriceItemVector)?;
-    }
-
-    let Log {
-        block_time: block_time_prev,
-        counter,
-        ..
-    } = unwrap_field(LOG.back(deps.storage)?, "log")?;
-    let counter = if counter == u8::MAX { 0 } else { counter + 1 };
-
-    if block_time < block_time_prev + execution_cooldown {
-        Err(ContractError::EarlyExecution)?;
-    }
-
-    let decreased_block_time =
-        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
-    let outdated_price_collections: Vec<Addr> = PRICE_AND_DATE_LIST
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .filter(|(_, price_item)| decreased_block_time.gt(&price_item.update_date))
-        .map(|(collection_address, _)| collection_address)
-        .collect();
-
-    if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
-        LOG.pop_front(deps.storage)?;
-    }
-    LOG.push_back(
-        deps.storage,
-        &Log {
-            block_time,
-            sender: sender_address,
-            outdated_price_collections,
-            counter,
-        },
-    )?;
-
-    PRICE_AND_DATE_LIST.clear(deps.storage);
-
-    for RawPriceItem {
-        collection,
-        usd_price,
-    } in price_list
-    {
-        if usd_price.is_zero() {
-            Err(ContractError::ZerosInPrices)?;
-        }
-
-        let collection_address = &deps.api.addr_validate(&collection)?;
-
-        if let Ok(PriceItem { update_date, .. }) =
-            PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
-        {
-            if update_date == block_time {
-                Err(ContractError::CollectionDuplication)?;
-            }
-        }
-
-        PRICE_AND_DATE_LIST.save(
-            deps.storage,
-            collection_address,
-            &PriceItem {
-                address: collection_address.to_owned(),
-                usd_price,
-                update_date: block_time,
-                is_outdated: false,
-            },
-        )?;
-    }
-
-    Ok(Response::new().add_attribute("action", "try_set_prices"))
-}
 
 // update prices for specified collections
 pub fn try_update_prices(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    price_list: Vec<RawPriceItem>,
+    data: Vec<(String, u32)>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let response = Response::new().add_attribute("action", "try_update_prices");
     let block_time = env.block.time.seconds();
     let Config {
         controller,
         execution_cooldown,
-        max_price_update_period,
         ..
     } = CONFIG.load(deps.storage)?;
 
-    if !unwrap_field(controller, "controller")?.contains(&sender_address) {
+    if !controller.contains(&info.sender) {
         Err(ContractError::Unauthorized)?;
     }
 
-    if price_list.is_empty() {
-        Err(ContractError::EmptyRawPriceItemVector)?;
-    }
-
-    let Log {
-        block_time: block_time_prev,
-        counter,
-        ..
-    } = unwrap_field(LOG.back(deps.storage)?, "log")?;
-    let counter = if counter == u8::MAX { 0 } else { counter + 1 };
-
-    if block_time < block_time_prev + execution_cooldown {
+    if block_time < UPDATE_DATE.load(deps.storage)? + execution_cooldown {
         Err(ContractError::EarlyExecution)?;
     }
 
-    let decreased_block_time =
-        std::cmp::max(block_time, max_price_update_period) - max_price_update_period;
-    let outdated_price_collections: Vec<Addr> = PRICE_AND_DATE_LIST
-        .range(deps.storage, None, None, Order::Ascending)
-        .flatten()
-        .filter(|(_, price_item)| decreased_block_time.gt(&price_item.update_date))
-        .map(|(collection_address, _)| collection_address)
-        .collect();
+    UPDATE_DATE.save(deps.storage, &block_time)?;
 
-    if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
-        LOG.pop_front(deps.storage)?;
-    }
-    LOG.push_back(
-        deps.storage,
-        &Log {
-            block_time,
-            sender: sender_address,
-            outdated_price_collections,
-            counter,
-        },
-    )?;
-
-    for RawPriceItem {
-        collection,
-        usd_price,
-    } in price_list
-    {
-        if usd_price.is_zero() {
-            Err(ContractError::ZerosInPrices)?;
-        }
-
-        let collection_address = &deps.api.addr_validate(&collection)?;
-
-        if let Ok(PriceItem { update_date, .. }) =
-            PRICE_AND_DATE_LIST.load(deps.storage, collection_address)
-        {
-            if update_date == block_time {
-                Err(ContractError::CollectionDuplication)?;
-            }
-        }
-
-        PRICE_AND_DATE_LIST.save(
-            deps.storage,
-            collection_address,
-            &PriceItem {
-                address: collection_address.to_owned(),
-                usd_price,
-                update_date: block_time,
-                is_outdated: false,
-            },
-        )?;
+    if data.is_empty() {
+        return Ok(response);
     }
 
-    Ok(Response::new().add_attribute("action", "try_update_prices"))
+    for (postfix, price) in &data {
+        PRICES.save(deps.storage, postfix, price)?;
+    }
+
+    Ok(response)
 }
 
 // clear prices for specified collections
@@ -205,13 +56,12 @@ pub fn try_remove_prices(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let Config { controller, .. } = CONFIG.load(deps.storage)?;
 
-    if !unwrap_field(controller, "controller")?.contains(&sender_address) {
+    if !controller.contains(&sender_address) {
         Err(ContractError::Unauthorized)?;
     }
 
-    for collection_address in collections {
-        let collection_address = deps.api.addr_validate(&collection_address)?;
-        PRICE_AND_DATE_LIST.remove(deps.storage, &collection_address);
+    for postfix in collections {
+        PRICES.remove(deps.storage, &postfix);
     }
 
     Ok(Response::new().add_attribute("action", "try_remove_prices"))
@@ -233,7 +83,7 @@ pub fn try_accept_admin_role(
     check_authorization(
         &sender_address,
         &admin,
-        &worker,
+        &Some(worker),
         AuthType::Specified {
             allowlist: vec![Some(new_admin)],
         },
@@ -266,13 +116,12 @@ pub fn try_update_config(
     controller: Option<Vec<String>>,
     execution_cooldown: Option<u64>,
     max_price_update_period: Option<u64>,
-    stable_currency: Option<Currency<TokenUnverified>>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
     let current_admin = &config.admin;
-    let current_worker = &config.worker.clone();
+    let current_worker = &Some(config.worker.clone());
 
     if let Some(x) = admin {
         check_authorization(
@@ -302,7 +151,7 @@ pub fn try_update_config(
             current_worker,
             AuthType::Admin,
         )?;
-        config.worker = Some(deps.api.addr_validate(&x)?);
+        config.worker = deps.api.addr_validate(&x)?;
         is_config_updated = true;
     }
 
@@ -313,11 +162,10 @@ pub fn try_update_config(
             current_worker,
             AuthType::AdminOrWorker,
         )?;
-        config.controller = Some(
-            x.into_iter()
-                .map(|y| deps.api.addr_validate(&y))
-                .collect::<StdResult<Vec<Addr>>>()?,
-        );
+        config.controller = x
+            .into_iter()
+            .map(|y| deps.api.addr_validate(&y))
+            .collect::<StdResult<_>>()?;
         is_config_updated = true;
     }
 
@@ -340,18 +188,6 @@ pub fn try_update_config(
             AuthType::AdminOrWorker,
         )?;
         config.max_price_update_period = x;
-        is_config_updated = true;
-    }
-
-    if let Some(x) = stable_currency {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::AdminOrWorker,
-        )?;
-
-        config.stable_currency = Currency::new(&x.token.verify(deps.api)?, x.decimals);
         is_config_updated = true;
     }
 
