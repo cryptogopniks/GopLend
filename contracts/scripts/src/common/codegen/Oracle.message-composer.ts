@@ -28,8 +28,16 @@ export interface OracleMsg {
     stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  setPrices: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updatePrices: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  setPrices: ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updatePrices: ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   removePrices: ({
     collections
   }: {
@@ -95,27 +103,39 @@ export class OracleMsgComposer implements OracleMsg {
       })
     };
   };
-  setPrices = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  setPrices = ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          set_prices: {}
+          set_prices: {
+            price_list: priceList
+          }
         })),
         funds: _funds
       })
     };
   };
-  updatePrices = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  updatePrices = ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          update_prices: {}
+          update_prices: {
+            price_list: priceList
+          }
         })),
         funds: _funds
       })

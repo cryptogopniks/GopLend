@@ -199,10 +199,19 @@
         ],
         "properties": {
           "set_prices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/RawPriceItem"
-            }
+            "type": "object",
+            "required": [
+              "price_list"
+            ],
+            "properties": {
+              "price_list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/RawPriceItem"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -214,10 +223,19 @@
         ],
         "properties": {
           "update_prices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/RawPriceItem"
-            }
+            "type": "object",
+            "required": [
+              "price_list"
+            ],
+            "properties": {
+              "price_list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/RawPriceItem"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false

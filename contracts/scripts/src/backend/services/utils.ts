@@ -2,12 +2,7 @@ import { access, readFile } from "fs/promises";
 import { decrypt, floor, getLast, l } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { Label } from "../../common/config";
-import {
-  ChainType,
-  Wallets,
-  StoreArgs,
-  PlatformType,
-} from "../../common/interfaces";
+import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");
@@ -71,14 +66,9 @@ async function getWallets(chainType: ChainType): Promise<Wallets> {
   return testWallets;
 }
 
-function getSnapshotPath(
-  name: string,
-  chainType: ChainType,
-  platformType: PlatformType,
-  fileName: string
-) {
+function getSnapshotPath(name: string, chainType: ChainType, fileName: string) {
   return rootPath(
-    `./src/backend/services/snapshots/${name}/${chainType}net/${platformType}/${fileName}`
+    `./src/backend/services/snapshots/${name}/${chainType}net/${fileName}`
   );
 }
 
@@ -184,12 +174,11 @@ function getBlockTime(blockTimeOffset: number): number {
 }
 
 async function wrapListQuerier<T>(
-  fn: (platformType: PlatformType, ...args: any) => Promise<T[]>,
-  platformType: PlatformType,
+  fn: (...args: any) => Promise<T[]>,
   ...args: any
 ): Promise<T[]> {
   try {
-    return await fn(platformType, ...args);
+    return await fn(...args);
   } catch (error) {
     l(error);
     return [];

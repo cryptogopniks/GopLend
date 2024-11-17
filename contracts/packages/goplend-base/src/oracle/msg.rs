@@ -35,9 +35,13 @@ pub enum ExecuteMsg {
     },
 
     // controller
-    SetPrices(Vec<RawPriceItem>),
+    SetPrices {
+        price_list: Vec<RawPriceItem>,
+    },
 
-    UpdatePrices(Vec<RawPriceItem>),
+    UpdatePrices {
+        price_list: Vec<RawPriceItem>,
+    },
 
     RemovePrices {
         collections: Vec<String>,

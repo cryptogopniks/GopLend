@@ -36,9 +36,13 @@ export type ExecuteMsg = {
     worker?: string | null;
   };
 } | {
-  set_prices: RawPriceItem[];
+  set_prices: {
+    price_list: RawPriceItem[];
+  };
 } | {
-  update_prices: RawPriceItem[];
+  update_prices: {
+    price_list: RawPriceItem[];
+  };
 } | {
   remove_prices: {
     collections: string[];

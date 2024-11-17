@@ -32,9 +32,11 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetPrices(price_list) => e::try_set_prices(deps, env, info, price_list),
+        ExecuteMsg::SetPrices { price_list } => e::try_set_prices(deps, env, info, price_list),
 
-        ExecuteMsg::UpdatePrices(price_list) => e::try_update_prices(deps, env, info, price_list),
+        ExecuteMsg::UpdatePrices { price_list } => {
+            e::try_update_prices(deps, env, info, price_list)
+        }
 
         ExecuteMsg::RemovePrices { collections } => {
             e::try_remove_prices(deps, env, info, collections)

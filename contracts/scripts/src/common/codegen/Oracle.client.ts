@@ -85,8 +85,16 @@ export interface OracleInterface extends OracleReadOnlyInterface {
     stableCurrency?: CurrencyForTokenUnverified;
     worker?: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  setPrices: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updatePrices: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  setPrices: ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  updatePrices: ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   removePrices: ({
     collections
   }: {
@@ -139,14 +147,26 @@ export class OracleClient extends OracleQueryClient implements OracleInterface {
       }
     }, fee, memo, _funds);
   };
-  setPrices = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  setPrices = async ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      set_prices: {}
+      set_prices: {
+        price_list: priceList
+      }
     }, fee, memo, _funds);
   };
-  updatePrices = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+  updatePrices = async ({
+    priceList
+  }: {
+    priceList: RawPriceItem[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
-      update_prices: {}
+      update_prices: {
+        price_list: priceList
+      }
     }, fee, memo, _funds);
   };
   removePrices = async ({

@@ -4,10 +4,7 @@ import { BidType, Collateral } from "../codegen/LendingPlatform.types";
 import { Label, NetworkName, Wasm } from "../config";
 import * as v2 from "./stargaze-marketplace-v2";
 
-type PlatformType = "main" | "stable";
-
 interface TargetBorrower {
-  platformType: PlatformType;
   borrowerAddress: string;
   ltv: number;
   loanAmount: number;
@@ -17,12 +14,7 @@ interface TargetBorrower {
   collectionAndCollateralList: [string, Collateral][];
 }
 
-interface MarketplaceData {
-  tokenOfferList: [string, v2.Bid[]][];
-  collectionOfferList: [string, v2.CollectionBid[]][];
-  discountBaseList: [string, number][];
-}
-
+// TODO: do we need it now?
 interface LiquidationBidExtended {
   amount: number;
   bidType: BidType;
@@ -30,10 +22,8 @@ interface LiquidationBidExtended {
   discount: number;
   liquidator: string;
   tokenIdList: string[];
-  platformType: PlatformType;
   collectionOfferId: number;
   collectionAddress: string;
-  orderId: string;
 }
 
 interface AssetDescription {
@@ -429,7 +419,6 @@ export type {
   NetworkConfig,
   NetworkName,
   ContractsConfig,
-  PlatformType,
 };
 
 export {
@@ -471,6 +460,5 @@ export {
   AssetDescription,
   PoolDatabase,
   LiquidationBidExtended,
-  MarketplaceData,
   TargetBorrower,
 };

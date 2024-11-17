@@ -115,7 +115,9 @@ impl OracleExtension for Project {
             .execute_contract(
                 sender.into(),
                 self.get_oracle_address(),
-                &ExecuteMsg::SetPrices(price_list.to_owned()),
+                &ExecuteMsg::SetPrices {
+                    price_list: price_list.to_owned(),
+                },
                 &[],
             )
             .map_err(parse_err)
@@ -131,7 +133,9 @@ impl OracleExtension for Project {
             .execute_contract(
                 sender.into(),
                 self.get_oracle_address(),
-                &ExecuteMsg::UpdatePrices(price_list.to_owned()),
+                &ExecuteMsg::UpdatePrices {
+                    price_list: price_list.to_owned(),
+                },
                 &[],
             )
             .map_err(parse_err)
