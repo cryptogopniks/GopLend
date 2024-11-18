@@ -1,9 +1,9 @@
-use cosmwasm_std::{Addr, Deps, Env, Order, StdResult, Uint128};
+use cosmwasm_std::{Deps, Env, Order, StdResult, Uint128};
 
 use cw_storage_plus::Bound;
 use goplend_base::oracle::{
     state::{CONFIG, DECIMALS_MULTIPLIER, PRICES, UPDATE_DATE},
-    types::{Config, PriceItem, QueryPricesResponse},
+    types::{get_collection, split_address, Config, PriceItem, QueryPricesResponse},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -18,7 +18,6 @@ pub fn query_prices(
     collections: Option<Vec<String>>,
 ) -> StdResult<QueryPricesResponse> {
     let block_time = env.block.time.seconds();
-    let prefix = get_prefix(env);
     let decimals_multiplier = Uint128::new(DECIMALS_MULTIPLIER);
     let Config {
         max_price_update_period,
@@ -30,8 +29,9 @@ pub fn query_prices(
     if let Some(x) = collections {
         let data = x
             .iter()
-            .map(|postfix| {
-                let price = PRICES.load(deps.storage, postfix)?;
+            .map(|collection| {
+                let (prefix, postfix) = split_address(collection);
+                let price = PRICES.load(deps.storage, &postfix)?;
 
                 Ok(PriceItem {
                     collection: get_collection(&prefix, &postfix),
@@ -43,6 +43,7 @@ pub fn query_prices(
         return Ok(QueryPricesResponse { is_outdated, data });
     }
 
+    let (prefix, _) = split_address(env.contract.address);
     let start_bound = start_after.as_ref().map(|x| Bound::exclusive(x.as_str()));
 
     let data = PRICES
@@ -63,14 +64,4 @@ pub fn query_prices(
 
 pub fn query_block_time(_deps: Deps, env: Env) -> StdResult<u64> {
     Ok(env.block.time.seconds())
-}
-
-fn get_prefix(env: Env) -> String {
-    let contract_address = env.contract.address.to_string();
-    let (prefix, _) = contract_address.split_once('1').unwrap();
-    prefix.to_string()
-}
-
-fn get_collection(prefix: &str, postfix: &str) -> Addr {
-    Addr::unchecked(format!("{}1{}", prefix, postfix))
 }

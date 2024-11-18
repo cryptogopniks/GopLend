@@ -22,3 +22,13 @@ pub struct Config {
     pub execution_cooldown: u64,
     pub max_price_update_period: u64,
 }
+
+pub fn split_address(address: impl ToString) -> (String, String) {
+    let address = address.to_string();
+    let (prefix, postfix) = address.split_once('1').unwrap();
+    (prefix.to_string(), postfix.to_string())
+}
+
+pub fn get_collection(prefix: &str, postfix: &str) -> Addr {
+    Addr::unchecked(format!("{}1{}", prefix, postfix))
+}

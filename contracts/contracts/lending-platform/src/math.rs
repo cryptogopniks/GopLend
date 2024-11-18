@@ -3,7 +3,6 @@ use std::cmp::{max, min};
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use goplend_base::{
-    assets::{Funds, Token},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
@@ -299,7 +298,7 @@ pub fn calc_total_available_to_borrow_liquidity(
 pub fn match_collaterals_and_bids(
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
     collection_and_bid_list: &[(Addr, LiquidationBid)],
-    price_list: &[PriceItem<Funds<Token>>],
+    price_list: &[PriceItem],
 ) -> StdResult<Vec<BiddedCollateralItem>> {
     let mut collection_and_bid_list = collection_and_bid_list.to_owned();
 
@@ -315,12 +314,12 @@ pub fn match_collaterals_and_bids(
     for (collateral_collection, collateral) in collection_and_collateral_list_by_borrower {
         let price_item = price_list
             .iter()
-            .find(|x| x.address == collateral_collection)
+            .find(|x| x.collection == collateral_collection)
             .ok_or(ContractError::PriceIsNotFound {
                 val: collateral_collection.to_string(),
             })?;
 
-        let price = price_item.usd_price.amount;
+        let price = price_item.price;
 
         for token_item in collateral.token_item_list.clone() {
             for (_bid_collection, bid) in collection_and_bid_list.iter_mut() {

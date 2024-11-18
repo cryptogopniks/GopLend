@@ -433,27 +433,17 @@ pub fn try_deposit_collateral(
         .map(|(collection, _collateral)| collection.to_string())
         .collect();
 
-    let prices = helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses_full))?;
+    let prices_response =
+        helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses_full))?;
 
-    // don't allow to deposit collateral with outdated price
-    for collection_address in collection_addresses {
-        let price_item = prices
-            .iter()
-            .find(|x| x.address == collection_address)
-            .ok_or(ContractError::PriceIsNotFound {
-                val: collection_address.to_string(),
-            })?;
-
-        if price_item.is_outdated {
-            Err(ContractError::OutdatedPrice {
-                val: collection_address.to_string(),
-            })?;
-        }
+    // don't allow to deposit collateral if oracle price data is outdated
+    if prices_response.is_outdated {
+        Err(ContractError::OutdatedPrice)?;
     }
 
     // don't allow to deposit if final collateral amount will be too low
     let collateral_value_result =
-        helpers::get_collateral_value(&collection_and_collateral_list, &prices);
+        helpers::get_collateral_value(&collection_and_collateral_list, &prices_response);
 
     if let Ok(collateral_value) = collateral_value_result {
         if collateral_value < common_config.collateral_min_value {

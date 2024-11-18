@@ -163,17 +163,7 @@ impl Project {
             &None,
             &None,
         );
-        let oracle_address = project.instantiate_oracle(
-            oracle_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                ProjectCoin::Usdc.get_decimals(),
-            ),
-        );
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None, &None);
         let minter_address = project.instantiate_minter(
             minter_code_id,
             &None,
@@ -222,7 +212,6 @@ impl Project {
                 &Some(ProjectAccount::Owner),
                 &Some(vec![ProjectAccount::Scheduler]),
                 &Some(0),
-                &None,
                 &None,
             )
             .unwrap();

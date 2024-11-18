@@ -2,11 +2,10 @@ use cosmwasm_std::StdResult;
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
     oracle::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{Config, Log, PriceItem, RawPriceItem},
+        types::{Config, QueryPricesResponse},
     },
 };
 
@@ -27,19 +26,12 @@ pub trait OracleExtension {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        stable_currency: &Option<Currency<TokenUnverified>>,
-    ) -> StdResult<AppResponse>;
-
-    fn oracle_try_set_prices(
-        &mut self,
-        sender: ProjectAccount,
-        price_list: &[RawPriceItem],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        price_list: &[RawPriceItem],
+        data: &[(&str, u32)],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_remove_prices(
@@ -55,11 +47,9 @@ pub trait OracleExtension {
         amount: u32,
         start_after: &Option<ProjectNft>,
         collections: &Option<Vec<ProjectNft>>,
-    ) -> StdResult<Vec<PriceItem<Funds<Token>>>>;
+    ) -> StdResult<QueryPricesResponse>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
-
-    fn oracle_query_log(&self) -> StdResult<Vec<Log>>;
 }
 
 impl OracleExtension for Project {
@@ -84,7 +74,6 @@ impl OracleExtension for Project {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        stable_currency: &Option<Currency<TokenUnverified>>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
@@ -98,25 +87,6 @@ impl OracleExtension for Project {
                         .map(|x| x.iter().map(|y| y.to_string()).collect()),
                     execution_cooldown: execution_cooldown.to_owned(),
                     max_price_update_period: max_price_update_period.to_owned(),
-                    stable_currency: stable_currency.as_ref().map(|x| x.to_owned()),
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn oracle_try_set_prices(
-        &mut self,
-        sender: ProjectAccount,
-        price_list: &[RawPriceItem],
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_oracle_address(),
-                &ExecuteMsg::SetPrices {
-                    price_list: price_list.to_owned(),
                 },
                 &[],
             )
@@ -127,14 +97,17 @@ impl OracleExtension for Project {
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        price_list: &[RawPriceItem],
+        data: &[(&str, u32)],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_oracle_address(),
                 &ExecuteMsg::UpdatePrices {
-                    price_list: price_list.to_owned(),
+                    data: data
+                        .iter()
+                        .map(|(postfix, price)| (postfix.to_string(), *price))
+                        .collect(),
                 },
                 &[],
             )
@@ -172,7 +145,7 @@ impl OracleExtension for Project {
         amount: u32,
         start_after: &Option<ProjectNft>,
         collections: &Option<Vec<ProjectNft>>,
-    ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
+    ) -> StdResult<QueryPricesResponse> {
         let collections = collections
             .as_ref()
             .map(|x| x.iter().map(|y| y.to_string()).collect());
@@ -192,12 +165,5 @@ impl OracleExtension for Project {
         self.app
             .wrap()
             .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryBlockTime {})
-    }
-
-    #[track_caller]
-    fn oracle_query_log(&self) -> StdResult<Vec<Log>> {
-        self.app
-            .wrap()
-            .query_wasm_smart(self.get_oracle_address(), &QueryMsg::QueryLog {})
     }
 }

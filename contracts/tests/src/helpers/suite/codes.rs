@@ -65,7 +65,6 @@ pub trait WithCodes {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        stable_currency: &Currency<TokenUnverified>,
     ) -> Addr;
 
     fn instantiate_minter(
@@ -304,7 +303,6 @@ impl WithCodes for Project {
         controller: &Option<Vec<ProjectAccount>>,
         execution_cooldown: &Option<u64>,
         max_price_update_period: &Option<u64>,
-        stable_currency: &Currency<TokenUnverified>,
     ) -> Addr {
         self.instantiate_contract(
             oracle_code_id,
@@ -316,7 +314,6 @@ impl WithCodes for Project {
                     .map(|x| x.iter().map(|y| y.to_string()).collect()),
                 execution_cooldown: execution_cooldown.to_owned(),
                 max_price_update_period: max_price_update_period.to_owned(),
-                stable_currency: stable_currency.to_owned(),
             },
         )
     }

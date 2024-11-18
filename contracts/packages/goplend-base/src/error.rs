@@ -46,8 +46,8 @@ pub enum ContractError {
     #[error("Chain ID is not found!")]
     ChainIdIsNotFound,
 
-    #[error("Collection {val:?} price data is outdated!")]
-    OutdatedPrice { val: String },
+    #[error("Oracle price data is outdated!")]
+    OutdatedPrice,
 
     // ------------------------------ faucet ----------------------------------------
     #[error("Come back in {remaining_time_in_mins:?} minutes!")]

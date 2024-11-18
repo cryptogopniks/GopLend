@@ -15,7 +15,7 @@ use goplend_base::{
             CollectionInfo, LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem, Vault,
         },
     },
-    oracle::{self, types::PriceItem},
+    oracle::{self, types::QueryPricesResponse},
     utils::unwrap_field,
 };
 
@@ -392,27 +392,24 @@ pub fn get_collaterals_by_borrower(
 
 pub fn get_collateral_value(
     collection_and_collateral_list_by_borrower: &[(Addr, Collateral)],
-    prices: &[PriceItem<Funds<Token>>],
+    prices_response: &QueryPricesResponse,
 ) -> StdResult<Uint128> {
+    if prices_response.is_outdated {
+        Err(ContractError::OutdatedPrice)?;
+    }
+
     let collateral_value = collection_and_collateral_list_by_borrower.iter().fold(
         Ok(Uint128::zero()),
         |acc, (collection_address, collateral)| -> StdResult<Uint128> {
-            let price_item = prices
+            let price_item = prices_response
+                .data
                 .iter()
-                .find(|x| x.address == collection_address)
+                .find(|x| x.collection == collection_address)
                 .ok_or(ContractError::PriceIsNotFound {
                     val: collection_address.to_string(),
                 })?;
 
-            if price_item.is_outdated {
-                Err(ContractError::OutdatedPrice {
-                    val: collection_address.to_string(),
-                })?;
-            }
-
-            let price = price_item.usd_price.amount;
-
-            Ok(acc? + price * Uint128::new(collateral.token_item_list.len() as u128))
+            Ok(acc? + price_item.price * Uint128::new(collateral.token_item_list.len() as u128))
         },
     )?;
 
@@ -470,7 +467,7 @@ pub fn get_prices(
     querier: &QuerierWrapper,
     oracle: &Addr,
     collections: Option<&[String]>,
-) -> StdResult<Vec<oracle::types::PriceItem<Funds<Token>>>> {
+) -> StdResult<QueryPricesResponse> {
     querier.query_wasm_smart(
         oracle,
         &oracle::msg::QueryMsg::QueryPrices {
@@ -485,7 +482,6 @@ pub mod offchain {
     use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 
     use goplend_base::{
-        assets::{Funds, Token},
         lending_platform::{
             msg::QueryMsg,
             types::{
@@ -494,7 +490,7 @@ pub mod offchain {
                 QueryLiquidationBidsByCollectionAddressListResponseItem,
             },
         },
-        oracle::types::PriceItem,
+        oracle::types::QueryPricesResponse,
     };
 
     use super::get_prices;
@@ -522,7 +518,7 @@ pub mod offchain {
         oracle_address: &Addr,
         borrower_list: &[QueryBorrowersResponseItem],
         collection_and_collateral_list: &[QueryCollateralsResponseItem],
-    ) -> StdResult<Vec<PriceItem<Funds<Token>>>> {
+    ) -> StdResult<QueryPricesResponse> {
         // collect collection addresses over current page borrowers
         let borrower_addresses: Vec<Addr> =
             borrower_list.iter().map(|x| x.address.to_owned()).collect();
