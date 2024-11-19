@@ -1,7 +1,12 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::{coin, coins, to_json_binary, Addr, Coin, Empty, StdResult, Timestamp, Uint128};
-use cw_multi_test::{App, AppResponse, BankSudo, Executor, SudoMsg};
+use cosmwasm_std::{
+    coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdResult, Timestamp, Uint128,
+};
+use cw_multi_test::{
+    AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
+    WasmKeeper,
+};
 
 use serde::Serialize;
 use strum::IntoEnumIterator;
@@ -20,8 +25,8 @@ use crate::helpers::{
     suite::{
         codes::WithCodes,
         types::{
-            GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
-            WrappedResponse, DEFAULT_DECIMALS,
+            CustomApp, GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft,
+            ProjectToken, DEFAULT_DECIMALS,
         },
     },
 };
@@ -34,8 +39,7 @@ pub const BGLUSDC_SYMBOL: &str = "bglUSDC";
 pub const INITIAL_LIQUIDITY: u128 = 100_000_000_000;
 
 pub struct Project {
-    pub app: App,
-    pub logs: WrappedResponse,
+    pub app: CustomApp,
     contract_counter: u16,
 
     // package code id
@@ -67,7 +71,6 @@ impl Project {
     pub fn create_project_with_balances() -> Self {
         Self {
             app: Self::create_app_with_balances(),
-            logs: WrappedResponse::Execute(Ok(AppResponse::default())),
             contract_counter: 0,
 
             cw20_base_code_id: 0,
@@ -112,10 +115,9 @@ impl Project {
             project.instantiate_cw20_base_token(cw20_base_code_id, project_token);
         }
 
-        let gopniks_address =
-            project.instantiate_cw721_base_token(cw721_base_code_id, ProjectNft::Gopniks);
-        let pinjeons_address =
-            project.instantiate_cw721_base_token(cw721_base_code_id, ProjectNft::Pinjeons);
+        for _project_nft in ProjectNft::iter() {
+            project.instantiate_cw721_base_token(cw721_base_code_id);
+        }
 
         // mint NFTs
         let token_id_list: Vec<u128> = vec![1, 2, 3];
@@ -192,8 +194,8 @@ impl Project {
             scheduler_code_id,
             market_maker_code_id,
 
-            gopniks_address,
-            pinjeons_address,
+            gopniks_address: Addr::unchecked(ProjectNft::Gopniks.to_string()),
+            pinjeons_address: Addr::unchecked(ProjectNft::Pinjeons.to_string()),
 
             lending_platform_address,
             oracle_address,
@@ -341,6 +343,10 @@ impl Project {
     }
 
     // utils
+    pub fn addr(&self, acc: impl ToString) -> Addr {
+        self.app.api().addr_make(&acc.to_string())
+    }
+
     pub fn increase_contract_counter(&mut self, step: u16) {
         self.contract_counter += step;
     }
@@ -557,7 +563,7 @@ impl Project {
         self.app
             .instantiate_contract(
                 code_id,
-                ProjectAccount::Admin.into(),
+                Addr::unchecked(ProjectAccount::Admin.to_string()),
                 init_msg,
                 &[],
                 label,
@@ -566,24 +572,32 @@ impl Project {
             .unwrap()
     }
 
-    fn create_app_with_balances() -> App {
-        App::new(|router, _api, storage| {
-            for project_account in ProjectAccount::iter() {
-                let funds: Vec<Coin> = ProjectCoin::iter()
-                    .map(|project_coin| {
-                        let amount = project_account.get_initial_funds_amount()
-                            * 10u128.pow(project_coin.get_decimals() as u32);
+    pub fn create_app_with_balances() -> CustomApp {
+        AppBuilder::new_custom()
+            .with_api(MockApiBech32::new("wasm"))
+            .with_wasm(WasmKeeper::new().with_address_generator(MockAddressGenerator))
+            .with_block(BlockInfo {
+                height: 1,
+                time: Timestamp::from_seconds(1_000_000),
+                chain_id: "wasm-1".to_string(),
+            })
+            .build(|router, _api, storage| {
+                for project_account in ProjectAccount::iter() {
+                    let funds: Vec<Coin> = ProjectCoin::iter()
+                        .map(|project_coin| {
+                            let amount = project_account.get_initial_funds_amount()
+                                * 10u128.pow(project_coin.get_decimals() as u32);
 
-                        coin(amount, project_coin.to_string())
-                    })
-                    .collect();
+                            coin(amount, project_coin.to_string())
+                        })
+                        .collect();
 
-                router
-                    .bank
-                    .init_balance(storage, &project_account.into(), funds)
-                    .unwrap();
-            }
-        })
+                    router
+                        .bank
+                        .init_balance(storage, &project_account.into(), funds)
+                        .unwrap();
+                }
+            })
     }
 }
 

@@ -16,7 +16,7 @@ use crate::helpers::{
     },
 };
 
-const ADDRESS_A: &str = "contract10";
+const ADDRESS_A: &str = "wasm1nwnejwsdpqktusvh8qhxe5arsznjd5asdwutmaz9n5qcpl3dcmhsaa42gt";
 
 #[test]
 fn update_token_owner() -> StdResult<()> {

@@ -31,7 +31,7 @@ pub trait OracleExtension {
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        data: &[(&str, u32)],
+        data: &[(impl ToString, u32)],
     ) -> StdResult<AppResponse>;
 
     fn oracle_try_remove_prices(
@@ -97,7 +97,7 @@ impl OracleExtension for Project {
     fn oracle_try_update_prices(
         &mut self,
         sender: ProjectAccount,
-        data: &[(&str, u32)],
+        data: &[(impl ToString, u32)],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(

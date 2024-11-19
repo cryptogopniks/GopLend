@@ -1,12 +1,13 @@
 use cw_multi_test::Executor;
 use speculoos::assert_that;
 
-use cosmwasm_std::{StdResult, Uint128};
+use cosmwasm_std::StdResult;
 
 use goplend_base::{
     error::ContractError,
     oracle::{
         msg::MigrateMsg,
+        state::DECIMALS_MULTIPLIER,
         types::{split_address, PriceItem},
     },
 };
@@ -19,118 +20,113 @@ use crate::helpers::{
     },
 };
 
+pub fn to_prices_in(list: &[(ProjectNft, u32)]) -> Vec<(String, u32)> {
+    list.iter()
+        .map(|(collection, price)| (split_address(collection).1, *price))
+        .collect()
+}
+
+pub fn to_prices_out(list: &[(ProjectNft, u128)]) -> Vec<PriceItem> {
+    let mut prices: Vec<PriceItem> = list
+        .iter()
+        .map(|(collection, price)| PriceItem::new(collection, *price * DECIMALS_MULTIPLIER))
+        .collect();
+    prices.sort_unstable_by_key(|x| x.collection.clone());
+
+    prices
+}
+
 #[test]
 fn default() -> StdResult<()> {
-    let mut project = Project::new();
+    let mut p = Project::new();
 
-    let block_time = project.get_block_time();
-
-    project.oracle_try_update_prices(
+    p.oracle_try_update_prices(
         ProjectAccount::Scheduler,
-        &[
-            (&split_address(ProjectNft::Pinjeons).1, 300),
-            (&split_address(ProjectNft::Gopniks).1, 800),
-        ],
+        &to_prices_in(&[(ProjectNft::Gopniks, 800), (ProjectNft::Pinjeons, 300)]),
     )?;
 
-    let res = project.oracle_query_prices(9, &None, &None)?;
+    let res = p.oracle_query_prices(9, &None, &None)?;
 
-    project.wait(3);
+    p.wait(3);
 
-    assert_that(&res.data).is_equal_to(vec![
-        PriceItem {
-            collection: ProjectNft::Gopniks.into(),
-            price: Uint128::new(800),
-        },
-        PriceItem {
-            collection: ProjectNft::Pinjeons.into(),
-            price: Uint128::new(300),
-        },
-    ]);
+    assert_that(&res.data).is_equal_to(to_prices_out(&[
+        (ProjectNft::Gopniks, 800),
+        (ProjectNft::Pinjeons, 300),
+    ]));
 
     Ok(())
 }
 
-// #[test]
-// fn unauthorized() -> StdResult<()> {
-//     let mut project = Project::new();
+#[test]
+fn unauthorized() -> StdResult<()> {
+    let mut p = Project::new();
 
-//     let res = project
-//         .oracle_try_update_prices(
-//             ProjectAccount::Admin,
-//             &[
-//                 (&split_address(ProjectNft::Pinjeons).1, 300),
-//                 (&split_address(ProjectNft::Gopniks).1, 800),
-//             ],
-//         )
-//         .unwrap_err();
+    let res = p
+        .oracle_try_update_prices(
+            ProjectAccount::Admin,
+            &to_prices_in(&[(ProjectNft::Gopniks, 800), (ProjectNft::Pinjeons, 300)]),
+        )
+        .unwrap_err();
 
-//     assert_error(&res, ContractError::Unauthorized);
+    assert_error(&res, ContractError::Unauthorized);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-// #[test]
-// fn duplicated_collections() -> StdResult<()> {
-//     let mut project = Project::new();
+// the guard was removed
+#[test]
+fn duplicated_collections() -> StdResult<()> {
+    let mut p = Project::new();
 
-//     let res = project
-//         .oracle_try_update_prices(
-//             ProjectAccount::Scheduler,
-//             &[
-//                 (&split_address(ProjectNft::Pinjeons).1, 300),
-//                 (&split_address(ProjectNft::Pinjeons).1, 300),
-//             ],
-//         )
-//         .unwrap_err();
+    let _res = p.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &to_prices_in(&[(ProjectNft::Pinjeons, 300), (ProjectNft::Pinjeons, 300)]),
+    )?;
 
-//     assert_error(&res, ContractError::CollectionDuplication);
+    // assert_error(&res, ContractError::CollectionDuplication);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-// #[test]
-// fn empty_raw_price_item_vec() -> StdResult<()> {
-//     let mut project = Project::new();
+// the guard was removed
+#[test]
+fn empty_raw_price_item_vec() -> StdResult<()> {
+    let mut p = Project::new();
 
-//     let res = project
-//         .oracle_try_update_prices(ProjectAccount::Scheduler, &[])
-//         .unwrap_err();
+    let _res = p.oracle_try_update_prices(ProjectAccount::Scheduler, &to_prices_in(&[]))?;
 
-//     assert_error(&res, ContractError::EmptyRawPriceItemVector);
+    // assert_error(&res, ContractError::EmptyRawPriceItemVector);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-// #[test]
-// fn zeros_in_prices() -> StdResult<()> {
-//     let mut project = Project::new();
+// the guard was removed
+#[test]
+fn zeros_in_prices() -> StdResult<()> {
+    let mut p = Project::new();
 
-//     let res = project
-//         .oracle_try_update_prices(
-//             ProjectAccount::Scheduler,
-//             &[(&split_address(ProjectNft::Pinjeons).1, 0)],
-//         )
-//         .unwrap_err();
+    let _res = p.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &to_prices_in(&[(ProjectNft::Pinjeons, 0)]),
+    )?;
 
-//     assert_error(&res, ContractError::ZerosInPrices);
+    // assert_error(&res, ContractError::ZerosInPrices);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-// #[test]
-// fn migrate_default() {
-//     let mut project = Project::new();
+#[test]
+fn migrate_default() {
+    let mut p = Project::new();
 
-//     project
-//         .app
-//         .migrate_contract(
-//             ProjectAccount::Admin.into(),
-//             project.get_oracle_address(),
-//             &MigrateMsg {
-//                 version: "2.0.0".to_string(),
-//             },
-//             project.get_oracle_code_id(),
-//         )
-//         .unwrap();
-// }
+    p.app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            p.get_oracle_address(),
+            &MigrateMsg {
+                version: "2.0.0".to_string(),
+            },
+            p.get_oracle_code_id(),
+        )
+        .unwrap();
+}

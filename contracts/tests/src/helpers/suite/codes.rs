@@ -12,7 +12,7 @@ use goplend_base::{
 
 use crate::helpers::suite::{
     core::Project,
-    types::{GetDecimals, ProjectAccount, ProjectNft, ProjectToken},
+    types::{GetDecimals, ProjectAccount, ProjectToken},
 };
 
 pub trait WithCodes {
@@ -29,7 +29,7 @@ pub trait WithCodes {
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
-    fn instantiate_cw721_base_token(&mut self, code_id: u64, project_nft: ProjectNft) -> Addr;
+    fn instantiate_cw721_base_token(&mut self, code_id: u64) -> Addr;
 
     // instantiate contracts
     #[allow(clippy::too_many_arguments)]
@@ -187,14 +187,7 @@ impl WithCodes for Project {
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr {
-        let token_postfix: u8 = project_token
-            .to_string()
-            .strip_prefix("contract")
-            .unwrap()
-            .parse()
-            .unwrap();
-
-        let symbol = format!("TKN{}", "N".repeat(token_postfix as usize)); // max 10 tokens
+        let symbol = "TOKEN".to_string();
 
         let initial_balances: Vec<cw20::Cw20Coin> = ProjectAccount::iter()
             .map(|project_account| {
@@ -210,7 +203,7 @@ impl WithCodes for Project {
 
         self.instantiate_contract(
             code_id,
-            &format!("token{}", "n".repeat(token_postfix as usize)),
+            "token",
             &cw20_base::msg::InstantiateMsg {
                 name: format!("cw20-base token {}", symbol),
                 symbol,
@@ -222,19 +215,12 @@ impl WithCodes for Project {
         )
     }
 
-    fn instantiate_cw721_base_token(&mut self, code_id: u64, project_nft: ProjectNft) -> Addr {
-        let token_postfix: u8 = project_nft
-            .to_string()
-            .strip_prefix("contract")
-            .unwrap()
-            .parse()
-            .unwrap();
-
-        let symbol = format!("NFT{}", "T".repeat(token_postfix as usize)); // max 10 tokens
+    fn instantiate_cw721_base_token(&mut self, code_id: u64) -> Addr {
+        let symbol = "NFT XYZ".to_string(); // max 10 tokens
 
         self.instantiate_contract(
             code_id,
-            &format!("nft{}", "t".repeat(token_postfix as usize)),
+            "nft xyz",
             &cw721_base::msg::InstantiateMsg {
                 name: format!("cw721-base token {}", symbol),
                 symbol,

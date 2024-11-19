@@ -8,6 +8,15 @@ pub struct PriceItem {
     pub price: Uint128,
 }
 
+impl PriceItem {
+    pub fn new(collection: impl ToString, price: u128) -> Self {
+        Self {
+            collection: Addr::unchecked(collection.to_string()),
+            price: Uint128::new(price),
+        }
+    }
+}
+
 #[cw_serde]
 pub struct QueryPricesResponse {
     pub is_outdated: bool,
