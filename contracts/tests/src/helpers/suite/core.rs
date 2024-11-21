@@ -4,7 +4,7 @@ use cosmwasm_std::{
     coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdResult, Timestamp, Uint128,
 };
 use cw_multi_test::{
-    AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
+    App, AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
     WasmKeeper,
 };
 
@@ -573,12 +573,14 @@ impl Project {
     }
 
     pub fn create_app_with_balances() -> CustomApp {
+        let block_info = App::default().block_info();
+
         AppBuilder::new_custom()
             .with_api(MockApiBech32::new("wasm"))
             .with_wasm(WasmKeeper::new().with_address_generator(MockAddressGenerator))
             .with_block(BlockInfo {
-                height: 1,
-                time: Timestamp::from_seconds(1_000_000),
+                height: block_info.height,
+                time: block_info.time,
                 chain_id: "wasm-1".to_string(),
             })
             .build(|router, _api, storage| {
