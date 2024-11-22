@@ -29,9 +29,10 @@ pub fn to_prices_in(list: &[(ProjectNft, &str)]) -> Vec<(String, u32)> {
         .map(|(collection, price)| {
             (
                 split_address(collection).1,
-                (str_to_dec(price) * (u128_to_dec(10u128)).pow(USD_DECIMALS as u32))
-                    .to_uint_floor()
-                    .u128() as u32,
+                (str_to_dec(&price.replace('_', ""))
+                    * (u128_to_dec(10u128)).pow(USD_DECIMALS as u32))
+                .to_uint_floor()
+                .u128() as u32,
             )
         })
         .collect()
