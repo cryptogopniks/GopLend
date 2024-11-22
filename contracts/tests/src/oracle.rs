@@ -23,33 +23,34 @@ use crate::helpers::{
 pub const DECIMALS_MULTIPLIER: u128 = 1_000_000;
 
 pub fn to_prices_in(list: &[(ProjectNft, &str)]) -> Vec<(String, u32)> {
-    const USD_DECIMALS: u8 = 2;
+    const USD_DECIMALS: u32 = 2;
 
     list.iter()
         .map(|(collection, price)| {
-            (
-                split_address(collection).1,
-                (str_to_dec(&price.replace('_', ""))
-                    * (u128_to_dec(10u128)).pow(USD_DECIMALS as u32))
-                .to_uint_floor()
-                .u128() as u32,
+            let (_, collection) = split_address(collection);
+            let price = TryInto::<u32>::try_into(
+                (str_to_dec(&price.replace('_', "")) * (u128_to_dec(10u128)).pow(USD_DECIMALS))
+                    .to_uint_floor()
+                    .u128(),
             )
+            .unwrap();
+
+            (collection, price)
         })
         .collect()
 }
 
 pub fn to_prices_out(list: &[(ProjectNft, &str)]) -> Vec<PriceItem> {
-    const USDC_DECIMALS: u8 = 6;
+    const USDC_DECIMALS: u32 = 6;
 
     let mut prices: Vec<PriceItem> = list
         .iter()
         .map(|(collection, price)| {
-            PriceItem::new(
-                collection,
-                (str_to_dec(price) * (u128_to_dec(10u128)).pow(USDC_DECIMALS as u32))
-                    .to_uint_floor()
-                    .u128(),
-            )
+            let price = (str_to_dec(price) * (u128_to_dec(10u128)).pow(USDC_DECIMALS))
+                .to_uint_floor()
+                .u128();
+
+            PriceItem::new(collection, price)
         })
         .collect();
     prices.sort_unstable_by_key(|x| x.collection.clone());
