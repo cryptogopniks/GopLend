@@ -436,11 +436,6 @@ pub fn try_deposit_collateral(
     let prices_response =
         helpers::get_prices(&deps.querier, oracle, Some(&collection_addresses_full))?;
 
-    // don't allow to deposit collateral if oracle price data is outdated
-    if prices_response.is_outdated {
-        Err(ContractError::OutdatedPrice)?;
-    }
-
     // don't allow to deposit if final collateral amount will be too low
     let collateral_value_result =
         helpers::get_collateral_value(&collection_and_collateral_list, &prices_response);
