@@ -22,10 +22,6 @@ import {
 } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { getChainOptionById, getContractByLabel } from "../config/config-utils";
 import {
-  PriceItemForFundsForToken,
-  RawPriceItem,
-} from "../codegen/Oracle.types";
-import {
   getCwClient,
   signAndBroadcastWrapper,
   getExecuteContractMsg,
@@ -87,6 +83,7 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
 } from "../interfaces";
+import { PriceItem, QueryPricesResponse } from "../codegen/Oracle.types";
 
 function addSingleTokenToComposerObj(
   obj: MsgExecuteContractEncodeObject,
@@ -1144,14 +1141,12 @@ async function getCwExecHelpers(
       controller,
       maxPriceUpdatePeriod,
       executionCooldown,
-      stableCurrency,
     }: {
       admin?: string;
       worker?: string;
       controller?: string[];
       maxPriceUpdatePeriod?: number;
       executionCooldown?: number;
-      stableCurrency?: CurrencyForTokenUnverified;
     },
     gasPrice: string
   ) {
@@ -1163,23 +1158,25 @@ async function getCwExecHelpers(
           controller,
           maxPriceUpdatePeriod,
           executionCooldown,
-          stableCurrency,
         }),
       ],
       gasPrice
     );
   }
 
-  async function cwSetPrices(priceList: RawPriceItem[], gasPrice: string) {
+  // list of (collection_address_postfix, usd_price_with_decimals_2)
+  async function cwUpdatePrices(data: [string, number][], gasPrice: string) {
     return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.setPrices({ priceList })],
-      gasPrice
-    );
-  }
+      [
+        oracleMsgComposer.updatePrices({
+          data: data.map(([collectionAddress, usdPrice]) => {
+            const postfix = collectionAddress.split("1").slice(1).join("1");
+            const price = (usdPrice * 100).toString();
 
-  async function cwUpdatePrices(priceList: RawPriceItem[], gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [oracleMsgComposer.updatePrices({ priceList })],
+            return [postfix, price];
+          }),
+        }),
+      ],
       gasPrice
     );
   }
@@ -1385,7 +1382,6 @@ async function getCwExecHelpers(
     oracle: {
       cwAcceptAdminRole: cwOracleAcceptAdminRole,
       cwUpdateConfig: cwOracleUpdateConfig,
-      cwSetPrices,
       cwUpdatePrices,
       cwRemovePrices,
     },
@@ -2312,39 +2308,42 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     maxPaginationAmount: number,
     maxCount: number = 0,
     isDisplayed: boolean = false
-  ): Promise<PriceItemForFundsForToken[]> {
+  ): Promise<QueryPricesResponse> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
 
-    let allItems: PriceItemForFundsForToken[] = [];
+    let isOutdated = false;
+    let allItems: PriceItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: PriceItemForFundsForToken[] =
+      const queryPricesResponse: QueryPricesResponse =
         await oracleQueryClient.queryPrices({
           amount: paginationAmount,
           startAfter: lastItem,
         });
 
-      lastItem = getLast(items)?.address || "";
-      allItems = [...allItems, ...items];
-      count += items.length;
+      isOutdated = queryPricesResponse.is_outdated;
+      lastItem = getLast(queryPricesResponse.data)?.collection || "";
+      allItems = [...allItems, ...queryPricesResponse.data];
+      count += queryPricesResponse.data.length;
     }
 
     if (maxCount) {
       allItems = allItems.slice(0, maxCount);
     }
 
-    return logAndReturn(allItems, isDisplayed);
+    return logAndReturn(
+      {
+        is_outdated: isOutdated,
+        data: allItems,
+      },
+      isDisplayed
+    );
   }
 
   async function cwQueryBlockTime(isDisplayed: boolean = false) {
     const res = await oracleQueryClient.queryBlockTime();
-    return logAndReturn(res, isDisplayed);
-  }
-
-  async function cwOracleQueryLog(isDisplayed: boolean = false) {
-    const res = await oracleQueryClient.queryLog();
     return logAndReturn(res, isDisplayed);
   }
 
@@ -2629,7 +2628,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       pQueryPrices,
 
       cwQueryBlockTime,
-      cwQueryLog: cwOracleQueryLog,
     },
     marketMaker: {
       cwQueryConfig: cwMarketMakerQueryConfig,

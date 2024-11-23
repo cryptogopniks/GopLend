@@ -4,25 +4,11 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-export type TokenUnverified = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: string;
-  };
-};
 export interface InstantiateMsg {
   controller?: string[] | null;
   execution_cooldown?: number | null;
   max_price_update_period?: number | null;
-  stable_currency: CurrencyForTokenUnverified;
   worker?: string | null;
-}
-export interface CurrencyForTokenUnverified {
-  decimals: number;
-  token: TokenUnverified;
 }
 export type ExecuteMsg = {
   accept_admin_role: {};
@@ -32,27 +18,17 @@ export type ExecuteMsg = {
     controller?: string[] | null;
     execution_cooldown?: number | null;
     max_price_update_period?: number | null;
-    stable_currency?: CurrencyForTokenUnverified | null;
     worker?: string | null;
   };
 } | {
-  set_prices: {
-    price_list: RawPriceItem[];
-  };
-} | {
   update_prices: {
-    price_list: RawPriceItem[];
+    data: [string, number][];
   };
 } | {
   remove_prices: {
     collections: string[];
   };
 };
-export type Uint128 = string;
-export interface RawPriceItem {
-  collection: string;
-  usd_price: Uint128;
-}
 export type QueryMsg = {
   query_config: {};
 } | {
@@ -63,50 +39,25 @@ export type QueryMsg = {
   };
 } | {
   query_block_time: {};
-} | {
-  query_log: {};
 };
 export interface MigrateMsg {
   version: string;
 }
 export type Uint64 = number;
 export type Addr = string;
-export type Token = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: Addr;
-  };
-};
 export interface Config {
   admin: Addr;
-  controller?: Addr[] | null;
+  controller: Addr[];
   execution_cooldown: number;
   max_price_update_period: number;
-  stable_currency: CurrencyForToken;
-  worker?: Addr | null;
+  worker: Addr;
 }
-export interface CurrencyForToken {
-  decimals: number;
-  token: Token;
-}
-export type ArrayOfLog = Log[];
-export interface Log {
-  block_time: number;
-  counter: number;
-  outdated_price_collections: Addr[];
-  sender: Addr;
-}
-export type ArrayOfPriceItemForFundsForToken = PriceItemForFundsForToken[];
-export interface PriceItemForFundsForToken {
-  address: Addr;
+export type Uint128 = string;
+export interface QueryPricesResponse {
+  data: PriceItem[];
   is_outdated: boolean;
-  update_date: number;
-  usd_price: FundsForToken;
 }
-export interface FundsForToken {
-  amount: Uint128;
-  currency: CurrencyForToken;
+export interface PriceItem {
+  collection: Addr;
+  price: Uint128;
 }
