@@ -1638,7 +1638,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
   //   return logAndReturn(allItems, isDisplayed);
   // }
 
-  async function cwGetMarketplaceData(
+  async function cwGetMarketMakerData(
     collectionList: string[],
     batchPaginationAmount: number
   ): Promise<[string, string[]][]> {
@@ -2622,7 +2622,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryApprovals,
       cwQueryBalanceInNft,
       cwQueryNftOwner,
-      cwGetMarketplaceData,
+      cwGetMarketMakerData,
 
       cwV2QueryAsksByCollectionDenom,
       cwV2QueryBidsByTokenPrice,

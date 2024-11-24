@@ -1,178 +1,159 @@
-// import { l, li } from "../../common/utils";
-// import { getCwQueryHelpers } from "../../common/account/cw-helpers";
-// import { getBlockTime, wrapListQuerier } from "./utils";
-// import {
-//   CommonConfig,
-//   LiquidationItem,
-//   RateConfig,
-// } from "../../common/codegen/LendingPlatform.types";
-// import {
-//   aggregateTokensByCollection,
-//   calcLiquidationSet,
-//   calcLiquidationValue,
-//   distributeOffers,
-//   getCollectionAndBidList,
-//   getCollectionsFromLtvAndCollateralList,
-//   getTargetBorrowers,
-//   matchCollateralsAndBids,
-//   mergeBidsAndOffers,
-//   reduceBids,
-// } from "./math";
+import { l, li } from "../../common/utils";
+import { getCwQueryHelpers } from "../../common/account/cw-helpers";
+import { getBlockTime } from "./utils";
+import {
+  LiquidationItem,
+  RateConfig,
+} from "../../common/codegen/LendingPlatform.types";
+import {
+  aggregateTokensByCollection,
+  calcLiquidationSet,
+  calcLiquidationValue,
+  distributeOffers,
+  getCollectionAndBidList,
+  getCollectionsFromLtvAndCollateralList,
+  getTargetBorrowers,
+  matchCollateralsAndBids,
+  mergeBidsAndOffers,
+  reduceBids,
+} from "./math";
 
-// export async function queryTargets(
-//   chainId: string,
-//   rpc: string,
-//   rateConfig: RateConfig,
-//   commonConfig: CommonConfig,
-//   ltvMax: number,
-//   ltvMaxFraction: number,
-//   blockTimeOffset: number, // several seconds to consider query delays
-//   collateralPaginationAmount: number,
-//   borrowersPaginationAmount: number,
-//   pricesPaginationAmount: number,
-//   bidsPaginationAmount: number,
-//   offersBatchPaginationAmount: number, // 5
-//   collectionOffersPaginationAmount: number, // 50
-//   tokenOffersPaginationAmount: number // 20
-// ): Promise<LiquidationItem[]> {
-//   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
+export async function queryTargets(
+  chainId: string,
+  rpc: string,
+  rateConfig: RateConfig,
+  ltvMax: number,
+  ltvMaxFraction: number,
+  blockTimeOffset: number, // several seconds to consider query delays
+  collateralPaginationAmount: number,
+  borrowersPaginationAmount: number,
+  pricesPaginationAmount: number,
+  bidsPaginationAmount: number,
+  offersBatchPaginationAmount: number // 5
+): Promise<LiquidationItem[]> {
+  const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
-//   const collateralList = await lending.pQueryCollateralList(
-//     collateralPaginationAmount
-//   );
-//   const borrowerList = await lending.pQueryBorrowerList(
-//     borrowersPaginationAmount
-//   );
-//   const priceList = await oracle.pQueryPrices(pricesPaginationAmount);
-//   const blockTime = getBlockTime(blockTimeOffset);
+  const collateralList = await lending.pQueryCollateralList(
+    collateralPaginationAmount
+  );
+  const borrowerList = await lending.pQueryBorrowerList(
+    borrowersPaginationAmount
+  );
+  const priceList = await oracle.pQueryPrices(pricesPaginationAmount);
+  const blockTime = getBlockTime(blockTimeOffset);
 
-//   // get borrowers with ltv > ltvMax, sort by ltv descending
-//   const ltvAndCollateralList = getTargetBorrowers(
-//     borrowerList,
-//     collateralList,
-//     priceList,
-//     rateConfig,
-//     commonConfig,
-//     ltvMax,
-//     blockTime
-//   ).sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
+  // handle outdated prices
+  if (priceList.is_outdated) {
+    l(`⚠️⚠️⚠️ Warning: prices are outdated`);
+    return [];
+  }
 
-//   if (!ltvAndCollateralList.length) {
-//     return [];
-//   }
+  // get borrowers with ltv > ltvMax, sort by ltv descending
+  const ltvAndCollateralList = getTargetBorrowers(
+    borrowerList,
+    collateralList,
+    priceList.data,
+    rateConfig,
+    ltvMax,
+    blockTime
+  ).sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
 
-//   const collectionList =
-//     getCollectionsFromLtvAndCollateralList(ltvAndCollateralList);
+  if (!ltvAndCollateralList.length) {
+    return [];
+  }
 
-//   const liquidationBids =
-//     await lending.pQueryLiquidationBidsByCollectionAddressList(
-//       bidsPaginationAmount
-//     );
+  const collectionList =
+    getCollectionsFromLtvAndCollateralList(ltvAndCollateralList);
 
-//   const collectionAndTokensList = aggregateTokensByCollection(
-//     ltvAndCollateralList,
-//     collectionList
-//   );
+  const liquidationBids =
+    await lending.pQueryLiquidationBidsByCollectionAddressList(
+      bidsPaginationAmount
+    );
 
-//   const collectionOfferList = await utils.cwGetMarketplaceData(
-//     collectionList,
-//     offersBatchPaginationAmount
-//   );
+  // const collectionAndTokensList = aggregateTokensByCollection(
+  //   ltvAndCollateralList,
+  //   collectionList
+  // );
 
-//   const offers = distributeOffers(
-//     collectionList,
-//     collateralList,
-//     collectionOfferList,
-//     blockTime
-//   );
+  const collectionOfferList = await utils.cwGetMarketMakerData(
+    collectionList,
+    offersBatchPaginationAmount
+  );
 
-//   let totalBids = mergeBidsAndOffers(liquidationBids, offers);
+  const offers = distributeOffers(
+    collectionList,
+    collateralList,
+    collectionOfferList,
+    blockTime
+  );
 
-//   const liquidationTargets: [PlatformType, LiquidationItem][] =
-//     ltvAndCollateralList.reduce(
-//       (
-//         acc,
-//         {
-//           platformType,
-//           borrowerAddress,
-//           ltv,
-//           loanAmount,
-//           loanCreationDate,
-//           accumulatedLoan,
-//           collateralValue,
-//           collectionAndCollateralList,
-//         }
-//       ) => {
-//         const isMain = platformType === "main";
-//         const { main_currency } = isMain
-//           ? commonConfigMain
-//           : commonConfigStable;
-//         const { discount_max_rate, borrow_apr } = isMain
-//           ? rateConfigMain
-//           : rateConfigStable;
-//         const ltvMax = isMain ? ltvMaxMain : ltvMaxStable;
-//         const totalBids = isMain ? totalBidsMain : totalBidsStable;
+  let totalBids = mergeBidsAndOffers(liquidationBids, offers);
 
-//         const collectionAndBidList = getCollectionAndBidList(
-//           totalBids,
-//           collectionAndCollateralList
-//         );
+  const liquidationTargets: LiquidationItem[] = ltvAndCollateralList.reduce(
+    (
+      acc,
+      {
+        borrowerAddress,
+        ltv,
+        loanAmount,
+        loanCreationDate,
+        accumulatedLoan,
+        collateralValue,
+        collectionAndCollateralList,
+      }
+    ) => {
+      const { discount_max_rate, borrow_apr } = rateConfig;
+      const collectionAndBidList = getCollectionAndBidList(
+        totalBids,
+        collectionAndCollateralList
+      );
 
-//         const biddedCollateralList = matchCollateralsAndBids(
-//           main_currency,
-//           collectionAndCollateralList,
-//           collectionAndBidList,
-//           priceList
-//         );
+      const biddedCollateralList = matchCollateralsAndBids(
+        collectionAndCollateralList,
+        collectionAndBidList,
+        priceList.data
+      );
 
-//         // calculate how much tokens and what collection must be liquidated to get proper ltv
-//         // for worst case (max discount)
-//         const maxLiquidationValue = calcLiquidationValue(
-//           collateralValue,
-//           Number(discount_max_rate),
-//           ltv,
-//           ltvMax,
-//           ltvMaxFraction
-//         );
+      // calculate how much tokens and what collection must be liquidated to get proper ltv
+      // for worst case (max discount)
+      const maxLiquidationValue = calcLiquidationValue(
+        collateralValue,
+        Number(discount_max_rate),
+        ltv,
+        ltvMax,
+        ltvMaxFraction
+      );
 
-//         const liquidationSet = calcLiquidationSet(
-//           biddedCollateralList,
-//           maxLiquidationValue,
-//           ltvMax,
-//           Number(borrow_apr),
-//           accumulatedLoan,
-//           loanAmount,
-//           collateralValue,
-//           blockTime,
-//           loanCreationDate
-//         );
+      const liquidationSet = calcLiquidationSet(
+        biddedCollateralList,
+        maxLiquidationValue,
+        ltvMax,
+        Number(borrow_apr),
+        accumulatedLoan,
+        loanAmount,
+        collateralValue,
+        blockTime,
+        loanCreationDate
+      );
 
-//         if (liquidationSet.length) {
-//           // remove used bids
-//           ({ totalBidsMain, totalBidsStable } = reduceBids(
-//             platformType,
-//             totalBidsMain,
-//             totalBidsStable,
-//             liquidationSet
-//           ));
+      if (liquidationSet.length) {
+        // remove used bids
+        totalBids = reduceBids(totalBids, liquidationSet);
 
-//           acc.push([
-//             platformType,
-//             {
-//               borrower: borrowerAddress,
-//               liquidation_set: liquidationSet,
-//             },
-//           ]);
-//         } else {
-//           l(
-//             `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
-//           );
-//         }
+        acc.push({
+          borrower: borrowerAddress,
+          liquidation_set: liquidationSet,
+        });
+      } else {
+        l(
+          `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
+        );
+      }
 
-//         return acc;
-//       },
-//       [] as [PlatformType, LiquidationItem][]
-//     );
+      return acc;
+    },
+    [] as LiquidationItem[]
+  );
 
-//   return liquidationTargets;
-// }
+  return liquidationTargets;
+}

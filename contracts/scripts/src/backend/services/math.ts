@@ -523,22 +523,10 @@ export function getCollectionsFromLtvAndCollateralList(
   }, [] as string[]);
 }
 
-// imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
-// if we will assume the offer is 5 USDC we will lose some funds due to
-// swap fee, price impact, price ratio fluctuation
-// expecting 2 % losses we can accept 4.9 USDC offer
-//
-// price = base_price * price_ratio * (1 - price_impact)
-// as price_impact comes with price_ratio
-// price = base_price * price_ratio
-export function calcPrice(basePrice: number, priceRatio: number): number {
-  return basePrice * priceRatio;
-}
-
 export function distributeOffers(
   collectionList: string[],
   collateralList: QueryCollateralsResponseItem[],
-  collectionOfferList: [string, v2.CollectionBid[]][],
+  collectionOfferList: [string, string[]][],
   blockTime: number
 ): LiquidationBidExtended[] {
   let offers: LiquidationBidExtended[] = [];
@@ -558,15 +546,15 @@ export function distributeOffers(
     );
     if (!tokenList.length) continue;
 
-    for (const { collection, creator, details, id } of collectionOffers) {
+    for (const price of collectionOffers) {
       const tokenIdList = tokenList;
       if (!tokenIdList.length) continue;
 
       offers.push({
         creationDate: blockTime,
-        liquidator: creator,
+        liquidator: "MM",
         tokenIdList,
-        amount: calcPrice(Number(details.price), 1),
+        amount: Number(price),
         discount: 0,
         bidType: "collection_offer",
         collectionOfferId,
