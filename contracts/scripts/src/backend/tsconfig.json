@@ -12,27 +12,40 @@
     "transpileOnly": true,
     "files": true,
     "compilerOptions": {
-      "target": "es2015",
+      "target": "ESNext",
+      "lib": [
+        "ESNext"
+      ],
       "moduleResolution": "node",
       "strict": true,
       "composite": true,
       "resolveJsonModule": true,
       "esModuleInterop": true,
       "allowSyntheticDefaultImports": true,
-      "module": "commonjs"
+      "module": "ESNext",
+      "allowJs": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "noFallthroughCasesInSwitch": true,
+      "isolatedModules": true,
+      "noEmit": true,
+    },
+    "ts-node": {
+      "esm": true,
+      "experimentalSpecifierResolution": "node",
     }
   },
   "compilerOptions": {
     "rootDir": "../",
     "outDir": "../../dist",
-    "target": "es2015",
+    "target": "ESNext",
     "moduleResolution": "node",
     "strict": true,
     "composite": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "module": "commonjs",
+    "module": "ESNext",
     // Ensure that .d.ts files are created by tsc, but not .js files
     "declaration": true,
     "emitDeclarationOnly": true,
@@ -40,5 +53,5 @@
     "sourceMap": true,
     // "inlineSources": true,
     // "inlineSourceMap": true
-  }
+  },
 }

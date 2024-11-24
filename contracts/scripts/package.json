@@ -4,6 +4,7 @@
   "description": "",
   "main": "./dist/backend/index.js",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=18.x"
   },
@@ -19,9 +20,7 @@
     "get-targets": "ts-node ./src/backend/services/get-targets.ts",
     "liquidate": "ts-node ./src/backend/services/liquidate.ts",
     "call": "ts-node ./src/backend/services/call-contract.ts",
-    "transpile": "shx rm -rf ./dist/backend/* && shx rm -rf ./dist/common/* && npx babel ./src/common --out-dir ./dist/common --extensions '.ts' && shx cp -r ./src/common/config/*.json ./dist/common/config",
     "types": "tsc -p ./src/backend/tsconfig.json",
-    "prepare": "npm run transpile && npm run types",
     "gov": "ts-node ./src/backend/services/gov-contract.ts",
     "capture-unbonders": "ts-node ./src/backend/services/capture/unbonders.ts",
     "capture-borrowers": "ts-node ./src/backend/services/capture/borrowers.ts",
@@ -33,7 +32,8 @@
     "capture-ltvs": "ts-node ./src/backend/services/capture/ltvs.ts",
     "capture-user": "ts-node ./src/backend/services/capture/user.ts",
     "capture-logs": "ts-node ./src/backend/services/capture/logs.ts",
-    "test": "jest"
+    "test": "jest",
+    "start": "node --loader ts-node/esm ./src/backend/services/call-contract.ts"
   },
   "repository": {
     "type": "git",
@@ -55,6 +55,9 @@
     "crypto-js": "^4.2.0",
     "decimal.js": "^10.4.3",
     "dotenv": "^16.4.1",
+    "graffle": "^0.0.0",
+    "graphql": "16.8.1",
+    "graphql-request": "^7.1.2",
     "util": "^0.12.5"
   },
   "devDependencies": {

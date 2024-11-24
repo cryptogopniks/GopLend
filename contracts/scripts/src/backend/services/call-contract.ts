@@ -22,6 +22,7 @@ import {
   getCwExecHelpers,
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
+import { getFloorPrices } from "./sg-api";
 
 async function main() {
   try {
@@ -63,13 +64,18 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
 
-    const res = await utils.cwV2QueryAsksByCollectionDenom(
-      // "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl" ||
-      ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
+    // const res = await utils.cwV2QueryAsksByCollectionDenom(
+    //   // "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl" ||
+    //   ADDRESS.MAINNET.STARGAZE.MARKETPLACE,
+    //   COLLECTION.MAINNET.STARGAZE.EXPEDITION,
+    //   TOKEN.MAINNET.STARS,
+    //   { descending: false, limit: 5 }
+    // );
+
+    const res = await getFloorPrices([
       COLLECTION.MAINNET.STARGAZE.EXPEDITION,
-      TOKEN.MAINNET.STARS,
-      { descending: false, limit: 5 }
-    );
+      COLLECTION.MAINNET.STARGAZE.MAD_SCIENTISTS,
+    ]);
 
     li(res);
   } catch (error) {
