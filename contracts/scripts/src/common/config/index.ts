@@ -36,7 +36,16 @@ export const ADDRESS = {
     },
     NEUTRON: {
       ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
-      WORKER: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
+      WORKER: "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+      LIQUIDATION_CONTROLLER_LIST: [
+        "neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43",
+        "neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8",
+      ],
+      ORACLE_CONTROLLER_LIST: [
+        "neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u",
+        "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
+      ],
+      MARKET_MAKER_CONTROLLER: "neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz",
     },
   },
   MAINNET: {
@@ -56,6 +65,9 @@ export const ADDRESS = {
         "stars1t95n48trupwxytc2ewms2mkhgalfucy2cldxf6",
       ],
       MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
+      // v2
+      MARKETPLACE:
+        "stars1e6g3yhasf7cr2vnae7qxytrys4e8v8wchyj377juvxfk9k6t695s38jkgw",
     },
   },
 };
@@ -200,12 +212,6 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.MAINNET.STARGAZE.WORKER,
                 execution_cooldown: 4,
                 max_price_update_period: 30,
-                stable_currency: {
-                  token: {
-                    native: { denom: DENOM.STARGAZE.MAINNET.USDC },
-                  },
-                  decimals: 6,
-                },
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
                 version: "2.0.0",

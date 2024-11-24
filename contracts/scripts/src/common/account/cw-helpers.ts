@@ -1781,6 +1781,67 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  // TODO: use SG API instead
+  interface FloorPricesResponse {
+    collection: string;
+    amount: number;
+    denom: string;
+  }
+
+  // collectionAddress, floorPriceString
+  async function cwQueryFloorPrices(
+    marketplace: string,
+    collectionAndDenomList: [string, string][],
+    batchPaginationAmount: number
+  ): Promise<FloorPricesResponse[]> {
+    let promiseList: Promise<void>[] = [];
+    let floorPricesResponseList: FloorPricesResponse[] = [];
+
+    const fn = async (collection: string, denom: string) => {
+      try {
+        const [
+          {
+            details: {
+              price: { amount },
+            },
+          },
+        ] = await cwV2QueryAsksByCollectionDenom(
+          marketplace,
+          collection,
+          denom,
+          {
+            descending: false,
+            limit: 1,
+          }
+        );
+
+        const res: FloorPricesResponse = {
+          collection,
+          amount: Number(amount),
+          denom,
+        };
+
+        floorPricesResponseList.push(res);
+      } catch (error) {
+        l(error);
+      }
+    };
+
+    for (let i = 0; i < collectionAndDenomList.length; i++) {
+      if (promiseList.length >= batchPaginationAmount) {
+        await Promise.all(promiseList);
+        promiseList = [];
+      }
+
+      const [collection, denom] = collectionAndDenomList[i];
+      promiseList.push(fn(collection, denom));
+    }
+
+    await Promise.all(promiseList);
+
+    return floorPricesResponseList;
+  }
+
   // scheduler
 
   async function cwAdapterSchedulerCommonQueryConfig(
@@ -2568,6 +2629,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwV2QueryBidsByCreatorCollection,
       cwV2QueryCollectionBidsByPrice,
       cwV2QueryCollectionBid,
+
+      cwQueryFloorPrices,
     },
     scheduler: {
       cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,

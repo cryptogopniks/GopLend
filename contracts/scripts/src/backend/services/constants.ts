@@ -29,6 +29,14 @@ export const COLLECTION = {
   },
   MAINNET: {
     STARGAZE: {
+      BAD_KIDS:
+        "stars19jq6mj84cnt9p7sagjxqf8hxtczwc8wlpuwe4sh62w45aheseues57n420",
+      SLOTH: "stars10n0m58ztlr9wvwkgjuek2m2k0dn5pgrhfw9eahg9p8e5qtvn964suc995j",
+      MAD_SCIENTISTS:
+        "stars1v8avajk64z7pppeu45ce6vv8wuxmwacdff484lqvv0vnka0cwgdqdk64sf",
+      EXPEDITION:
+        "stars16srrs6zyl60n2avmp5hlkrc4k37q8spyzjtza7fhtpjchdjumxpq0rrnqm",
+
       PIGEON:
         "stars12c9nrpkqrfmdvrx4ex8d6qfs8rwrnclsk5jtk4r6u4gy9mjl97js626dtp",
       REBBITS:
@@ -64,9 +72,6 @@ export const TOKEN = {
     BGL_USDC:
       "factory/stars1ur79p98rmpn456esgzjernaxy7v25mlwqsv8uhymzxahfw77427syk2h9j/bglUSDC",
 
-    KUJI: "ukuji",
-    BGL_KUJI: "",
-    USK: "",
-    BGL_USK: "",
+    OSMO: "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
   },
 };
