@@ -193,6 +193,7 @@ async function main(isInfiniteLoop: boolean) {
 
     // prepare input data for set prices tx
     const priceData: [string, number][] = collectionInfoList.map(
+      // TODO: add bech32 address conversion
       ({ collection, price }) => [collection, price]
     );
 

@@ -821,26 +821,24 @@ export function calcCollectionPrice(
 export function splitOffers(
   lowerFloorPrice: number,
   upperFloorPrice: number,
-  price_and_outpost_list: [string, string][]
+  priceList: string[]
 ) {
-  const priceAndOutpostList = (
-    price_and_outpost_list.map(([price, outpost]) => [
-      Number(price),
-      outpost,
-    ]) as [number, string][]
-  ).sort(([priceA], [priceB]) => priceB - priceA);
+  // TODO: is it sorted by contract?
+  const priceListSorted = priceList
+    .map(Number)
+    .sort((priceA, priceB) => priceB - priceA);
 
-  const regularOffers = priceAndOutpostList
-    .map(([price]) => price)
-    .filter((price) => price >= lowerFloorPrice && price <= upperFloorPrice);
+  const regularOffers = priceListSorted.filter(
+    (price) => price >= lowerFloorPrice && price <= upperFloorPrice
+  );
 
   // sort ascending as we need to get rid of smallest offers first
-  const tooSmallOffers = priceAndOutpostList
-    .filter(([price]) => price < lowerFloorPrice)
-    .sort(([priceA], [priceB]) => priceA - priceB);
+  const tooSmallOffers = priceListSorted
+    .filter((price) => price < lowerFloorPrice)
+    .sort((priceA, priceB) => priceA - priceB);
 
-  const tooBigOffers = priceAndOutpostList.filter(
-    ([price]) => price > upperFloorPrice
+  const tooBigOffers = priceListSorted.filter(
+    (price) => price > upperFloorPrice
   );
 
   return {
@@ -851,26 +849,27 @@ export function splitOffers(
 }
 
 export function getOffersExtendedUp(
-  upper_allowed_offers_boundary: number,
+  upperAllowedOffersBoundary: number,
   amountUndistributed: number,
   floorPrice: number,
   lowerFloorPrice: number,
   regularOffers: number[],
-  tooSmallOffers: [number, string][]
+  tooSmallOffers: number[]
 ) {
   const highestOffer = regularOffers[0] || lowerFloorPrice;
   const allowedPriceRange =
-    floorPrice * upper_allowed_offers_boundary - highestOffer;
+    floorPrice * upperAllowedOffersBoundary - highestOffer;
   const priceStep = floor(allowedPriceRange / (tooSmallOffers.length - 1));
-  const fromToPriceAndOutpostListRaw: [number, number, string][] =
-    tooSmallOffers.map(([priceBefore, outpost], i) => {
+  const fromToPriceListRaw: [number, number][] = tooSmallOffers.map(
+    (priceBefore, i) => {
       const priceAfter = highestOffer + priceStep * (i + 1);
-      return [priceBefore, priceAfter, outpost];
-    });
+      return [priceBefore, priceAfter];
+    }
+  );
 
   // filter offers based on available liquidity
-  const [fromToPriceAndOutpostList]: [[number, number, string][], number] =
-    fromToPriceAndOutpostListRaw.reduce(
+  const [fromToPriceList]: [[number, number][], number] =
+    fromToPriceListRaw.reduce(
       (acc, cur) => {
         let [list, availableLiquidity] = acc;
         const [priceBefore, priceAfter] = cur;
@@ -882,43 +881,44 @@ export function getOffersExtendedUp(
 
         return [list, availableLiquidity];
       },
-      [[], amountUndistributed] as [[number, number, string][], number]
+      [[], amountUndistributed] as [[number, number][], number]
     );
 
-  const isNoLiquidity = !fromToPriceAndOutpostList.length;
+  const isNoLiquidity = !fromToPriceList.length;
   const isRequiredMoreLiquidity =
-    fromToPriceAndOutpostList.length < fromToPriceAndOutpostListRaw.length;
+    fromToPriceList.length < fromToPriceListRaw.length;
 
   return {
-    fromToPriceAndOutpostList,
+    fromToPriceList,
     isNoLiquidity,
     isRequiredMoreLiquidity,
   };
 }
 
 export function getOffersExtendedDown(
-  lower_allowed_offers_boundary: number,
+  lowerAllowedOffersBoundary: number,
   amountUndistributed: number,
   floorPrice: number,
   upperFloorPrice: number,
   regularOffers: number[],
-  tooBigOffers: [number, string][]
+  tooBigOffers: number[]
 ) {
   const lowestOffer = getLast(regularOffers) || upperFloorPrice;
   const allowedPriceRange =
-    lowestOffer - floorPrice * lower_allowed_offers_boundary;
+    lowestOffer - floorPrice * lowerAllowedOffersBoundary;
   const priceStep = floor(allowedPriceRange / (tooBigOffers.length - 1));
-  const fromToPriceAndOutpostList: [number, number, string][] =
-    tooBigOffers.map(([priceBefore, outpost], i) => {
+  const fromToPriceList: [number, number][] = tooBigOffers.map(
+    (priceBefore, i) => {
       const priceAfter = lowestOffer - priceStep * (i + 1);
-      return [priceBefore, priceAfter, outpost];
-    });
+      return [priceBefore, priceAfter];
+    }
+  );
 
-  const [[_, firstPriceAfter]] = fromToPriceAndOutpostList;
+  const [[_, firstPriceAfter]] = fromToPriceList;
   const isNoLiquidity = amountUndistributed < firstPriceAfter;
 
   return {
-    fromToPriceAndOutpostList,
+    fromToPriceList,
     isNoLiquidity,
   };
 }
