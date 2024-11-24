@@ -2699,6 +2699,8 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       pQueryCollateralList: pMarketMakerHubQueryCollateralList,
       cwQueryCollateral: cwMarketMakerQueryCollateral,
       cwQueryCollectionOffers,
+
+      pQueryOfferList,
     },
   };
 }

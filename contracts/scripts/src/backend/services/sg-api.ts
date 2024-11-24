@@ -2,7 +2,7 @@ import { floor } from "../../common/utils";
 
 interface FloorPricesResponse {
   collections: {
-    collections: { name: string; floor: { amountUsd: number } }[];
+    collections: { contractAddress: string; floor: { amountUsd: number } }[];
   };
 }
 
@@ -18,7 +18,7 @@ export async function getFloorPrices(
     query Collections($filterByAddrs: [String!]) {
       collections(filterByAddrs: $filterByAddrs) {
         collections {
-          name
+          contractAddress
           floor {
             amountUsd
           }
@@ -46,7 +46,7 @@ export async function getFloorPrices(
   const { data }: { data: FloorPricesResponse } = await response.json();
 
   return data.collections.collections.map((x) => ({
-    collection: x.name,
+    collection: x.contractAddress,
     price: floor(x.floor.amountUsd, 2),
   }));
 }

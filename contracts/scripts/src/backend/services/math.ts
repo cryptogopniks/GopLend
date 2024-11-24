@@ -1,5 +1,5 @@
 import { floor, getLast } from "../../common/utils";
-import { PriceItemForFundsForToken } from "../../common/codegen/Oracle.types";
+import { PriceItem } from "../../common/codegen/Oracle.types";
 import * as v2 from "../../common/interfaces/stargaze-marketplace-v2";
 import {
   LiquidationBidExtended,
@@ -9,9 +9,6 @@ import {
   Addr,
   BiddedCollateralItem,
   Collateral,
-  CommonConfig,
-  CurrencyForToken,
-  LiquidationBid,
   QueryBorrowersResponseItem,
   QueryCollateralsResponseItem,
   QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -89,118 +86,10 @@ export function calcDiscountedAmount(amount: number, discount: number): number {
 // and get the balance back
 // 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
 // but the liquidation price is 190. After liquidation the offer will be consumed completely
-export function matchCollateralsAndBidsLegacy(
-  mainCurrency: CurrencyForToken,
-  collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  collectionAndBidList: [Addr, LiquidationBid][],
-  priceList: PriceItemForFundsForToken[]
-): BiddedCollateralItem[] {
-  // set bids priority
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.amount) - Number(bidB.amount)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.creation_date) - Number(bidB.creation_date)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.discount) - Number(bidB.discount)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.bid_type) - Number(bidB.bid_type)
-  );
-
-  // add best bid for each collateral token
-  let biddedCollateralList: BiddedCollateralItem[] = [];
-
-  for (const [
-    collateral_collection,
-    collateral,
-  ] of collectionAndCollateralListByBorrower) {
-    const priceItem = priceList.find(
-      (x) => x.address === collateral_collection
-    );
-    if (!priceItem) continue;
-
-    const price = priceItem.usd_price.amount;
-
-    for (const tokenItem of collateral.token_item_list) {
-      for (let i = 0; i < collectionAndBidList.length; i++) {
-        const [_bid_collection, bid] = collectionAndBidList[i];
-
-        const { bidAmount, discountedPrice, liquidationPrice } =
-          bid.bid_type === "liquidation_bid"
-            ? (() => {
-                // bids
-                const bidAmount = Number(bid.amount);
-                const discountedPrice = calcDiscountedAmount(
-                  Number(price),
-                  Number(bid.discount)
-                );
-                const liquidationPrice = discountedPrice;
-
-                return { bidAmount, discountedPrice, liquidationPrice };
-              })()
-            : (() => {
-                // offers
-                const bidAmount = calcDiscountedAmount(
-                  Number(bid.amount),
-                  Number(bid.discount)
-                );
-                const discountedPrice = Number(price);
-                const liquidationPrice = bidAmount;
-
-                return { bidAmount, discountedPrice, liquidationPrice };
-              })();
-
-        if (
-          bid.token_id_list.includes(tokenItem.id) &&
-          bidAmount >= discountedPrice
-        ) {
-          const biddedCollateralItem: BiddedCollateralItem = {
-            collection: collateral_collection,
-            token_item: tokenItem,
-            owner: collateral.owner,
-            liquidator: bid.liquidator,
-            bid_creation_date: bid.creation_date,
-            liquidation_price: liquidationPrice.toString(),
-            collateral_price: price,
-            bid_amount: bid.amount,
-            bid_discount: bid.discount,
-            bid_type: bid.bid_type,
-          };
-
-          biddedCollateralList.push(biddedCollateralItem);
-
-          collectionAndBidList[i][1].amount = (
-            bidAmount - discountedPrice
-          ).toString();
-          break;
-        }
-      }
-    }
-  }
-
-  return biddedCollateralList;
-}
-
-// Places bid on each collateral token, best bids have higher priority
-//
-// Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
-// is floating), offfers from 100 % or more (liquidation price is fixed). Here are examples:
-// 1) Bid for 200 at a 5 % discount. At liquidation, the token price is 100,
-// but the liquidation price is 95. After liquidation the bid is 105, you can withdraw it
-// and get the balance back
-// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
-// but the liquidation price is 190. After liquidation the offer will be consumed completely
 export function matchCollateralsAndBids(
-  mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
   collectionAndBidList: LiquidationBidExtended[],
-  priceList: PriceItemForFundsForToken[]
+  priceList: PriceItem[]
 ): BiddedCollateralItem[] {
   // set bids priority
   collectionAndBidList.sort(
@@ -224,11 +113,11 @@ export function matchCollateralsAndBids(
     collateral,
   ] of collectionAndCollateralListByBorrower) {
     const priceItem = priceList.find(
-      (x) => x.address === collateral_collection
+      (x) => x.collection === collateral_collection
     );
     if (!priceItem) continue;
 
-    const price = priceItem.usd_price.amount;
+    const { price } = priceItem;
 
     for (const tokenItem of collateral.token_item_list) {
       for (let i = 0; i < collectionAndBidList.length; i++) {
@@ -484,20 +373,16 @@ export function getCollateralsByBorrower(
 
 export function getCollateralValue(
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  prices: PriceItemForFundsForToken[]
+  prices: PriceItem[]
 ): number | undefined {
   let isPriceOutdated = false;
 
   const collateralValue = collectionAndCollateralListByBorrower.reduce(
     (acc, [collectionAddress, collateral]) => {
-      const priceItem = prices.find((x) => x.address === collectionAddress);
+      const priceItem = prices.find((x) => x.collection === collectionAddress);
       if (!priceItem) return acc;
 
-      if (priceItem.is_outdated) {
-        isPriceOutdated = true;
-      }
-
-      const price = priceItem;
+      const { price } = priceItem;
 
       return acc + Number(price) * collateral.token_item_list.length;
     },
@@ -512,9 +397,8 @@ export function getCollateralValue(
 export function getTargetBorrowers(
   borrowerList: QueryBorrowersResponseItem[],
   collateralList: QueryCollateralsResponseItem[],
-  priceList: PriceItemForFundsForToken[],
+  priceList: PriceItem[],
   rateConfig: RateConfig,
-  commonConfig: CommonConfig,
   ltvMax: number,
   blockTime: number
 ): TargetBorrower[] {
@@ -860,7 +744,6 @@ export function calcCollectionPrice(
   newFloorPriceSample: PriceSample,
   prevFloorPriceEma: number | undefined,
   offerPriceList: number[],
-  feeRateList: number[],
   meanOfferSampleList: PriceSample[],
   prevMeanOfferEma: number
 ): CollectionPriceResponse {
@@ -892,12 +775,12 @@ export function calcCollectionPrice(
   );
 
   // filter offers
-  const validOffers = offerPriceList.reduce((acc, offer, i) => {
+  const validOffers = offerPriceList.reduce((acc, offer) => {
     if (
       offer >= floorPriceBoundaryLower * floorPrice &&
       offer <= floorPriceBoundaryUpper * floorPrice
     ) {
-      acc.push(floor((1 - feeRateList[i]) * offer));
+      acc.push(offer);
     }
 
     return acc;
