@@ -23,31 +23,6 @@ export type Label =
   | "market_maker";
 
 export const ADDRESS = {
-  TESTNET: {
-    STARGAZE: {
-      ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-      WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
-      LIQUIDATION_CONTROLLER_LIST: [
-        "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-        "stars1zwq7nlqm94pcg879vrww2mtawtp28gdkd8uz2v",
-      ],
-      ORACLE_CONTROLLER_LIST: ["stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2"],
-      MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
-    },
-    NEUTRON: {
-      ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
-      WORKER: "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
-      LIQUIDATION_CONTROLLER_LIST: [
-        "neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43",
-        "neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8",
-      ],
-      ORACLE_CONTROLLER_LIST: [
-        "neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u",
-        "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
-      ],
-      MARKET_MAKER_CONTROLLER: "neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz",
-    },
-  },
   MAINNET: {
     STARGAZE: {
       // GOPNIKS_DAO: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
@@ -70,9 +45,42 @@ export const ADDRESS = {
         "stars1e6g3yhasf7cr2vnae7qxytrys4e8v8wchyj377juvxfk9k6t695s38jkgw",
     },
   },
+  TESTNET: {
+    NEUTRON: {
+      ADMIN: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
+      WORKER: "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+      LIQUIDATION_CONTROLLER_LIST: [
+        "neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43",
+        "neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8",
+      ],
+      ORACLE_CONTROLLER_LIST: [
+        "neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u",
+        "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
+      ],
+      MARKET_MAKER_CONTROLLER: "neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz",
+    },
+    STARGAZE: {
+      ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+      WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+      LIQUIDATION_CONTROLLER_LIST: [
+        "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+        "stars1zwq7nlqm94pcg879vrww2mtawtp28gdkd8uz2v",
+      ],
+      ORACLE_CONTROLLER_LIST: ["stars17su0549xmtty7hfgf72dwh0nmp5rk9m5zr5gk2"],
+      MARKET_MAKER_CONTROLLER: "stars1zp38wxw7y7cfcld36k7jr3cda0r3asdks5avf5",
+    },
+  },
 };
 
 const DENOM = {
+  NEUTRON: {
+    MAINNET: {
+      USDC: "ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81",
+    },
+    TESTNET: {
+      USDC: "",
+    },
+  },
   STARGAZE: {
     MAINNET: {
       USDC: "ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591",
@@ -93,8 +101,8 @@ const DENOM = {
 export const CHAIN_CONFIG: ChainConfig = {
   CHAINS: [
     {
-      NAME: "stargaze",
-      PREFIX: "stars",
+      NAME: "neutron",
+      PREFIX: "neutron",
       OPTIONS: [
         // TODO: NEUTRON test
         {
@@ -108,12 +116,9 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "scheduler.wasm",
               LABEL: "scheduler",
-              PERMISSION: [
-                ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.TESTNET.STARGAZE.ADMIN,
-              ],
+              PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<SchedulerTypes.InstantiateMsg>({
-                worker: ADDRESS.MAINNET.STARGAZE.WORKER,
+                worker: ADDRESS.TESTNET.NEUTRON.WORKER,
                 execution_cooldown: 4,
               }),
               MIGRATE_MSG: toJson<SchedulerTypes.MigrateMsg>({
@@ -122,9 +127,9 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<SchedulerTypes.ExecuteMsg>({
                 update_config: {
                   offchain_clock:
-                    ADDRESS.MAINNET.STARGAZE.LIQUIDATION_CONTROLLER_LIST,
+                    ADDRESS.TESTNET.NEUTRON.LIQUIDATION_CONTROLLER_LIST,
                   lending_platform: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS"
                   ),
                 },
               }),
@@ -135,15 +140,12 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "lending_platform.wasm",
               LABEL: "lending_platform",
-              PERMISSION: [
-                ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.TESTNET.STARGAZE.ADMIN,
-              ],
+              PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
-                worker: ADDRESS.MAINNET.STARGAZE.WORKER,
+                worker: ADDRESS.TESTNET.NEUTRON.WORKER,
                 main_currency: {
                   token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                    native: { denom: $("OPTIONS[CHAIN_ID=pion-1]|DENOM") },
                   },
                   decimals: 6,
                 },
@@ -153,8 +155,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 discount_min_rate: "0",
                 discount_max_rate: "0.2",
                 bid_min_rate: "0.1",
-                collateral_min_value: `${6_300_000_000}`,
-                unbonding_period: 14 * 24 * 3600,
+                collateral_min_value: `${1_000_000}`,
+                unbonding_period: 5 * 60,
                 borrowers_reserve_fraction_ratio: "0.45",
               }),
               MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
@@ -163,13 +165,13 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
                 update_address_config: {
                   oracle: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
                   ),
                   minter: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=minter]|ADDRESS"
                   ),
                   scheduler: $(
-                    "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[LABEL=scheduler]|ADDRESS"
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=scheduler]|ADDRESS"
                   ),
                 },
               }),
@@ -180,10 +182,7 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "minter.wasm",
               LABEL: "minter",
-              PERMISSION: [
-                ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.TESTNET.STARGAZE.ADMIN,
-              ],
+              PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
               MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
                 version: "1.4.1",
@@ -191,9 +190,8 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
                   whitelist: [
-                    ADDRESS.MAINNET.STARGAZE.ADMIN,
-                    ADDRESS.TESTNET.STARGAZE.ADMIN,
-                    ADDRESS.TESTNET.STARGAZE.WORKER,
+                    ADDRESS.TESTNET.NEUTRON.ADMIN,
+                    ADDRESS.TESTNET.NEUTRON.WORKER,
                   ],
                 },
               }),
@@ -204,12 +202,9 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "oracle.wasm",
               LABEL: "oracle",
-              PERMISSION: [
-                ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.TESTNET.STARGAZE.ADMIN,
-              ],
+              PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
-                worker: ADDRESS.MAINNET.STARGAZE.WORKER,
+                worker: ADDRESS.TESTNET.NEUTRON.WORKER,
                 execution_cooldown: 4,
                 max_price_update_period: 30,
               }),
@@ -218,7 +213,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
-                  controller: ADDRESS.MAINNET.STARGAZE.ORACLE_CONTROLLER_LIST,
+                  controller: ADDRESS.TESTNET.NEUTRON.ORACLE_CONTROLLER_LIST,
                 },
               }),
               CODE: 0,
@@ -228,15 +223,12 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "market_maker.wasm",
               LABEL: "market_maker",
-              PERMISSION: [
-                ADDRESS.MAINNET.STARGAZE.ADMIN,
-                ADDRESS.TESTNET.STARGAZE.ADMIN,
-              ],
+              PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<MarketMakerTypes.InstantiateMsg>({
-                worker: ADDRESS.MAINNET.STARGAZE.WORKER,
-                controller: [ADDRESS.MAINNET.STARGAZE.MARKET_MAKER_CONTROLLER],
+                worker: ADDRESS.TESTNET.NEUTRON.WORKER,
+                controller: [ADDRESS.TESTNET.NEUTRON.MARKET_MAKER_CONTROLLER],
                 token: {
-                  native: { denom: $("OPTIONS[CHAIN_ID=stargaze-1]|DENOM") },
+                  native: { denom: $("OPTIONS[CHAIN_ID=pion-1]|DENOM") },
                 },
               }),
               MIGRATE_MSG: toJson<MarketMakerTypes.MigrateMsg>({

@@ -85,15 +85,6 @@ async function main() {
 
       const { LABEL, INIT_MSG, CODE } = CONTRACT;
 
-      // Token Factory config for faucet
-      const funds =
-        LABEL !== "faucet"
-          ? []
-          : {
-              ustars: coins(10_000_000_000, DENOM),
-              ukuji: coins(100_000_000, DENOM),
-            }[DENOM];
-
       const instantiateContractMsg: MsgInstantiateContractEncodeObject = {
         typeUrl: "/cosmwasm.wasm.v1.MsgInstantiateContract",
         value: MsgInstantiateContract.fromPartial({
@@ -101,7 +92,7 @@ async function main() {
           codeId: BigInt(CODE),
           label: LABEL,
           msg: toUtf8(INIT_MSG),
-          funds,
+          funds: [],
           admin: owner,
         }),
       };

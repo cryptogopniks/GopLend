@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { getFloorPrices } from "./sg-api";
 import { ChainConfig } from "../../common/interfaces";
+import { COLLECTION, NetworkItem } from "./constants";
 import {
   calcCollectionPrice,
   CollectionPriceResponse,
@@ -193,8 +194,14 @@ async function main(isInfiniteLoop: boolean) {
 
     // prepare input data for set prices tx
     const priceData: [string, number][] = collectionInfoList.map(
-      // TODO: add bech32 address conversion
-      ({ collection, price }) => [collection, price]
+      ({ collection, price }) => {
+        // get neutron address
+        const [_, { NEUTRON }] = Object.entries(COLLECTION?.MAINNET || {}).find(
+          ([_, { STARGAZE }]) => STARGAZE === collection
+        ) as [string, NetworkItem];
+
+        return [NEUTRON || "", price];
+      }
     );
 
     // send tx

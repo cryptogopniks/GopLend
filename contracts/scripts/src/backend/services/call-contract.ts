@@ -73,8 +73,8 @@ async function main() {
     // );
 
     const res = await getFloorPrices([
-      COLLECTION.MAINNET.STARGAZE.EXPEDITION,
-      COLLECTION.MAINNET.STARGAZE.MAD_SCIENTISTS,
+      COLLECTION?.MAINNET?.EXPEDITION?.STARGAZE || "",
+      COLLECTION?.MAINNET?.MAD_SCIENTISTS?.STARGAZE || "",
     ]);
 
     li(res);
