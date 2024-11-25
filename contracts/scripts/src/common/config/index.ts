@@ -72,21 +72,25 @@ export const ADDRESS = {
   },
 };
 
-const DENOM = {
+export const TOKEN = {
   NEUTRON: {
     MAINNET: {
       USDC: "ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81",
+      BGL_USDC: "",
     },
     TESTNET: {
-      USDC: "",
+      USDC: "factory/neutron12z8aa6mkpg558vrwq5dxsm4h4v3panhwzcd0f9u339yn058a8lhqatr434/USDC",
+      BGL_USDC: "",
     },
   },
   STARGAZE: {
     MAINNET: {
       USDC: "ibc/4A1C18CA7F50544760CF306189B810CE4C1CB156C7FC870143D401FE7280E591",
+      BGL_USDC: "",
     },
     TESTNET: {
       USDC: "factory/stars1t5mspw9nj5aml4lq3paxqngu7m99vl9qctf3h7km3qcp9qaj3dhqmecyg8/usdc",
+      BGL_USDC: "",
     },
   },
 };
@@ -133,7 +137,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
+              CODE: 8319,
               ADDRESS: "",
             },
 
@@ -145,7 +149,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.TESTNET.NEUTRON.WORKER,
                 main_currency: {
                   token: {
-                    native: { denom: $("OPTIONS[CHAIN_ID=pion-1]|DENOM") },
+                    native: { denom: TOKEN.NEUTRON.TESTNET.USDC },
                   },
                   decimals: 6,
                 },
@@ -175,7 +179,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
+              CODE: 8320,
               ADDRESS: "",
             },
 
@@ -195,8 +199,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ],
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 8321,
+              ADDRESS:
+                "neutron12z8aa6mkpg558vrwq5dxsm4h4v3panhwzcd0f9u339yn058a8lhqatr434",
             },
 
             {
@@ -216,7 +221,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   controller: ADDRESS.TESTNET.NEUTRON.ORACLE_CONTROLLER_LIST,
                 },
               }),
-              CODE: 0,
+              CODE: 8322,
               ADDRESS: "",
             },
 
@@ -228,7 +233,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 worker: ADDRESS.TESTNET.NEUTRON.WORKER,
                 controller: [ADDRESS.TESTNET.NEUTRON.MARKET_MAKER_CONTROLLER],
                 token: {
-                  native: { denom: $("OPTIONS[CHAIN_ID=pion-1]|DENOM") },
+                  native: { denom: TOKEN.NEUTRON.TESTNET.USDC },
                 },
               }),
               MIGRATE_MSG: toJson<MarketMakerTypes.MigrateMsg>({
@@ -237,7 +242,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<MarketMakerTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 0,
+              CODE: 8323,
               ADDRESS: "",
             },
           ],

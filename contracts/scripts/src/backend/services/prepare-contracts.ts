@@ -2,7 +2,8 @@ import { getSigner } from "../account/signer";
 import { floor, getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
-import { COLLECTION, TOKEN } from "./constants";
+import { COLLECTION } from "./constants";
+import { TOKEN } from "../../common/config";
 import {
   getChainOptionById,
   getContractByLabel,
@@ -56,7 +57,9 @@ async function main() {
 
       const bglDenom = "bglUSDC";
       const paymentAmount = 1;
-      const paymentDenom = isMainnet ? TOKEN.MAINNET.USDC : TOKEN.TESTNET.USDC;
+      const paymentDenom = isMainnet
+        ? TOKEN.NEUTRON.MAINNET.USDC
+        : TOKEN.NEUTRON.TESTNET.USDC;
       const bglDecimals = 6;
 
       const collectionEntries = isMainnet

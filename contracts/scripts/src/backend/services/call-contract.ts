@@ -3,7 +3,7 @@ import { getLast, l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
-import { COLLECTION, TOKEN } from "./constants";
+import { COLLECTION } from "./constants";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,

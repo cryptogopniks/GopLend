@@ -94,15 +94,3 @@ export const COLLECTION: CollectionConfig = {
     },
   },
 };
-
-// neutron
-export const TOKEN = {
-  MAINNET: {
-    USDC: "",
-    BGL_USDC: "",
-  },
-  TESTNET: {
-    USDC: "",
-    BGL_USDC: "",
-  },
-};

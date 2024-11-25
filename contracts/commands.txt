@@ -8,52 +8,52 @@
   ./codegen.sh market-maker
 
 yarn run json
-yarn run store "elgafar-1|minter,oracle,scheduler,lending_platform"
-yarn run inst "elgafar-1|minter,oracle,scheduler,lending_platform"
-yarn run config "elgafar-1|minter,oracle,scheduler,lending_platform"
-yarn run prepare-contracts "elgafar-1|"
-yarn run call "elgafar-1|"
+yarn run store "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
+yarn run inst "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
+yarn run config "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
+yarn run prepare-contracts "pion-1|"
+yarn run call "pion-1|"
 
-yarn run get-targets "elgafar-1|"
-yarn run liquidate "elgafar-1|"
+yarn run get-targets "pion-1|"
+yarn run liquidate "pion-1|"
 
 yarn run json
 ./run.sh
 ./test.sh
 ./stop.sh
 
-yarn run capture-unbonders "elgafar-1|"
-yarn run capture-borrowers "elgafar-1|"
-yarn run capture-liquidators "elgafar-1|"
-yarn run capture-collaterals "elgafar-1|"
-yarn run capture-bids "elgafar-1|"
-yarn run capture-proposals "elgafar-1|"
-yarn run capture-collections "elgafar-1|"
-yarn run capture-ltvs "elgafar-1|"
-yarn run capture-user "elgafar-1|"
-yarn run capture-logs "elgafar-1|"
-yarn run oracle-controller "elgafar-1|"
+yarn run capture-unbonders "pion-1|"
+yarn run capture-borrowers "pion-1|"
+yarn run capture-liquidators "pion-1|"
+yarn run capture-collaterals "pion-1|"
+yarn run capture-bids "pion-1|"
+yarn run capture-proposals "pion-1|"
+yarn run capture-collections "pion-1|"
+yarn run capture-ltvs "pion-1|"
+yarn run capture-user "pion-1|"
+yarn run capture-logs "pion-1|"
+yarn run oracle-controller "pion-1|"
 
 yarn run json
-yarn run store "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
-yarn run store "stargaze-1|minter,oracle,market_maker_hub"
-yarn run inst "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
-yarn run store "stargaze-1|market_maker_outpost"
-yarn run config "stargaze-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
-yarn run prepare-contracts "stargaze-1|"
-yarn run call "stargaze-1|"
+yarn run store "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
+yarn run store "neutron-1|minter,oracle,market_maker_hub"
+yarn run inst "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run store "neutron-1|market_maker_outpost"
+yarn run config "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run prepare-contracts "neutron-1|"
+yarn run call "neutron-1|"
 
-yarn run capture-unbonders "stargaze-1|"
-yarn run capture-borrowers "stargaze-1|"
-yarn run capture-liquidators "stargaze-1|"
-yarn run capture-collaterals "stargaze-1|"
-yarn run capture-bids "stargaze-1|"
-yarn run capture-proposals "stargaze-1|"
-yarn run capture-collections "stargaze-1|"
-yarn run capture-ltvs "stargaze-1|"
-yarn run capture-user "stargaze-1|"
-yarn run capture-logs "stargaze-1|"
-yarn run oracle-controller "stargaze-1|"
+yarn run capture-unbonders "neutron-1|"
+yarn run capture-borrowers "neutron-1|"
+yarn run capture-liquidators "neutron-1|"
+yarn run capture-collaterals "neutron-1|"
+yarn run capture-bids "neutron-1|"
+yarn run capture-proposals "neutron-1|"
+yarn run capture-collections "neutron-1|"
+yarn run capture-ltvs "neutron-1|"
+yarn run capture-user "neutron-1|"
+yarn run capture-logs "neutron-1|"
+yarn run oracle-controller "neutron-1|"
 
 // codes
 https://stargaze-rest.publicnode.com/cosmwasm/wasm/v1/code?pagination.reverse=true
