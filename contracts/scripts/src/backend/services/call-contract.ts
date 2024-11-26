@@ -2,7 +2,7 @@ import { getSigner } from "../account/signer";
 import { getLast, l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
-import { ADDRESS } from "../../common/config";
+import { ADDRESS, TOKEN } from "../../common/config";
 import { COLLECTION } from "./constants";
 import {
   ENCODING,
@@ -43,10 +43,12 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-    // const LENDING_PLATFORM_CONTRACT = getContractByLabel(
-    //   CONTRACTS,
-    //   "lending_platform"
-    // );
+    const LENDING_PLATFORM_CONTRACT = getContractByLabel(
+      CONTRACTS,
+      "lending_platform"
+    );
+
+    const ORACLE_CONTRACT = getContractByLabel(CONTRACTS, "oracle");
 
     // const ORACLE_CONTRACT = getContractByLabel(CONTRACTS, "oracle");
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
@@ -63,12 +65,6 @@ async function main() {
     const { getBalance, getAllBalances, getTimeInNanos } = sgQueryHelpers;
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
-
-    // TODO: add mm
-    // await h.lending.cwUpdateAddressConfig({})
-
-    // TODO: add lending, oracle
-    // await h.marketMaker.cwUpdateConfig({});
 
     await scheduler.cwQueryConfig(true);
     await lending.cwQueryAddressConfig(true);

@@ -615,12 +615,14 @@ async function getCwExecHelpers(
       minter,
       oracle,
       scheduler,
+      marketMaker,
     }: {
       admin?: string;
       worker?: string;
       minter?: string;
       oracle?: string;
       scheduler?: string;
+      marketMaker?: string;
     },
     gasPrice: string
   ) {
@@ -632,6 +634,7 @@ async function getCwExecHelpers(
           minter,
           oracle,
           scheduler,
+          marketMaker,
         }),
       ],
       gasPrice
@@ -1202,11 +1205,15 @@ async function getCwExecHelpers(
       admin,
       worker,
       controller,
+      lendingPlatform,
+      oracle,
       token,
     }: {
       admin?: string;
       worker?: string;
       controller?: string[];
+      lendingPlatform?: string;
+      oracle?: string;
       token?: TokenUnverified;
     },
     gasPrice: string
@@ -1217,6 +1224,8 @@ async function getCwExecHelpers(
           admin,
           worker,
           controller,
+          lendingPlatform,
+          oracle,
           token,
         }),
       ],

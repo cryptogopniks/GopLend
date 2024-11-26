@@ -118,6 +118,7 @@ async function main() {
         },
         gasPrice
       );
+      return;
 
       // deposit reserve liquidity
       await h.lending.cwDepositReserveLiquidity(

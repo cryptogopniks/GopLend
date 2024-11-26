@@ -80,7 +80,8 @@ export const TOKEN = {
     },
     TESTNET: {
       USDC: "factory/neutron12z8aa6mkpg558vrwq5dxsm4h4v3panhwzcd0f9u339yn058a8lhqatr434/USDC",
-      BGL_USDC: "",
+      BGL_USDC:
+        "factory/neutron12z8aa6mkpg558vrwq5dxsm4h4v3panhwzcd0f9u339yn058a8lhqatr434/bglUSDC",
     },
   },
   STARGAZE: {
