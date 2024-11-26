@@ -64,6 +64,20 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
 
+    // TODO: add mm
+    // await h.lending.cwUpdateAddressConfig({})
+
+    // TODO: add lending, oracle
+    // await h.marketMaker.cwUpdateConfig({});
+
+    await scheduler.cwQueryConfig(true);
+    await lending.cwQueryAddressConfig(true);
+    await lending.cwQueryCommonConfig(true);
+    await lending.cwQueryRateConfig(true);
+    await oracle.cwQueryConfig(true);
+    await marketMaker.cwQueryConfig(true);
+    return;
+
     // const res = await utils.cwV2QueryAsksByCollectionDenom(
     //   // "stars1fvhcnyddukcqfnt7nlwv3thm5we22lyxyxylr9h77cvgkcn43xfsvgv0pl" ||
     //   ADDRESS.MAINNET.STARGAZE.MARKETPLACE,

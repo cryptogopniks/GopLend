@@ -9,8 +9,8 @@
 
 yarn run json
 yarn run store "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
-yarn run inst "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
-yarn run config "pion-1|minter,oracle,scheduler,lending_platform,market_maker"
+yarn run inst "pion-1|oracle,scheduler,lending_platform,market_maker"
+yarn run config "pion-1|oracle,scheduler,lending_platform,market_maker"
 yarn run prepare-contracts "pion-1|"
 yarn run call "pion-1|"
 

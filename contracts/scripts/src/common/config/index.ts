@@ -138,7 +138,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 8319,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1cdkyyw6rspafk8hdl5t8c4dl40l7tzvchxnsjywak0kdk2tjujsszc37y6",
             },
 
             {
@@ -177,10 +178,14 @@ export const CHAIN_CONFIG: ChainConfig = {
                   scheduler: $(
                     "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=scheduler]|ADDRESS"
                   ),
+                  market_maker: $(
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=market_maker]|ADDRESS"
+                  ),
                 },
               }),
               CODE: 8320,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1ak6yg8vu2vs48rlwqyjz6elk676tpj7vz627px2n049dc5tz3sds70mf5d",
             },
 
             {
@@ -222,7 +227,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 8322,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1w8ekvjrwtph5een03w4cdlh5ghszu3tnxn0gf2znmvy4hj4kggfq84t95v",
             },
 
             {
@@ -240,10 +246,18 @@ export const CHAIN_CONFIG: ChainConfig = {
                 version: "2.0.0",
               }),
               UPDATE_MSG: toJson<MarketMakerTypes.ExecuteMsg>({
-                update_config: {},
+                update_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  lending_platform: $(
+                    "OPTIONS[CHAIN_ID=pion-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS"
+                  ),
+                },
               }),
               CODE: 8323,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1em38ykpa0tcfzgwg6mc7fq2pvn4yysjwcmtflmvmzv0gvl0xzt8qlvryyp",
             },
           ],
           IBC: [],
