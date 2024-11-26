@@ -1,7 +1,6 @@
 import { l } from "../../../common/utils";
-import { calcPrice } from "../math";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig, PlatformType } from "../../../common/interfaces";
+import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { getSgQueryHelpers } from "../../../common/account/sg-helpers";
@@ -51,25 +50,19 @@ async function main(userAddress: string) {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, RPC);
   const { getBalance } = await getSgQueryHelpers(RPC);
 
-  const getUser = async (platformType: PlatformType) => {
-    const unbonder = await lending.cwQueryUnbonder(platformType, userAddress);
-    const borrower = await lending.cwQueryBorrower(platformType, userAddress);
-    const collateral = await lending.cwQueryCollateralByOwner(
-      platformType,
-      userAddress
-    );
+  const getUser = async () => {
+    const unbonder = await lending.cwQueryUnbonder(userAddress);
+    const borrower = await lending.cwQueryBorrower(userAddress);
+    const collateral = await lending.cwQueryCollateralByOwner(userAddress);
 
     let ltv: string | null = null;
     try {
-      ltv = await lending.cwQueryConditionalLtv(platformType, userAddress);
+      ltv = await lending.cwQueryConditionalLtv(userAddress);
     } catch (_) {}
 
     let availableToBorrow: string | null = null;
     try {
-      availableToBorrow = await lending.cwQueryAvailableToBorrow(
-        platformType,
-        userAddress
-      );
+      availableToBorrow = await lending.cwQueryAvailableToBorrow(userAddress);
     } catch (_) {}
 
     return {
@@ -81,11 +74,10 @@ async function main(userAddress: string) {
     };
   };
 
-  const writeUserInfo = async (platformType: PlatformType) => {
+  const writeUserInfo = async () => {
     try {
-      const isMain = platformType === "main";
-      const { is_marketplace_interface_enabled, main_currency, bgl_currency } =
-        await lending.cwQueryCommonConfig(platformType);
+      const { main_currency, bgl_currency } =
+        await lending.cwQueryCommonConfig();
 
       const mainToken = main_currency?.token;
       if (!mainToken) throw new Error("mainToken isn't found!");
@@ -101,7 +93,7 @@ async function main(userAddress: string) {
       const bglTokenBalance = (await getBalance(userAddress, bglDenom)).amount;
 
       const { unbonder, borrower, collateral, ltv, availableToBorrow } =
-        await getUser(platformType);
+        await getUser();
 
       const blockTime = await oracle.cwQueryBlockTime();
 
@@ -115,11 +107,12 @@ async function main(userAddress: string) {
 
       const collateralWithPrices: CollateralsResponseItem[] = collateral.map(
         ({ address, collateral }) => {
-          const priceItem = priceList.find((y) => y.address === address);
-          const collectionPrice =
-            (isMain
-              ? priceItem?.price?.amount
-              : priceItem?.usd_price?.amount) || "0";
+          if (priceList.is_outdated) throw new Error("Outdated prices!");
+
+          const priceItem = priceList.data.find(
+            (y) => y.collection === address
+          );
+          const collectionPrice = priceItem?.price || "0";
 
           return {
             collectionAddress: address,
@@ -130,112 +123,43 @@ async function main(userAddress: string) {
       );
 
       let bidList = await lending.pQueryLiquidationBidsByCollectionAddressList(
-        platformType,
         PAGINATION.BIDS
       );
 
       // get marketplace offers
-      if (is_marketplace_interface_enabled) {
-        const collectionAndTokensList: [string, string[]][] =
-          collectionAddresses.map((collection) => {
-            const tokenList = collateralWithPrices
-              .filter(
-                ({ collectionAddress }) => collectionAddress === collection
-              )
-              .flatMap(({ tokenItemList }) =>
-                tokenItemList.map(({ id }) => id)
-              );
 
-            return [collection, tokenList];
-          });
+      const collectionOfferList = await utils.cwGetMarketMakerData(
+        collectionAddresses,
+        PAGINATION.OFFERS.BATCH
+      );
 
-        const { collectionOfferList, tokenOfferList, discountBaseList } =
-          await utils.cwGetMarketplaceData(
-            collectionAndTokensList,
-            collectionAddresses,
-            blockTime,
-            PAGINATION.OFFERS.BATCH,
-            PAGINATION.OFFERS.COLLECTION_LIMIT,
-            PAGINATION.OFFERS.TOKEN_LIMIT
-          );
-
-        // query priceRatio directly as MarketplaceData can be empty due to collectionAddresses
-        const priceRatioItem = await oracle.cwQueryPriceRatio();
-        if (priceRatioItem.is_outdated) {
-          throw new Error("priceRatioStable is outdated!");
-        }
-        const priceRatioStable = Number(priceRatioItem.value);
-
-        const tokenOffers: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-          tokenOfferList.map(([collectionAddress, bids]) => {
-            const discountBase = Number(
-              discountBaseList.find(
-                ([collection]) => collection === collectionAddress
-              )?.[1]
+      const collectionOffers: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
+        collectionOfferList.map(([collectionAddress, bids]) => {
+          const liquidationBids: LiquidationBid[] = bids.map((x) => {
+            const tokenIdList = (
+              collateral.find((x) => x.address === collectionAddress)
+                ?.collateral || []
+            ).flatMap(({ token_item_list }) =>
+              token_item_list.map(({ id }) => id)
             );
 
-            const liquidationBids: LiquidationBid[] = bids.map((x) => {
-              const findersFeeRate = 0; // TODO: check
-
-              return {
-                creation_date: blockTime,
-                liquidator: x.creator,
-                token_id_list: [x.token_id.toString()],
-                amount: calcPrice(
-                  Number(x.details.price),
-                  isMain ? 1 : priceRatioStable
-                ).toString(),
-                discount: (discountBase + findersFeeRate).toString(),
-                bid_type: "token_offer",
-                order_id: x.id,
-              };
-            });
-
             return {
-              collection_address: collectionAddress,
-              liquidation_bids: liquidationBids,
+              creation_date: blockTime,
+              liquidator: "MM",
+              token_id_list: tokenIdList,
+              amount: x,
+              discount: "0",
+              bid_type: "collection_offer",
             };
           });
 
-        const collectionOffers: QueryLiquidationBidsByCollectionAddressListResponseItem[] =
-          collectionOfferList.map(([collectionAddress, bids]) => {
-            const discountBase = Number(
-              discountBaseList.find(
-                ([collection]) => collection === collectionAddress
-              )?.[1]
-            );
+          return {
+            collection_address: collectionAddress,
+            liquidation_bids: liquidationBids,
+          };
+        });
 
-            const liquidationBids: LiquidationBid[] = bids.map((x) => {
-              const findersFeeRate = 0; // TODO: check
-              const tokenIdList = (
-                collateral.find((x) => x.address === collectionAddress)
-                  ?.collateral || []
-              ).flatMap(({ token_item_list }) =>
-                token_item_list.map(({ id }) => id)
-              );
-
-              return {
-                creation_date: blockTime,
-                liquidator: x.creator,
-                token_id_list: tokenIdList,
-                amount: calcPrice(
-                  Number(x.details.price),
-                  isMain ? 1 : priceRatioStable
-                ).toString(),
-                discount: (discountBase + findersFeeRate).toString(),
-                bid_type: "collection_offer",
-                order_id: x.id,
-              };
-            });
-
-            return {
-              collection_address: collectionAddress,
-              liquidation_bids: liquidationBids,
-            };
-          });
-
-        bidList = [...bidList, ...tokenOffers, ...collectionOffers];
-      }
+      bidList = [...bidList, ...collectionOffers];
 
       const collateralCost = collateralWithPrices
         .reduce(
@@ -246,7 +170,6 @@ async function main(userAddress: string) {
         .toString();
 
       const ownBids = await lending.cwQueryLiquidationBidsByLiquidatorAddress(
-        platformType,
         userAddress
       );
 
@@ -304,7 +227,7 @@ async function main(userAddress: string) {
         getSnapshotPath(
           NAME,
           TYPE,
-          platformType,
+
           `user-${userAddress.slice(-3)}.json`
         ),
         JSON.stringify(userInfo, null, 2),
@@ -317,10 +240,7 @@ async function main(userAddress: string) {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeUserInfo(platformType))
-  );
+  await writeUserInfo();
 }
 
 main("stars1lze4mhdus8tfh40046sz5r533grvua5rcv0f09");

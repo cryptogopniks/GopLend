@@ -1,6 +1,6 @@
 import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig, PlatformType } from "../../../common/interfaces";
+import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import {
@@ -28,16 +28,13 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeProposals = async (platformType: PlatformType) => {
+  const writeProposals = async () => {
     try {
-      const proposals = await lending.pQueryProposals(
-        platformType,
-        PAGINATION_QUERY_AMOUNT
-      );
+      const proposals = await lending.pQueryProposals(PAGINATION_QUERY_AMOUNT);
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "proposals.json"),
+        getSnapshotPath(NAME, TYPE, "proposals.json"),
         JSON.stringify(proposals, null, 2),
         {
           encoding: ENCODING,
@@ -48,10 +45,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeProposals(platformType))
-  );
+  await writeProposals();
 }
 
 main();

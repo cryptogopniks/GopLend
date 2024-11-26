@@ -1,6 +1,6 @@
 import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
-import { ChainConfig, PlatformType } from "../../../common/interfaces";
+import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import {
@@ -28,14 +28,11 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeLiquidators = async (platformType: PlatformType) => {
+  const writeLiquidators = async () => {
     try {
       // sort by collection amount descending
       const liquidators = (
-        await lending.pQueryLiquidatorList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT
-        )
+        await lending.pQueryLiquidatorList(PAGINATION_QUERY_AMOUNT)
       ).sort(
         (a, b) =>
           b.liquidator.collection_addresses.length -
@@ -44,7 +41,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "liquidators.json"),
+        getSnapshotPath(NAME, TYPE, "liquidators.json"),
         JSON.stringify(liquidators, null, 2),
         {
           encoding: ENCODING,
@@ -55,10 +52,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeLiquidators(platformType))
-  );
+  await writeLiquidators();
 }
 
 main();
