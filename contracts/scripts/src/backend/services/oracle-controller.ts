@@ -3,7 +3,7 @@ import { l, li, floor, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { getFloorPrices } from "./sg-api";
-import { ChainConfig } from "../../common/interfaces";
+import { ChainConfig, ChainType } from "../../common/interfaces";
 import { COLLECTION, NetworkItem } from "./constants";
 import {
   calcCollectionPrice,
@@ -96,7 +96,7 @@ async function main(isInfiniteLoop: boolean) {
     return collectionList;
   };
 
-  const getInitialParameters = async () => {
+  const getInitialParameters = async (chainType: ChainType) => {
     // get execution cooldown
     const executionCooldown = (await oracle.cwQueryConfig()).execution_cooldown;
 
@@ -108,28 +108,63 @@ async function main(isInfiniteLoop: boolean) {
     const localBlockTime = getLocalBlockTime();
     const blockTimeOffset = blockTime - localBlockTime;
 
+    const mainnetCollectionEntries = Object.entries(COLLECTION?.MAINNET || {});
+    const collectionEntries =
+      chainType === "main"
+        ? mainnetCollectionEntries
+        : Object.entries(COLLECTION?.TESTNET || {});
+
     return {
       executionCooldown,
       collectionList,
       blockTimeOffset,
+      mainnetCollectionEntries,
+      collectionEntries,
     };
   };
 
   const setPrices = async (
+    mainnetCollectionEntries: [string, NetworkItem][],
+    collectionEntries: [string, NetworkItem][],
     collectionList: string[],
     blockTimeOffset: number,
     collectionPriceResponseList: [string, CollectionPriceResponse][]
   ): Promise<[string, CollectionPriceResponse][]> => {
     let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
 
-    const collectionAndFloorPriceList = await getFloorPrices(collectionList);
+    const collectionNameList = collectionEntries.filter(
+      ([_name, networkItem]) => {
+        const address = networkItem?.NEUTRON || "";
+        return collectionList.includes(address);
+      }
+    );
+
+    const stargazeCollectionList = collectionNameList
+      .map(([name, _networkItem]) => {
+        return (
+          mainnetCollectionEntries.find(
+            ([currentName]) => currentName === name
+          )?.[1]?.STARGAZE || ""
+        );
+      })
+      .filter((address) => address);
+
+    if (collectionList.length != stargazeCollectionList.length) {
+      throw new Error("Wrong collection map!");
+    }
+
+    const collectionAndFloorPriceList = await getFloorPrices(
+      stargazeCollectionList
+    );
     const collectionAndOffersList = await marketMaker.pQueryOfferList(
       PAGINATION.COLLECTIONS
     );
 
     // calc collection prices
     const collectionInfoList: CollectionInfo[] = collectionList.map(
-      (collection) => {
+      (collection, i) => {
+        const stargazeCollection = stargazeCollectionList[i];
+
         const offerPriceList =
           collectionAndOffersList
             .find((x) => x.collection_address === collection)
@@ -137,8 +172,9 @@ async function main(isInfiniteLoop: boolean) {
 
         // use highest offer if floor price isn't found
         const floorPrice =
-          collectionAndFloorPriceList.find((x) => x.collection === collection)
-            ?.price ||
+          collectionAndFloorPriceList.find(
+            (x) => x.collection === stargazeCollection
+          )?.price ||
           offerPriceList[0] ||
           0;
 
@@ -194,14 +230,7 @@ async function main(isInfiniteLoop: boolean) {
 
     // prepare input data for set prices tx
     const priceData: [string, number][] = collectionInfoList.map(
-      ({ collection, price }) => {
-        // get neutron address
-        const [_, { NEUTRON }] = Object.entries(COLLECTION?.MAINNET || {}).find(
-          ([_, { STARGAZE }]) => STARGAZE === collection
-        ) as [string, NetworkItem];
-
-        return [NEUTRON || "", price];
-      }
+      ({ collection, price }) => [collection, floor(price, 2)]
     );
 
     // send tx
@@ -215,8 +244,13 @@ async function main(isInfiniteLoop: boolean) {
 
   // TODO: restart script on collection list change
   // initialization part - run it single time on script start
-  const { executionCooldown, collectionList, blockTimeOffset } =
-    await getInitialParameters();
+  const {
+    executionCooldown,
+    collectionList,
+    blockTimeOffset,
+    mainnetCollectionEntries,
+    collectionEntries,
+  } = await getInitialParameters(TYPE);
 
   // [collection, CollectionPriceResponse][]
   let collectionPriceResponseList: [string, CollectionPriceResponse][] = [];
@@ -234,6 +268,8 @@ async function main(isInfiniteLoop: boolean) {
 
     try {
       collectionPriceResponseList = await setPrices(
+        mainnetCollectionEntries,
+        collectionEntries,
         collectionList,
         blockTimeOffset,
         collectionPriceResponseList

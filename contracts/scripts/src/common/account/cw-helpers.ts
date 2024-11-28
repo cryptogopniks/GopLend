@@ -1194,7 +1194,8 @@ async function getCwExecHelpers(
         oracleMsgComposer.updatePrices({
           data: data.map(([collectionAddress, usdPrice]) => {
             const postfix = collectionAddress.split("1").slice(1).join("1");
-            const price = (usdPrice * 100).toString();
+            // u32 was recognized as string for no reason
+            const price = (usdPrice * 100) as any;
 
             return [postfix, price];
           }),

@@ -54,6 +54,7 @@ export const ADDRESS = {
         "neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8",
       ],
       ORACLE_CONTROLLER_LIST: [
+        "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
         "neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u",
         "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
       ],

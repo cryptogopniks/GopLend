@@ -66,12 +66,34 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
 
+    // await getBalance(owner, TOKEN.NEUTRON.TESTNET.USDC);
+
+    const collectionList = [
+      COLLECTION.TESTNET?.PIGEON?.NEUTRON || "",
+      COLLECTION.TESTNET?.BAD_KIDS?.NEUTRON || "",
+      COLLECTION.TESTNET?.SLOTH?.NEUTRON || "",
+    ];
+
+    // // add liquidity to maker maker
+    // for (const [collection] of collectionList) {
+    //   const floorPrice =
+    //     floorPrices.find((x) => x.collection === collection)?.price || 0;
+
+    //   await h.marketMaker.cwDepositLiquidity(
+    //     collection,
+    //     floorPrice * 1e6 * 50,
+    //     paymentDenom,
+    //     gasPrice
+    //   );
+    // }
+
     await scheduler.cwQueryConfig(true);
     await lending.cwQueryAddressConfig(true);
     await lending.cwQueryCommonConfig(true);
     await lending.cwQueryRateConfig(true);
     await oracle.cwQueryConfig(true);
     await marketMaker.cwQueryConfig(true);
+    return;
 
     // for (const collectionAddress of [
     //   COLLECTION.TESTNET?.PIGEON?.NEUTRON || "",

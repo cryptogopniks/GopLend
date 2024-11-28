@@ -31,6 +31,7 @@ const ALLOWED_OFFERS_BOUNDARY = {
   LOWER: 0.8,
 };
 
+// TODO: set offers in 0.93-0.8 range, not in 1/4
 async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
