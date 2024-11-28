@@ -339,6 +339,26 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMintNft(
+    collectionAddress: string,
+    recipient: string,
+    tokenIdList: number[],
+    gasPrice: string
+  ) {
+    const msgList = tokenIdList.map((tokenId) => {
+      const mintMsg = {
+        mint: {
+          owner: recipient,
+          token_id: tokenId.toString(),
+        },
+      };
+
+      return getSingleTokenExecMsg(collectionAddress, owner, mintMsg);
+    });
+
+    return await _msgWrapperWithGasPrice(msgList, gasPrice);
+  }
+
   // scheduler
 
   async function cwAdapterSchedulerCommonAcceptAdminRole(gasPrice: string) {
@@ -1337,7 +1357,7 @@ async function getCwExecHelpers(
   }
 
   return {
-    utils: { cwTransferAdmin, cwMigrateMultipleContracts, cwRevoke },
+    utils: { cwTransferAdmin, cwMigrateMultipleContracts, cwRevoke, cwMintNft },
     scheduler: {
       cwAcceptAdminRole: cwAdapterSchedulerCommonAcceptAdminRole,
       cwUpdateConfig: cwAdapterSchedulerCommonUpdateConfig,

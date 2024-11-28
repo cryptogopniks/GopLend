@@ -69,28 +69,28 @@ export const COLLECTION: CollectionConfig = {
       STARGAZE:
         "stars1pfv9a78y99ek6nezc9zq5f2u0kcwgh0ty0y3dh6wn2lgk27qs9hqefncau",
       NEUTRON:
-        "neutron1pfv9a78y99ek6nezc9zq5f2u0kcwgh0ty0y3dh6wn2lgk27qs9hqwpxmv8",
+        "neutron1e4fqdkym8e0ac4humywngx0lqw3ccq4nx07ene4qup5dr0plrjcq8nz6dn",
     },
 
     SLOTH: {
       STARGAZE:
         "stars1ey7dgnxfcjlz4pgn47k4ygjl3q445vvnr2x6qttnew7wlrkyqeysutm2cv",
       NEUTRON:
-        "neutron1ey7dgnxfcjlz4pgn47k4ygjl3q445vvnr2x6qttnew7wlrkyqeystrwffh",
+        "neutron1lgrh7ukjwlrsp3dmjdh36pl7z5ldmd94wjs5q2xapgttk7lzdfgsyd8wye",
     },
 
     PIGEON: {
       STARGAZE:
         "stars1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xsu84lnw",
       NEUTRON:
-        "neutron1qrghctped3a7jcklqxg92dn8lvw88adrduwx3h50pmmcgcwl82xst0quz4",
+        "neutron1skwhr5eu3hc47qflclg88ddnxp0fh643h4huwkcgc5wtr5j2qj5qxdm45p",
     },
 
-    MOO: {
-      STARGAZE:
-        "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
-      NEUTRON:
-        "neutron1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqejkdvk",
-    },
+    // MOO: {
+    //   STARGAZE:
+    //     "stars1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqw6rwad",
+    //   NEUTRON:
+    //     "neutron1w4rk4zpme2axwr2r6g8qgptcvpgktmyt2mh94vtyum8yt25guvdqejkdvk",
+    // },
   },
 };

@@ -72,6 +72,20 @@ async function main() {
     await lending.cwQueryRateConfig(true);
     await oracle.cwQueryConfig(true);
     await marketMaker.cwQueryConfig(true);
+
+    // for (const collectionAddress of [
+    //   COLLECTION.TESTNET?.PIGEON?.NEUTRON || "",
+    //   COLLECTION.TESTNET?.BAD_KIDS?.NEUTRON || "",
+    //   COLLECTION.TESTNET?.SLOTH?.NEUTRON || "",
+    // ]) {
+    //   await h.utils.cwMintNft(
+    //     collectionAddress,
+    //     ADDRESS.TESTNET.NEUTRON.WORKER,
+    //     [4, 5, 6],
+    //     gasPrice
+    //   );
+    // }
+
     return;
 
     // const res = await utils.cwV2QueryAsksByCollectionDenom(
