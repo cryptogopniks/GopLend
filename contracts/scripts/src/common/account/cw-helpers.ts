@@ -1677,7 +1677,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
     const fn = async (collection: string) => {
       try {
-        const { price_list } = await cwQueryCollectionOffers(collection);
+        const { price_list } = await cwQueryOfferPrices(collection);
 
         if (price_list.length) {
           collectionOfferList.push([collection, price_list]);
@@ -1701,7 +1701,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return collectionOfferList;
   }
 
-  // TODO: v2 queries
+  // v2 queries
 
   async function cwV2QueryAsksByCollectionDenom(
     marketplace: string,
@@ -1809,67 +1809,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       await cosmwasmQueryClient.queryContractSmart(marketplace, queryMsg);
 
     return logAndReturn(res, isDisplayed);
-  }
-
-  // TODO: use SG API instead
-  interface FloorPricesResponse {
-    collection: string;
-    amount: number;
-    denom: string;
-  }
-
-  // collectionAddress, floorPriceString
-  async function cwQueryFloorPrices(
-    marketplace: string,
-    collectionAndDenomList: [string, string][],
-    batchPaginationAmount: number
-  ): Promise<FloorPricesResponse[]> {
-    let promiseList: Promise<void>[] = [];
-    let floorPricesResponseList: FloorPricesResponse[] = [];
-
-    const fn = async (collection: string, denom: string) => {
-      try {
-        const [
-          {
-            details: {
-              price: { amount },
-            },
-          },
-        ] = await cwV2QueryAsksByCollectionDenom(
-          marketplace,
-          collection,
-          denom,
-          {
-            descending: false,
-            limit: 1,
-          }
-        );
-
-        const res: FloorPricesResponse = {
-          collection,
-          amount: Number(amount),
-          denom,
-        };
-
-        floorPricesResponseList.push(res);
-      } catch (error) {
-        l(error);
-      }
-    };
-
-    for (let i = 0; i < collectionAndDenomList.length; i++) {
-      if (promiseList.length >= batchPaginationAmount) {
-        await Promise.all(promiseList);
-        promiseList = [];
-      }
-
-      const [collection, denom] = collectionAndDenomList[i];
-      promiseList.push(fn(collection, denom));
-    }
-
-    await Promise.all(promiseList);
-
-    return floorPricesResponseList;
   }
 
   // scheduler
@@ -2445,6 +2384,46 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function pQueryOfferPricesList(
+    maxPaginationAmount: number,
+    maxCount: number = 0,
+    isDisplayed: boolean = false
+  ): Promise<OffersResponse[]> {
+    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
+
+    let allItems: OffersResponse[] = [];
+    let lastItem: string | undefined = undefined;
+    let count: number = 0;
+
+    while (lastItem !== "" && count < (maxCount || count + 1)) {
+      const items: OffersResponse[] =
+        await marketMakerQueryClient.queryOfferPricesList({
+          amount: paginationAmount,
+          startAfter: lastItem,
+        });
+
+      lastItem = getLast(items)?.collection_address || "";
+      allItems = [...allItems, ...items];
+      count += items.length;
+    }
+
+    if (maxCount) {
+      allItems = allItems.slice(0, maxCount);
+    }
+
+    return logAndReturn(allItems, isDisplayed);
+  }
+
+  async function cwQueryOfferPrices(
+    collection: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await marketMakerQueryClient.queryOfferPrices({
+      collection,
+    });
+    return logAndReturn(res, isDisplayed);
+  }
+
   async function pQueryCollectionOwnerList(
     maxPaginationAmount: number,
     maxCount: number = 0,
@@ -2525,7 +2504,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function pMarketMakerHubQueryCollateralList(
+  async function pMarketMakerQueryCollateralList(
     maxPaginationAmount: number,
     maxCount: number = 0,
     isDisplayed: boolean = false
@@ -2565,87 +2544,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryCollectionOffers(
-    collection: string,
-    isDisplayed: boolean = false
-  ) {
-    const res = await marketMakerQueryClient.queryOfferPrices({
-      collection,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
-  async function pMarketMakerOutpostQueryCollateralList(
-    maxPaginationAmount: number,
-    maxCount: number = 0,
-    isDisplayed: boolean = false
-  ): Promise<CollectionInfoForAddr[]> {
-    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
-
-    let allItems: CollectionInfoForAddr[] = [];
-    let lastItem: string | undefined = undefined;
-    let count: number = 0;
-
-    while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: CollectionInfoForAddr[] =
-        await marketMakerQueryClient.queryCollateralList({
-          amount: paginationAmount,
-          startAfter: lastItem,
-        });
-
-      lastItem = getLast(items)?.collection_address || "";
-      allItems = [...allItems, ...items];
-      count += items.length;
-    }
-
-    if (maxCount) {
-      allItems = allItems.slice(0, maxCount);
-    }
-
-    return logAndReturn(allItems, isDisplayed);
-  }
-
-  async function cwMarketMakerOutpostQueryCollateral(
-    outpost: string,
-    collectionOwner: string,
-    isDisplayed: boolean = false
-  ) {
-    const res = await marketMakerQueryClient.queryCollateral({
-      collectionOwner,
-    });
-    return logAndReturn(res, isDisplayed);
-  }
-
-  async function pQueryOfferList(
-    maxPaginationAmount: number,
-    maxCount: number = 0,
-    isDisplayed: boolean = false
-  ): Promise<OffersResponse[]> {
-    const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
-
-    let allItems: OffersResponse[] = [];
-    let lastItem: string | undefined = undefined;
-    let count: number = 0;
-
-    while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: OffersResponse[] =
-        await marketMakerQueryClient.queryOfferPricesList({
-          amount: paginationAmount,
-          startAfter: lastItem,
-        });
-
-      lastItem = getLast(items)?.collection_address || "";
-      allItems = [...allItems, ...items];
-      count += items.length;
-    }
-
-    if (maxCount) {
-      allItems = allItems.slice(0, maxCount);
-    }
-
-    return logAndReturn(allItems, isDisplayed);
-  }
-
   return {
     utils: {
       cwQueryOperators,
@@ -2659,8 +2557,6 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwV2QueryBidsByCreatorCollection,
       cwV2QueryCollectionBidsByPrice,
       cwV2QueryCollectionBid,
-
-      cwQueryFloorPrices,
     },
     scheduler: {
       cwQueryConfig: cwAdapterSchedulerCommonQueryConfig,
@@ -2724,13 +2620,18 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     },
     marketMaker: {
       cwQueryConfig: cwMarketMakerQueryConfig,
+
+      pQueryOfferPricesList,
+      cwQueryOfferPrices,
+
+      pQueryCollectionOwnerList,
+      cwQueryCollectionOwner,
+
       pQueryLiquidityList,
       cwQueryLiquidity,
-      pQueryCollateralList: pMarketMakerHubQueryCollateralList,
-      cwQueryCollateral: cwMarketMakerQueryCollateral,
-      cwQueryCollectionOffers,
 
-      pQueryOfferList,
+      pQueryCollateralList: pMarketMakerQueryCollateralList,
+      cwQueryCollateral: cwMarketMakerQueryCollateral,
     },
   };
 }

@@ -33,6 +33,7 @@ yarn run capture-ltvs "pion-1|"
 yarn run capture-user "pion-1|"
 yarn run capture-logs "pion-1|"
 yarn run oracle-controller "pion-1|"
+yarn run mm-controller "pion-1|"
 
 yarn run json
 yarn run store "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"

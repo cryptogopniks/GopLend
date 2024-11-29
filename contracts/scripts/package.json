@@ -16,6 +16,7 @@
     "config": "ts-node ./src/backend/services/update-config.ts",
     "prepare-contracts": "ts-node ./src/backend/services/prepare-contracts.ts",
     "oracle-controller": "ts-node ./src/backend/services/oracle-controller.ts",
+    "mm-controller": "ts-node ./src/backend/services/mm-controller.ts",
     "get-targets": "ts-node ./src/backend/services/get-targets.ts",
     "liquidate": "ts-node ./src/backend/services/liquidate.ts",
     "call": "ts-node ./src/backend/services/call-contract.ts",

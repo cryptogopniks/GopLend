@@ -21,17 +21,17 @@ import {
 } from "./utils";
 
 const DELAY = 6_000;
+const MAX_OFFERS = 20;
 const MAX_INACTIVE_OFFERS = 5;
 const FLOOR_PRICE_BOUNDARY = {
   UPPER: 0.93,
   LOWER: 0.8,
 };
 const ALLOWED_OFFERS_BOUNDARY = {
-  UPPER: 0.8325,
+  UPPER: 0.93, // 0.8325,
   LOWER: 0.8,
 };
 
-// TODO: set offers in 0.93-0.8 range, not in 1/4
 async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
@@ -64,7 +64,7 @@ async function main(isInfiniteLoop: boolean) {
   while (true) {
     try {
       // TODO: query collectionPriceResponseList from DB
-      // collectionPriceResponseList = await queryCollectionPriceResponseList()
+      // collectionPriceResponseList = await queryCollectionPriceResponseList();
 
       for (const [collection, { floorPrice }] of collectionPriceResponseList) {
         const liquidity = await marketMaker.cwQueryLiquidity(collection);
@@ -139,4 +139,4 @@ async function main(isInfiniteLoop: boolean) {
 }
 
 // TODO: set true for production
-main(true);
+main(false);

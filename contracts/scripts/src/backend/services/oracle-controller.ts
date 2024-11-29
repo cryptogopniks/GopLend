@@ -156,7 +156,7 @@ async function main(isInfiniteLoop: boolean) {
     const collectionAndFloorPriceList = await getFloorPrices(
       stargazeCollectionList
     );
-    const collectionAndOffersList = await marketMaker.pQueryOfferList(
+    const collectionAndOffersList = await marketMaker.pQueryOfferPricesList(
       PAGINATION.COLLECTIONS
     );
 
