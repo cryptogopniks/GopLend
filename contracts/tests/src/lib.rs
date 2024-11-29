@@ -1,6 +1,8 @@
 #[cfg(test)]
 pub mod lending_platform;
 #[cfg(test)]
+pub mod market_maker;
+#[cfg(test)]
 pub mod math;
 #[cfg(test)]
 pub mod minter;

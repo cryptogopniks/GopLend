@@ -221,14 +221,14 @@ export const CHAIN_CONFIG: ChainConfig = {
                 max_price_update_period: 30,
               }),
               MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
-                version: "2.0.0",
+                version: "2.0.1",
               }),
               UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
                 update_config: {
                   controller: ADDRESS.TESTNET.NEUTRON.ORACLE_CONTROLLER_LIST,
                 },
               }),
-              CODE: 8322,
+              CODE: 8350,
               ADDRESS:
                 "neutron1w8ekvjrwtph5een03w4cdlh5ghszu3tnxn0gf2znmvy4hj4kggfq84t95v",
             },

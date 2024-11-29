@@ -24,6 +24,23 @@ use crate::{
 };
 
 #[test]
+fn migrate_default() {
+    let mut project = Project::new();
+
+    project
+        .app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            project.get_scheduler_address(),
+            &MigrateMsg {
+                version: "2.0.0".to_string(),
+            },
+            project.get_scheduler_code_id(),
+        )
+        .unwrap();
+}
+
+#[test]
 fn push_multiple_clock_sources() -> StdResult<()> {
     let mut project = Project::new();
 
@@ -364,21 +381,4 @@ fn log_zero_cross() -> StdResult<()> {
     ]);
 
     Ok(())
-}
-
-#[test]
-fn migrate_default() {
-    let mut project = Project::new();
-
-    project
-        .app
-        .migrate_contract(
-            ProjectAccount::Admin.into(),
-            project.get_scheduler_address(),
-            &MigrateMsg {
-                version: "2.0.0".to_string(),
-            },
-            project.get_scheduler_code_id(),
-        )
-        .unwrap();
 }

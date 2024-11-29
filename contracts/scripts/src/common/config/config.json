@@ -57,9 +57,9 @@
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28\",\"execution_cooldown\":4,\"max_price_update_period\":30}",
-              "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u\",\"neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv\"]}}",
-              "CODE": 8322,
+              "CODE": 8350,
               "ADDRESS": "neutron1w8ekvjrwtph5een03w4cdlh5ghszu3tnxn0gf2znmvy4hj4kggfq84t95v"
             },
             {

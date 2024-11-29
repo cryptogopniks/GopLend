@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l, wait, Request } from "../../common/utils";
+import { l, wait, Request, li } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { ChainConfig } from "../../common/interfaces";
@@ -76,6 +76,8 @@ async function main(isInfiniteLoop: boolean) {
           upperFloorPrice,
           liquidity.price_list
         );
+
+        li({ regularOffers, tooSmallOffers, tooBigOffers });
 
         // extend offers up
         if (tooSmallOffers.length >= MAX_INACTIVE_OFFERS) {

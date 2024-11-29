@@ -87,15 +87,17 @@ async function main() {
     //   );
     // }
 
-    const collections = (await marketMaker.pQueryCollectionOwnerList(9)).map(
-      (x) => x.collection_address
-    );
-    const liqudity = await marketMaker.pQueryLiquidityList(9);
-    const prices = await marketMaker.pQueryOfferPricesList(9);
+    await oracle.pQueryPrices(9, 9, true);
 
-    li({ collections });
-    li({ liqudity });
-    li({ prices });
+    // const collections = (await marketMaker.pQueryCollectionOwnerList(9)).map(
+    //   (x) => x.collection_address
+    // );
+    // const liqudity = await marketMaker.pQueryLiquidityList(9);
+    // const prices = await marketMaker.pQueryOfferPricesList(9);
+
+    // li({ collections });
+    // li({ liqudity });
+    // li({ prices });
 
     return;
 

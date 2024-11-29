@@ -9,10 +9,7 @@ use goplend_base::{
     },
 };
 
-use crate::helpers::suite::{
-    core::Project,
-    types::{ProjectAccount, ProjectNft},
-};
+use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait OracleExtension {
     fn oracle_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
@@ -45,8 +42,8 @@ pub trait OracleExtension {
     fn oracle_query_prices(
         &self,
         amount: u32,
-        start_after: &Option<ProjectNft>,
-        collections: &Option<Vec<ProjectNft>>,
+        start_after: &Option<impl ToString>,
+        collections: &Option<Vec<impl ToString>>,
     ) -> StdResult<QueryPricesResponse>;
 
     fn oracle_query_block_time(&self) -> StdResult<u64>;
@@ -143,8 +140,8 @@ impl OracleExtension for Project {
     fn oracle_query_prices(
         &self,
         amount: u32,
-        start_after: &Option<ProjectNft>,
-        collections: &Option<Vec<ProjectNft>>,
+        start_after: &Option<impl ToString>,
+        collections: &Option<Vec<impl ToString>>,
     ) -> StdResult<QueryPricesResponse> {
         let collections = collections
             .as_ref()

@@ -44,7 +44,15 @@ pub fn query_prices(
     }
 
     let (prefix, _) = split_address(env.contract.address);
-    let start_bound = start_after.as_ref().map(|x| Bound::exclusive(x.as_str()));
+    let binding;
+    let start_bound = match start_after {
+        Some(collection) => {
+            let (_prefix, postfix) = split_address(collection);
+            binding = postfix;
+            Some(Bound::exclusive(binding.as_str()))
+        }
+        None => None,
+    };
 
     let data = PRICES
         .range(deps.storage, start_bound, None, Order::Ascending)

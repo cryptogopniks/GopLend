@@ -8,7 +8,7 @@ use goplend_base::{
     error::ContractError,
     oracle::{
         msg::MigrateMsg,
-        types::{split_address, PriceItem},
+        types::{split_address, PriceItem, QueryPricesResponse},
     },
 };
 
@@ -59,6 +59,22 @@ pub fn to_prices_out(list: &[(ProjectNft, &str)]) -> Vec<PriceItem> {
 }
 
 #[test]
+fn migrate_default() {
+    let mut p = Project::new();
+
+    p.app
+        .migrate_contract(
+            ProjectAccount::Admin.into(),
+            p.get_oracle_address(),
+            &MigrateMsg {
+                version: "2.0.1".to_string(),
+            },
+            p.get_oracle_code_id(),
+        )
+        .unwrap();
+}
+
+#[test]
 fn default() -> StdResult<()> {
     let mut p = Project::new();
 
@@ -70,7 +86,7 @@ fn default() -> StdResult<()> {
         ]),
     )?;
 
-    let res = p.oracle_query_prices(9, &None, &None)?;
+    let res = p.oracle_query_prices(9, &None::<ProjectNft>, &None::<Vec<ProjectNft>>)?;
 
     p.wait(3);
 
@@ -147,17 +163,35 @@ fn zeros_in_prices() -> StdResult<()> {
 }
 
 #[test]
-fn migrate_default() {
+fn query_prices_pagination() -> StdResult<()> {
     let mut p = Project::new();
 
-    p.app
-        .migrate_contract(
-            ProjectAccount::Admin.into(),
-            p.get_oracle_address(),
-            &MigrateMsg {
-                version: "2.0.0".to_string(),
-            },
-            p.get_oracle_code_id(),
-        )
-        .unwrap();
+    p.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &to_prices_in(&[
+            (ProjectNft::Gopniks, "800.00"),
+            (ProjectNft::Pinjeons, "300.00"),
+        ]),
+    )?;
+
+    let QueryPricesResponse {
+        data: data_full, ..
+    } = p.oracle_query_prices(9, &None::<ProjectNft>, &None::<Vec<ProjectNft>>)?;
+    assert_that(&data_full.len()).is_equal_to(2);
+
+    let QueryPricesResponse { data, .. } = p.oracle_query_prices(
+        9,
+        &Some(data_full.first().unwrap().collection.to_owned()),
+        &None::<Vec<ProjectNft>>,
+    )?;
+    assert_that(&data.len()).is_equal_to(1);
+
+    let QueryPricesResponse { data, .. } = p.oracle_query_prices(
+        9,
+        &Some(data_full.last().unwrap().collection.to_owned()),
+        &None::<Vec<ProjectNft>>,
+    )?;
+    assert_that(&data.len()).is_equal_to(0);
+
+    Ok(())
 }
