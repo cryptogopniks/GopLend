@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, ArrayOfCollectionInfoForAddr, CollectionInfoForAddr, ArrayOfCollateralListResponseItem, CollateralListResponseItem, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
 export interface MarketMakerMsg {
   contractAddress: string;
   sender: string;

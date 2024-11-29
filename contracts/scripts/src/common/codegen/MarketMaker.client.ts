@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, CollectionInfoForAddr, ArrayOfCollectionInfoForAddr, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
+import { TokenUnverified, InstantiateMsg, ExecuteMsg, Uint128, Decimal, BidType, Addr, BiddedCollateralItem, TokenItem, QueryMsg, MigrateMsg, ArrayOfCollectionInfoForAddr, CollectionInfoForAddr, ArrayOfCollateralListResponseItem, CollateralListResponseItem, CollectionOwnerForAddr, ArrayOfCollectionOwnerForAddr, Token, Config, LiquidityInfo, ArrayOfLiquidityInfo, OffersResponse, ArrayOfOffersResponse } from "./MarketMaker.types";
 export interface MarketMakerReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
@@ -52,12 +52,12 @@ export interface MarketMakerReadOnlyInterface {
   }: {
     amount: number;
     startAfter?: string;
-  }) => Promise<ArrayOfCollectionInfoForAddr>;
+  }) => Promise<ArrayOfCollateralListResponseItem>;
   queryCollateral: ({
     collectionOwner
   }: {
     collectionOwner: string;
-  }) => Promise<CollectionInfoForAddr>;
+  }) => Promise<ArrayOfCollectionInfoForAddr>;
 }
 export class MarketMakerQueryClient implements MarketMakerReadOnlyInterface {
   client: CosmWasmClient;
@@ -161,7 +161,7 @@ export class MarketMakerQueryClient implements MarketMakerReadOnlyInterface {
   }: {
     amount: number;
     startAfter?: string;
-  }): Promise<ArrayOfCollectionInfoForAddr> => {
+  }): Promise<ArrayOfCollateralListResponseItem> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral_list: {
         amount,
@@ -173,7 +173,7 @@ export class MarketMakerQueryClient implements MarketMakerReadOnlyInterface {
     collectionOwner
   }: {
     collectionOwner: string;
-  }): Promise<CollectionInfoForAddr> => {
+  }): Promise<ArrayOfCollectionInfoForAddr> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_collateral: {
         collection_owner: collectionOwner

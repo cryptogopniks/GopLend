@@ -69,9 +69,9 @@
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28\",\"controller\":[\"neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz\"],\"token\":{\"native\":{\"denom\":\"factory/neutron12z8aa6mkpg558vrwq5dxsm4h4v3panhwzcd0f9u339yn058a8lhqatr434/USDC\"}}}",
-              "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 8323,
+              "CODE": 8354,
               "ADDRESS": "neutron1em38ykpa0tcfzgwg6mc7fq2pvn4yysjwcmtflmvmzv0gvl0xzt8qlvryyp"
             }
           ],

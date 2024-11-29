@@ -61,7 +61,7 @@ import {
   Metadata,
 } from "../codegen/Minter.types";
 import {
-  CollectionInfoForAddr,
+  CollateralListResponseItem,
   CollectionOwnerForAddr,
   LiquidityInfo,
   OffersResponse,
@@ -1137,6 +1137,24 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwMintMultiple(
+    denomOrAddress: string,
+    accountAndAmountList: [string, number][],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        minterMsgComposer.mintMultiple({
+          denomOrAddress,
+          accountAndAmountList: accountAndAmountList.map(
+            ([account, amount]) => [account, amount.toString()]
+          ),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   async function cwBurn(
     amount: number,
     token: TokenUnverified,
@@ -1407,6 +1425,7 @@ async function getCwExecHelpers(
       cwExcludeNative,
       cwExcludeCw20,
       cwMint,
+      cwMintMultiple,
       cwBurn,
     },
     oracle: {
@@ -2309,6 +2328,14 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res, isDisplayed);
   }
 
+  async function cwMinterQueryBalances(
+    account: string,
+    isDisplayed: boolean = false
+  ) {
+    const res = await minterQueryClient.balances({ account });
+    return logAndReturn(res, isDisplayed);
+  }
+
   // oracle
 
   async function cwOracleQueryConfig(isDisplayed: boolean = false) {
@@ -2508,21 +2535,21 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     maxPaginationAmount: number,
     maxCount: number = 0,
     isDisplayed: boolean = false
-  ): Promise<CollectionInfoForAddr[]> {
+  ): Promise<CollateralListResponseItem[]> {
     const paginationAmount = getPaginationAmount(maxPaginationAmount, maxCount);
 
-    let allItems: CollectionInfoForAddr[] = [];
+    let allItems: CollateralListResponseItem[] = [];
     let lastItem: string | undefined = undefined;
     let count: number = 0;
 
     while (lastItem !== "" && count < (maxCount || count + 1)) {
-      const items: CollectionInfoForAddr[] =
+      const items: CollateralListResponseItem[] =
         await marketMakerQueryClient.queryCollateralList({
           amount: paginationAmount,
           startAfter: lastItem,
         });
 
-      lastItem = getLast(items)?.collection_address || "";
+      lastItem = getLast(items)?.collection_owner || "";
       allItems = [...allItems, ...items];
       count += items.length;
     }
@@ -2609,6 +2636,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
       cwQueryCurrencyInfoList,
       cwQueryCurrencyInfoListByOwner,
       cwQueryTokenCountList,
+      cwQueryBalances: cwMinterQueryBalances,
     },
     oracle: {
       cwQueryConfig: cwOracleQueryConfig,

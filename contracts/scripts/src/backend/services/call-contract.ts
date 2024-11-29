@@ -87,17 +87,43 @@ async function main() {
     //   );
     // }
 
-    await oracle.pQueryPrices(9, 9, true);
-
-    // const collections = (await marketMaker.pQueryCollectionOwnerList(9)).map(
-    //   (x) => x.collection_address
+    // await h.minter.cwMintMultiple(
+    //   TOKEN.NEUTRON.TESTNET.USDC,
+    //   [[owner, 400_000_000_004]],
+    //   gasPrice
     // );
-    // const liqudity = await marketMaker.pQueryLiquidityList(9);
-    // const prices = await marketMaker.pQueryOfferPricesList(9);
+    // await minter.cwQueryBalances(owner, true);
 
-    // li({ collections });
-    // li({ liqudity });
-    // li({ prices });
+    // await h.marketMaker.cwDepositLiquidity(
+    //   COLLECTION.TESTNET?.PIGEON?.NEUTRON || "",
+    //   9 * 20 * 1e6,
+    //   TOKEN.NEUTRON.TESTNET.USDC,
+    //   gasPrice
+    // );
+    // await h.marketMaker.cwDepositLiquidity(
+    //   COLLECTION.TESTNET?.BAD_KIDS?.NEUTRON || "",
+    //   1_700 * 20 * 1e6,
+    //   TOKEN.NEUTRON.TESTNET.USDC,
+    //   gasPrice
+    // );
+    // await h.marketMaker.cwDepositLiquidity(
+    //   COLLECTION.TESTNET?.SLOTH?.NEUTRON || "",
+    //   6_800 * 20 * 1e6,
+    //   TOKEN.NEUTRON.TESTNET.USDC,
+    //   gasPrice
+    // );
+
+    // await oracle.pQueryPrices(9, 9, true);
+
+    const collections = (await marketMaker.pQueryCollectionOwnerList(9)).map(
+      (x) => x.collection_address
+    );
+    const liqudity = await marketMaker.pQueryLiquidityList(9);
+    const prices = await marketMaker.pQueryOfferPricesList(9);
+
+    li({ collections });
+    li({ liqudity });
+    li({ prices });
 
     return;
 

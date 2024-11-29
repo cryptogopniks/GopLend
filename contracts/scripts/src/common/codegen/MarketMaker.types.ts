@@ -133,11 +133,16 @@ export type QueryMsg = {
 export interface MigrateMsg {
   version: string;
 }
+export type ArrayOfCollectionInfoForAddr = CollectionInfoForAddr[];
 export interface CollectionInfoForAddr {
   collection_address: Addr;
   token_id_list: string[];
 }
-export type ArrayOfCollectionInfoForAddr = CollectionInfoForAddr[];
+export type ArrayOfCollateralListResponseItem = CollateralListResponseItem[];
+export interface CollateralListResponseItem {
+  collection_list: CollectionInfoForAddr[];
+  collection_owner: Addr;
+}
 export interface CollectionOwnerForAddr {
   collection_address: Addr;
   owner: Addr;

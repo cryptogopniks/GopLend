@@ -1,7 +1,7 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::assets::Token;
+use crate::{assets::Token, lending_platform::types::CollectionInfo};
 
 #[cw_serde]
 pub struct CollectionOwner<T: ToString> {
@@ -30,6 +30,12 @@ impl LiquidityInfo {
 pub struct OffersResponse {
     pub collection_address: Addr,
     pub price_list: Vec<Uint128>,
+}
+
+#[cw_serde]
+pub struct CollateralListResponseItem {
+    pub collection_owner: Addr,
+    pub collection_list: Vec<CollectionInfo<Addr>>,
 }
 
 #[cw_serde]

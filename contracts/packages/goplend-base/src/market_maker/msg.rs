@@ -111,12 +111,12 @@ pub enum QueryMsg {
     #[returns(super::types::LiquidityInfo)]
     QueryLiquidity { collection: String },
 
-    #[returns(Vec<crate::lending_platform::types::CollectionInfo<Addr>>)]
+    #[returns(Vec<super::types::CollateralListResponseItem>)]
     QueryCollateralList {
         amount: u32,
         start_after: Option<String>,
     },
 
-    #[returns(crate::lending_platform::types::CollectionInfo<Addr>)]
+    #[returns(Vec<crate::lending_platform::types::CollectionInfo<Addr>>)]
     QueryCollateral { collection_owner: String },
 }

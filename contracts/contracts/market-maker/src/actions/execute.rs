@@ -375,7 +375,7 @@ pub fn try_withdraw_collateral(
     let collection_address = deps.api.addr_validate(&collection)?;
     let config = CONFIG.load(deps.storage)?;
     let owner = OWNERS.load(deps.storage, &collection_address)?;
-    let CollectionInfo { token_id_list, .. } = COLLATERALS.load(deps.storage, &owner)?;
+
     check_authorization(
         &sender_address,
         &config.admin,
@@ -384,6 +384,13 @@ pub fn try_withdraw_collateral(
             allowlist: vec![Some(owner.clone())],
         },
     )?;
+
+    let mut collaterals = COLLATERALS.load(deps.storage, &owner).unwrap_or_default();
+    let token_id_list = collaterals
+        .iter()
+        .find(|x| x.collection_address == collection_address)
+        .map(|x| x.token_id_list.clone())
+        .unwrap_or_default();
 
     if token_id_list.is_empty() {
         Err(ContractError::CollateralIsNotFound)?;
@@ -400,7 +407,13 @@ pub fn try_withdraw_collateral(
         }));
     }
 
-    COLLATERALS.remove(deps.storage, &owner);
+    collaterals.retain(|x| x.collection_address != collection_address);
+
+    if collaterals.is_empty() {
+        COLLATERALS.remove(deps.storage, &owner);
+    } else {
+        COLLATERALS.save(deps.storage, &owner, &collaterals)?;
+    }
 
     Ok(response)
 }
@@ -507,14 +520,31 @@ pub fn try_accept_offers(
         COLLATERALS.update(
             deps.storage,
             &collection,
-            |x| -> StdResult<CollectionInfo<Addr>> {
-                let mut token_id_list = x.map(|x| x.token_id_list).unwrap_or_default();
-                token_id_list.push(token_item.id.clone());
+            |x| -> StdResult<Vec<CollectionInfo<Addr>>> {
+                let mut collaterals: Vec<CollectionInfo<Addr>> = x.unwrap_or_default();
 
-                Ok(CollectionInfo {
-                    collection_address: collection.clone(),
-                    token_id_list,
-                })
+                if collaterals
+                    .iter()
+                    .all(|x| x.collection_address != collection)
+                {
+                    collaterals.push(CollectionInfo {
+                        collection_address: collection.clone(),
+                        token_id_list: vec![],
+                    });
+                }
+
+                collaterals = collaterals
+                    .into_iter()
+                    .map(|mut x| {
+                        if x.collection_address == collection {
+                            x.token_id_list.push(token_item.id.clone());
+                        }
+
+                        x
+                    })
+                    .collect();
+
+                Ok(collaterals)
             },
         )?;
 

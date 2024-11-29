@@ -6,7 +6,9 @@ use goplend_base::{
     lending_platform::types::CollectionInfo,
     market_maker::{
         state::{COLLATERALS, CONFIG, OFFERS, OWNERS, UNDISTRIBUTED_LIQUIDITY},
-        types::{CollectionOwner, Config, LiquidityInfo, OffersResponse},
+        types::{
+            CollateralListResponseItem, CollectionOwner, Config, LiquidityInfo, OffersResponse,
+        },
     },
 };
 
@@ -118,7 +120,9 @@ pub fn query_liquidity_list(
         .take(amount as usize)
         .map(|x| {
             let (collection_address, amount_undistributed) = x.unwrap();
-            let price_list = OFFERS.load(deps.storage, &collection_address)?;
+            let price_list = OFFERS
+                .load(deps.storage, &collection_address)
+                .unwrap_or_default();
 
             Ok(LiquidityInfo {
                 collection_address,
@@ -150,7 +154,7 @@ pub fn query_collateral_list(
     _env: Env,
     amount: u32,
     start_after: Option<String>,
-) -> StdResult<Vec<CollectionInfo<Addr>>> {
+) -> StdResult<Vec<CollateralListResponseItem>> {
     let binding;
     let start_bound = match start_after {
         Some(addr) => {
@@ -164,8 +168,12 @@ pub fn query_collateral_list(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(amount as usize)
         .map(|x| {
-            let (_, collection_info) = x.unwrap();
-            collection_info
+            let (collection_owner, collection_list) = x.unwrap();
+
+            CollateralListResponseItem {
+                collection_owner,
+                collection_list,
+            }
         })
         .collect())
 }
@@ -174,7 +182,10 @@ pub fn query_collateral(
     deps: Deps,
     _env: Env,
     collection_owner: String,
-) -> StdResult<CollectionInfo<Addr>> {
+) -> StdResult<Vec<CollectionInfo<Addr>>> {
     let collection_owner = deps.api.addr_validate(&collection_owner)?;
-    COLLATERALS.load(deps.storage, &collection_owner)
+
+    Ok(COLLATERALS
+        .load(deps.storage, &collection_owner)
+        .unwrap_or_default())
 }
