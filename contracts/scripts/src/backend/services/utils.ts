@@ -3,6 +3,7 @@ import { decrypt, floor, getLast, l } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { Label } from "../../common/config";
 import { ChainType, Wallets, StoreArgs } from "../../common/interfaces";
+import { NetworkItem } from "./constants";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");
@@ -185,6 +186,35 @@ async function wrapListQuerier<T>(
   }
 }
 
+function getStargazeCollections(
+  collectionList: string[],
+  mainnetCollectionEntries: [string, NetworkItem][],
+  collectionEntries: [string, NetworkItem][]
+) {
+  const collectionNameList = collectionEntries.filter(
+    ([_name, networkItem]) => {
+      const address = networkItem?.NEUTRON || "";
+      return collectionList.includes(address);
+    }
+  );
+
+  const stargazeCollectionList = collectionNameList
+    .map(([name, _networkItem]) => {
+      return (
+        mainnetCollectionEntries.find(
+          ([currentName]) => currentName === name
+        )?.[1]?.STARGAZE || ""
+      );
+    })
+    .filter((address) => address);
+
+  if (collectionList.length != stargazeCollectionList.length) {
+    throw new Error("Wrong collection map!");
+  }
+
+  return stargazeCollectionList;
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -201,4 +231,5 @@ export {
   getLocalBlockTime,
   getBlockTime,
   wrapListQuerier,
+  getStargazeCollections,
 };

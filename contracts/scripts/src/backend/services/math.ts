@@ -840,18 +840,32 @@ export function getOffersExtendedUp(
   floorPrice: number,
   lowerFloorPrice: number,
   regularOffers: number[],
-  tooSmallOffers: number[]
+  tooSmallOffers: number[],
+  maxOffers: number
 ) {
-  const highestOffer = regularOffers[0] || lowerFloorPrice;
+  const highestOffer = floor(regularOffers[0] || lowerFloorPrice);
   const allowedPriceRange =
     floorPrice * upperAllowedOffersBoundary - highestOffer;
-  const priceStep = floor(allowedPriceRange / tooSmallOffers.length);
-  const fromToPriceListRaw: [number, number][] = tooSmallOffers.map(
-    (priceBefore, i) => {
+
+  let priceStep: number = 0;
+  let fromToPriceListRaw: [number, number][] = [];
+
+  if (regularOffers.length) {
+    priceStep = floor(allowedPriceRange / tooSmallOffers.length);
+
+    fromToPriceListRaw = tooSmallOffers.map((priceBefore, i) => {
       const priceAfter = highestOffer + priceStep * (i + 1);
       return [priceBefore, priceAfter];
-    }
-  );
+    });
+  } else {
+    const offers = [...new Array(maxOffers)];
+    priceStep = floor(allowedPriceRange / (offers.length - 1));
+
+    fromToPriceListRaw = offers.map((_, i) => {
+      const priceAfter = highestOffer + priceStep * i;
+      return [0, priceAfter];
+    });
+  }
 
   // filter offers based on available liquidity
   const [fromToPriceList]: [[number, number][], number] =

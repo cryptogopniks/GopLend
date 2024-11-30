@@ -5,6 +5,7 @@ import {
 } from "../services/math";
 
 const M: number = 1_000_000;
+const MAX_OFFERS = 20;
 const FLOOR_PRICE_BOUNDARY = {
   UPPER: 0.93,
   LOWER: 0.8,
@@ -151,7 +152,8 @@ describe("testing splitOffers and getOffersExtendedUp/getOffersExtendedDown", ()
         floorPrice,
         lowerFloorPrice,
         regularOffers,
-        tooSmallOffers
+        tooSmallOffers,
+        MAX_OFFERS
       );
 
     expect(fromToPriceList).toStrictEqual([
@@ -287,7 +289,8 @@ describe("testing splitOffers and getOffersExtendedUp/getOffersExtendedDown", ()
         floorPrice,
         lowerFloorPrice,
         regularOffers,
-        tooSmallOffers
+        tooSmallOffers,
+        MAX_OFFERS
       );
 
     expect(fromToPriceList).toStrictEqual([]);

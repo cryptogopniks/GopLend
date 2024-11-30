@@ -21,6 +21,7 @@ import {
   parseStoreArgs,
   getLocalBlockTime,
   getBlockTime,
+  getStargazeCollections,
 } from "./utils";
 
 // 1) +query FP using sg-api
@@ -132,26 +133,11 @@ async function main(isInfiniteLoop: boolean) {
   ): Promise<[string, CollectionPriceResponse][]> => {
     let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
 
-    const collectionNameList = collectionEntries.filter(
-      ([_name, networkItem]) => {
-        const address = networkItem?.NEUTRON || "";
-        return collectionList.includes(address);
-      }
+    const stargazeCollectionList = getStargazeCollections(
+      collectionList,
+      mainnetCollectionEntries,
+      collectionEntries
     );
-
-    const stargazeCollectionList = collectionNameList
-      .map(([name, _networkItem]) => {
-        return (
-          mainnetCollectionEntries.find(
-            ([currentName]) => currentName === name
-          )?.[1]?.STARGAZE || ""
-        );
-      })
-      .filter((address) => address);
-
-    if (collectionList.length != stargazeCollectionList.length) {
-      throw new Error("Wrong collection map!");
-    }
 
     const collectionAndFloorPriceList = await getFloorPrices(
       stargazeCollectionList

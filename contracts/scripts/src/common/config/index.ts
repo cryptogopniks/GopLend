@@ -239,7 +239,10 @@ export const CHAIN_CONFIG: ChainConfig = {
               PERMISSION: [ADDRESS.TESTNET.NEUTRON.ADMIN],
               INIT_MSG: toJson<MarketMakerTypes.InstantiateMsg>({
                 worker: ADDRESS.TESTNET.NEUTRON.WORKER,
-                controller: [ADDRESS.TESTNET.NEUTRON.MARKET_MAKER_CONTROLLER],
+                controller: [
+                  ADDRESS.TESTNET.NEUTRON.ADMIN,
+                  ADDRESS.TESTNET.NEUTRON.MARKET_MAKER_CONTROLLER,
+                ],
                 token: {
                   native: { denom: TOKEN.NEUTRON.TESTNET.USDC },
                 },
