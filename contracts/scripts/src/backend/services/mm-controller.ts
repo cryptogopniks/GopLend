@@ -21,6 +21,7 @@ import {
 } from "./utils";
 
 const DELAY = 6_000;
+// TODO: move in contract MAX_OFFERS and MAX_INACTIVE_OFFERS per collection
 const MAX_OFFERS = 20;
 const MAX_INACTIVE_OFFERS = 5;
 const FLOOR_PRICE_BOUNDARY = {

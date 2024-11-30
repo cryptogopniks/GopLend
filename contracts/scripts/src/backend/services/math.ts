@@ -1,6 +1,5 @@
 import { floor, getLast } from "../../common/utils";
 import { PriceItem } from "../../common/codegen/Oracle.types";
-import * as v2 from "../../common/interfaces/stargaze-marketplace-v2";
 import {
   LiquidationBidExtended,
   TargetBorrower,
@@ -811,7 +810,6 @@ export function splitOffers(
   upperFloorPrice: number,
   priceList: string[]
 ) {
-  // TODO: is it sorted by contract?
   const priceListSorted = priceList
     .map(Number)
     .sort((priceA, priceB) => priceB - priceA);
@@ -847,7 +845,7 @@ export function getOffersExtendedUp(
   const highestOffer = regularOffers[0] || lowerFloorPrice;
   const allowedPriceRange =
     floorPrice * upperAllowedOffersBoundary - highestOffer;
-  const priceStep = floor(allowedPriceRange / (tooSmallOffers.length - 1));
+  const priceStep = floor(allowedPriceRange / tooSmallOffers.length);
   const fromToPriceListRaw: [number, number][] = tooSmallOffers.map(
     (priceBefore, i) => {
       const priceAfter = highestOffer + priceStep * (i + 1);
@@ -894,7 +892,7 @@ export function getOffersExtendedDown(
   const lowestOffer = getLast(regularOffers) || upperFloorPrice;
   const allowedPriceRange =
     lowestOffer - floorPrice * lowerAllowedOffersBoundary;
-  const priceStep = floor(allowedPriceRange / (tooBigOffers.length - 1));
+  const priceStep = floor(allowedPriceRange / tooBigOffers.length);
   const fromToPriceList: [number, number][] = tooBigOffers.map(
     (priceBefore, i) => {
       const priceAfter = lowestOffer - priceStep * (i + 1);
