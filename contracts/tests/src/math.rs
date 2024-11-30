@@ -1,6 +1,5 @@
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 use goplend_base::{
-    assets::{Currency, Funds, Token},
     converters::{str_to_dec, u128_to_dec},
     lending_platform::types::{BidType, BiddedCollateralItem, Collateral, LiquidationBid},
     oracle::types::PriceItem,
@@ -10,7 +9,7 @@ use speculoos::assert_that;
 
 use crate::helpers::suite::{
     core::{to_string_vec, to_token_item, to_token_item_list},
-    types::{GetDecimals, ProjectAccount, ProjectCoin, ProjectNft},
+    types::{ProjectAccount, ProjectNft},
 };
 
 #[test]
@@ -32,44 +31,14 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
         ),
     ];
 
-    let price_list: Vec<PriceItem<Funds<Token>>> = vec![
+    let price_list: Vec<PriceItem> = vec![
         PriceItem {
-            address: ProjectNft::Gopniks.into(),
-            price: Funds::new(
-                Uint128::new(200),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(200),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
-            update_date: 0,
-            is_outdated: false,
+            collection: ProjectNft::Gopniks.into(),
+            price: Uint128::new(200),
         },
         PriceItem {
-            address: ProjectNft::Pinjeons.into(),
-            price: Funds::new(
-                Uint128::new(100),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(100),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
-            update_date: 1_000,
-            is_outdated: false,
+            collection: ProjectNft::Pinjeons.into(),
+            price: Uint128::new(100),
         },
     ];
 
@@ -193,10 +162,6 @@ fn match_collaterals_and_bids_default() -> StdResult<()> {
     ];
 
     let collaterals_and_bids = math::match_collaterals_and_bids(
-        &Currency::new(
-            &ProjectCoin::Stars.into(),
-            ProjectCoin::Stars.get_decimals(),
-        ),
         &collection_and_collateral_list_by_borrower,
         collection_and_bid_list,
         &price_list,
@@ -421,44 +386,14 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
         ),
     ];
 
-    let price_list: Vec<PriceItem<Funds<Token>>> = vec![
+    let price_list: Vec<PriceItem> = vec![
         PriceItem {
-            address: ProjectNft::Gopniks.into(),
-            price: Funds::new(
-                Uint128::new(200),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(200),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
-            update_date: 0,
-            is_outdated: false,
+            collection: ProjectNft::Gopniks.into(),
+            price: Uint128::new(200),
         },
         PriceItem {
-            address: ProjectNft::Pinjeons.into(),
-            price: Funds::new(
-                Uint128::new(100),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Stars.to_string()),
-                    ProjectCoin::Stars.get_decimals(),
-                ),
-            ),
-            usd_price: Funds::new(
-                Uint128::new(100),
-                &Currency::new(
-                    &Token::new_native(&ProjectCoin::Usdc.to_string()),
-                    ProjectCoin::Usdc.get_decimals(),
-                ),
-            ),
-            update_date: 1_000,
-            is_outdated: false,
+            collection: ProjectNft::Pinjeons.into(),
+            price: Uint128::new(100),
         },
     ];
 
@@ -582,7 +517,6 @@ fn match_collaterals_and_bids_and_calc_liquidation_sets_default() -> StdResult<(
     ];
 
     let collaterals_and_bids = math::match_collaterals_and_bids(
-        &Currency::new(&ProjectCoin::Stars.into(), 6),
         &collection_and_collateral_list_by_borrower,
         &collection_and_bid_list,
         &price_list,

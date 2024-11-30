@@ -1,11 +1,12 @@
 use cosmwasm_std::Addr;
 use cw_storage_plus::{Deque, Item, Map};
 
-use crate::minter::types::{Config, CurrencyInfo, TransferAdminState};
+use crate::{
+    lending_platform::types::TransferAdminState,
+    minter::types::{Config, CurrencyInfo, FaucetConfig},
+};
 
-pub const CONTRACT_NAME: &str = "minter";
-
-pub const TRANSFER_ADMIN_TIMEOUT: u64 = 3600;
+pub const CONTRACT_NAME: &str = "goplend-minter";
 
 pub const SAVE_CW20_ADDRESS_REPLY: u64 = 0;
 
@@ -22,7 +23,10 @@ pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_a
 pub const TRANSFER_OWNER_STATE: Item<Vec<(String, TransferAdminState)>> =
     Item::new("denom_or_address_and_transfer_owner_state");
 
+pub const FAUCET_CONFIG: Map<&str, FaucetConfig> = Map::new("faucet_config");
 pub const CURRENCIES: Map<&str, CurrencyInfo> = Map::new("currency_info_by_denom_or_address");
 pub const TOKEN_COUNT: Map<&Addr, u16> = Map::new("token_count_by_owner");
+/// last claim date by (user, denom_or_address)
+pub const LAST_CLAIM_DATE: Map<(&Addr, &str), u64> = Map::new("last_claim_date");
 
 pub const TEMPORARY_CURRENCY: Deque<CurrencyInfo> = Deque::new("temporary_currency");

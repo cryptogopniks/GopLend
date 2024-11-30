@@ -4,26 +4,11 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-export type TokenUnverified = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: string;
-  };
-};
 export interface InstantiateMsg {
   controller?: string[] | null;
   execution_cooldown?: number | null;
-  main_currency: CurrencyForTokenUnverified;
   max_price_update_period?: number | null;
-  stable_currency: CurrencyForTokenUnverified;
   worker?: string | null;
-}
-export interface CurrencyForTokenUnverified {
-  decimals: number;
-  token: TokenUnverified;
 }
 export type ExecuteMsg = {
   accept_admin_role: {};
@@ -32,96 +17,47 @@ export type ExecuteMsg = {
     admin?: string | null;
     controller?: string[] | null;
     execution_cooldown?: number | null;
-    main_currency?: CurrencyForTokenUnverified | null;
     max_price_update_period?: number | null;
-    stable_currency?: CurrencyForTokenUnverified | null;
     worker?: string | null;
   };
 } | {
-  set_prices: {
-    data: RawPriceItem[];
-    price_ratio: Decimal;
-  };
-} | {
   update_prices: {
-    data: RawPriceItem[];
-    price_ratio: Decimal;
+    data: [string, number][];
   };
 } | {
   remove_prices: {
     collections: string[];
   };
 };
-export type Uint128 = string;
-export type Decimal = string;
-export interface RawPriceItem {
-  collection_address: string;
-  price: Uint128;
-  usd_price: Uint128;
-}
 export type QueryMsg = {
   query_config: {};
 } | {
   query_prices: {
-    collection_addresses?: string[] | null;
-    limit?: number | null;
+    amount: number;
+    collections?: string[] | null;
     start_after?: string | null;
   };
 } | {
-  query_price_ratio: {};
-} | {
   query_block_time: {};
-} | {
-  query_log: {};
 };
 export interface MigrateMsg {
   version: string;
 }
 export type Uint64 = number;
 export type Addr = string;
-export type Token = {
-  native: {
-    denom: string;
-  };
-} | {
-  cw20: {
-    address: Addr;
-  };
-};
 export interface Config {
   admin: Addr;
-  controller?: Addr[] | null;
+  controller: Addr[];
   execution_cooldown: number;
-  main_currency: CurrencyForToken;
   max_price_update_period: number;
-  stable_currency: CurrencyForToken;
-  worker?: Addr | null;
+  worker: Addr;
 }
-export interface CurrencyForToken {
-  decimals: number;
-  token: Token;
-}
-export type ArrayOfLog = Log[];
-export interface Log {
-  block_time: number;
-  counter: number;
-  outdated_price_collections: Addr[];
-  sender: Addr;
-}
-export interface PriceRatioItem {
+export type Uint128 = string;
+export interface QueryPricesResponse {
+  data: PriceItem[];
   is_outdated: boolean;
-  update_date: number;
-  value: Decimal;
 }
-export type ArrayOfPriceItemForFundsForToken = PriceItemForFundsForToken[];
-export interface PriceItemForFundsForToken {
-  address: Addr;
-  is_outdated: boolean;
-  price: FundsForToken;
-  update_date: number;
-  usd_price: FundsForToken;
-}
-export interface FundsForToken {
-  amount: Uint128;
-  currency: CurrencyForToken;
+export interface PriceItem {
+  collection: Addr;
+  price: Uint128;
 }

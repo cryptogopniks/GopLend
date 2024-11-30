@@ -2,7 +2,6 @@ import { getLast, l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { Addr, Decimal } from "../../../common/codegen/LendingPlatform.types";
 import {
@@ -30,14 +29,13 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeLtvList = async (platformType: PlatformType) => {
+  const writeLtvList = async () => {
     try {
       let allItems: [Addr, Decimal | null][] = [];
       let lastItem: string | undefined = undefined;
 
       while (lastItem !== "") {
         const items: [Addr, Decimal | null][] = await lending.cwQueryLtvList(
-          platformType,
           PAGINATION_QUERY_AMOUNT,
           lastItem
         );
@@ -53,7 +51,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "ltvs.json"),
+        getSnapshotPath(NAME, TYPE, "ltvs.json"),
         JSON.stringify(ltvs, null, 2),
         {
           encoding: ENCODING,
@@ -64,10 +62,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeLtvList(platformType))
-  );
+  await writeLtvList();
 }
 
 main();

@@ -1,10 +1,4 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Decimal;
-
-use crate::{
-    assets::{Currency, TokenUnverified},
-    oracle::types::RawPriceItem,
-};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -12,8 +6,6 @@ pub struct InstantiateMsg {
     pub controller: Option<Vec<String>>,
     pub execution_cooldown: Option<u64>,
     pub max_price_update_period: Option<u64>,
-    pub main_currency: Currency<TokenUnverified>,
-    pub stable_currency: Currency<TokenUnverified>,
 }
 
 #[cw_serde]
@@ -33,21 +25,12 @@ pub enum ExecuteMsg {
         controller: Option<Vec<String>>,
         execution_cooldown: Option<u64>,
         max_price_update_period: Option<u64>,
-        main_currency: Option<Currency<TokenUnverified>>,
-        stable_currency: Option<Currency<TokenUnverified>>,
     },
 
     // controller
-    SetPrices {
-        // price_ratio must be decreased offchain due to price_impact
-        price_ratio: Decimal,
-        data: Vec<RawPriceItem>,
-    },
-
     UpdatePrices {
-        // price_ratio must be decreased offchain due to price_impact
-        price_ratio: Decimal,
-        data: Vec<RawPriceItem>,
+        /// list of (collection_address_postfix, usd_price_with_decimals_2)
+        data: Vec<(String, u32)>,
     },
 
     RemovePrices {
@@ -58,32 +41,16 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::oracle::types::Config)]
+    #[returns(super::types::Config)]
     QueryConfig {},
 
-    #[returns(Vec<crate::oracle::types::PriceItem<crate::assets::Funds<crate::assets::Token> >>)]
+    #[returns(super::types::QueryPricesResponse)]
     QueryPrices {
-        collection_addresses: Option<Vec<String>>,
+        amount: u32,
         start_after: Option<String>,
-        limit: Option<u32>,
+        collections: Option<Vec<String>>,
     },
-
-    #[returns(crate::oracle::types::PriceRatioItem)]
-    QueryPriceRatio {},
 
     #[returns(u64)]
     QueryBlockTime {},
-
-    #[returns(Vec<crate::oracle::types::Log>)]
-    QueryLog {},
 }
-
-// TODO: add offers per token in v2
-// #[cw_serde]
-// pub struct QueryPricesResponseItem {
-//     pub address: Addr,
-//     pub currency: Currency<Token>,
-//     pub token_and_price_list: Vec<(String, Uint128)>,
-//     pub collection_price: Uint128,
-//     pub price_update_date: u64,
-// }

@@ -2,8 +2,8 @@ import { getSigner } from "../account/signer";
 import { floor, getLast, l } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
-import { COLLECTION, TOKEN } from "./constants";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import { COLLECTION } from "./constants";
+import { TOKEN } from "../../common/config";
 import {
   getChainOptionById,
   getContractByLabel,
@@ -18,6 +18,7 @@ import {
   getWallets,
   parseStoreArgs,
 } from "./utils";
+import { getFloorPrices } from "./sg-api";
 
 async function main() {
   try {
@@ -38,14 +39,9 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-    const LENDING_PLATFORM_MAIN_CONTRACT = getContractByLabel(
+    const LENDING_PLATFORM_CONTRACT = getContractByLabel(
       CONTRACTS,
-      "lending_platform_main"
-    );
-
-    const LENDING_PLATFORM_STABLE_CONTRACT = getContractByLabel(
-      CONTRACTS,
-      "lending_platform_stable"
+      "lending_platform"
     );
 
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
@@ -59,172 +55,133 @@ async function main() {
       // setup minter
       const isMainnet = TYPE === "main";
 
-      const bglDenomMain = "bglSTARS";
-      const bglDenomStable = "bglUSDC";
-      const paymentAmount = 10_000_000_000;
-      const paymentDenomMain = isMainnet
-        ? TOKEN.MAINNET.STARS
-        : TOKEN.TESTNET.STARS;
-      const paymentDenomStable = isMainnet
-        ? TOKEN.MAINNET.STARS
-        : TOKEN.TESTNET.STARS;
+      const bglDenom = "bglUSDC";
+      const paymentAmount = 1;
+      const paymentDenom = isMainnet
+        ? TOKEN.NEUTRON.MAINNET.USDC
+        : TOKEN.NEUTRON.TESTNET.USDC;
       const bglDecimals = 6;
 
-      const platforms: [PlatformType, string, string, string][] = [
-        [
-          "main",
-          LENDING_PLATFORM_MAIN_CONTRACT.ADDRESS,
-          bglDenomMain,
-          paymentDenomMain,
-        ],
-        [
-          "stable",
-          LENDING_PLATFORM_STABLE_CONTRACT.ADDRESS,
-          bglDenomStable,
-          paymentDenomStable,
-        ],
-      ];
+      const collectionEntries = isMainnet
+        ? Object.entries(COLLECTION?.MAINNET || {})
+        : Object.entries(COLLECTION?.TESTNET || {});
 
-      const collectionList = isMainnet
-        ? [[COLLECTION.MAINNET.STARGAZE.PIGEON, "PIGEON"]]
-        : [
-            [COLLECTION.TESTNET.STARGAZE.MOO, "MOO"],
-            [COLLECTION.TESTNET.STARGAZE.PIGEON, "PIGEON"],
-            [COLLECTION.TESTNET.STARGAZE.SHANE, "SHANE"],
+      const collectionList = collectionEntries
+        .map(([name, networkItem]) => {
+          const address = networkItem?.NEUTRON || "";
+          return [address, name];
+        })
+        .filter(([address]) => address) as [string, string][];
 
-            [COLLECTION.TESTNET.STARGAZE.GOPNIK_GIRLS, "GOPNIK_GIRLS"],
-            [COLLECTION.TESTNET.STARGAZE.PLASTELINE, "PLASTELINE"],
-            [COLLECTION.TESTNET.STARGAZE.BIT_KIDS, "BIT_KIDS"],
-            [COLLECTION.TESTNET.STARGAZE.BAD_KIDS, "BAD_KIDS"],
-            [COLLECTION.TESTNET.STARGAZE.SLOTHS, "SLOTHS"],
-          ];
+      const addressList = collectionList.map(([address]) => address);
+      const floorPrices = await getFloorPrices(addressList);
 
-      for (const [
-        platformType,
-        lendingPlatformContract,
+      await h.minter.cwCreateNative(
         bglDenom,
+        {
+          decimals: bglDecimals,
+          whitelist: [LENDING_PLATFORM_CONTRACT.ADDRESS],
+        },
+        paymentAmount,
         paymentDenom,
-      ] of platforms) {
-        await h.minter.stargaze.cwCreateNative(
-          bglDenom,
-          {
+        gasPrice
+      );
+
+      const { currency: bglCurrency } = getLast(
+        (await minter.cwQueryCurrencyInfoListByOwner(owner)).filter((x) =>
+          x.whitelist.includes(LENDING_PLATFORM_CONTRACT.ADDRESS)
+        )
+      );
+      const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
+      l({ bglDenomFull });
+      return;
+
+      // setup lending
+
+      // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
+      // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
+      // reserve_pool = borrowed + withdrawable
+
+      // deposited = 100, reserve_pool = 1000, time = 3
+      // borrowed = 100 + 0.45 * 1000 = 550
+      // withdrawable = 100 + 0.2 * 3 * 550 = 430
+      // reserve_pool = 550 + 430 = 980
+      await h.lending.cwUpdateCommonConfig(
+        {
+          bglCurrency: {
+            token: { native: { denom: bglDenomFull } },
             decimals: bglDecimals,
-            whitelist: [lendingPlatformContract],
           },
-          paymentAmount,
-          paymentDenom,
-          gasPrice
-        );
+          collateralMinValue: 100,
+          unbondingPeriod: 60,
+          borrowersReserveFractionRatio: 0.45,
+        },
+        gasPrice
+      );
+      return;
 
-        const { currency: bglCurrency } = getLast(
-          (await minter.stargaze.cwQueryCurrencyInfoListByOwner(owner)).filter(
-            (x) => x.whitelist.includes(lendingPlatformContract)
-          )
-        );
-        const bglDenomFull = (bglCurrency as any)?.token?.native?.denom || "";
-        l({ bglDenomFull });
+      // deposit reserve liquidity
+      await h.lending.cwDepositReserveLiquidity(
+        1_000_000_000,
+        { native: { denom: paymentDenom } },
+        gasPrice
+      );
 
-        // setup lending
-        const isMarketplaceInterfaceEnabled =
-          !isMainnet && platformType === "main";
+      // add collections
+      let i = 0;
 
-        // borrowed = deposited + borrowers_reserve_fraction_ratio * reserve_pool
-        // withdrawable = deposited + (borrow_apr - borrow_fee_rate) * time * borrowed
-        // reserve_pool = borrowed + withdrawable
-
-        // deposited = 100, reserve_pool = 1000, time = 3
-        // borrowed = 100 + 0.45 * 1000 = 550
-        // withdrawable = 100 + 0.2 * 3 * 550 = 430
-        // reserve_pool = 550 + 430 = 980
-        await h.lending.cwUpdateCommonConfig(
-          platformType,
+      for (const [collection_address, name] of collectionList) {
+        await h.lending.cwCreateProposal(
           {
-            bglCurrency: {
-              token: { native: { denom: bglDenomFull } },
-              decimals: bglDecimals,
+            proposal_type: {
+              add_collection: {
+                collection: { name, owner },
+                collection_address,
+              },
             },
-            // collateralMinValue: 100,
-            // unbondingPeriod: 60,
-            // isMarketplaceInterfaceEnabled,
-            // borrowersReserveFractionRatio: 0.45,
+            listing_price: {
+              amount: "1",
+              currency: {
+                token: { native: { denom: paymentDenom } },
+                decimals: 6,
+              },
+            },
           },
           gasPrice
         );
 
-        // // deposit reserve liquidity
-        // await h.lending.cwDepositReserveLiquidity(
-        //   platformType,
-        //   1_000_000_000,
-        //   { native: { denom: paymentDenom } },
-        //   gasPrice
-        // );
-
-        // // add collections
-        // let i = 0;
-
-        // for (const [collection_address, name] of collectionList) {
-        //   await h.lending.cwCreateProposal(
-        //     platformType,
-        //     {
-        //       proposal_type: {
-        //         add_collection: {
-        //           collection: { name, owner },
-        //           collection_address,
-        //         },
-        //       },
-        //       listing_price: {
-        //         amount: "1",
-        //         currency: {
-        //           token: { native: { denom: paymentDenom } },
-        //           decimals: 6,
-        //         },
-        //       },
-        //     },
-        //     gasPrice
-        //   );
-
-        //   await h.lending.cwAcceptProposal(
-        //     platformType,
-        //     ++i,
-        //     1,
-        //     { native: { denom: paymentDenom } },
-        //     gasPrice
-        //   );
-        // }
+        await h.lending.cwAcceptProposal(
+          ++i,
+          1,
+          { native: { denom: paymentDenom } },
+          gasPrice
+        );
       }
 
       // add market maker outposts
-      const hubConfig = await marketMaker.hub.cwQueryConfig();
-      const maxOutpostAmount = hubConfig.max_outpost_amount;
-      let outpostAmount = (await marketMaker.hub.cwQueryOutposts()).length;
+      const hubConfig = await marketMaker.cwQueryConfig();
 
-      while (outpostAmount < maxOutpostAmount) {
-        await h.marketMaker.hub.cwAddOutpost(gasPrice);
-        outpostAmount = (await marketMaker.hub.cwQueryOutposts()).length;
+      // set collection owner in market maker
+      for (const [collection] of collectionList) {
+        await h.marketMaker.cwSetCollection(
+          collection,
+          hubConfig.admin,
+          gasPrice
+        );
       }
 
-      // // set collection owners in market maker
-      // const ownerList = hubConfig.worker
-      //   ? [hubConfig.admin, hubConfig.worker]
-      //   : [hubConfig.admin];
+      // add liquidity to maker maker
+      for (const [collection] of collectionList) {
+        const floorPrice =
+          floorPrices.find((x) => x.collection === collection)?.price || 0;
 
-      // for (const [collection] of collectionList) {
-      //   await h.marketMaker.hub.cwSetCollection(
-      //     collection,
-      //     ownerList,
-      //     gasPrice
-      //   );
-      // }
-
-      // // add liquidity to maker maker
-      // for (const [collection] of collectionList) {
-      //   await h.marketMaker.hub.cwDepositLiquidity(
-      //     collection,
-      //     floor(paymentAmount / maxOutpostAmount),
-      //     paymentDenomMain,
-      //     gasPrice
-      //   );
-      // }
+        await h.marketMaker.cwDepositLiquidity(
+          collection,
+          floorPrice * 1e6 * 50,
+          paymentDenom,
+          gasPrice
+        );
+      }
     };
 
     await prepareConfigs();

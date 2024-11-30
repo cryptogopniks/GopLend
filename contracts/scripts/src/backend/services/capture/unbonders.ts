@@ -2,7 +2,6 @@ import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import {
   ENCODING,
@@ -29,11 +28,11 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeUnbonders = async (platformType: PlatformType) => {
+  const writeUnbonders = async () => {
     try {
       // sort by returned amount descending
       const unbonders = (
-        await lending.pQueryUnbonderList(platformType, PAGINATION_QUERY_AMOUNT)
+        await lending.pQueryUnbonderList(PAGINATION_QUERY_AMOUNT)
       ).sort(
         (a, b) =>
           b.unbonder.returned_and_unbonded.reduce(
@@ -48,7 +47,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "unbonders.json"),
+        getSnapshotPath(NAME, TYPE, "unbonders.json"),
         JSON.stringify(unbonders, null, 2),
         {
           encoding: ENCODING,
@@ -59,10 +58,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeUnbonders(platformType))
-  );
+  await writeUnbonders();
 }
 
 main();

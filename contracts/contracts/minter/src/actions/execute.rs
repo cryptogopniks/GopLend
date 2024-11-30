@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    coin, to_json_binary, Addr, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
-    Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
+    coin, coins, to_json_binary, Addr, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response,
+    StdResult, Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
 
 use cw20::Logo;
@@ -12,13 +12,14 @@ use osmosis_std::types::{
 use goplend_base::{
     assets::{Currency, Token, TokenUnverified},
     error::ContractError,
+    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
     minter::{
         state::{
-            CONFIG, CURRENCIES, DEFAULT_DECIMALS, IS_PAUSED, SAVE_CW20_ADDRESS_REPLY,
-            TEMPORARY_CURRENCY, TOKEN_COUNT, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+            CONFIG, CURRENCIES, DEFAULT_DECIMALS, FAUCET_CONFIG, IS_PAUSED, LAST_CLAIM_DATE,
+            SAVE_CW20_ADDRESS_REPLY, TEMPORARY_CURRENCY, TOKEN_COUNT, TRANSFER_ADMIN_STATE,
             TRANSFER_OWNER_STATE,
         },
-        types::{Config, CurrencyInfo, DenomUnit, Metadata, TransferAdminState},
+        types::{Config, CurrencyInfo, DenomUnit, FaucetConfig, Metadata},
     },
     utils::{check_funds, unwrap_field, FundsType},
 };
@@ -828,6 +829,49 @@ pub fn try_exclude_cw20(
         .add_attribute("action", "try_exclude_cw20"))
 }
 
+pub fn try_update_faucet_config(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    denom_or_address: String,
+    claimable_amount: Option<Uint128>,
+    claim_cooldown: Option<u64>,
+) -> Result<Response, ContractError> {
+    check_pause_state(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let currency_info = CURRENCIES
+        .load(deps.storage, &denom_or_address)
+        .map_err(|_| ContractError::AssetIsNotFound)?;
+
+    if currency_info.owner != sender_address {
+        Err(ContractError::Unauthorized)?;
+    }
+
+    let mut is_config_updated = false;
+    let mut config = FAUCET_CONFIG
+        .load(deps.storage, &denom_or_address)
+        .unwrap_or_default();
+
+    if let Some(x) = claimable_amount {
+        config.claimable_amount = x;
+        is_config_updated = true;
+    }
+
+    if let Some(x) = claim_cooldown {
+        config.claim_cooldown = x;
+        is_config_updated = true;
+    }
+
+    // don't allow empty messages
+    if !is_config_updated {
+        Err(ContractError::NoParameters)?;
+    }
+
+    FAUCET_CONFIG.save(deps.storage, &denom_or_address, &config)?;
+
+    Ok(Response::new().add_attribute("action", "try_update_faucet_config"))
+}
+
 pub fn try_mint(
     deps: DepsMut,
     env: Env,
@@ -884,6 +928,58 @@ pub fn try_mint(
     Ok(response)
 }
 
+pub fn try_mint_multiple(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    denom_or_address: String,
+    account_and_amount_list: Vec<(String, Uint128)>,
+) -> Result<Response, ContractError> {
+    check_pause_state(deps.storage)?;
+    let mut response = Response::new().add_attribute("action", "try_mint_multiple");
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let creator = &env.contract.address;
+    let currency_info = CURRENCIES
+        .load(deps.storage, &denom_or_address)
+        .map_err(|_| ContractError::AssetIsNotFound)?;
+
+    if !currency_info.whitelist.contains(&sender_address) {
+        Err(ContractError::Unauthorized)?;
+    }
+
+    let total_amount = account_and_amount_list
+        .iter()
+        .fold(Uint128::zero(), |acc, (_, cur)| acc + cur);
+
+    if currency_info.currency.token.is_native() {
+        let msg: CosmosMsg = OsmosisFactory::MsgMint {
+            sender: creator.to_string(),
+            amount: Some(coin(total_amount.u128(), denom_or_address.clone()).into()),
+            mint_to_address: creator.to_string(),
+        }
+        .into();
+        response = response.add_message(msg);
+    }
+
+    for (recipient, amount) in account_and_amount_list {
+        let msg = if currency_info.currency.token.is_native() {
+            CosmosMsg::Bank(BankMsg::Send {
+                to_address: recipient,
+                amount: coins(amount.u128(), denom_or_address.clone()),
+            })
+        } else {
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: denom_or_address.clone(),
+                msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint { recipient, amount })?,
+                funds: vec![],
+            })
+        };
+        response = response.add_message(msg);
+    }
+
+    Ok(response)
+}
+
 pub fn try_burn(
     deps: DepsMut,
     env: Env,
@@ -930,14 +1026,88 @@ pub fn try_burn(
     Ok(response)
 }
 
+pub fn try_claim(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    denom_or_address: String,
+) -> Result<Response, ContractError> {
+    check_pause_state(deps.storage)?;
+    let mut response = Response::new().add_attribute("action", "try_claim");
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let creator = &env.contract.address;
+    let block_time = env.block.time.seconds();
+    let currency_info = CURRENCIES
+        .load(deps.storage, &denom_or_address)
+        .map_err(|_| ContractError::AssetIsNotFound)?;
+
+    let FaucetConfig {
+        claimable_amount,
+        claim_cooldown,
+    } = FAUCET_CONFIG
+        .load(deps.storage, &denom_or_address)
+        .unwrap_or_default();
+    let last_claimed = LAST_CLAIM_DATE
+        .load(deps.storage, (&sender_address, &denom_or_address))
+        .unwrap_or_default();
+
+    if claimable_amount.is_zero() {
+        Err(ContractError::FaucetIsDisabled)?;
+    }
+
+    if block_time < last_claimed + claim_cooldown {
+        Err(ContractError::ClaimCooldown {
+            remaining_time_in_mins: (last_claimed + claim_cooldown - block_time) / 60,
+        })?;
+    }
+
+    LAST_CLAIM_DATE.save(
+        deps.storage,
+        (&sender_address, &denom_or_address),
+        &block_time,
+    )?;
+
+    if currency_info.currency.token.is_native() {
+        let amount = coin(claimable_amount.u128(), denom_or_address);
+
+        let msg_list = vec![
+            OsmosisFactory::MsgMint {
+                sender: creator.to_string(),
+                amount: Some(amount.clone().into()),
+                mint_to_address: creator.to_string(),
+            }
+            .into(),
+            CosmosMsg::Bank(BankMsg::Send {
+                to_address: sender_address.to_string(),
+                amount: vec![amount],
+            }),
+        ];
+
+        response = response.add_messages(msg_list);
+    } else {
+        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: denom_or_address,
+            msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
+                recipient: sender_address.to_string(),
+                amount: claimable_amount,
+            })?,
+            funds: vec![],
+        });
+
+        response = response.add_message(msg);
+    }
+
+    Ok(response)
+}
+
 fn get_full_denom(creator: &Addr, subdenom: &str) -> String {
     format!("factory/{creator}/{subdenom}")
 }
 
 /// user actions are disabled when the contract is paused
-fn check_pause_state(storage: &dyn Storage) -> Result<(), ContractError> {
+fn check_pause_state(storage: &dyn Storage) -> StdResult<()> {
     if IS_PAUSED.load(storage)? {
-        Err(ContractError::ContractIsLocked)?;
+        Err(ContractError::ContractIsPaused)?;
     }
 
     Ok(())

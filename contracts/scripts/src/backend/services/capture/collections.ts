@@ -2,7 +2,6 @@ import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import {
   ENCODING,
@@ -29,19 +28,16 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeCollections = async (platformType: PlatformType) => {
+  const writeCollections = async () => {
     try {
       // sort by name ascending
       const collections = (
-        await lending.pQueryCollectionList(
-          platformType,
-          PAGINATION_QUERY_AMOUNT
-        )
+        await lending.pQueryCollectionList(PAGINATION_QUERY_AMOUNT)
       ).sort((a, b) => a.collection.name.localeCompare(b.collection.name));
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "collections.json"),
+        getSnapshotPath(NAME, TYPE, "collections.json"),
         JSON.stringify(collections, null, 2),
         {
           encoding: ENCODING,
@@ -52,10 +48,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeCollections(platformType))
-  );
+  await writeCollections();
 }
 
 main();

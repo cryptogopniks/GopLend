@@ -2,7 +2,6 @@ import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import {
   ENCODING,
@@ -29,11 +28,11 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeBorrowers = async (platformType: PlatformType) => {
+  const writeBorrowers = async () => {
     try {
       // sort by (loan + accumulated_loan) descending
       const borrowers = (
-        await lending.pQueryBorrowerList(platformType, PAGINATION_QUERY_AMOUNT)
+        await lending.pQueryBorrowerList(PAGINATION_QUERY_AMOUNT)
       ).sort(
         (a, b) =>
           Number(b.borrower.loan.amount) +
@@ -43,7 +42,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "borrowers.json"),
+        getSnapshotPath(NAME, TYPE, "borrowers.json"),
         JSON.stringify(borrowers, null, 2),
         {
           encoding: ENCODING,
@@ -54,10 +53,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeBorrowers(platformType))
-  );
+  await writeBorrowers();
 }
 
 main();

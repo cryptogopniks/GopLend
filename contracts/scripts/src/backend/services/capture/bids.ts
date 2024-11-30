@@ -2,7 +2,6 @@ import { getLast, l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { QueryLiquidationBidsByLiquidatorAddressListResponseItem } from "../../../common/codegen/LendingPlatform.types";
 import {
@@ -30,7 +29,7 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeBids = async (platformType: PlatformType) => {
+  const writeBids = async () => {
     try {
       let allItems: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
         [];
@@ -39,7 +38,6 @@ async function main() {
       while (lastItem !== "") {
         const items: QueryLiquidationBidsByLiquidatorAddressListResponseItem[] =
           await lending.cwQueryLiquidationBidsByLiquidatorAddressList(
-            platformType,
             PAGINATION_QUERY_AMOUNT,
             lastItem
           );
@@ -75,7 +73,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "bids.json"),
+        getSnapshotPath(NAME, TYPE, "bids.json"),
         JSON.stringify(bids, null, 2),
         {
           encoding: ENCODING,
@@ -86,10 +84,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeBids(platformType))
-  );
+  await writeBids();
 }
 
 main();

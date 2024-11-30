@@ -59,7 +59,6 @@ pub struct LiquidationBid {
 pub enum BidType {
     LiquidationBid,
     CollectionOffer,
-    TokenOffer,
 }
 
 // bids.sort_unstable_by_key(|(_, bid)| bid.bid_type) will give
@@ -69,9 +68,6 @@ impl Ord for BidType {
         match (self, other) {
             (BidType::LiquidationBid, BidType::LiquidationBid) => Ordering::Equal,
             (BidType::LiquidationBid, _) => Ordering::Less,
-            (BidType::TokenOffer, BidType::TokenOffer) => Ordering::Equal,
-            (BidType::TokenOffer, BidType::LiquidationBid) => Ordering::Greater,
-            (BidType::TokenOffer, BidType::CollectionOffer) => Ordering::Less,
             (BidType::CollectionOffer, BidType::CollectionOffer) => Ordering::Equal,
             (BidType::CollectionOffer, _) => Ordering::Greater,
         }
@@ -202,8 +198,8 @@ pub struct AddressConfig {
     pub worker: Option<Addr>,
     pub oracle: Option<Addr>,
     pub minter: Option<Addr>,
-    pub adapter_scheduler: Option<Addr>,
-    pub adapter_marketplace: Option<Addr>,
+    pub scheduler: Option<Addr>,
+    pub market_maker: Option<Addr>,
 }
 
 #[cw_serde]
@@ -223,11 +219,82 @@ pub struct CommonConfig {
     pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
     pub borrowers_reserve_fraction_ratio: Decimal,
-    pub is_marketplace_interface_enabled: bool,
 }
 
 #[cw_serde]
 pub struct TransferAdminState {
     pub new_admin: Addr,
     pub deadline: u64,
+}
+
+#[cw_serde]
+pub struct QueryUnbondersResponseItem {
+    pub address: Addr,
+    pub unbonder: Unbonder,
+}
+
+#[cw_serde]
+pub struct QueryBorrowersResponseItem {
+    pub address: Addr,
+    pub borrower: Borrower,
+}
+
+#[cw_serde]
+pub struct QueryLiquidatorsResponseItem {
+    pub address: Addr,
+    pub liquidator: Liquidator,
+}
+
+#[cw_serde]
+pub struct QueryCollateralsResponseItem {
+    pub address: Addr,
+    pub collateral: Vec<Collateral>,
+}
+
+#[cw_serde]
+pub struct QueryLiquidationBidsByCollectionAddressListResponseItem {
+    pub collection_address: Addr,
+    pub liquidation_bids: Vec<LiquidationBid>,
+}
+
+#[cw_serde]
+pub struct QueryLiquidationBidsByLiquidatorAddressListResponseItem {
+    pub liquidator_address: Addr,
+    pub collection_and_liquidation_bids_list:
+        Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
+}
+
+#[cw_serde]
+pub struct QueryProposalsResponseItem {
+    pub id: u32,
+    pub proposal: Proposal<Addr, Token>,
+}
+
+#[cw_serde]
+pub struct QueryCollectionsResponseItem {
+    pub address: Addr,
+    pub collection: Collection<Addr>,
+}
+
+#[cw_serde]
+pub struct QueryAmountsResponse {
+    pub unbonders: u32,
+    pub borrowers: u32,
+    pub collaterals: u32,
+    pub liquidators: u32,
+    pub liquidation_bids: u32,
+    pub proposals: u32,
+    pub collections: u32,
+}
+
+#[cw_serde]
+pub struct QueryUserInfoResponse {
+    pub main_token_balance: Uint128,
+    pub bgl_token_balance: Uint128,
+    pub returned_and_unbonded: Vec<(Uint128, Vault)>,
+    pub loan: Uint128,
+    pub collateral: Vec<QueryCollateralsResponseItem>,
+    pub ltv: Decimal,
+    pub available_to_borrow: Uint128,
+    pub liquidation_bids: Vec<QueryLiquidationBidsByCollectionAddressListResponseItem>,
 }

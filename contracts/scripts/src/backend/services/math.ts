@@ -1,21 +1,13 @@
 import { floor, getLast } from "../../common/utils";
-import { PriceItemForFundsForToken } from "../../common/codegen/Oracle.types";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
+import { PriceItem } from "../../common/codegen/Oracle.types";
 import {
   LiquidationBidExtended,
   TargetBorrower,
 } from "../../common/interfaces";
 import {
-  Bid,
-  CollectionBid,
-} from "../../common/interfaces/stargaze-marketplace";
-import {
   Addr,
   BiddedCollateralItem,
   Collateral,
-  CommonConfig,
-  CurrencyForToken,
-  LiquidationBid,
   QueryBorrowersResponseItem,
   QueryCollateralsResponseItem,
   QueryLiquidationBidsByCollectionAddressListResponseItem,
@@ -84,123 +76,6 @@ export function calcDiscountedAmount(amount: number, discount: number): number {
   return Math.floor(amount * (1 - discount));
 }
 
-export function choosePrice(
-  mainCurrency: CurrencyForToken,
-  priceItem: PriceItemForFundsForToken
-) {
-  return JSON.stringify(mainCurrency.token) ===
-    JSON.stringify(priceItem.price.currency.token)
-    ? priceItem.price.amount
-    : priceItem.usd_price.amount;
-}
-
-// Places bid on each collateral token, best bids have higher priority
-//
-// Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
-// is floating), offfers from 100 % or more (liquidation price is fixed). Here are examples:
-// 1) Bid for 200 at a 5 % discount. At liquidation, the token price is 100,
-// but the liquidation price is 95. After liquidation the bid is 105, you can withdraw it
-// and get the balance back
-// 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
-// but the liquidation price is 190. After liquidation the offer will be consumed completely
-export function matchCollateralsAndBidsLegacy(
-  mainCurrency: CurrencyForToken,
-  collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  collectionAndBidList: [Addr, LiquidationBid][],
-  priceList: PriceItemForFundsForToken[]
-): BiddedCollateralItem[] {
-  // set bids priority
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.amount) - Number(bidB.amount)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.creation_date) - Number(bidB.creation_date)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.discount) - Number(bidB.discount)
-  );
-  collectionAndBidList.sort(
-    ([_collectionA, bidA], [_collectionB, bidB]) =>
-      Number(bidA.bid_type) - Number(bidB.bid_type)
-  );
-
-  // add best bid for each collateral token
-  let biddedCollateralList: BiddedCollateralItem[] = [];
-
-  for (const [
-    collateral_collection,
-    collateral,
-  ] of collectionAndCollateralListByBorrower) {
-    const priceItem = priceList.find(
-      (x) => x.address === collateral_collection
-    );
-    if (!priceItem) continue;
-
-    const price = choosePrice(mainCurrency, priceItem);
-
-    for (const tokenItem of collateral.token_item_list) {
-      for (let i = 0; i < collectionAndBidList.length; i++) {
-        const [_bid_collection, bid] = collectionAndBidList[i];
-
-        const { bidAmount, discountedPrice, liquidationPrice } =
-          bid.bid_type === "liquidation_bid"
-            ? (() => {
-                // bids
-                const bidAmount = Number(bid.amount);
-                const discountedPrice = calcDiscountedAmount(
-                  Number(price),
-                  Number(bid.discount)
-                );
-                const liquidationPrice = discountedPrice;
-
-                return { bidAmount, discountedPrice, liquidationPrice };
-              })()
-            : (() => {
-                // offers
-                const bidAmount = calcDiscountedAmount(
-                  Number(bid.amount),
-                  Number(bid.discount)
-                );
-                const discountedPrice = Number(price);
-                const liquidationPrice = bidAmount;
-
-                return { bidAmount, discountedPrice, liquidationPrice };
-              })();
-
-        if (
-          bid.token_id_list.includes(tokenItem.id) &&
-          bidAmount >= discountedPrice
-        ) {
-          const biddedCollateralItem: BiddedCollateralItem = {
-            collection: collateral_collection,
-            token_item: tokenItem,
-            owner: collateral.owner,
-            liquidator: bid.liquidator,
-            bid_creation_date: bid.creation_date,
-            liquidation_price: liquidationPrice.toString(),
-            collateral_price: price,
-            bid_amount: bid.amount,
-            bid_discount: bid.discount,
-            bid_type: bid.bid_type,
-          };
-
-          biddedCollateralList.push(biddedCollateralItem);
-
-          collectionAndBidList[i][1].amount = (
-            bidAmount - discountedPrice
-          ).toString();
-          break;
-        }
-      }
-    }
-  }
-
-  return biddedCollateralList;
-}
-
 // Places bid on each collateral token, best bids have higher priority
 //
 // Bids always liquidate the collateral for from 80 % to 100 % of its value (liquidation price
@@ -211,10 +86,9 @@ export function matchCollateralsAndBidsLegacy(
 // 2) Offer for 200 with a total discount of 5 %. At liquidation the token price is 100,
 // but the liquidation price is 190. After liquidation the offer will be consumed completely
 export function matchCollateralsAndBids(
-  mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
   collectionAndBidList: LiquidationBidExtended[],
-  priceList: PriceItemForFundsForToken[]
+  priceList: PriceItem[]
 ): BiddedCollateralItem[] {
   // set bids priority
   collectionAndBidList.sort(
@@ -238,11 +112,11 @@ export function matchCollateralsAndBids(
     collateral,
   ] of collectionAndCollateralListByBorrower) {
     const priceItem = priceList.find(
-      (x) => x.address === collateral_collection
+      (x) => x.collection === collateral_collection
     );
     if (!priceItem) continue;
 
-    const price = choosePrice(mainCurrency, priceItem);
+    const { price } = priceItem;
 
     for (const tokenItem of collateral.token_item_list) {
       for (let i = 0; i < collectionAndBidList.length; i++) {
@@ -497,22 +371,17 @@ export function getCollateralsByBorrower(
 }
 
 export function getCollateralValue(
-  mainCurrency: CurrencyForToken,
   collectionAndCollateralListByBorrower: [Addr, Collateral][],
-  prices: PriceItemForFundsForToken[]
+  prices: PriceItem[]
 ): number | undefined {
   let isPriceOutdated = false;
 
   const collateralValue = collectionAndCollateralListByBorrower.reduce(
     (acc, [collectionAddress, collateral]) => {
-      const priceItem = prices.find((x) => x.address === collectionAddress);
+      const priceItem = prices.find((x) => x.collection === collectionAddress);
       if (!priceItem) return acc;
 
-      if (priceItem.is_outdated) {
-        isPriceOutdated = true;
-      }
-
-      const price = choosePrice(mainCurrency, priceItem);
+      const { price } = priceItem;
 
       return acc + Number(price) * collateral.token_item_list.length;
     },
@@ -525,12 +394,10 @@ export function getCollateralValue(
 // get borrowers with ltv > ltvMax
 // no collateral borrowers will be ignored
 export function getTargetBorrowers(
-  platformType: PlatformType,
   borrowerList: QueryBorrowersResponseItem[],
   collateralList: QueryCollateralsResponseItem[],
-  priceList: PriceItemForFundsForToken[],
+  priceList: PriceItem[],
   rateConfig: RateConfig,
-  commonConfig: CommonConfig,
   ltvMax: number,
   blockTime: number
 ): TargetBorrower[] {
@@ -545,11 +412,8 @@ export function getTargetBorrowers(
       );
 
       const collateralValue =
-        getCollateralValue(
-          commonConfig.main_currency,
-          collectionAndCollateralListByBorrower,
-          priceList
-        ) || 0;
+        getCollateralValue(collectionAndCollateralListByBorrower, priceList) ||
+        0;
 
       const loanAmount = Number(loan.amount);
       const accumulatedLoan = Number(accumulated_loan);
@@ -569,7 +433,6 @@ export function getTargetBorrowers(
 
       if (ltv > ltvMax) {
         acc.push({
-          platformType,
           borrowerAddress,
           ltv,
           loanAmount,
@@ -611,21 +474,11 @@ export function getCollectionAndBidList(
 }
 
 export function reduceBids(
-  platformType: PlatformType,
-  totalBidsMain: LiquidationBidExtended[],
-  totalBidsStable: LiquidationBidExtended[],
+  totalBids: LiquidationBidExtended[],
   liquidationSet: BiddedCollateralItem[]
-): {
-  totalBidsMain: LiquidationBidExtended[];
-  totalBidsStable: LiquidationBidExtended[];
-} {
-  let [totalBidsPrimary, totalBidsSecondary] =
-    platformType === "main"
-      ? [totalBidsMain, totalBidsStable]
-      : [totalBidsStable, totalBidsMain];
-
+): LiquidationBidExtended[] {
   for (const { collection, token_item, liquidation_price } of liquidationSet) {
-    totalBidsPrimary = totalBidsPrimary.reduce((acc, bid) => {
+    totalBids = totalBids.reduce((acc, bid) => {
       if (
         bid.collectionAddress !== collection ||
         !bid.tokenIdList.includes(token_item.id)
@@ -635,7 +488,7 @@ export function reduceBids(
       }
 
       if (bid.bidType === "collection_offer") {
-        totalBidsSecondary = totalBidsSecondary.filter(
+        totalBids = totalBids.filter(
           (x) => x.collectionOfferId !== bid.collectionOfferId
         );
         return acc;
@@ -652,7 +505,7 @@ export function reduceBids(
     }, [] as LiquidationBidExtended[]);
   }
 
-  return { totalBidsMain, totalBidsStable };
+  return totalBids;
 }
 
 export function getCollectionsFromLtvAndCollateralList(
@@ -669,103 +522,43 @@ export function getCollectionsFromLtvAndCollateralList(
   }, [] as string[]);
 }
 
-// imagine we have 500 STARS offer, 1 STARS is 0.01 USDC
-// if we will assume the offer is 5 USDC we will lose some funds due to
-// swap fee, price impact, price ratio fluctuation
-// expecting 2 % losses we can accept 4.9 USDC offer
-//
-// price = base_price * price_ratio * (1 - price_impact)
-// as price_impact comes with price_ratio
-// price = base_price * price_ratio
-export function calcPrice(basePrice: number, priceRatio: number): number {
-  return basePrice * priceRatio;
-}
-
 export function distributeOffers(
   collectionList: string[],
-  collateralListMain: QueryCollateralsResponseItem[],
-  collateralListStable: QueryCollateralsResponseItem[],
-  tokenOfferList: [string, Bid[]][],
-  collectionOfferList: [string, CollectionBid[]][],
-  discountBaseList: [string, number][],
-  priceRatioStable: number,
-  blockTime: number,
-  platformList: PlatformType[]
+  collateralList: QueryCollateralsResponseItem[],
+  collectionOfferList: [string, string[]][],
+  blockTime: number
 ): LiquidationBidExtended[] {
   let offers: LiquidationBidExtended[] = [];
   let collectionOfferId = 0;
 
   for (const collection of collectionList) {
-    const tokenOffers =
-      tokenOfferList.find(([address]) => address === collection)?.[1] || [];
     const collectionOffers =
       collectionOfferList.find(([address]) => address === collection)?.[1] ||
       [];
-    if (!tokenOffers.length && !collectionOffers.length) continue;
+    if (!collectionOffers.length) continue;
 
-    const discountBase =
-      discountBaseList.find(([address]) => address === collection)?.[1] || 0;
+    const collateral =
+      collateralList.find((x) => x.address === collection)?.collateral || [];
 
-    const collateralMain =
-      collateralListMain.find((x) => x.address === collection)?.collateral ||
-      [];
-    const collateralStable =
-      collateralListStable.find((x) => x.address === collection)?.collateral ||
-      [];
-
-    const tokenListMain = collateralMain.flatMap((x) =>
+    const tokenList = collateral.flatMap((x) =>
       x.token_item_list.map((y) => y.id)
     );
-    const tokenListStable = collateralStable.flatMap((x) =>
-      x.token_item_list.map((y) => y.id)
-    );
-    if (!tokenListMain.length && !tokenListStable.length) continue;
+    if (!tokenList.length) continue;
 
-    for (const { price, bidder, token_id, finders_fee_bps } of tokenOffers) {
-      const findersFeeRate = Number(finders_fee_bps) / 100;
-      const tokenId = token_id.toString();
-
-      const isMain = collateralMain.find((x) =>
-        x.token_item_list.some((y) => y.id === tokenId)
-      );
-      const isStable = collateralStable.find((x) =>
-        x.token_item_list.some((y) => y.id === tokenId)
-      );
-      if (!isMain && !isStable) continue;
+    for (const price of collectionOffers) {
+      const tokenIdList = tokenList;
+      if (!tokenIdList.length) continue;
 
       offers.push({
         creationDate: blockTime,
-        liquidator: bidder,
-        tokenIdList: [tokenId],
-        amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-        discount: discountBase + findersFeeRate,
-        bidType: "token_offer",
-        platformType: isMain ? "main" : "stable",
-        collectionOfferId: -1,
+        liquidator: "MM",
+        tokenIdList,
+        amount: Number(price),
+        discount: 0,
+        bidType: "collection_offer",
+        collectionOfferId,
         collectionAddress: collection,
       });
-    }
-
-    for (const { price, bidder, finders_fee_bps } of collectionOffers) {
-      const findersFeeRate = Number(finders_fee_bps) / 100;
-
-      for (const platformType of platformList) {
-        const isMain = platformType === "main";
-        const tokenIdList = isMain ? tokenListMain : tokenListStable;
-        if (!tokenIdList.length) continue;
-
-        offers.push({
-          creationDate: blockTime,
-          liquidator: bidder,
-          tokenIdList,
-          amount: calcPrice(Number(price), isMain ? 1 : priceRatioStable),
-          discount: discountBase + findersFeeRate,
-          bidType: "collection_offer",
-          platformType,
-          collectionOfferId,
-          collectionAddress: collection,
-        });
-      }
 
       collectionOfferId++;
     }
@@ -775,23 +568,11 @@ export function distributeOffers(
 }
 
 export function mergeBidsAndOffers(
-  liquidationBidsMain: QueryLiquidationBidsByCollectionAddressListResponseItem[],
-  liquidationBidsStable: QueryLiquidationBidsByCollectionAddressListResponseItem[],
+  liquidationBids: QueryLiquidationBidsByCollectionAddressListResponseItem[],
   offers: LiquidationBidExtended[]
-): {
-  totalBidsMain: LiquidationBidExtended[];
-  totalBidsStable: LiquidationBidExtended[];
-} {
-  const [totalBidsMain, totalBidsStable] = offers.reduce(
-    (acc, cur) => {
-      acc[cur.platformType === "main" ? 0 : 1].push(cur);
-      return acc;
-    },
-    [[], []] as [LiquidationBidExtended[], LiquidationBidExtended[]]
-  );
-
-  const liquidationBidsMainExtended: LiquidationBidExtended[] =
-    liquidationBidsMain.flatMap(({ collection_address, liquidation_bids }) => {
+): LiquidationBidExtended[] {
+  const liquidationBidsExtended: LiquidationBidExtended[] =
+    liquidationBids.flatMap(({ collection_address, liquidation_bids }) => {
       return liquidation_bids.map((x) => ({
         creationDate: x.creation_date,
         liquidator: x.liquidator,
@@ -805,27 +586,7 @@ export function mergeBidsAndOffers(
       }));
     });
 
-  const liquidationBidsStableExtended: LiquidationBidExtended[] =
-    liquidationBidsStable.flatMap(
-      ({ collection_address, liquidation_bids }) => {
-        return liquidation_bids.map((x) => ({
-          creationDate: x.creation_date,
-          liquidator: x.liquidator,
-          tokenIdList: x.token_id_list,
-          amount: Number(x.amount),
-          discount: Number(x.discount),
-          bidType: x.bid_type,
-          platformType: "stable",
-          collectionOfferId: -1,
-          collectionAddress: collection_address,
-        }));
-      }
-    );
-
-  return {
-    totalBidsMain: [...liquidationBidsMainExtended, ...totalBidsMain],
-    totalBidsStable: [...liquidationBidsStableExtended, ...totalBidsStable],
-  };
+  return [...liquidationBidsExtended, ...offers];
 }
 
 // returns [collection, tokenList][]
@@ -970,7 +731,6 @@ export function calcCollectionPrice(
   newFloorPriceSample: PriceSample,
   prevFloorPriceEma: number | undefined,
   offerPriceList: number[],
-  feeRateList: number[],
   meanOfferSampleList: PriceSample[],
   prevMeanOfferEma: number
 ): CollectionPriceResponse {
@@ -1002,12 +762,12 @@ export function calcCollectionPrice(
   );
 
   // filter offers
-  const validOffers = offerPriceList.reduce((acc, offer, i) => {
+  const validOffers = offerPriceList.reduce((acc, offer) => {
     if (
       offer >= floorPriceBoundaryLower * floorPrice &&
       offer <= floorPriceBoundaryUpper * floorPrice
     ) {
-      acc.push(floor((1 - feeRateList[i]) * offer));
+      acc.push(offer);
     }
 
     return acc;
@@ -1048,26 +808,23 @@ export function calcCollectionPrice(
 export function splitOffers(
   lowerFloorPrice: number,
   upperFloorPrice: number,
-  price_and_outpost_list: [string, string][]
+  priceList: string[]
 ) {
-  const priceAndOutpostList = (
-    price_and_outpost_list.map(([price, outpost]) => [
-      Number(price),
-      outpost,
-    ]) as [number, string][]
-  ).sort(([priceA], [priceB]) => priceB - priceA);
+  const priceListSorted = priceList
+    .map(Number)
+    .sort((priceA, priceB) => priceB - priceA);
 
-  const regularOffers = priceAndOutpostList
-    .map(([price]) => price)
-    .filter((price) => price >= lowerFloorPrice && price <= upperFloorPrice);
+  const regularOffers = priceListSorted.filter(
+    (price) => price >= lowerFloorPrice && price <= upperFloorPrice
+  );
 
   // sort ascending as we need to get rid of smallest offers first
-  const tooSmallOffers = priceAndOutpostList
-    .filter(([price]) => price < lowerFloorPrice)
-    .sort(([priceA], [priceB]) => priceA - priceB);
+  const tooSmallOffers = priceListSorted
+    .filter((price) => price < lowerFloorPrice)
+    .sort((priceA, priceB) => priceA - priceB);
 
-  const tooBigOffers = priceAndOutpostList.filter(
-    ([price]) => price > upperFloorPrice
+  const tooBigOffers = priceListSorted.filter(
+    (price) => price > upperFloorPrice
   );
 
   return {
@@ -1078,26 +835,41 @@ export function splitOffers(
 }
 
 export function getOffersExtendedUp(
-  upper_allowed_offers_boundary: number,
+  upperAllowedOffersBoundary: number,
   amountUndistributed: number,
   floorPrice: number,
   lowerFloorPrice: number,
   regularOffers: number[],
-  tooSmallOffers: [number, string][]
+  tooSmallOffers: number[],
+  maxOffers: number
 ) {
-  const highestOffer = regularOffers[0] || lowerFloorPrice;
+  const highestOffer = floor(regularOffers[0] || lowerFloorPrice);
   const allowedPriceRange =
-    floorPrice * upper_allowed_offers_boundary - highestOffer;
-  const priceStep = floor(allowedPriceRange / (tooSmallOffers.length - 1));
-  const fromToPriceAndOutpostListRaw: [number, number, string][] =
-    tooSmallOffers.map(([priceBefore, outpost], i) => {
+    floorPrice * upperAllowedOffersBoundary - highestOffer;
+
+  let priceStep: number = 0;
+  let fromToPriceListRaw: [number, number][] = [];
+
+  if (regularOffers.length) {
+    priceStep = floor(allowedPriceRange / tooSmallOffers.length);
+
+    fromToPriceListRaw = tooSmallOffers.map((priceBefore, i) => {
       const priceAfter = highestOffer + priceStep * (i + 1);
-      return [priceBefore, priceAfter, outpost];
+      return [priceBefore, priceAfter];
     });
+  } else {
+    const offers = [...new Array(maxOffers)];
+    priceStep = floor(allowedPriceRange / (offers.length - 1));
+
+    fromToPriceListRaw = offers.map((_, i) => {
+      const priceAfter = highestOffer + priceStep * i;
+      return [0, priceAfter];
+    });
+  }
 
   // filter offers based on available liquidity
-  const [fromToPriceAndOutpostList]: [[number, number, string][], number] =
-    fromToPriceAndOutpostListRaw.reduce(
+  const [fromToPriceList]: [[number, number][], number] =
+    fromToPriceListRaw.reduce(
       (acc, cur) => {
         let [list, availableLiquidity] = acc;
         const [priceBefore, priceAfter] = cur;
@@ -1109,43 +881,44 @@ export function getOffersExtendedUp(
 
         return [list, availableLiquidity];
       },
-      [[], amountUndistributed] as [[number, number, string][], number]
+      [[], amountUndistributed] as [[number, number][], number]
     );
 
-  const isNoLiquidity = !fromToPriceAndOutpostList.length;
+  const isNoLiquidity = !fromToPriceList.length;
   const isRequiredMoreLiquidity =
-    fromToPriceAndOutpostList.length < fromToPriceAndOutpostListRaw.length;
+    fromToPriceList.length < fromToPriceListRaw.length;
 
   return {
-    fromToPriceAndOutpostList,
+    fromToPriceList,
     isNoLiquidity,
     isRequiredMoreLiquidity,
   };
 }
 
 export function getOffersExtendedDown(
-  lower_allowed_offers_boundary: number,
+  lowerAllowedOffersBoundary: number,
   amountUndistributed: number,
   floorPrice: number,
   upperFloorPrice: number,
   regularOffers: number[],
-  tooBigOffers: [number, string][]
+  tooBigOffers: number[]
 ) {
   const lowestOffer = getLast(regularOffers) || upperFloorPrice;
   const allowedPriceRange =
-    lowestOffer - floorPrice * lower_allowed_offers_boundary;
-  const priceStep = floor(allowedPriceRange / (tooBigOffers.length - 1));
-  const fromToPriceAndOutpostList: [number, number, string][] =
-    tooBigOffers.map(([priceBefore, outpost], i) => {
+    lowestOffer - floorPrice * lowerAllowedOffersBoundary;
+  const priceStep = floor(allowedPriceRange / tooBigOffers.length);
+  const fromToPriceList: [number, number][] = tooBigOffers.map(
+    (priceBefore, i) => {
       const priceAfter = lowestOffer - priceStep * (i + 1);
-      return [priceBefore, priceAfter, outpost];
-    });
+      return [priceBefore, priceAfter];
+    }
+  );
 
-  const [[_, firstPriceAfter]] = fromToPriceAndOutpostList;
+  const [[_, firstPriceAfter]] = fromToPriceList;
   const isNoLiquidity = amountUndistributed < firstPriceAfter;
 
   return {
-    fromToPriceAndOutpostList,
+    fromToPriceList,
     isNoLiquidity,
   };
 }

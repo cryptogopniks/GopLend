@@ -5,9 +5,8 @@ import { ChainConfig } from "../../common/interfaces";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
 import { queryTargets } from "./query-targets";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
-import { Route } from "../../common/codegen/AdapterDexStargaze.types";
 import { calcLtvMax } from "./math";
+import { ExecuteMsg } from "../../common/codegen/Scheduler.types";
 import {
   getChainOptionById,
   getContractByLabel,
@@ -17,7 +16,6 @@ import {
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
 import {
-  CommonConfig,
   LiquidationItem,
   RateConfig,
 } from "../../common/codegen/LendingPlatform.types";
@@ -51,18 +49,12 @@ const PAGINATION = {
   BIDS: 100,
   OFFERS: {
     BATCH: 5,
-    COLLECTION_LIMIT: 50,
-    TOKEN_LIMIT: 20,
   },
   TARGETS_PER_CYCLE: 9,
 };
 
-const platformList: PlatformType[] = ["main", "stable"];
-
 // returns list of functions (pushFn) initialized with separate account client
 // Each pushFn allows to send tx with multiple Push msgs
-// while msg count is equal amount of unique routes and for each msg
-// liquidation items are aggregated by route
 async function getPushListFn(
   signerList: SignerData[],
   rpc: string,
@@ -78,43 +70,22 @@ async function getPushListFn(
     const signingClient = cwClient.client as SigningCosmWasmClient;
     const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
 
-    const pushFn = async (
-      routeAndliquidationItemList: [Route, LiquidationItem][]
-    ) => {
-      const routeList = Array.from(
-        new Set(routeAndliquidationItemList.map(([route]) => route))
-      );
+    const pushFn = async (liquidationItemList: LiquidationItem[]) => {
+      const pushMsg: ExecuteMsg = {
+        push: { targets: liquidationItemList },
+      };
 
-      const msgList = routeList.map((route) => {
-        const targets = routeAndliquidationItemList.reduce(
-          (acc, [currentRoute, liquidationItem]) => {
-            if (currentRoute === route) acc.push(liquidationItem);
-            return acc;
-          },
-          [] as LiquidationItem[]
-        );
+      const msg: MsgExecuteContractEncodeObject = {
+        typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+        value: MsgExecuteContract.fromPartial({
+          sender: owner,
+          contract: contractAddress,
+          msg: toUtf8(JSON.stringify(pushMsg)),
+          funds: [],
+        }),
+      };
 
-        const msg: MsgExecuteContractEncodeObject = {
-          typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
-          value: MsgExecuteContract.fromPartial({
-            sender: owner,
-            contract: contractAddress,
-            msg: toUtf8(
-              JSON.stringify({
-                push: {
-                  route,
-                  targets,
-                },
-              })
-            ),
-            funds: [],
-          }),
-        };
-
-        return msg;
-      });
-
-      await _signAndBroadcast(msgList, gasPrice);
+      await _signAndBroadcast([msg], gasPrice);
     };
 
     pushListFn.push(pushFn);
@@ -123,12 +94,12 @@ async function getPushListFn(
   return pushListFn;
 }
 
-function groupTargets(targets: [PlatformType, LiquidationItem][]) {
+function groupTargets(targets: LiquidationItem[]) {
   targets = targets.sort(
-    ([_a, a], [_b, b]) => b.liquidation_set.length - a.liquidation_set.length
+    (a, b) => b.liquidation_set.length - a.liquidation_set.length
   );
 
-  let pairs: [PlatformType, LiquidationItem][][] = [];
+  let pairs: LiquidationItem[][] = [];
 
   if (targets.length % 2) {
     pairs.push([targets[0]]);
@@ -146,16 +117,12 @@ function groupTargets(targets: [PlatformType, LiquidationItem][]) {
 async function liquidate(
   chainId: string,
   rpc: string,
-  rateConfigMain: RateConfig,
-  rateConfigStable: RateConfig,
-  commonConfigMain: CommonConfig,
-  commonConfigStable: CommonConfig,
-  ltvMaxMain: number,
-  ltvMaxStable: number,
+  rateConfig: RateConfig,
+  ltvMax: number,
   ltvMaxFraction: number,
   blockTimeOffset: number, // several seconds to consider query delays
   pushListFn: ((
-    routeAndliquidationItemList: [Route, LiquidationItem][]
+    routeAndliquidationItemList: LiquidationItem[]
   ) => Promise<void>)[]
 ) {
   try {
@@ -163,53 +130,31 @@ async function liquidate(
     let targets = await queryTargets(
       chainId,
       rpc,
-      rateConfigMain,
-      rateConfigStable,
-      commonConfigMain,
-      commonConfigStable,
-      ltvMaxMain,
-      ltvMaxStable,
+      rateConfig,
+      ltvMax,
       ltvMaxFraction,
       blockTimeOffset,
       PAGINATION.COLLATERAL,
       PAGINATION.BORROWERS,
       PAGINATION.PRICES,
       PAGINATION.BIDS,
-      PAGINATION.OFFERS.BATCH,
-      PAGINATION.OFFERS.COLLECTION_LIMIT,
-      PAGINATION.OFFERS.TOKEN_LIMIT
+      PAGINATION.OFFERS.BATCH
     );
 
     // limit targets amount by 9 to not affect too much on collection price
     // and be able to group targets by 2 between 5 accounts (5 + 4 targets is 3 + 2 pairs)
     targets = targets.slice(0, PAGINATION.TARGETS_PER_CYCLE);
 
-    // it's better to aggregate targets by platformType/route to avoid multi message txs
-    let targetsMain = targets.filter(([x]) => x === "main");
-    let targetsStable = targets.filter(([x]) => x === "stable");
-
     // We need to distribute targets betwen pushFn functions to balance load
     // Create pairs of targets by combining the target with the maximum number of tokens
     // and the target with the minimum number of tokens
-    const targetsGroups = [
-      ...groupTargets(targetsMain),
-      ...groupTargets(targetsStable),
-    ];
+    const targetsGroups = groupTargets(targets);
 
     // liquidate using multiple accounts (user per acc)
     const promiseList = targetsGroups.map((groups, i) =>
       (async () => {
-        const routeAndliquidationItemList: [Route, LiquidationItem][] =
-          groups.map(([platformType, liquidationItem]) => {
-            const route: Route = platformType === "main" ? "empty" : "osmosis";
-            return [route, liquidationItem];
-          });
-
         try {
-          await specifyTimeout(
-            pushListFn[i](routeAndliquidationItemList),
-            PUSH_TIMEOUT_S * 1e3
-          );
+          await specifyTimeout(pushListFn[i](groups), PUSH_TIMEOUT_S * 1e3);
         } catch (_) {}
       })()
     );
@@ -238,10 +183,7 @@ async function main() {
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
-  const ADAPTER_SCHEDULER_CONTRACT = getContractByLabel(
-    CONTRACTS,
-    "adapter_scheduler"
-  );
+  const SCHEDULER_CONTRACT = getContractByLabel(CONTRACTS, "scheduler");
 
   const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
   const testWallets = await getWallets(TYPE);
@@ -258,32 +200,17 @@ async function main() {
   const pushListFn = await getPushListFn(
     signerList,
     RPC,
-    ADAPTER_SCHEDULER_CONTRACT.ADDRESS,
+    SCHEDULER_CONTRACT.ADDRESS,
     gasPrice
   );
 
-  let route: Route = "empty";
-
   // initialization part - run it single time on script start
-  const [rateConfigMain, rateConfigStable] = await Promise.all(
-    platformList.map((platformType) =>
-      (async () => await lending.cwQueryRateConfig(platformType))()
-    )
-  );
+  const rateConfig = await lending.cwQueryRateConfig();
 
-  const [commonConfigMain, commonConfigStable] = await Promise.all(
-    platformList.map((platformType) =>
-      (async () => await lending.cwQueryCommonConfig(platformType))()
-    )
-  );
-
-  const [ltvMaxMain, ltvMaxStable] = [rateConfigMain, rateConfigStable].map(
-    (rateConfig) =>
-      calcLtvMax(
-        Number(rateConfig.bid_min_rate),
-        Number(rateConfig.discount_max_rate),
-        Number(rateConfig.discount_min_rate)
-      )
+  const ltvMax = calcLtvMax(
+    Number(rateConfig.bid_min_rate),
+    Number(rateConfig.discount_max_rate),
+    Number(rateConfig.discount_min_rate)
   );
 
   // get blockTimeOffset to fix difference between local and network time
@@ -296,24 +223,12 @@ async function main() {
     await liquidate(
       chainId,
       RPC,
-      rateConfigMain,
-      rateConfigStable,
-      commonConfigMain,
-      commonConfigStable,
-      ltvMaxMain,
-      ltvMaxStable,
+      rateConfig,
+      ltvMax,
       LTV_MAX_FRACTION,
       blockTimeOffset,
       pushListFn
     );
-
-    // switch route
-    if (route === "empty") {
-      // TODO: query network/dex status and choose route
-      route = "osmosis";
-    } else {
-      route = "empty";
-    }
   }
 }
 

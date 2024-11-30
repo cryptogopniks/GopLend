@@ -3,7 +3,6 @@ import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { queryTargets } from "./query-targets";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
 import { calcLtvMax } from "./math";
 import {
@@ -28,8 +27,6 @@ const PAGINATION = {
   },
 };
 
-const platformList: PlatformType[] = ["main", "stable"];
-
 async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
     encoding: ENCODING,
@@ -45,25 +42,12 @@ async function main(isInfiniteLoop: boolean) {
   const { lending, oracle } = await getCwQueryHelpers(chainId, RPC);
 
   // initialization part - run it single time on script start
-  const [rateConfigMain, rateConfigStable] = await Promise.all(
-    platformList.map((platformType) =>
-      (async () => await lending.cwQueryRateConfig(platformType))()
-    )
-  );
+  const rateConfig = await lending.cwQueryRateConfig();
 
-  const [commonConfigMain, commonConfigStable] = await Promise.all(
-    platformList.map((platformType) =>
-      (async () => await lending.cwQueryCommonConfig(platformType))()
-    )
-  );
-
-  const [ltvMaxMain, ltvMaxStable] = [rateConfigMain, rateConfigStable].map(
-    (rateConfig) =>
-      calcLtvMax(
-        Number(rateConfig.bid_min_rate),
-        Number(rateConfig.discount_max_rate),
-        Number(rateConfig.discount_min_rate)
-      )
+  const ltvMax = calcLtvMax(
+    Number(rateConfig.bid_min_rate),
+    Number(rateConfig.discount_max_rate),
+    Number(rateConfig.discount_min_rate)
   );
 
   // get blockTimeOffset to fix difference between local and network time
@@ -79,21 +63,15 @@ async function main(isInfiniteLoop: boolean) {
       const targets = await queryTargets(
         chainId,
         RPC,
-        rateConfigMain,
-        rateConfigStable,
-        commonConfigMain,
-        commonConfigStable,
-        ltvMaxMain,
-        ltvMaxStable,
+        rateConfig,
+        ltvMax,
         LTV_MAX_FRACTION,
         blockTimeOffset,
         PAGINATION.COLLATERAL,
         PAGINATION.BORROWERS,
         PAGINATION.PRICES,
         PAGINATION.BIDS,
-        PAGINATION.OFFERS.BATCH,
-        PAGINATION.OFFERS.COLLECTION_LIMIT,
-        PAGINATION.OFFERS.TOKEN_LIMIT
+        PAGINATION.OFFERS.BATCH
       );
 
       li({ targets });

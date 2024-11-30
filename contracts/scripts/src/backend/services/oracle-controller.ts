@@ -1,8 +1,10 @@
 import { getSigner } from "../account/signer";
-import { l, li, floor, wait, Request } from "../../common/utils";
+import { l, li, floor, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
-import { RawPriceItem } from "../../common/codegen/Oracle.types";
+import { getFloorPrices } from "./sg-api";
+import { ChainConfig, ChainType } from "../../common/interfaces";
+import { COLLECTION, NetworkItem } from "./constants";
 import {
   calcCollectionPrice,
   CollectionPriceResponse,
@@ -13,20 +15,22 @@ import {
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
 import {
-  AssetDescription,
-  ChainConfig,
-  Offer,
-  PoolDatabase,
-} from "../../common/interfaces";
-import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
   getWallets,
   parseStoreArgs,
-  specifyTimeout,
   getLocalBlockTime,
   getBlockTime,
+  getStargazeCollections,
 } from "./utils";
+
+// 1) +query FP using sg-api
+// 2) get valid range
+// 3) query mm offers in valid range
+// 4) query token prices
+// 5) calculate prices for oracle using collection offers
+// 6) query oracle prices
+// 7) don't update if offers price has changed less than 1 % per iteration but update at least once per 1 min
 
 interface CollectionInfo {
   collection: string;
@@ -35,14 +39,9 @@ interface CollectionInfo {
 }
 
 const BLOCK_TIME_MARGIN = 10; // delay in seconds to consider paginated queries time difference
-const PRICE_RATIO_MULTIPLIER = 0.97; // to consider swap price impact
 
 const PAGINATION = {
   COLLECTIONS: 50,
-  OFFERS: {
-    COLLECTION_BATCH: 5,
-    COLLECTION_LIMIT: 50,
-  },
 };
 
 const TWAP_WEIGHT: number = 0.7;
@@ -62,94 +61,6 @@ const COLLECTION_PRICE_RESPONSE_DEFAULT: CollectionPriceResponse = {
   offerEma: 0,
   collectionPrice: 0,
 };
-
-async function queryStarsPriceFromImperator(req: Request) {
-  const starsSymbol = "STARS";
-  const priceUrl =
-    "https://api-osmosis.imperator.co/pools/v2/all?low_liquidity=false";
-  const poolDatabase: PoolDatabase = await req.get(priceUrl);
-
-  // get all stars pools
-  const [{ price: starsPrice }] = Object.entries(poolDatabase)
-    .filter(([_, assetList]) => assetList.some((x) => x.symbol === starsSymbol))
-    .map(
-      ([_, assetList]) =>
-        assetList.find((x) => x.symbol === starsSymbol) as AssetDescription
-    )
-    .sort((a, b) => b.amount - a.amount);
-
-  return starsPrice;
-}
-
-async function querySpotPrice(
-  req: Request,
-  lcd: string,
-  poolId: number,
-  askDenom: string,
-  offerDenom: string
-) {
-  interface SpotPrice {
-    spot_price: string;
-  }
-
-  const spotPrice: SpotPrice = await req.get(
-    `${lcd}/osmosis/gamm/v1beta1/pools/${poolId}/prices`,
-    {
-      params: {
-        base_asset_denom: askDenom,
-        quote_asset_denom: offerDenom,
-      },
-    }
-  );
-
-  return Number(spotPrice.spot_price);
-}
-
-async function queryStarsPriceFromPools(req: Request) {
-  const lcd = "https://rest-osmosis.ecostake.com";
-  const poolStarsOsmo = 604;
-  const poolUsdcOsmo = 1369;
-  const osmoDenom = "uosmo";
-  const starsDenom =
-    "ibc/987C17B11ABC2B20019178ACE62929FE9840202CE79498E29FE8E5CB02B7C0A4";
-  const usdcDenom =
-    "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4";
-
-  const [osmoForUsdc, starsForOsmo] = await Promise.all([
-    querySpotPrice(req, lcd, poolUsdcOsmo, usdcDenom, osmoDenom),
-    querySpotPrice(req, lcd, poolStarsOsmo, osmoDenom, starsDenom),
-  ]);
-
-  return osmoForUsdc * starsForOsmo;
-}
-
-async function queryStarsPrice(req: Request): Promise<number> {
-  const fn1 = async (): Promise<number | undefined> => {
-    try {
-      return await specifyTimeout(queryStarsPriceFromImperator(req));
-    } catch (error) {
-      l(error);
-    }
-  };
-
-  const fn2 = async (): Promise<number | undefined> => {
-    try {
-      return await specifyTimeout(queryStarsPriceFromPools(req));
-    } catch (error) {
-      l(error);
-    }
-  };
-
-  const [starsPriceImperator, starsPricePools] = await Promise.all([
-    fn1(),
-    fn2(),
-  ]);
-
-  const starsPrice = starsPriceImperator || starsPricePools;
-  if (!starsPrice) throw new Error("Stars price isn't found!");
-
-  return starsPrice;
-}
 
 async function main(isInfiniteLoop: boolean) {
   const configJsonStr = await readFile(PATH_TO_CONFIG_JSON, {
@@ -172,27 +83,21 @@ async function main(isInfiniteLoop: boolean) {
   const testWallets = await getWallets(TYPE);
   const { signer, owner } = await getSigner(PREFIX, testWallets.SEED_ADMIN);
 
-  const { lending, adapter, oracle, utils } = await getCwQueryHelpers(
+  const { lending, oracle, marketMaker } = await getCwQueryHelpers(
     chainId,
     RPC
   );
   const h = await getCwExecHelpers(chainId, RPC, owner, signer);
-  const req = new Request();
 
   const getCollectionList = async () => {
-    const collectionListMain = (
-      await lending.pQueryCollectionList("main", PAGINATION.COLLECTIONS)
-    ).map((x) => x.address);
-    const collectionListStable = (
-      await lending.pQueryCollectionList("stable", PAGINATION.COLLECTIONS)
+    const collectionList = (
+      await lending.pQueryCollectionList(PAGINATION.COLLECTIONS)
     ).map((x) => x.address);
 
-    return Array.from(
-      new Set([...collectionListMain, ...collectionListStable])
-    );
+    return collectionList;
   };
 
-  const getInitialParameters = async () => {
+  const getInitialParameters = async (chainType: ChainType) => {
     // get execution cooldown
     const executionCooldown = (await oracle.cwQueryConfig()).execution_cooldown;
 
@@ -204,107 +109,60 @@ async function main(isInfiniteLoop: boolean) {
     const localBlockTime = getLocalBlockTime();
     const blockTimeOffset = blockTime - localBlockTime;
 
+    const mainnetCollectionEntries = Object.entries(COLLECTION?.MAINNET || {});
+    const collectionEntries =
+      chainType === "main"
+        ? mainnetCollectionEntries
+        : Object.entries(COLLECTION?.TESTNET || {});
+
     return {
       executionCooldown,
       collectionList,
       blockTimeOffset,
+      mainnetCollectionEntries,
+      collectionEntries,
     };
-  };
-
-  const queryAllOffers = async (
-    collectionList: string[],
-    collectionBatchSize: number,
-    collectionLimit: number
-  ): Promise<[string, Offer[]][]> => {
-    let collectionAndOffersList: [string, Offer[]][] = [];
-    let collectionBatch: string[] = [];
-
-    const addCollection = async (collection: string) => {
-      try {
-        const { discount_base, collection_bids } =
-          // it's enough to get up to 100 higher offers per collection
-          // (probably we never get so much)
-          await adapter.marketplace.stargaze.cwQueryCollectionOffers(
-            collection,
-            collectionLimit
-          );
-
-        const offers: Offer[] = collection_bids.map((x) => {
-          // prices must be reduced by fees
-          const discountBase = Number(discount_base);
-          const findersFeeRate = Number(x.finders_fee_bps) / 100;
-          const price = Number(x.price);
-          const feeRate = discountBase + findersFeeRate;
-
-          return {
-            price,
-            expires_at: Math.floor(Number(x.expires_at) / 1e9),
-            feeRate,
-          };
-        });
-
-        collectionAndOffersList.push([collection, offers]);
-      } catch (error) {
-        l(error);
-      }
-    };
-
-    // group queries
-    for (const collection of collectionList) {
-      if (collectionBatch.length !== collectionBatchSize) {
-        collectionBatch.push(collection);
-      } else {
-        await Promise.all(
-          collectionBatch.map((collection) => addCollection(collection))
-        );
-
-        collectionBatch = [collection];
-      }
-    }
-
-    await Promise.all(
-      collectionBatch.map((collection) => addCollection(collection))
-    );
-
-    return collectionAndOffersList;
   };
 
   const setPrices = async (
+    mainnetCollectionEntries: [string, NetworkItem][],
+    collectionEntries: [string, NetworkItem][],
     collectionList: string[],
     blockTimeOffset: number,
     collectionPriceResponseList: [string, CollectionPriceResponse][]
   ): Promise<[string, CollectionPriceResponse][]> => {
     let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
-    const collectionAndOffersList = await queryAllOffers(
+
+    const stargazeCollectionList = getStargazeCollections(
       collectionList,
-      PAGINATION.OFFERS.COLLECTION_BATCH,
-      PAGINATION.OFFERS.COLLECTION_LIMIT
+      mainnetCollectionEntries,
+      collectionEntries
     );
 
-    const floorPriceList: [string, number][] = (
-      await adapter.marketplace.stargaze.cwQueryFloorPrices(collectionList)
-    ).map(([collectionAddress, floorPriceString]) => {
-      const floorPrice = Number(floorPriceString);
-
-      if (floorPrice) {
-        return [collectionAddress, floorPrice];
-      }
-
-      const [_, offers] =
-        collectionAndOffersList.find(
-          ([collection]) => collection === collectionAddress
-        ) || [];
-
-      const highestOffer = (offers || [])[0].price || 0;
-
-      return [collectionAddress, highestOffer / FLOOR_PRICE_BOUNDARY.UPPER];
-    });
+    const collectionAndFloorPriceList = await getFloorPrices(
+      stargazeCollectionList
+    );
+    const collectionAndOffersList = await marketMaker.pQueryOfferPricesList(
+      PAGINATION.COLLECTIONS
+    );
 
     // calc collection prices
-    const collectionInfoList: CollectionInfo[] = collectionAndOffersList.map(
-      ([collection, offers]) => {
-        const offerPriceList = offers.map((x) => x.price);
-        const feeRateList = offers.map((x) => x.feeRate);
+    const collectionInfoList: CollectionInfo[] = collectionList.map(
+      (collection, i) => {
+        const stargazeCollection = stargazeCollectionList[i];
+
+        const offerPriceList =
+          collectionAndOffersList
+            .find((x) => x.collection_address === collection)
+            ?.price_list.map(Number) || [];
+
+        // use highest offer if floor price isn't found
+        const floorPrice =
+          collectionAndFloorPriceList.find(
+            (x) => x.collection === stargazeCollection
+          )?.price ||
+          offerPriceList[0] ||
+          0;
 
         const [_, collectionPriceResponse] = collectionPriceResponseList.find(
           ([collectionAddress]) => collectionAddress === collection
@@ -316,10 +174,6 @@ async function main(isInfiniteLoop: boolean) {
           twapOfferList: meanOfferSampleList,
           offerEma: prevMeanOfferEma,
         } = collectionPriceResponse;
-
-        const [_collectionAddress, floorPrice] = floorPriceList.find(
-          ([collectionAddress]) => collectionAddress === collection
-        ) || [collection, 0];
 
         const newFloorPriceSample: PriceSample = {
           value: floorPrice,
@@ -342,7 +196,6 @@ async function main(isInfiniteLoop: boolean) {
           newFloorPriceSample,
           prevFloorPriceEma,
           offerPriceList,
-          feeRateList,
           meanOfferSampleList,
           prevMeanOfferEma
         );
@@ -361,25 +214,13 @@ async function main(isInfiniteLoop: boolean) {
       }
     ) as CollectionInfo[];
 
-    // try get stars price from imperator api or pools
-    const starsPrice = await queryStarsPrice(req);
-
-    // price_ratio must be decreased offchain due to price_impact
-    const priceRatio = floor(starsPrice * PRICE_RATIO_MULTIPLIER, 12);
-
     // prepare input data for set prices tx
-    const priceData: RawPriceItem[] = collectionInfoList.map(
-      ({ collection, price: collectionPrice }) => {
-        return {
-          collection_address: collection,
-          price: floor(collectionPrice).toString(),
-          usd_price: floor(priceRatio * collectionPrice).toString(),
-        };
-      }
+    const priceData: [string, number][] = collectionInfoList.map(
+      ({ collection, price }) => [collection, floor(price, 2)]
     );
 
     // send tx
-    await h.oracle.cwSetPrices(priceRatio, priceData, gasPrice);
+    await h.oracle.cwUpdatePrices(priceData, gasPrice);
 
     return collectionInfoList.map((x) => [
       x.collection,
@@ -389,8 +230,13 @@ async function main(isInfiniteLoop: boolean) {
 
   // TODO: restart script on collection list change
   // initialization part - run it single time on script start
-  const { executionCooldown, collectionList, blockTimeOffset } =
-    await getInitialParameters();
+  const {
+    executionCooldown,
+    collectionList,
+    blockTimeOffset,
+    mainnetCollectionEntries,
+    collectionEntries,
+  } = await getInitialParameters(TYPE);
 
   // [collection, CollectionPriceResponse][]
   let collectionPriceResponseList: [string, CollectionPriceResponse][] = [];
@@ -408,6 +254,8 @@ async function main(isInfiniteLoop: boolean) {
 
     try {
       collectionPriceResponseList = await setPrices(
+        mainnetCollectionEntries,
+        collectionEntries,
         collectionList,
         blockTimeOffset,
         collectionPriceResponseList

@@ -11,7 +11,7 @@ use goplend_base::{
     lending_platform::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
 };
 
-use crate::actions::{execute as e, instantiate::try_instantiate, other as o, query as q};
+use crate::actions::{execute as e, instantiate::try_instantiate, migrate as o, query as q};
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -134,9 +134,7 @@ pub fn execute(
             None,
         ),
 
-        ExecuteMsg::Liquidate { targets, route } => {
-            e::try_liquidate(deps, env, info, targets, route)
-        }
+        ExecuteMsg::Liquidate { targets } => e::try_liquidate(deps, env, info, targets),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
@@ -145,8 +143,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            adapter_scheduler,
-            adapter_marketplace,
+            scheduler,
+            market_maker,
         } => e::try_update_address_config(
             deps,
             env,
@@ -155,8 +153,8 @@ pub fn execute(
             worker,
             oracle,
             minter,
-            adapter_scheduler,
-            adapter_marketplace,
+            scheduler,
+            market_maker,
         ),
 
         ExecuteMsg::UpdateRateConfig {
@@ -184,7 +182,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            is_marketplace_interface_enabled,
         } => e::try_update_common_config(
             deps,
             env,
@@ -194,7 +191,6 @@ pub fn execute(
             unbonding_period,
             collateral_min_value,
             borrowers_reserve_fraction_ratio,
-            is_marketplace_interface_enabled,
         ),
 
         ExecuteMsg::DepositReserveLiquidity {} => {
@@ -207,9 +203,9 @@ pub fn execute(
 
         ExecuteMsg::ReinforceBglToken {} => e::try_reinforce_bgl_token(deps, env, info, None, None),
 
-        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
+        ExecuteMsg::Pause {} => e::try_pause(deps, env, info),
 
-        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
+        ExecuteMsg::Unpause {} => e::try_unpause(deps, env, info),
 
         ExecuteMsg::DistributeFunds {
             address_and_weight_list,
@@ -245,33 +241,37 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryBalances {} => to_json_binary(&q::query_balances(deps, env)?),
 
-        QueryMsg::QueryUnbonderList { start_after, limit } => {
-            to_json_binary(&q::query_unbonder_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryUnbonderList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_unbonder_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryUnbonder { address } => {
             to_json_binary(&q::query_unbonder(deps, env, address)?)
         }
 
-        QueryMsg::QueryBorrowerList { start_after, limit } => {
-            to_json_binary(&q::query_borrower_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryBorrowerList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_borrower_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryBorrower { address } => {
             to_json_binary(&q::query_borrower(deps, env, address)?)
         }
 
-        QueryMsg::QueryLiquidatorList { start_after, limit } => {
-            to_json_binary(&q::query_liquidator_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryLiquidatorList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_liquidator_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryLiquidator { address } => {
             to_json_binary(&q::query_liquidator(deps, env, address)?)
         }
 
-        QueryMsg::QueryCollateralList { start_after, limit } => {
-            to_json_binary(&q::query_collateral_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryCollateralList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_collateral_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryCollateral { collection_address } => {
             to_json_binary(&q::query_collateral(deps, env, collection_address)?)
@@ -281,39 +281,43 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_json_binary(&q::query_collateral_by_owner(deps, env, owner)?)
         }
 
-        QueryMsg::QueryLiquidationBidsByCollectionAddressList { start_after, limit } => {
-            to_json_binary(&q::query_liquidation_bids_by_collection_address_list(
-                deps,
-                env,
-                start_after,
-                limit,
-            )?)
-        }
+        QueryMsg::QueryLiquidationBidsByCollectionAddressList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_liquidation_bids_by_collection_address_list(
+            deps,
+            env,
+            amount,
+            start_after,
+        )?),
 
         QueryMsg::QueryLiquidationBidsByCollectionAddress { address } => to_json_binary(
             &q::query_liquidation_bids_by_collection_address(deps, env, address)?,
         ),
 
-        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList { start_after, limit } => {
-            to_json_binary(&q::query_liquidation_bids_by_liquidator_address_list(
-                deps,
-                env,
-                start_after,
-                limit,
-            )?)
-        }
+        QueryMsg::QueryLiquidationBidsByLiquidatorAddressList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_liquidation_bids_by_liquidator_address_list(
+            deps,
+            env,
+            amount,
+            start_after,
+        )?),
 
         QueryMsg::QueryLiquidationBidsByLiquidatorAddress { address } => to_json_binary(
             &q::query_liquidation_bids_by_liquidator_address(deps, env, address)?,
         ),
 
-        QueryMsg::QueryProposals { start_after, limit } => {
-            to_json_binary(&q::query_proposals(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryProposals {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_proposals(deps, env, amount, start_after)?),
 
-        QueryMsg::QueryCollectionList { start_after, limit } => {
-            to_json_binary(&q::query_collection_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryCollectionList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_collection_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryCollection { address } => {
             to_json_binary(&q::query_collection(deps, env, address)?)
@@ -349,9 +353,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             amount_to_repay,
         )?),
 
-        QueryMsg::QueryLtvList { start_after, limit } => {
-            to_json_binary(&q::query_ltv_list(deps, env, start_after, limit)?)
-        }
+        QueryMsg::QueryLtvList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_ltv_list(deps, env, amount, start_after)?),
 
         QueryMsg::QueryTotalAvailableToBorrowLiquidity {} => {
             to_json_binary(&q::query_total_available_to_borrow_liquidity(deps, env)?)
@@ -371,14 +376,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
     }
 }
-
-// /// Exposes all the replies available in the contract
-// #[cfg_attr(not(feature = "library"), entry_point)]
-// pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-//     let Reply { id: _, result: _ } = reply;
-
-//     Err(ContractError::UndefinedReplyId)
-// }
 
 /// Exposes all migration functions available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]

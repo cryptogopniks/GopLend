@@ -46,12 +46,15 @@ pub enum ContractError {
     #[error("Chain ID is not found!")]
     ChainIdIsNotFound,
 
-    #[error("Collection {val:?} price data is outdated!")]
-    OutdatedPrice { val: String },
+    #[error("Oracle price data is outdated!")]
+    OutdatedPrice,
 
     // ------------------------------ faucet ----------------------------------------
     #[error("Come back in {remaining_time_in_mins:?} minutes!")]
     ClaimCooldown { remaining_time_in_mins: u64 },
+
+    #[error("Faucet is disabled!")]
+    FaucetIsDisabled,
 
     // ------------------------------ adapter-scheduler ----------------------------------------
     #[error("Scheduler is executed too early!")]
@@ -178,8 +181,8 @@ pub enum ContractError {
     #[error("{value:?} config is not found!")]
     ParameterIsNotFound { value: String },
 
-    #[error("The contract is temporary locked to stop bad guys")]
-    ContractIsLocked,
+    #[error("The contract is temporary paused")]
+    ContractIsPaused,
 
     #[error("Denom already exists!")]
     DenomExists,

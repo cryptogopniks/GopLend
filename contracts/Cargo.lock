@@ -3,93 +3,6 @@
 version = 3
 
 [[package]]
-name = "adapter-dex-stargaze"
-version = "1.0.0"
-dependencies = [
- "anybuf",
- "bech32 0.11.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
- "skip",
-]
-
-[[package]]
-name = "adapter-dex-stargaze-mocks"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
-name = "adapter-marketplace-kujira"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
-name = "adapter-marketplace-stargaze"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-index-query",
- "sg-marketplace",
- "sg721 3.14.0",
- "sg721-base 3.14.0",
- "stargaze-marketplace-v2",
-]
-
-[[package]]
-name = "adapter-scheduler-common"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
-name = "adapter-scheduler-stargaze"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "semver",
- "serde",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -101,31 +14,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "anybuf"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb5f1dee23caf80904249463cc4493b6789c2250f88c8f8d9160de5c6099bfe7"
-
-[[package]]
 name = "anyhow"
-version = "1.0.86"
+version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
-
-[[package]]
-name = "astroport"
-version = "2.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d102b618016b3c1f1ebb5750617a73dbd294a3c941e54b12deabc931d771bc6e"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "cw-utils 0.15.1",
- "cw20 0.15.1",
- "itertools 0.10.5",
- "uint",
-]
+checksum = "4c95c10ba0b00a02636238b814946408b1322d5ac4760326e6fb8ec956d85775"
 
 [[package]]
 name = "autocfg"
@@ -198,9 +90,6 @@ name = "bytes"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "cfg-if"
@@ -224,24 +113,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
-name = "cosmos-sdk-proto"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73c9d2043a9e617b0d602fbc0a0ecd621568edbf3a9774890a6d562389bd8e1c"
-dependencies = [
- "prost 0.11.9",
- "prost-types 0.11.9",
- "tendermint-proto",
-]
-
-[[package]]
 name = "cosmwasm-crypto"
-version = "1.5.5"
+version = "1.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd50718a2b6830ce9eb5d465de5a018a12e71729d66b70807ce97e6dd14f931d"
+checksum = "58535cbcd599b3c193e3967c8292fe1dbbb5de7c2a2d87380661091dd4744044"
 dependencies = [
  "digest 0.10.7",
- "ecdsa",
  "ed25519-zebra",
  "k256",
  "rand_core 0.6.4",
@@ -304,16 +181,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmwasm-storage"
-version = "1.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66de2ab9db04757bcedef2b5984fbe536903ada4a8a9766717a4a71197ef34f6"
-dependencies = [
- "cosmwasm-std",
- "serde",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -321,12 +188,6 @@ checksum = "53fe5e26ff1b7aef8bca9c6080520cfb8d9333c7568e1829cef191a9723e5504"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "crunchy"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
 
 [[package]]
 name = "crypto-bigint"
@@ -374,16 +235,17 @@ dependencies = [
 
 [[package]]
 name = "cw-multi-test"
-version = "0.17.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d818f5323c80ed4890db7f89d65eda3f0261fe21878e628c27ea2d8de4b7ba4"
+checksum = "91fc33b1d65c102d72f46548c64dca423c337e528d6747d0c595316aa65f887b"
 dependencies = [
  "anyhow",
+ "bech32 0.11.0",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw-utils 1.0.3",
  "derivative",
- "itertools 0.11.0",
+ "itertools 0.13.0",
  "prost 0.12.6",
  "schemars",
  "serde",
@@ -419,17 +281,6 @@ dependencies = [
 
 [[package]]
 name = "cw-storage-plus"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc6cf70ef7686e2da9ad7b067c5942cd3e88dd9453f7af42f54557f8af300fb0"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw-storage-plus"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b6f91c0b94481a3e9ef1ceb183c37d00764f8751e39b45fc09f4d9b970d469"
@@ -448,21 +299,6 @@ dependencies = [
  "cosmwasm-std",
  "schemars",
  "serde",
-]
-
-[[package]]
-name = "cw-utils"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ae0b69fa7679de78825b4edeeec045066aa2b2c4b6e063d80042e565bb4da5c"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw2 0.15.1",
- "schemars",
- "semver",
- "serde",
- "thiserror",
 ]
 
 [[package]]
@@ -497,19 +333,6 @@ dependencies = [
 
 [[package]]
 name = "cw2"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5abb8ecea72e09afff830252963cb60faf945ce6cef2c20a43814516082653da"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw2"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91398113b806f4d2a8d5f8d05684704a20ffd5968bf87e3473e1973710b884ad"
@@ -538,32 +361,6 @@ dependencies = [
 
 [[package]]
 name = "cw20"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6025276fb6e603e974c21f3e4606982cdc646080e8fba3198816605505e1d9a"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.15.1",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a45a8794a5dd33b66af34caee52a7beceb690856adcc1682b6e3db88b2cdee62"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.16.0",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "526e39bb20534e25a1cd0386727f0038f4da294e5e535729ba3ef54055246abd"
@@ -585,7 +382,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20 1.1.2",
+ "cw20",
  "schemars",
  "semver",
  "serde",
@@ -662,15 +459,6 @@ checksum = "f55bf8e7b65898637379c1b74eb1551107c8294ed26d855ceb9fd1a09cfc9bc0"
 dependencies = [
  "const-oid",
  "zeroize",
-]
-
-[[package]]
-name = "deranged"
-version = "0.3.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b42b6fa04a440b495c8b04d0e71b707c585f83cb9cb28cf8cd0d976c315e31b4"
-dependencies = [
- "powerfmt",
 ]
 
 [[package]]
@@ -766,22 +554,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "faucet"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "osmosis-std 0.21.0",
- "semver",
- "serde",
- "thiserror",
-]
-
-[[package]]
 name = "ff"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -789,24 +561,6 @@ checksum = "ded41244b729663b1e574f1b4fb731469f69f79c17667b5d776b16cda0479449"
 dependencies = [
  "rand_core 0.6.4",
  "subtle",
-]
-
-[[package]]
-name = "flex-error"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c606d892c9de11507fa0dcffc116434f94e105d0bbdc4e405b61519464c49d7b"
-dependencies = [
- "paste",
-]
-
-[[package]]
-name = "form_urlencoded"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
-dependencies = [
- "percent-encoding",
 ]
 
 [[package]]
@@ -845,11 +599,10 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
- "cw20 1.1.2",
+ "cw20",
  "cw20-base",
  "cw721 0.18.0",
  "serde",
- "sg-marketplace",
  "thiserror",
 ]
 
@@ -895,44 +648,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ibc-proto"
-version = "0.32.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11c352715b36685c2543556a77091fb16af5d26257d5ce9c28e6756c1ccd71aa"
-dependencies = [
- "base64",
- "bytes",
- "flex-error",
- "ics23",
- "prost 0.11.9",
- "serde",
- "subtle-encoding",
- "tendermint-proto",
-]
-
-[[package]]
-name = "ics23"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "442d4bab37956e76f739c864f246c825d87c0bb7f9afa65660c57833c91bf6d4"
-dependencies = [
- "anyhow",
- "bytes",
- "hex",
- "prost 0.11.9",
-]
-
-[[package]]
-name = "idna"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "634d9b1461af396cad843f47fdba5597a4f9e6ddd4bfb6ff5d85028c25cb12f6"
-dependencies = [
- "unicode-bidi",
- "unicode-normalization",
-]
-
-[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -951,6 +666,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -958,9 +682,9 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "k256"
-version = "0.13.1"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cadb76004ed8e97623117f3df85b17aaa6626ab0b0831e6573f104df16cd1bcc"
+checksum = "f6e3919bbaa2945715f0bb6d3934a173d1e9a59ac23767fbaaef277265a7411b"
 dependencies = [
  "cfg-if",
  "ecdsa",
@@ -971,113 +695,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "keccak"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecc2af9a1119c51f12a14607e783cb977bde58bc069ff0c3da1095e635d70654"
-dependencies = [
- "cpufeatures",
-]
-
-[[package]]
-name = "kujira"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e156793ca5d4fbf43f32922d0261dda04db19c0b93acab071db4fea30b8969a9"
-dependencies = [
- "kujira-bow",
- "kujira-fin",
- "kujira-ghost",
- "kujira-orca",
- "kujira-stable",
- "kujira-std",
-]
-
-[[package]]
-name = "kujira-bow"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562aea59632a691029ce9d0733ff7cbe061cf6d7f5252b827396886dc3696740"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "kujira-fin",
- "kujira-std",
- "thiserror",
-]
-
-[[package]]
-name = "kujira-fin"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d79c452d84f1b446f7efa4f8b4373ed69a2021e25aeea3b13fdcce9b764b7326"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw20 1.1.2",
- "kujira-std",
-]
-
-[[package]]
-name = "kujira-ghost"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "690c9e5ee0eeae46668bf97aad1a1e0ba83fccecaf5ab2c83f355e321118a020"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 1.0.3",
- "kujira-fin",
- "kujira-std",
-]
-
-[[package]]
-name = "kujira-orca"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3293a84e0e2ed258ac9e58c566374c1194ea20dcc6f00b6b2d30d566fa94531a"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "kujira-std",
-]
-
-[[package]]
-name = "kujira-stable"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "473cabb37571254209bf77bf6baaf22088c9dfd7db63f3ed8e8e6ea909ccf30c"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "kujira-fin",
- "kujira-std",
-]
-
-[[package]]
-name = "kujira-std"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31929689217f912ca19d29965b9cd4861a5429da084680967bd2f01019ab5b04"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw20 1.1.2",
- "hex",
- "sha2 0.10.8",
- "thiserror",
-]
-
-[[package]]
 name = "lending-platform"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20 1.1.2",
+ "cw20",
  "cw721 0.18.0",
  "goplend-base",
  "semver",
@@ -1091,8 +716,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
-name = "market-maker-hub"
-version = "1.0.0"
+name = "market-maker"
+version = "2.0.1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -1102,69 +727,22 @@ dependencies = [
  "goplend-base",
  "semver",
  "serde",
- "sg-marketplace",
- "sg721 3.14.0",
- "sg721-base 3.14.0",
-]
-
-[[package]]
-name = "market-maker-outpost"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-marketplace",
- "sg721 3.14.0",
- "sg721-base 3.14.0",
 ]
 
 [[package]]
 name = "minter"
-version = "1.3.1"
+version = "1.4.1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20 1.1.2",
+ "cw20",
  "cw20-base",
  "goplend-base",
- "osmosis-std 0.21.0",
+ "osmosis-std",
  "semver",
  "serde",
-]
-
-[[package]]
-name = "minter-kujira"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "goplend-base",
- "kujira",
- "semver",
- "serde",
-]
-
-[[package]]
-name = "neutron-proto"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "943ccd9f9749e96095237502e1c61abc867fd5cf28668097b359b0d61aa50c96"
-dependencies = [
- "cosmos-sdk-proto",
- "cosmwasm-std",
- "prost 0.11.9",
- "prost-types 0.11.9",
- "tendermint-proto",
 ]
 
 [[package]]
@@ -1183,9 +761,9 @@ dependencies = [
 
 [[package]]
 name = "num-bigint"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
+checksum = "a5e44f723f1133c9deac646763579fdb3ac745e418f2a7af9cd0c431da1f20b9"
 dependencies = [
  "num-integer",
  "num-traits",
@@ -1198,23 +776,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "num-conv"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51d515d32fb182ee37cda2ccdcb92950d6a3c2893aa280e540671c2cd0f3b1d9"
-
-[[package]]
-name = "num-derive"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -1271,7 +832,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "oracle"
-version = "1.0.0"
+version = "2.0.1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -1284,46 +845,18 @@ dependencies = [
 
 [[package]]
 name = "osmosis-std"
-version = "0.15.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87725a7480b98887167edf878daa52201a13322ad88e34355a7f2ddc663e047e"
-dependencies = [
- "chrono",
- "cosmwasm-std",
- "osmosis-std-derive 0.15.3",
- "prost 0.11.9",
- "prost-types 0.11.9",
- "schemars",
- "serde",
- "serde-cw-value",
-]
-
-[[package]]
-name = "osmosis-std"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e87adf61f03306474ce79ab322d52dfff6b0bcf3aed1e12d8864ac0400dec1bf"
 dependencies = [
  "chrono",
  "cosmwasm-std",
- "osmosis-std-derive 0.20.1",
+ "osmosis-std-derive",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "schemars",
  "serde",
  "serde-cw-value",
-]
-
-[[package]]
-name = "osmosis-std-derive"
-version = "0.15.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4d482a16be198ee04e0f94e10dd9b8d02332dcf33bc5ea4b255e7e25eedc5df"
-dependencies = [
- "itertools 0.10.5",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -1340,18 +873,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "paste"
-version = "1.0.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
-
-[[package]]
-name = "percent-encoding"
-version = "2.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
-
-[[package]]
 name = "pkcs8"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1360,12 +881,6 @@ dependencies = [
  "der",
  "spki",
 ]
-
-[[package]]
-name = "powerfmt"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 
 [[package]]
 name = "proc-macro2"
@@ -1419,7 +934,7 @@ dependencies = [
  "itertools 0.11.0",
  "proc-macro2",
  "quote",
- "syn 2.0.68",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -1438,27 +953,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
 dependencies = [
  "prost 0.12.6",
-]
-
-[[package]]
-name = "protobuf"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b55bad9126f378a853655831eb7363b7b01b81d19f8cb1218861086ca4a1a61e"
-dependencies = [
- "bytes",
- "once_cell",
- "protobuf-support",
- "thiserror",
-]
-
-[[package]]
-name = "protobuf-support"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5d4d7b8601c814cfb36bcebb79f0e61e45e1e93640cf778837833bbed05c372"
-dependencies = [
- "thiserror",
 ]
 
 [[package]]
@@ -1497,15 +991,28 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "955d28af4278de8121b7ebeb796b6a45735dc01436d898801014aced2773a3d6"
+checksum = "0e819f2bc632f285be6d7cd36e25940d45b2391dd6d9b939e79de557f7014248"
 
 [[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
+
+[[package]]
+name = "scheduler"
+version = "2.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "goplend-base",
+ "semver",
+ "serde",
+]
 
 [[package]]
 name = "schemars"
@@ -1528,7 +1035,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "serde_derive_internals",
- "syn 2.0.68",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -1553,9 +1060,9 @@ checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "serde"
-version = "1.0.203"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7253ab4de971e72fb7be983802300c30b5a7f0c2e56fab8abfc6a214307c0094"
+checksum = "6513c1ad0b11a9376da888e3e0baa0077f1aed55c17f50e7b2397136129fb88f"
 dependencies = [
  "serde_derive",
 ]
@@ -1579,23 +1086,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_bytes"
-version = "0.11.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "387cc504cb06bb40a96c8e04e951fe01854cf6bc921053c954e4a606d9675c6a"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "serde_derive"
-version = "1.0.203"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "500cbc0ebeb6f46627f50f3f5811ccf6bf00643be300b4c3eabc0ef55dc5b5ba"
+checksum = "ad1e866f866923f252f05c889987993144fb74e722403468a4ebd70c3cd756c0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.68",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -1606,7 +1104,7 @@ checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.68",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -1618,204 +1116,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sg-controllers"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae7b01b8ef3d94a771e26e71fa009535780114c3164d765b03856c87846930b3"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "schemars",
- "serde",
- "sg-std 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "sg-index-query"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bfc5df9962ea1f76eea280c1855c0c15ffd0489cdd2b7f04d4e32dd5b1d07c7"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
-]
-
-[[package]]
-name = "sg-marketplace"
-version = "1.8.0"
-source = "git+https://github.com/public-awesome/marketplace.git?rev=b9780c36619adec7d6f79453ddbf449ae26b9112#b9780c36619adec7d6f79453ddbf449ae26b9112"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "cw2 0.16.0",
- "cw20 0.16.0",
- "cw721 0.16.0",
- "cw721-base 0.16.0",
- "schemars",
- "semver",
- "serde",
- "sg-controllers",
- "sg-std 2.4.0",
- "sg1",
- "sg2",
- "sg721 2.4.0",
- "sg721-base 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "sg-marketplace-common"
-version = "1.3.0"
-source = "git+https://github.com/public-awesome/marketplace.git?rev=17b4f74452393e120c05463bd9f773fb68125c8d#17b4f74452393e120c05463bd9f773fb68125c8d"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
- "serde",
- "stargaze-royalty-registry",
- "thiserror",
-]
-
-[[package]]
-name = "sg-std"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc9b4ab6090f777940d3277632b1a3fff89f5a52191443a19da7cd99e3845041"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.16.0",
- "cw721 0.16.0",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "sg-std"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4db53aebc2b4f981dc20a51213544adde8beaace6880345627f4babe2e1bc3ab"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 1.0.3",
- "cw721 0.18.0",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "sg1"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c691fbf35f3deb9e2944b0a82db7280798a1b4b17c7e9fe22b78d89c5276c8e"
-dependencies = [
- "cosmwasm-std",
- "cw-utils 0.16.0",
- "serde",
- "sg-std 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "sg2"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0accfb1855c12e486b5c1afbd858652fabdf00bdacd221a9f96121c1d1955a62"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "schemars",
- "serde",
- "sg721 2.4.0",
- "thiserror",
-]
-
-[[package]]
-name = "sg721"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b37ea61753635e1de01a16947784ddd5ba8e256fa403be6246b2d88578914fb2"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.16.0",
- "cw721-base 0.16.0",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "sg721"
-version = "3.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05327a3a8a44de4c4c97e02fd98dd87917c051b76b7a64f8c47865b5a80cd47c"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-ownable",
- "cw-utils 1.0.3",
- "cw721-base 0.18.0",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "sg721-base"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b81900474a5a2a6cf25e70720d62a565abc56caa1fe3613cfd15157c63dfb89"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "cw2 0.16.0",
- "cw721 0.16.0",
- "cw721-base 0.16.0",
- "serde",
- "sg-std 2.4.0",
- "sg721 2.4.0",
- "thiserror",
- "url",
-]
-
-[[package]]
-name = "sg721-base"
-version = "3.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f97deda0edefd15494052003a1f79fd9b06c26d8b7448a3174deb7529a2251f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-ownable",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
- "serde",
- "sg-std 3.2.0",
- "sg721 3.14.0",
- "thiserror",
- "url",
 ]
 
 [[package]]
@@ -1843,16 +1143,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sha3"
-version = "0.10.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
-dependencies = [
- "digest 0.10.7",
- "keccak",
-]
-
-[[package]]
 name = "signature"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1860,24 +1150,6 @@ checksum = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de"
 dependencies = [
  "digest 0.10.7",
  "rand_core 0.6.4",
-]
-
-[[package]]
-name = "skip"
-version = "0.3.0"
-source = "git+https://github.com/skip-mev/skip-api-contracts#76b2663f987cd721b8e9b825ba59fbf919d7b23c"
-dependencies = [
- "astroport",
- "cosmos-sdk-proto",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 1.0.3",
- "cw20 1.1.2",
- "ibc-proto",
- "neutron-proto",
- "osmosis-std 0.15.3",
- "thiserror",
- "white-whale-std",
 ]
 
 [[package]]
@@ -1897,62 +1169,6 @@ checksum = "d91ed6c858b01f942cd56b37a94b3e0a1798290327d1236e4d9cf4eaca44d29d"
 dependencies = [
  "base64ct",
  "der",
-]
-
-[[package]]
-name = "stargaze-marketplace-v2"
-version = "0.5.0"
-source = "git+https://github.com/public-awesome/marketplace.git?rev=17b4f74452393e120c05463bd9f773fb68125c8d#17b4f74452393e120c05463bd9f773fb68125c8d"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-address-like",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "semver",
- "serde",
- "sg-index-query",
- "sg-marketplace-common",
- "sha3",
- "thiserror",
-]
-
-[[package]]
-name = "stargaze-mocks-marketplace"
-version = "1.0.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 0.16.0",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "goplend-base",
- "semver",
- "serde",
- "sg-marketplace",
-]
-
-[[package]]
-name = "stargaze-royalty-registry"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "552d49542e64baef99b84846bd787faeaf476afa0920676cb791a34a2be57772"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "schemars",
- "serde",
- "sg-index-query",
- "sg-std 2.4.0",
- "sg721 2.4.0",
- "sg721-base 2.4.0",
- "thiserror",
 ]
 
 [[package]]
@@ -1987,15 +1203,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
-name = "subtle-encoding"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dcb1ed7b8330c5eed5441052651dd7a12c75e2ed88f2ec024ae1fa3a5e59945"
-dependencies = [
- "zeroize",
-]
-
-[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2008,9 +1215,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.68"
+version = "2.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9"
+checksum = "25aa4ce346d03a6dcd68dd8b4010bcb74e54e62c90c573f394c46eae99aba32d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2018,51 +1225,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "tendermint-proto"
-version = "0.32.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0cec054567d16d85e8c3f6a3139963d1a66d9d3051ed545d31562550e9bcc3d"
-dependencies = [
- "bytes",
- "flex-error",
- "num-derive",
- "num-traits",
- "prost 0.11.9",
- "prost-types 0.11.9",
- "serde",
- "serde_bytes",
- "subtle-encoding",
- "time",
-]
-
-[[package]]
 name = "tests"
 version = "1.0.0"
 dependencies = [
- "adapter-dex-stargaze-mocks",
- "adapter-marketplace-kujira",
- "adapter-marketplace-stargaze",
- "adapter-scheduler-common",
- "adapter-scheduler-stargaze",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-multi-test",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw20 1.1.2",
+ "cw20",
  "cw20-base",
  "cw721 0.18.0",
  "cw721-base 0.18.0",
  "goplend-base",
  "lending-platform",
+ "market-maker",
  "minter",
- "minter-kujira",
  "oracle",
+ "scheduler",
  "serde",
- "sg-marketplace",
  "speculoos",
- "stargaze-mocks-marketplace",
  "strum",
  "strum_macros",
  "thiserror",
@@ -2085,52 +1268,8 @@ checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.68",
+ "syn 2.0.87",
 ]
-
-[[package]]
-name = "time"
-version = "0.3.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dfd88e563464686c916c7e46e623e520ddc6d79fa6641390f2e3fa86e83e885"
-dependencies = [
- "deranged",
- "num-conv",
- "powerfmt",
- "time-core",
- "time-macros",
-]
-
-[[package]]
-name = "time-core"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
-
-[[package]]
-name = "time-macros"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f252a68540fde3a3877aeea552b832b40ab9a69e318efd078774a01ddee1ccf"
-dependencies = [
- "num-conv",
- "time-core",
-]
-
-[[package]]
-name = "tinyvec"
-version = "1.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c55115c6fbe2d2bef26eb09ad74bde02d8255476fc0c7b515ef09fbb35742d82"
-dependencies = [
- "tinyvec_macros",
-]
-
-[[package]]
-name = "tinyvec_macros"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "typenum"
@@ -2139,48 +1278,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
-name = "uint"
-version = "0.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76f64bba2c53b04fcab63c01a7d7427eadc821e3bc48c34dc9ba29c501164b52"
-dependencies = [
- "byteorder",
- "crunchy",
- "hex",
- "static_assertions",
-]
-
-[[package]]
-name = "unicode-bidi"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f95100a766bf4f8f28f90d77e0a5461bbdb219042e7679bebe79004fed8d75"
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
-
-[[package]]
-name = "unicode-normalization"
-version = "0.1.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
-dependencies = [
- "tinyvec",
-]
-
-[[package]]
-name = "url"
-version = "2.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22784dbdf76fdde8af1aeda5622b546b422b6fc585325248a2bf9f5e41e94d6c"
-dependencies = [
- "form_urlencoded",
- "idna",
- "percent-encoding",
-]
 
 [[package]]
 name = "version_check"
@@ -2193,25 +1294,6 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
-
-[[package]]
-name = "white-whale-std"
-version = "1.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3015d5c0c46b6e1cf2fb02c036e8d1481174508a32572d62e6f240a4dec4077"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw2 1.1.2",
- "cw20 1.1.2",
- "osmosis-std-derive 0.15.3",
- "prost 0.11.9",
- "prost-types 0.11.9",
- "protobuf",
- "schemars",
- "serde",
- "uint",
-]
 
 [[package]]
 name = "zeroize"

@@ -3,7 +3,6 @@ import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
-import { Route } from "../../../common/codegen/AdapterDexStargaze.types";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -16,7 +15,6 @@ import {
 interface Log {
   blockTime: string;
   sender: string;
-  route?: Route; // scheduler
   outdatedPriceCollections?: string[]; // oracle
   counter: number;
 }
@@ -46,51 +44,22 @@ async function main() {
       TYPE,
     },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
-  const name = NAME as "kujira" | "stargaze";
 
-  const {
-    oracle,
-    adapter: { scheduler },
-  } = await getCwQueryHelpers(chainId, RPC);
+  const { scheduler } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeOracleLogs = async () => {
+  const writeSchedulerLogs = async () => {
     try {
-      const oracleLogs: Log[] = (await oracle.cwQueryLog(false)).map(
-        ({ block_time, sender, outdated_price_collections, counter }) => ({
+      const schedulerLogs: Log[] = (await scheduler.cwQueryLog(false)).map(
+        ({ block_time, sender, counter }) => ({
           blockTime: getBlockTime(block_time, TIMEZONE),
           sender,
-          outdatedPriceCollections: outdated_price_collections,
           counter,
         })
       );
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, "main", "logs-oracle.json"),
-        JSON.stringify(oracleLogs, null, 2),
-        {
-          encoding: ENCODING,
-        }
-      );
-    } catch (error) {
-      l(error);
-    }
-  };
-
-  const writeSchedulerLogs = async () => {
-    try {
-      const schedulerLogs: Log[] = (
-        await scheduler[name].cwQueryLog(false)
-      ).map(({ block_time, sender, route, counter }) => ({
-        blockTime: getBlockTime(block_time, TIMEZONE),
-        sender,
-        route,
-        counter,
-      }));
-
-      // write files
-      await writeFile(
-        getSnapshotPath(NAME, TYPE, "main", "logs-scheduler.json"),
+        getSnapshotPath(NAME, TYPE, "logs-scheduler.json"),
         JSON.stringify(schedulerLogs, null, 2),
         {
           encoding: ENCODING,
@@ -101,7 +70,7 @@ async function main() {
     }
   };
 
-  await Promise.all([writeOracleLogs(), writeSchedulerLogs()]);
+  await writeSchedulerLogs();
 }
 
 main();

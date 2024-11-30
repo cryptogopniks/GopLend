@@ -179,13 +179,33 @@ pub fn execute(
 
         ExecuteMsg::ExcludeCw20 { address } => e::try_exclude_cw20(deps, env, info, address),
 
+        ExecuteMsg::UpdateFaucetConfig {
+            denom_or_address,
+            claimable_amount,
+            claim_cooldown,
+        } => e::try_update_faucet_config(
+            deps,
+            env,
+            info,
+            denom_or_address,
+            claimable_amount,
+            claim_cooldown,
+        ),
+
         ExecuteMsg::Mint {
             denom_or_address,
             amount,
             recipient,
         } => e::try_mint(deps, env, info, denom_or_address, amount, recipient),
 
+        ExecuteMsg::MintMultiple {
+            denom_or_address,
+            account_and_amount_list,
+        } => e::try_mint_multiple(deps, env, info, denom_or_address, account_and_amount_list),
+
         ExecuteMsg::Burn {} => e::try_burn(deps, env, info, None, None),
+
+        ExecuteMsg::Claim { denom_or_address } => e::try_claim(deps, env, info, denom_or_address),
     }
 }
 
@@ -195,25 +215,52 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&q::query_config(deps, env)?),
 
+        QueryMsg::FaucetConfig { denom_or_address } => {
+            to_json_binary(&q::query_faucet_config(deps, env, denom_or_address)?)
+        }
+
         QueryMsg::CurrencyInfo { denom_or_address } => {
             to_json_binary(&q::query_currency_info(deps, env, denom_or_address)?)
         }
 
-        QueryMsg::CurrencyInfoList { amount, start_from } => {
-            to_json_binary(&q::query_currency_info_list(deps, env, amount, start_from)?)
-        }
+        QueryMsg::CurrencyInfoList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_currency_info_list(
+            deps,
+            env,
+            amount,
+            start_after,
+        )?),
 
         QueryMsg::CurrencyInfoListByOwner {
             owner,
             amount,
-            start_from,
+            start_after,
         } => to_json_binary(&q::query_currency_info_list_by_owner(
-            deps, env, owner, amount, start_from,
+            deps,
+            env,
+            owner,
+            amount,
+            start_after,
         )?),
 
-        QueryMsg::TokenCountList { amount, start_from } => {
-            to_json_binary(&q::query_token_count_list(deps, env, amount, start_from)?)
-        }
+        QueryMsg::TokenCountList {
+            amount,
+            start_after,
+        } => to_json_binary(&q::query_token_count_list(deps, env, amount, start_after)?),
+
+        QueryMsg::LastClaimDate {
+            user,
+            denom_or_address,
+        } => to_json_binary(&q::query_last_claim_date(
+            deps,
+            env,
+            user,
+            denom_or_address,
+        )?),
+
+        QueryMsg::Balances { account } => to_json_binary(&q::query_balances(deps, env, account)?),
     }
 }
 

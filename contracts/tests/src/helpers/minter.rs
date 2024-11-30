@@ -149,20 +149,20 @@ pub trait MinterExtension {
     fn minter_query_currency_info_list(
         &self,
         amount: u32,
-        start_from: &Option<&str>,
+        start_after: &Option<&str>,
     ) -> StdResult<Vec<CurrencyInfo>>;
 
     fn minter_query_currency_info_list_by_owner(
         &self,
         owner: ProjectAccount,
         amount: u32,
-        start_from: &Option<&str>,
+        start_after: &Option<&str>,
     ) -> StdResult<Vec<CurrencyInfo>>;
 
     fn minter_query_token_count_list(
         &self,
         amount: u32,
-        start_from: &Option<&Addr>,
+        start_after: &Option<&Addr>,
     ) -> StdResult<Vec<(Addr, u16)>>;
 }
 
@@ -534,13 +534,13 @@ impl MinterExtension for Project {
     fn minter_query_currency_info_list(
         &self,
         amount: u32,
-        start_from: &Option<&str>,
+        start_after: &Option<&str>,
     ) -> StdResult<Vec<CurrencyInfo>> {
         self.app.wrap().query_wasm_smart(
             self.get_minter_address(),
             &QueryMsg::CurrencyInfoList {
                 amount,
-                start_from: start_from.as_ref().map(|x| x.to_string()),
+                start_after: start_after.as_ref().map(|x| x.to_string()),
             },
         )
     }
@@ -550,14 +550,14 @@ impl MinterExtension for Project {
         &self,
         owner: ProjectAccount,
         amount: u32,
-        start_from: &Option<&str>,
+        start_after: &Option<&str>,
     ) -> StdResult<Vec<CurrencyInfo>> {
         self.app.wrap().query_wasm_smart(
             self.get_minter_address(),
             &QueryMsg::CurrencyInfoListByOwner {
                 owner: owner.to_string(),
                 amount,
-                start_from: start_from.as_ref().map(|x| x.to_string()),
+                start_after: start_after.as_ref().map(|x| x.to_string()),
             },
         )
     }
@@ -566,13 +566,13 @@ impl MinterExtension for Project {
     fn minter_query_token_count_list(
         &self,
         amount: u32,
-        start_from: &Option<&Addr>,
+        start_after: &Option<&Addr>,
     ) -> StdResult<Vec<(Addr, u16)>> {
         self.app.wrap().query_wasm_smart(
             self.get_minter_address(),
             &QueryMsg::TokenCountList {
                 amount,
-                start_from: start_from.as_ref().map(|x| x.to_string()),
+                start_after: start_after.as_ref().map(|x| x.to_string()),
             },
         )
     }

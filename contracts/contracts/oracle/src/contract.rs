@@ -1,7 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
 use goplend_base::{
@@ -10,7 +9,7 @@ use goplend_base::{
 };
 
 use crate::actions::{
-    execute as e, instantiate::try_instantiate, other::migrate_contract, query as q,
+    execute as e, instantiate::try_instantiate, migrate::migrate_contract, query as q,
 };
 
 /// Creates a new contract with the specified parameters packed in the "msg" variable
@@ -33,13 +32,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetPrices { price_ratio, data } => {
-            e::try_set_prices(deps, env, info, price_ratio, data)
-        }
-
-        ExecuteMsg::UpdatePrices { price_ratio, data } => {
-            e::try_update_prices(deps, env, info, price_ratio, data)
-        }
+        ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
 
         ExecuteMsg::RemovePrices { collections } => {
             e::try_remove_prices(deps, env, info, collections)
@@ -53,8 +46,6 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
-            main_currency,
-            stable_currency,
         } => e::try_update_config(
             deps,
             env,
@@ -64,8 +55,6 @@ pub fn execute(
             controller,
             execution_cooldown,
             max_price_update_period,
-            main_currency,
-            stable_currency,
         ),
     }
 }
@@ -77,31 +66,19 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
         QueryMsg::QueryPrices {
-            collection_addresses,
+            amount,
             start_after,
-            limit,
+            collections,
         } => to_json_binary(&q::query_prices(
             deps,
             env,
-            collection_addresses,
+            amount,
             start_after,
-            limit,
+            collections,
         )?),
 
-        QueryMsg::QueryPriceRatio {} => to_json_binary(&q::query_price_ratio(deps, env)?),
-
         QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
-
-        QueryMsg::QueryLog {} => to_json_binary(&q::query_log(deps, env)?),
     }
-}
-
-/// Exposes all the replies available in the contract
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, ContractError> {
-    let Reply { id: _, result: _ } = reply;
-
-    Err(ContractError::UndefinedReplyId)
 }
 
 /// Used for contract migration

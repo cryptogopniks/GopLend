@@ -2,7 +2,6 @@ import { l } from "../../../common/utils";
 import { readFile, writeFile } from "fs/promises";
 import { ChainConfig } from "../../../common/interfaces";
 import { getChainOptionById } from "../../../common/config/config-utils";
-import { PlatformType } from "../../../common/codegen/AdapterMarketplaceStargaze.types";
 import { getCwQueryHelpers } from "../../../common/account/cw-helpers";
 import { Addr, TokenItem } from "../../../common/codegen/LendingPlatform.types";
 import {
@@ -40,10 +39,9 @@ async function main() {
 
   const { lending } = await getCwQueryHelpers(chainId, RPC);
 
-  const writeCollaterals = async (platformType: PlatformType) => {
+  const writeCollaterals = async () => {
     try {
       let collateralList = await lending.pQueryCollateralList(
-        platformType,
         PAGINATION_QUERY_AMOUNT
       );
 
@@ -91,7 +89,7 @@ async function main() {
 
       // write files
       await writeFile(
-        getSnapshotPath(NAME, TYPE, platformType, "collaterals.json"),
+        getSnapshotPath(NAME, TYPE, "collaterals.json"),
         JSON.stringify(collateralsByOwnerList, null, 2),
         {
           encoding: ENCODING,
@@ -102,10 +100,7 @@ async function main() {
     }
   };
 
-  const platformList: PlatformType[] = ["main", "stable"];
-  await Promise.all(
-    platformList.map((platformType) => writeCollaterals(platformType))
-  );
+  await writeCollaterals();
 }
 
 main();

@@ -1,9 +1,7 @@
 import { l, li } from "../../common/utils";
 import { getCwQueryHelpers } from "../../common/account/cw-helpers";
-import { PlatformType } from "../../common/codegen/AdapterMarketplaceStargaze.types";
-import { getBlockTime, wrapListQuerier } from "./utils";
+import { getBlockTime } from "./utils";
 import {
-  CommonConfig,
   LiquidationItem,
   RateConfig,
 } from "../../common/codegen/LendingPlatform.types";
@@ -20,70 +18,45 @@ import {
   reduceBids,
 } from "./math";
 
-const platformList: PlatformType[] = ["main", "stable"];
-
 export async function queryTargets(
   chainId: string,
   rpc: string,
-  rateConfigMain: RateConfig,
-  rateConfigStable: RateConfig,
-  commonConfigMain: CommonConfig,
-  commonConfigStable: CommonConfig,
-  ltvMaxMain: number,
-  ltvMaxStable: number,
+  rateConfig: RateConfig,
+  ltvMax: number,
   ltvMaxFraction: number,
   blockTimeOffset: number, // several seconds to consider query delays
-  colateralPaginationAmount: number,
+  collateralPaginationAmount: number,
   borrowersPaginationAmount: number,
   pricesPaginationAmount: number,
   bidsPaginationAmount: number,
-  offersBatchPaginationAmount: number, // 5
-  collectionOffersPaginationAmount: number, // 50
-  tokenOffersPaginationAmount: number // 20
-): Promise<[PlatformType, LiquidationItem][]> {
+  offersBatchPaginationAmount: number // 5
+): Promise<LiquidationItem[]> {
   const { lending, oracle, utils } = await getCwQueryHelpers(chainId, rpc);
 
-  const [collateralListMain, collateralListStable] = await Promise.all(
-    platformList.map((platformType) =>
-      wrapListQuerier(
-        lending.pQueryCollateralList,
-        platformType,
-        colateralPaginationAmount
-      )
-    )
+  const collateralList = await lending.pQueryCollateralList(
+    collateralPaginationAmount
   );
-  const [borrowerListMain, borrowerListStable] = await Promise.all(
-    platformList.map((platformType) =>
-      wrapListQuerier(
-        lending.pQueryBorrowerList,
-        platformType,
-        borrowersPaginationAmount
-      )
-    )
+  const borrowerList = await lending.pQueryBorrowerList(
+    borrowersPaginationAmount
   );
   const priceList = await oracle.pQueryPrices(pricesPaginationAmount);
   const blockTime = getBlockTime(blockTimeOffset);
 
-  // get borrowers with ltv > ltvMax, sort by ltv descending
-  const [ltvAndCollateralListMain, ltvAndCollateralListStable] =
-    platformList.map((platformType) =>
-      getTargetBorrowers(
-        platformType,
-        platformType === "main" ? borrowerListMain : borrowerListStable,
-        platformType === "main" ? collateralListMain : collateralListStable,
-        priceList,
-        platformType === "main" ? rateConfigMain : rateConfigStable,
-        platformType === "main" ? commonConfigMain : commonConfigStable,
-        platformType === "main" ? ltvMaxMain : ltvMaxStable,
-        blockTime
-      )
-    );
+  // handle outdated prices
+  if (priceList.is_outdated) {
+    l(`⚠️⚠️⚠️ Warning: prices are outdated`);
+    return [];
+  }
 
-  // sort by ltv descending
-  const ltvAndCollateralList = [
-    ...ltvAndCollateralListMain,
-    ...ltvAndCollateralListStable,
-  ].sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
+  // get borrowers with ltv > ltvMax, sort by ltv descending
+  const ltvAndCollateralList = getTargetBorrowers(
+    borrowerList,
+    collateralList,
+    priceList.data,
+    rateConfig,
+    ltvMax,
+    blockTime
+  ).sort(({ ltv: ltvA }, { ltv: ltvB }) => ltvB - ltvA);
 
   if (!ltvAndCollateralList.length) {
     return [];
@@ -92,141 +65,95 @@ export async function queryTargets(
   const collectionList =
     getCollectionsFromLtvAndCollateralList(ltvAndCollateralList);
 
-  const [liquidationBidsMain, liquidationBidsStable] = await Promise.all(
-    platformList.map((platformType) =>
-      wrapListQuerier(
-        lending.pQueryLiquidationBidsByCollectionAddressList,
-        platformType,
-        bidsPaginationAmount
-      )
-    )
-  );
-
-  const collectionAndTokensList = aggregateTokensByCollection(
-    ltvAndCollateralList,
-    collectionList
-  );
-
-  const { tokenOfferList, collectionOfferList, discountBaseList } =
-    await utils.cwGetMarketplaceData(
-      collectionAndTokensList,
-      collectionList,
-      blockTime,
-      offersBatchPaginationAmount,
-      collectionOffersPaginationAmount,
-      tokenOffersPaginationAmount
+  const liquidationBids =
+    await lending.pQueryLiquidationBidsByCollectionAddressList(
+      bidsPaginationAmount
     );
 
-  // query priceRatio directly as MarketplaceData can be empty due to collectionAddresses
-  const priceRatioItem = await oracle.cwQueryPriceRatio();
-  if (priceRatioItem.is_outdated) {
-    throw new Error("priceRatioStable is outdated!");
-  }
-  const priceRatioStable = Number(priceRatioItem.value);
+  // const collectionAndTokensList = aggregateTokensByCollection(
+  //   ltvAndCollateralList,
+  //   collectionList
+  // );
+
+  const collectionOfferList = await utils.cwGetMarketMakerData(
+    collectionList,
+    offersBatchPaginationAmount
+  );
 
   const offers = distributeOffers(
     collectionList,
-    collateralListMain,
-    collateralListStable,
-    tokenOfferList,
+    collateralList,
     collectionOfferList,
-    discountBaseList,
-    priceRatioStable,
-    blockTime,
-    platformList
+    blockTime
   );
 
-  let { totalBidsMain, totalBidsStable } = mergeBidsAndOffers(
-    liquidationBidsMain,
-    liquidationBidsStable,
-    offers
+  let totalBids = mergeBidsAndOffers(liquidationBids, offers);
+
+  const liquidationTargets: LiquidationItem[] = ltvAndCollateralList.reduce(
+    (
+      acc,
+      {
+        borrowerAddress,
+        ltv,
+        loanAmount,
+        loanCreationDate,
+        accumulatedLoan,
+        collateralValue,
+        collectionAndCollateralList,
+      }
+    ) => {
+      const { discount_max_rate, borrow_apr } = rateConfig;
+      const collectionAndBidList = getCollectionAndBidList(
+        totalBids,
+        collectionAndCollateralList
+      );
+
+      const biddedCollateralList = matchCollateralsAndBids(
+        collectionAndCollateralList,
+        collectionAndBidList,
+        priceList.data
+      );
+
+      // calculate how much tokens and what collection must be liquidated to get proper ltv
+      // for worst case (max discount)
+      const maxLiquidationValue = calcLiquidationValue(
+        collateralValue,
+        Number(discount_max_rate),
+        ltv,
+        ltvMax,
+        ltvMaxFraction
+      );
+
+      const liquidationSet = calcLiquidationSet(
+        biddedCollateralList,
+        maxLiquidationValue,
+        ltvMax,
+        Number(borrow_apr),
+        accumulatedLoan,
+        loanAmount,
+        collateralValue,
+        blockTime,
+        loanCreationDate
+      );
+
+      if (liquidationSet.length) {
+        // remove used bids
+        totalBids = reduceBids(totalBids, liquidationSet);
+
+        acc.push({
+          borrower: borrowerAddress,
+          liquidation_set: liquidationSet,
+        });
+      } else {
+        l(
+          `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
+        );
+      }
+
+      return acc;
+    },
+    [] as LiquidationItem[]
   );
-
-  const liquidationTargets: [PlatformType, LiquidationItem][] =
-    ltvAndCollateralList.reduce(
-      (
-        acc,
-        {
-          platformType,
-          borrowerAddress,
-          ltv,
-          loanAmount,
-          loanCreationDate,
-          accumulatedLoan,
-          collateralValue,
-          collectionAndCollateralList,
-        }
-      ) => {
-        const isMain = platformType === "main";
-        const { main_currency } = isMain
-          ? commonConfigMain
-          : commonConfigStable;
-        const { discount_max_rate, borrow_apr } = isMain
-          ? rateConfigMain
-          : rateConfigStable;
-        const ltvMax = isMain ? ltvMaxMain : ltvMaxStable;
-        const totalBids = isMain ? totalBidsMain : totalBidsStable;
-
-        const collectionAndBidList = getCollectionAndBidList(
-          totalBids,
-          collectionAndCollateralList
-        );
-
-        const biddedCollateralList = matchCollateralsAndBids(
-          main_currency,
-          collectionAndCollateralList,
-          collectionAndBidList,
-          priceList
-        );
-
-        // calculate how much tokens and what collection must be liquidated to get proper ltv
-        // for worst case (max discount)
-        const maxLiquidationValue = calcLiquidationValue(
-          collateralValue,
-          Number(discount_max_rate),
-          ltv,
-          ltvMax,
-          ltvMaxFraction
-        );
-
-        const liquidationSet = calcLiquidationSet(
-          biddedCollateralList,
-          maxLiquidationValue,
-          ltvMax,
-          Number(borrow_apr),
-          accumulatedLoan,
-          loanAmount,
-          collateralValue,
-          blockTime,
-          loanCreationDate
-        );
-
-        if (liquidationSet.length) {
-          // remove used bids
-          ({ totalBidsMain, totalBidsStable } = reduceBids(
-            platformType,
-            totalBidsMain,
-            totalBidsStable,
-            liquidationSet
-          ));
-
-          acc.push([
-            platformType,
-            {
-              borrower: borrowerAddress,
-              liquidation_set: liquidationSet,
-            },
-          ]);
-        } else {
-          l(
-            `⚠️⚠️⚠️ Warning: No (proper) bids/offers to liquidate ${borrowerAddress}`
-          );
-        }
-
-        return acc;
-      },
-      [] as [PlatformType, LiquidationItem][]
-    );
 
   return liquidationTargets;
 }

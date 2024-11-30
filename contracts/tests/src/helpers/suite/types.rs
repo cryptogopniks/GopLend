@@ -1,5 +1,8 @@
-use cosmwasm_std::{Addr, Binary, Decimal, StdResult};
-use cw_multi_test::AppResponse;
+use cosmwasm_std::{testing::MockStorage, Addr, Binary, Decimal, Empty, StdResult};
+use cw_multi_test::{
+    App, AppResponse, BankKeeper, DistributionKeeper, FailingModule, GovFailingModule,
+    IbcFailingModule, MockApiBech32, StakeKeeper, WasmKeeper,
+};
 
 use anyhow::Error;
 use strum_macros::{Display, EnumIter, IntoStaticStr};
@@ -12,23 +15,35 @@ pub const INCREASED_FUNDS_AMOUNT: u128 = 100 * P12; // give admin such amount of
 pub const DEFAULT_DECIMALS: u8 = 6;
 pub const INCREASED_DECIMALS: u8 = 18;
 
+pub type CustomApp = App<
+    BankKeeper,
+    MockApiBech32,
+    MockStorage,
+    FailingModule<Empty, Empty, Empty>,
+    WasmKeeper<Empty, Empty>,
+    StakeKeeper,
+    DistributionKeeper,
+    IbcFailingModule,
+    GovFailingModule,
+>;
+
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectAccount {
-    #[strum(serialize = "admin")]
+    #[strum(serialize = "wasm1335hded4gyzpt00fpz75mms4m7ck02wgw07yhw9grahj4dzg4yvqvrz0p4")]
     Admin,
-    #[strum(serialize = "alice")]
+    #[strum(serialize = "wasm190vqdjtlpcq27xslcveglfmr4ynfwg7gmw86cnun4acakxrdd6gqy7k8ya")]
     Alice,
-    #[strum(serialize = "bob")]
+    #[strum(serialize = "wasm1sxmr0k8u6trd5c6eu6trzyapzux7090ykujmsng7pdx0m8k93n5s6sey0n")]
     Bob,
-    #[strum(serialize = "john")]
+    #[strum(serialize = "wasm1jmvkxtekx4jvcvpj2g2qnnez4pf0yqewasyea4vk0sxsqr8vvpaq7wvjwx")]
     John,
-    #[strum(serialize = "kate")]
+    #[strum(serialize = "wasm19sjfgua22qwy8u25e3dayvevf3dt22qum37z9wsyjujgstk6yhmsvkkpgy")]
     Kate,
-    #[strum(serialize = "ruby")]
+    #[strum(serialize = "wasm1hyfcr98la8nu3wmd08g76439j4farrvukc9kdca6t23wtvrcq4dq3cnj04")]
     Ruby,
-    #[strum(serialize = "owner")]
+    #[strum(serialize = "wasm1fsgzj6t7udv8zhf6zj32mkqhcjcpv52yph5qsdcl0qt94jgdckqszmp4sw")]
     Owner,
-    #[strum(serialize = "sheduler")]
+    #[strum(serialize = "wasm17u86jdhzml8558g3xu8pfvzzvygrypxckx89kryj53pqnhdhxxzq4nfaaw")]
     Scheduler,
 }
 
@@ -49,31 +64,31 @@ impl ProjectAccount {
 
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectCoin {
-    #[strum(serialize = "ustars")]
+    #[strum(serialize = "factory/wasm1s/ustars")]
     Stars,
-    #[strum(serialize = "uusdc")]
+    #[strum(serialize = "factory/wasm1s/uusdc")]
     Usdc,
-    #[strum(serialize = "ukuji")]
+    #[strum(serialize = "factory/wasm1s/ukuji")]
     Kuji,
-    #[strum(serialize = "uusk")]
+    #[strum(serialize = "factory/wasm1s/uusk")]
     Usk,
 }
 
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectToken {
-    #[strum(serialize = "contract0")]
+    #[strum(serialize = "wasm1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsqq5gpq")]
     Atom,
-    #[strum(serialize = "contract1")]
+    #[strum(serialize = "wasm14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s0phg4d")]
     Luna,
-    #[strum(serialize = "contract2")]
+    #[strum(serialize = "wasm1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrss5maay")]
     Inj,
 }
 
 #[derive(Debug, Clone, Copy, Display, IntoStaticStr, EnumIter)]
 pub enum ProjectNft {
-    #[strum(serialize = "contract3")]
+    #[strum(serialize = "wasm1xr3rq8yvd7qplsw5yx90ftsr2zdhg4e9z60h5duusgxpv72hud3s0nakef")]
     Gopniks,
-    #[strum(serialize = "contract4")]
+    #[strum(serialize = "wasm1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5se0hfnq")]
     Pinjeons,
 }
 

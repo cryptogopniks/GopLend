@@ -92,13 +92,28 @@ export type ExecuteMsg = {
     address: string;
   };
 } | {
+  update_faucet_config: {
+    claim_cooldown?: number | null;
+    claimable_amount?: Uint128 | null;
+    denom_or_address: string;
+  };
+} | {
   mint: {
     amount: Uint128;
     denom_or_address: string;
     recipient?: string | null;
   };
 } | {
+  mint_multiple: {
+    account_and_amount_list: [string, Uint128][];
+    denom_or_address: string;
+  };
+} | {
   burn: {};
+} | {
+  claim: {
+    denom_or_address: string;
+  };
 } | {
   receive: Cw20ReceiveMsg;
 };
@@ -143,29 +158,43 @@ export interface Cw20ReceiveMsg {
 export type QueryMsg = {
   config: {};
 } | {
+  faucet_config: {
+    denom_or_address: string;
+  };
+} | {
   currency_info: {
     denom_or_address: string;
   };
 } | {
   currency_info_list: {
     amount: number;
-    start_from?: string | null;
+    start_after?: string | null;
   };
 } | {
   currency_info_list_by_owner: {
     amount: number;
     owner: string;
-    start_from?: string | null;
+    start_after?: string | null;
   };
 } | {
   token_count_list: {
     amount: number;
-    start_from?: string | null;
+    start_after?: string | null;
+  };
+} | {
+  last_claim_date: {
+    denom_or_address: string;
+    user: string;
+  };
+} | {
+  balances: {
+    account: string;
   };
 };
 export interface MigrateMsg {
   version: string;
 }
+export type ArrayOfTupleOfUint128AndString = [Uint128, string][];
 export type Addr = string;
 export interface Config {
   admin: Addr;
@@ -196,4 +225,9 @@ export interface CurrencyForToken {
   token: Token;
 }
 export type ArrayOfCurrencyInfo = CurrencyInfo[];
+export interface FaucetConfig {
+  claim_cooldown: number;
+  claimable_amount: Uint128;
+}
+export type Uint64 = number;
 export type ArrayOfTupleOfAddrAndUint16 = [Addr, number][];

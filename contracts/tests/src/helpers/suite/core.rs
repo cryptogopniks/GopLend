@@ -1,36 +1,32 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::{coin, coins, to_json_binary, Addr, Coin, Empty, StdResult, Timestamp, Uint128};
-use cw_multi_test::{App, AppResponse, BankSudo, Executor, SudoMsg};
+use cosmwasm_std::{
+    coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdResult, Timestamp, Uint128,
+};
+use cw_multi_test::{
+    App, AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
+    WasmKeeper,
+};
 
 use serde::Serialize;
-use stargaze_mocks_marketplace::state::Bid;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
-    adapters::marketplace::stargaze::types::PlatformType,
     assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
-    lending_platform::{
-        state::{BGL_CURRENCY_DECIMALS, CHAIN_ID_STARGAZE_MAIN},
-        types::TokenItem,
-    },
+    lending_platform::{state::BGL_CURRENCY_DECIMALS, types::TokenItem},
 };
 
 use crate::helpers::{
-    adapters::{
-        dex::stargaze_mocks::AdapterDexStargazeMocksExtension,
-        marketplace::stargaze::AdapterMarketplaceStargazeExtension,
-        scheduler::common::AdapterSchedulerCommonExtension,
-    },
     lending_platform::LendingPlatformExtension,
     minter::MinterExtension,
     oracle::OracleExtension,
+    scheduler::SchedulerExtension,
     suite::{
         codes::WithCodes,
         types::{
-            GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
-            WrappedResponse, DEFAULT_DECIMALS,
+            CustomApp, GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft,
+            ProjectToken, DEFAULT_DECIMALS,
         },
     },
 };
@@ -43,38 +39,30 @@ pub const BGLUSDC_SYMBOL: &str = "bglUSDC";
 pub const INITIAL_LIQUIDITY: u128 = 100_000_000_000;
 
 pub struct Project {
-    pub app: App,
-    pub logs: WrappedResponse,
+    pub app: CustomApp,
     contract_counter: u16,
 
     // package code id
     cw20_base_code_id: u64,
     // cw721_base_code_id: u64,
-    stargaze_mocks_marketplace_code_id: u64,
-    adapter_dex_stargaze_mocks_code_id: u64,
 
     // contract code id
     lending_platform_code_id: u64,
     oracle_code_id: u64,
     minter_code_id: u64,
-    adapter_scheduler_common_code_id: u64,
-    adapter_marketplace_stargaze_code_id: u64,
-    adapter_marketplace_kujira_code_id: u64,
+    scheduler_code_id: u64,
+    market_maker_code_id: u64,
 
     // package address
     gopniks_address: Addr,
     pinjeons_address: Addr,
-    stargaze_mocks_marketplace_address: Addr,
-    adapter_dex_stargaze_mocks_address: Addr,
 
     // contract address
-    lending_platform_main_address: Addr,
-    lending_platform_stable_address: Addr,
+    lending_platform_address: Addr,
     oracle_address: Addr,
     minter_address: Addr,
-    adapter_scheduler_common_address: Addr,
-    adapter_marketplace_stargaze_address: Addr,
-    adapter_marketplace_kujira_address: Addr,
+    scheduler_address: Addr,
+    market_maker_address: Addr,
     //
     // other
 }
@@ -83,56 +71,42 @@ impl Project {
     pub fn create_project_with_balances() -> Self {
         Self {
             app: Self::create_app_with_balances(),
-            logs: WrappedResponse::Execute(Ok(AppResponse::default())),
             contract_counter: 0,
 
             cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
-            stargaze_mocks_marketplace_code_id: 0,
-            adapter_dex_stargaze_mocks_code_id: 0,
-
             lending_platform_code_id: 0,
             oracle_code_id: 0,
             minter_code_id: 0,
-            adapter_scheduler_common_code_id: 0,
-            adapter_marketplace_stargaze_code_id: 0,
-            adapter_marketplace_kujira_code_id: 0,
+            scheduler_code_id: 0,
+            market_maker_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
-            stargaze_mocks_marketplace_address: Addr::unchecked(""),
-            adapter_dex_stargaze_mocks_address: Addr::unchecked(""),
 
-            lending_platform_main_address: Addr::unchecked(""),
-            lending_platform_stable_address: Addr::unchecked(""),
+            lending_platform_address: Addr::unchecked(""),
             oracle_address: Addr::unchecked(""),
             minter_address: Addr::unchecked(""),
-            adapter_scheduler_common_address: Addr::unchecked(""),
-            adapter_marketplace_stargaze_address: Addr::unchecked(""),
-            adapter_marketplace_kujira_address: Addr::unchecked(""),
+            scheduler_address: Addr::unchecked(""),
+            market_maker_address: Addr::unchecked(""),
         }
     }
 
     pub fn new() -> Self {
         // create app and distribute coins to accounts
         let mut project = Self::create_project_with_balances();
-        project.set_chain_id(CHAIN_ID_STARGAZE_MAIN);
 
         // register contracts code
         // packages
         let cw20_base_code_id = project.store_cw20_base_code();
         let cw721_base_code_id = project.store_cw721_base_code();
-        let stargaze_mocks_marketplace_code_id = project.store_stargaze_mocks_marketplace_code();
-        let adapter_dex_stargaze_mocks_code_id = project.store_adapter_dex_stargaze_mocks_code();
 
         // contracts
         let lending_platform_code_id = project.store_lending_platform_code();
         let oracle_code_id = project.store_oracle_code();
         let minter_code_id = project.store_minter_code();
-        let adapter_scheduler_common_code_id = project.store_adapter_scheduler_common_code();
-        let adapter_marketplace_stargaze_code_id =
-            project.store_adapter_marketplace_stargaze_code();
-        let adapter_marketplace_kujira_code_id = project.store_adapter_marketplace_kujira_code();
+        let scheduler_code_id = project.store_scheduler_code();
+        let market_maker_code_id = project.store_market_maker_code();
 
         // instantiate packages
 
@@ -141,10 +115,9 @@ impl Project {
             project.instantiate_cw20_base_token(cw20_base_code_id, project_token);
         }
 
-        let gopniks_address =
-            project.instantiate_cw721_base_token(cw721_base_code_id, ProjectNft::Gopniks);
-        let pinjeons_address =
-            project.instantiate_cw721_base_token(cw721_base_code_id, ProjectNft::Pinjeons);
+        for _project_nft in ProjectNft::iter() {
+            project.instantiate_cw721_base_token(cw721_base_code_id);
+        }
 
         // mint NFTs
         let token_id_list: Vec<u128> = vec![1, 2, 3];
@@ -168,71 +141,9 @@ impl Project {
             }
         }
 
-        let stargaze_mocks_marketplace_address = project.instantiate_stargaze_mocks_marketplace(
-            stargaze_mocks_marketplace_code_id,
-            &[
-                Bid {
-                    bidder: ProjectAccount::John.into(),
-                    collection: ProjectNft::Gopniks.into(),
-                    price: Uint128::new(700),
-                },
-                Bid {
-                    bidder: ProjectAccount::John.into(),
-                    collection: ProjectNft::Pinjeons.into(),
-                    price: Uint128::new(700),
-                },
-                Bid {
-                    bidder: ProjectAccount::Kate.into(),
-                    collection: ProjectNft::Gopniks.into(),
-                    price: Uint128::new(700),
-                },
-                Bid {
-                    bidder: ProjectAccount::Kate.into(),
-                    collection: ProjectNft::Pinjeons.into(),
-                    price: Uint128::new(700),
-                },
-            ],
-            ProjectAccount::Admin.get_initial_funds_amount() / 10,
-            ProjectCoin::Stars,
-        );
-
-        let adapter_dex_stargaze_mocks_address = project.instantiate_adapter_dex_stargaze_mocks(
-            adapter_dex_stargaze_mocks_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &ProjectAccount::Admin.get_initial_funds_amount() / 10,
-            &[ProjectCoin::Usdc, ProjectCoin::Usk],
-        );
-
         // instantiate goplend contracts
 
-        let lending_platform_main_address = project.instantiate_lending_platform(
-            lending_platform_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
-            ),
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-        );
-        let lending_platform_stable_address = project.instantiate_lending_platform(
+        let lending_platform_address = project.instantiate_lending_platform(
             lending_platform_code_id,
             &None,
             &None,
@@ -253,23 +164,8 @@ impl Project {
             &None,
             &None,
             &None,
-            &None,
         );
-        let oracle_address = project.instantiate_oracle(
-            oracle_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Stars.to_string()),
-                ProjectCoin::Stars.get_decimals(),
-            ),
-            &Currency::new(
-                &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
-                ProjectCoin::Usdc.get_decimals(),
-            ),
-        );
+        let oracle_address = project.instantiate_oracle(oracle_code_id, &None, &None, &None, &None);
         let minter_address = project.instantiate_minter(
             minter_code_id,
             &None,
@@ -278,56 +174,34 @@ impl Project {
             &None,
             &None,
         );
-        let adapter_scheduler_common_address = project.instantiate_adapter_scheduler_common(
-            adapter_scheduler_common_code_id,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-        );
-        let adapter_marketplace_stargaze_address = project
-            .instantiate_adapter_marketplace_stargaze(
-                adapter_marketplace_stargaze_code_id,
-                &None,
-                &None,
-                &None,
-                &None,
-                &None,
-                &None,
-                &None,
-            );
-        let adapter_marketplace_kujira_address = project.instantiate_adapter_marketplace_kujira(
-            adapter_marketplace_kujira_code_id,
-            &None,
-            &None,
+        let scheduler_address =
+            project.instantiate_scheduler(scheduler_code_id, &None, &None, &None, &None);
+        let market_maker_address = project.instantiate_market_maker(
+            market_maker_code_id,
+            &Some(ProjectAccount::Owner),
+            &Some(vec![ProjectAccount::Scheduler]),
+            &Some(lending_platform_address.clone()),
+            &Some(oracle_address.clone()),
+            &TokenUnverified::new_native(&ProjectCoin::Usdc.to_string()),
         );
 
         project = Self {
             cw20_base_code_id,
-            stargaze_mocks_marketplace_code_id,
-            adapter_dex_stargaze_mocks_code_id,
 
             lending_platform_code_id,
             oracle_code_id,
             minter_code_id,
-            adapter_scheduler_common_code_id,
-            adapter_marketplace_stargaze_code_id,
-            adapter_marketplace_kujira_code_id,
+            scheduler_code_id,
+            market_maker_code_id,
 
-            gopniks_address,
-            pinjeons_address,
-            stargaze_mocks_marketplace_address,
-            adapter_dex_stargaze_mocks_address,
+            gopniks_address: Addr::unchecked(ProjectNft::Gopniks.to_string()),
+            pinjeons_address: Addr::unchecked(ProjectNft::Pinjeons.to_string()),
 
-            lending_platform_main_address,
-            lending_platform_stable_address,
+            lending_platform_address,
             oracle_address,
             minter_address,
-            adapter_scheduler_common_address,
-            adapter_marketplace_stargaze_address,
-            adapter_marketplace_kujira_address,
+            scheduler_address,
+            market_maker_address,
 
             ..project
         };
@@ -341,8 +215,6 @@ impl Project {
                 &Some(vec![ProjectAccount::Scheduler]),
                 &Some(0),
                 &None,
-                &None,
-                &None,
             )
             .unwrap();
 
@@ -351,20 +223,7 @@ impl Project {
             .minter_try_create_cw20(
                 ProjectAccount::Admin,
                 &None,
-                &Some(vec![project.get_lending_platform_main_address()]),
-                &None,
-                &None,
-                BGLSTARS_NAME,
-                BGLSTARS_SYMBOL,
-                &Some(BGL_CURRENCY_DECIMALS),
-                &None,
-            )
-            .unwrap();
-        project
-            .minter_try_create_cw20(
-                ProjectAccount::Admin,
-                &None,
-                &Some(vec![project.get_lending_platform_stable_address()]),
+                &Some(vec![project.get_lending_platform_address()]),
                 &None,
                 &None,
                 BGLUSDC_NAME,
@@ -377,103 +236,42 @@ impl Project {
         let currency_info_list_by_owner = project
             .minter_query_currency_info_list_by_owner(ProjectAccount::Admin, 2, &None)
             .unwrap();
-        let bgl_stars_currency = &currency_info_list_by_owner[0].currency;
-        let bgl_usdc_currency = &currency_info_list_by_owner[1].currency;
+        let bgl_usdc_currency = &currency_info_list_by_owner[0].currency;
 
-        for platform_type in [PlatformType::Main, PlatformType::Stable] {
-            let bgl_currency: Currency<TokenUnverified> = match &platform_type {
-                PlatformType::Main => Currency::new(
-                    &bgl_stars_currency.clone().token.into(),
-                    bgl_stars_currency.decimals,
-                ),
-                PlatformType::Stable => Currency::new(
+        project
+            .lending_platform_try_update_address_config(
+                ProjectAccount::Admin,
+                &Some(ProjectAccount::Admin),
+                &Some(ProjectAccount::Owner),
+                &Some(project.get_oracle_address()),
+                &Some(project.get_minter_address()),
+                &Some(project.get_scheduler_address()),
+                &Some(project.get_market_maker_address()),
+            )
+            .unwrap();
+
+        project
+            .lending_platform_try_update_common_config(
+                ProjectAccount::Admin,
+                &None,
+                &Some(Currency::new(
                     &bgl_usdc_currency.clone().token.into(),
                     bgl_usdc_currency.decimals,
-                ),
-            };
-
-            project
-                .lending_platform_try_update_address_config(
-                    ProjectAccount::Admin,
-                    platform_type.clone(),
-                    &Some(ProjectAccount::Admin),
-                    &Some(ProjectAccount::Owner),
-                    &Some(project.get_oracle_address()),
-                    &Some(project.get_minter_address()),
-                    &Some(project.get_adapter_scheduler_common_address()),
-                    &Some(project.get_adapter_marketplace_stargaze_address()),
-                )
-                .unwrap();
-
-            project
-                .lending_platform_try_update_common_config(
-                    ProjectAccount::Admin,
-                    platform_type,
-                    &None,
-                    &Some(bgl_currency),
-                    &None,
-                    &None,
-                    &None,
-                    &None,
-                )
-                .unwrap();
-        }
-
-        project
-            .adapter_dex_stargaze_mocks_try_update_config(
-                ProjectAccount::Admin,
+                )),
                 &None,
-                &None,
-                &Some(project.get_lending_platform_stable_address()),
-                &Some(project.get_adapter_marketplace_stargaze_address()),
                 &None,
                 &None,
             )
             .unwrap();
 
         project
-            .adapter_scheduler_common_try_update_config(
+            .scheduler_try_update_config(
                 ProjectAccount::Admin,
                 &None,
                 &None,
-                &Some(project.get_lending_platform_main_address()),
-                &Some(project.get_lending_platform_stable_address()),
+                &Some(project.get_lending_platform_address()),
                 &Some(vec![ProjectAccount::Scheduler.into()]),
                 &None,
-                &Some(0),
-            )
-            .unwrap();
-
-        project
-            .adapter_marketplace_stargaze_try_update_config(
-                ProjectAccount::Admin,
-                &None,
-                &None,
-                &Some(project.get_lending_platform_main_address()),
-                &Some(project.get_lending_platform_stable_address()),
-                &Some(project.get_oracle_address()),
-                &Some(project.get_stargaze_mocks_marketplace_address()),
-                &Some(project.get_adapter_dex_stargaze_mocks_address()),
-                &None,
-            )
-            .unwrap();
-
-        // project
-        //     .adapter_marketplace_kujira_try_update_config(
-        //         ProjectAccount::Admin,
-        //         &None,
-        //         &None,
-        //         &Some(project.get_lending_platform_address()),
-        //     )
-        //     .unwrap();
-
-        // add 100k STARS initial liquidity
-        project
-            .lending_platform_try_deposit_reserve_liquidity(
-                ProjectAccount::Admin,
-                PlatformType::Main,
-                INITIAL_LIQUIDITY,
-                ProjectCoin::Stars,
             )
             .unwrap();
 
@@ -481,7 +279,6 @@ impl Project {
         project
             .lending_platform_try_deposit_reserve_liquidity(
                 ProjectAccount::Admin,
-                PlatformType::Stable,
                 INITIAL_LIQUIDITY,
                 ProjectCoin::Usdc,
             )
@@ -493,14 +290,6 @@ impl Project {
     // code id getters
     pub fn get_cw20_base_code_id(&self) -> u64 {
         self.cw20_base_code_id
-    }
-
-    pub fn get_stargaze_mocks_marketplace_code_id(&self) -> u64 {
-        self.stargaze_mocks_marketplace_code_id
-    }
-
-    pub fn get_adapter_dex_stargaze_mocks_code_id(&self) -> u64 {
-        self.adapter_dex_stargaze_mocks_code_id
     }
 
     pub fn get_lending_platform_code_id(&self) -> u64 {
@@ -515,16 +304,12 @@ impl Project {
         self.minter_code_id
     }
 
-    pub fn get_adapter_scheduler_common_code_id(&self) -> u64 {
-        self.adapter_scheduler_common_code_id
+    pub fn get_scheduler_code_id(&self) -> u64 {
+        self.scheduler_code_id
     }
 
-    pub fn get_adapter_marketplace_stargaze_code_id(&self) -> u64 {
-        self.adapter_marketplace_stargaze_code_id
-    }
-
-    pub fn get_adapter_marketplace_kujira_code_id(&self) -> u64 {
-        self.adapter_marketplace_kujira_code_id
+    pub fn get_market_maker_code_id(&self) -> u64 {
+        self.market_maker_code_id
     }
 
     // package address getters
@@ -536,21 +321,9 @@ impl Project {
         self.pinjeons_address.clone()
     }
 
-    pub fn get_stargaze_mocks_marketplace_address(&self) -> Addr {
-        self.stargaze_mocks_marketplace_address.clone()
-    }
-
-    pub fn get_adapter_dex_stargaze_mocks_address(&self) -> Addr {
-        self.adapter_dex_stargaze_mocks_address.clone()
-    }
-
     // contract address getters
-    pub fn get_lending_platform_main_address(&self) -> Addr {
-        self.lending_platform_main_address.clone()
-    }
-
-    pub fn get_lending_platform_stable_address(&self) -> Addr {
-        self.lending_platform_stable_address.clone()
+    pub fn get_lending_platform_address(&self) -> Addr {
+        self.lending_platform_address.clone()
     }
 
     pub fn get_oracle_address(&self) -> Addr {
@@ -561,19 +334,19 @@ impl Project {
         self.minter_address.clone()
     }
 
-    pub fn get_adapter_scheduler_common_address(&self) -> Addr {
-        self.adapter_scheduler_common_address.clone()
+    pub fn get_scheduler_address(&self) -> Addr {
+        self.scheduler_address.clone()
     }
 
-    pub fn get_adapter_marketplace_stargaze_address(&self) -> Addr {
-        self.adapter_marketplace_stargaze_address.clone()
-    }
-
-    pub fn get_adapter_marketplace_kujira_address(&self) -> Addr {
-        self.adapter_marketplace_kujira_address.clone()
+    pub fn get_market_maker_address(&self) -> Addr {
+        self.market_maker_address.clone()
     }
 
     // utils
+    pub fn addr(&self, acc: impl ToString) -> Addr {
+        self.app.api().addr_make(&acc.to_string())
+    }
+
     pub fn increase_contract_counter(&mut self, step: u16) {
         self.contract_counter += step;
     }
@@ -790,7 +563,7 @@ impl Project {
         self.app
             .instantiate_contract(
                 code_id,
-                ProjectAccount::Admin.into(),
+                Addr::unchecked(ProjectAccount::Admin.to_string()),
                 init_msg,
                 &[],
                 label,
@@ -799,24 +572,34 @@ impl Project {
             .unwrap()
     }
 
-    fn create_app_with_balances() -> App {
-        App::new(|router, _api, storage| {
-            for project_account in ProjectAccount::iter() {
-                let funds: Vec<Coin> = ProjectCoin::iter()
-                    .map(|project_coin| {
-                        let amount = project_account.get_initial_funds_amount()
-                            * 10u128.pow(project_coin.get_decimals() as u32);
+    pub fn create_app_with_balances() -> CustomApp {
+        let block_info = App::default().block_info();
 
-                        coin(amount, project_coin.to_string())
-                    })
-                    .collect();
+        AppBuilder::new_custom()
+            .with_api(MockApiBech32::new("wasm"))
+            .with_wasm(WasmKeeper::new().with_address_generator(MockAddressGenerator))
+            .with_block(BlockInfo {
+                height: block_info.height,
+                time: block_info.time,
+                chain_id: "wasm-1".to_string(),
+            })
+            .build(|router, _api, storage| {
+                for project_account in ProjectAccount::iter() {
+                    let funds: Vec<Coin> = ProjectCoin::iter()
+                        .map(|project_coin| {
+                            let amount = project_account.get_initial_funds_amount()
+                                * 10u128.pow(project_coin.get_decimals() as u32);
 
-                router
-                    .bank
-                    .init_balance(storage, &project_account.into(), funds)
-                    .unwrap();
-            }
-        })
+                            coin(amount, project_coin.to_string())
+                        })
+                        .collect();
+
+                    router
+                        .bank
+                        .init_balance(storage, &project_account.into(), funds)
+                        .unwrap();
+                }
+            })
     }
 }
 
