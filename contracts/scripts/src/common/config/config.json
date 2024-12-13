@@ -19,65 +19,65 @@
               "WASM": "scheduler.wasm",
               "LABEL": "scheduler",
               "PERMISSION": [
-                "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+                "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"execution_cooldown\":4}",
               "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43\",\"neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8\"],\"lending_platform\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS!\"}}",
-              "CODE": 2735,
+              "CODE": 2740,
               "ADDRESS": ""
             },
             {
               "WASM": "lending_platform.wasm",
               "LABEL": "lending_platform",
               "PERMISSION": [
-                "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+                "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"10000000\",\"unbonding_period\":1209600,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"scheduler\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=scheduler]|ADDRESS!\",\"market_maker\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=market_maker]|ADDRESS!\"}}",
-              "CODE": 2736,
+              "CODE": 2741,
               "ADDRESS": ""
             },
             {
               "WASM": "minter.wasm",
               "LABEL": "minter",
               "PERMISSION": [
-                "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+                "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.4.1\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n\",\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28\"]}}",
-              "CODE": 2737,
+              "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5\",\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28\"]}}",
+              "CODE": 2742,
               "ADDRESS": ""
             },
             {
               "WASM": "oracle.wasm",
               "LABEL": "oracle",
               "PERMISSION": [
-                "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+                "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"execution_cooldown\":4,\"max_price_update_period\":30}",
               "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u\",\"neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv\"]}}",
-              "CODE": 2738,
+              "CODE": 2743,
               "ADDRESS": ""
             },
             {
               "WASM": "market_maker.wasm",
               "LABEL": "market_maker",
               "PERMISSION": [
-                "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+                "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
-              "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"controller\":[\"neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz\",\"neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n\"],\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}}}",
+              "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"controller\":[\"neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz\",\"neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5\"],\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}}}",
               "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"lending_platform\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS!\"}}",
-              "CODE": 2739,
+              "CODE": 2744,
               "ADDRESS": ""
             }
           ],

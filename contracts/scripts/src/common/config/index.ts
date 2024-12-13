@@ -25,8 +25,8 @@ export type Label =
 export const ADDRESS = {
   MAINNET: {
     NEUTRON: {
-      GOPNIKS_DAO:
-        "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+      GOPLEND_SUB_DAO:
+        "neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5",
       WORKER:
         "neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht",
       DEV_1: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
@@ -143,7 +143,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "scheduler.wasm",
               LABEL: "scheduler",
               PERMISSION: [
-                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ADDRESS.MAINNET.NEUTRON.DEV_1,
               ],
               INIT_MSG: toJson<SchedulerTypes.InstantiateMsg>({
@@ -162,7 +162,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 2735,
+              CODE: 2740,
               ADDRESS: "",
             },
 
@@ -170,7 +170,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "lending_platform.wasm",
               LABEL: "lending_platform",
               PERMISSION: [
-                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ADDRESS.MAINNET.NEUTRON.DEV_1,
               ],
               INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
@@ -210,7 +210,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 2736,
+              CODE: 2741,
               ADDRESS: "",
             },
 
@@ -218,7 +218,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "minter.wasm",
               LABEL: "minter",
               PERMISSION: [
-                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ADDRESS.MAINNET.NEUTRON.DEV_1,
               ],
               INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
@@ -228,13 +228,13 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
                 update_config: {
                   whitelist: [
-                    ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                    ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                     ADDRESS.MAINNET.NEUTRON.DEV_1,
                     ADDRESS.MAINNET.NEUTRON.DEV_2,
                   ],
                 },
               }),
-              CODE: 2737,
+              CODE: 2742,
               ADDRESS: "",
             },
 
@@ -242,7 +242,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "oracle.wasm",
               LABEL: "oracle",
               PERMISSION: [
-                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ADDRESS.MAINNET.NEUTRON.DEV_1,
               ],
               INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
@@ -258,7 +258,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   controller: ADDRESS.MAINNET.NEUTRON.ORACLE_CONTROLLER_LIST,
                 },
               }),
-              CODE: 2738,
+              CODE: 2743,
               ADDRESS: "",
             },
 
@@ -266,14 +266,14 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "market_maker.wasm",
               LABEL: "market_maker",
               PERMISSION: [
-                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ADDRESS.MAINNET.NEUTRON.DEV_1,
               ],
               INIT_MSG: toJson<MarketMakerTypes.InstantiateMsg>({
                 worker: ADDRESS.MAINNET.NEUTRON.WORKER,
                 controller: [
                   ADDRESS.MAINNET.NEUTRON.MARKET_MAKER_CONTROLLER,
-                  ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                  ADDRESS.MAINNET.NEUTRON.GOPLEND_SUB_DAO,
                 ],
                 token: {
                   native: { denom: TOKEN.NEUTRON.MAINNET.USDC },
@@ -292,7 +292,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 2739,
+              CODE: 2744,
               ADDRESS: "",
             },
           ],
