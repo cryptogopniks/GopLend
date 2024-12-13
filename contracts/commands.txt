@@ -36,11 +36,9 @@ yarn run oracle-controller "pion-1|"
 yarn run mm-controller "pion-1|"
 
 yarn run json
-yarn run store "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main"
-yarn run store "neutron-1|minter,oracle,market_maker_hub"
-yarn run inst "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
-yarn run store "neutron-1|market_maker_outpost"
-yarn run config "neutron-1|adapter_dex,adapter_marketplace,adapter_scheduler,lending_platform_main,lending_platform_stable,minter,oracle,market_maker_hub"
+yarn run store "neutron-1|minter,oracle,scheduler,lending_platform,market_maker"
+yarn run inst "neutron-1|oracle,scheduler,lending_platform,market_maker"
+yarn run config "neutron-1|oracle,scheduler,lending_platform,market_maker"
 yarn run prepare-contracts "neutron-1|"
 yarn run call "neutron-1|"
 

@@ -24,6 +24,23 @@ export type Label =
 
 export const ADDRESS = {
   MAINNET: {
+    NEUTRON: {
+      GOPNIKS_DAO:
+        "neutron18h0gqs4wt8efskwfueqagjln3ktxqq3q0vh8em2wla5xw3w65asqwk2q7n",
+      WORKER:
+        "neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht",
+      DEV_1: "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2",
+      DEV_2: "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+      LIQUIDATION_CONTROLLER_LIST: [
+        "neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43",
+        "neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8",
+      ],
+      ORACLE_CONTROLLER_LIST: [
+        "neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u",
+        "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
+      ],
+      MARKET_MAKER_CONTROLLER: "neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz",
+    },
     STARGAZE: {
       // GOPNIKS_DAO: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
       // Liquidity DAO
@@ -110,6 +127,178 @@ export const CHAIN_CONFIG: ChainConfig = {
       NAME: "neutron",
       PREFIX: "neutron",
       OPTIONS: [
+        // TODO: NEUTRON main
+        {
+          TYPE: "main",
+          DENOM: "untrn",
+          CHAIN_ID: "neutron-1",
+          RPC_LIST: [
+            "https://rpc.neutron.quokkastake.io:443",
+            "https://rpc-neutron.cosmos-spaces.cloud:443",
+          ],
+          GAS_PRICE_AMOUNT: 0.99,
+          STORE_CODE_GAS_MULTIPLIER: 21.5,
+          CONTRACTS: [
+            {
+              WASM: "scheduler.wasm",
+              LABEL: "scheduler",
+              PERMISSION: [
+                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.DEV_1,
+              ],
+              INIT_MSG: toJson<SchedulerTypes.InstantiateMsg>({
+                worker: ADDRESS.MAINNET.NEUTRON.WORKER,
+                execution_cooldown: 4,
+              }),
+              MIGRATE_MSG: toJson<SchedulerTypes.MigrateMsg>({
+                version: "2.0.0",
+              }),
+              UPDATE_MSG: toJson<SchedulerTypes.ExecuteMsg>({
+                update_config: {
+                  offchain_clock:
+                    ADDRESS.MAINNET.NEUTRON.LIQUIDATION_CONTROLLER_LIST,
+                  lending_platform: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 2735,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "lending_platform.wasm",
+              LABEL: "lending_platform",
+              PERMISSION: [
+                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.DEV_1,
+              ],
+              INIT_MSG: toJson<LendingPlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.MAINNET.NEUTRON.WORKER,
+                main_currency: {
+                  token: {
+                    native: { denom: TOKEN.NEUTRON.MAINNET.USDC },
+                  },
+                  decimals: 6,
+                },
+                borrow_apr: "0.25",
+                borrow_fee_rate: "0.05",
+                liquidation_fee_rate: "0.05",
+                discount_min_rate: "0",
+                discount_max_rate: "0.2",
+                bid_min_rate: "0.1",
+                collateral_min_value: `${10_000_000}`,
+                unbonding_period: 14 * 24 * 3_600,
+                borrowers_reserve_fraction_ratio: "0.45",
+              }),
+              MIGRATE_MSG: toJson<LendingPlatformTypes.MigrateMsg>({
+                version: "2.0.0",
+              }),
+              UPDATE_MSG: toJson<LendingPlatformTypes.ExecuteMsg>({
+                update_address_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  minter: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=minter]|ADDRESS"
+                  ),
+                  scheduler: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=scheduler]|ADDRESS"
+                  ),
+                  market_maker: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=market_maker]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 2736,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "minter.wasm",
+              LABEL: "minter",
+              PERMISSION: [
+                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.DEV_1,
+              ],
+              INIT_MSG: toJson<MinterTypes.InstantiateMsg>({}),
+              MIGRATE_MSG: toJson<MinterTypes.MigrateMsg>({
+                version: "1.4.1",
+              }),
+              UPDATE_MSG: toJson<MinterTypes.ExecuteMsg>({
+                update_config: {
+                  whitelist: [
+                    ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                    ADDRESS.MAINNET.NEUTRON.DEV_1,
+                    ADDRESS.MAINNET.NEUTRON.DEV_2,
+                  ],
+                },
+              }),
+              CODE: 2737,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "oracle.wasm",
+              LABEL: "oracle",
+              PERMISSION: [
+                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.DEV_1,
+              ],
+              INIT_MSG: toJson<OracleTypes.InstantiateMsg>({
+                worker: ADDRESS.MAINNET.NEUTRON.WORKER,
+                execution_cooldown: 4,
+                max_price_update_period: 30,
+              }),
+              MIGRATE_MSG: toJson<OracleTypes.MigrateMsg>({
+                version: "2.0.1",
+              }),
+              UPDATE_MSG: toJson<OracleTypes.ExecuteMsg>({
+                update_config: {
+                  controller: ADDRESS.MAINNET.NEUTRON.ORACLE_CONTROLLER_LIST,
+                },
+              }),
+              CODE: 2738,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "market_maker.wasm",
+              LABEL: "market_maker",
+              PERMISSION: [
+                ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ADDRESS.MAINNET.NEUTRON.DEV_1,
+              ],
+              INIT_MSG: toJson<MarketMakerTypes.InstantiateMsg>({
+                worker: ADDRESS.MAINNET.NEUTRON.WORKER,
+                controller: [
+                  ADDRESS.MAINNET.NEUTRON.MARKET_MAKER_CONTROLLER,
+                  ADDRESS.MAINNET.NEUTRON.GOPNIKS_DAO,
+                ],
+                token: {
+                  native: { denom: TOKEN.NEUTRON.MAINNET.USDC },
+                },
+              }),
+              MIGRATE_MSG: toJson<MarketMakerTypes.MigrateMsg>({
+                version: "2.0.1",
+              }),
+              UPDATE_MSG: toJson<MarketMakerTypes.ExecuteMsg>({
+                update_config: {
+                  oracle: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS"
+                  ),
+                  lending_platform: $(
+                    "OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS"
+                  ),
+                },
+              }),
+              CODE: 2739,
+              ADDRESS: "",
+            },
+          ],
+          IBC: [],
+        },
+
         // TODO: NEUTRON test
         {
           TYPE: "test",
