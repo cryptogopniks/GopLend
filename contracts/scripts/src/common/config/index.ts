@@ -163,7 +163,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 2740,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1dujxz9krhd8kjcf50h42ww402u52tvud72wd220vgxhtqcf3jqwqa3pe99",
             },
 
             {
@@ -211,7 +212,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 2741,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u",
             },
 
             {
@@ -235,7 +237,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 2742,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron16ue9kysgneyqktmjxdfshajgvlrcx9rehxz8x9th7g8fgtnlxwuqvg9mgp",
             },
 
             {
@@ -259,7 +262,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 2743,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574",
             },
 
             {
@@ -293,7 +297,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               CODE: 2744,
-              ADDRESS: "",
+              ADDRESS:
+                "neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu",
             },
           ],
           IBC: [],

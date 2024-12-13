@@ -24,9 +24,9 @@
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"execution_cooldown\":4}",
               "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43\",\"neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8\"],\"lending_platform\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS!\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"offchain_clock\":[\"neutron1gfmrf0wgjtmk6mylnke6v8ma523cguyj24me43\",\"neutron130mtjylzwvs4xe7yc74h675g76hd24r6mpvxw8\"],\"lending_platform\":\"neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u\"}}",
               "CODE": 2740,
-              "ADDRESS": ""
+              "ADDRESS": "neutron1dujxz9krhd8kjcf50h42ww402u52tvud72wd220vgxhtqcf3jqwqa3pe99"
             },
             {
               "WASM": "lending_platform.wasm",
@@ -37,9 +37,9 @@
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"10000000\",\"unbonding_period\":1209600,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
-              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"minter\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=minter]|ADDRESS!\",\"scheduler\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=scheduler]|ADDRESS!\",\"market_maker\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=market_maker]|ADDRESS!\"}}",
+              "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574\",\"minter\":\"neutron16ue9kysgneyqktmjxdfshajgvlrcx9rehxz8x9th7g8fgtnlxwuqvg9mgp\",\"scheduler\":\"neutron1dujxz9krhd8kjcf50h42ww402u52tvud72wd220vgxhtqcf3jqwqa3pe99\",\"market_maker\":\"neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu\"}}",
               "CODE": 2741,
-              "ADDRESS": ""
+              "ADDRESS": "neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u"
             },
             {
               "WASM": "minter.wasm",
@@ -52,7 +52,7 @@
               "MIGRATE_MSG": "{\"version\":\"1.4.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"whitelist\":[\"neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5\",\"neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2\",\"neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28\"]}}",
               "CODE": 2742,
-              "ADDRESS": ""
+              "ADDRESS": "neutron16ue9kysgneyqktmjxdfshajgvlrcx9rehxz8x9th7g8fgtnlxwuqvg9mgp"
             },
             {
               "WASM": "oracle.wasm",
@@ -65,7 +65,7 @@
               "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
               "UPDATE_MSG": "{\"update_config\":{\"controller\":[\"neutron17su0549xmtty7hfgf72dwh0nmp5rk9m5jq2h8u\",\"neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv\"]}}",
               "CODE": 2743,
-              "ADDRESS": ""
+              "ADDRESS": "neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574"
             },
             {
               "WASM": "market_maker.wasm",
@@ -76,9 +76,9 @@
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"controller\":[\"neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz\",\"neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5\"],\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}}}",
               "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
-              "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=oracle]|ADDRESS!\",\"lending_platform\":\"!OPTIONS[CHAIN_ID=neutron-1]|CONTRACTS[LABEL=lending_platform]|ADDRESS!\"}}",
+              "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574\",\"lending_platform\":\"neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u\"}}",
               "CODE": 2744,
-              "ADDRESS": ""
+              "ADDRESS": "neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu"
             }
           ],
           "IBC": []
