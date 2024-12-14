@@ -14,7 +14,14 @@ import { MarketMakerMsgComposer } from "../codegen/MarketMaker.message-composer"
 import { MarketMakerQueryClient } from "../codegen/MarketMaker.client";
 
 import CONFIG_JSON from "../config/config.json";
-import { getLast, getPaginationAmount, l, li, logAndReturn } from "../utils";
+import {
+  floor,
+  getLast,
+  getPaginationAmount,
+  l,
+  li,
+  logAndReturn,
+} from "../utils";
 import { toBase64, fromUtf8, toUtf8 } from "@cosmjs/encoding";
 import {
   MsgMigrateContract,
@@ -1213,7 +1220,7 @@ async function getCwExecHelpers(
           data: data.map(([collectionAddress, usdPrice]) => {
             const postfix = collectionAddress.split("1").slice(1).join("1");
             // u32 was recognized as string for no reason
-            const price = (usdPrice * 100) as any;
+            const price = floor(usdPrice * 100) as any;
 
             return [postfix, price];
           }),
