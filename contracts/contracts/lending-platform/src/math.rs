@@ -71,6 +71,11 @@ pub fn calc_bgl_to_main_price(
     }
 }
 
+///  conditional_deposit_apr = (borrow_apr - borrow_fee_rate) * (regular_borrowed + reserve_borrowed)                               \
+/// / (amount_to_deposit + total_deposited - (amount_to_withdraw + total_unbonded))
+///
+/// for amount_to_deposit = 0, amount_to_withdraw:                                                                                  \
+/// deposit_apr = (borrow_apr - borrow_fee_rate) * (regular_borrowed + reserve_borrowed) / (total_deposited - total_unbonded)
 #[allow(clippy::too_many_arguments)]
 pub fn calc_conditional_deposit_apr(
     borrow_apr: Decimal,
@@ -251,6 +256,7 @@ pub fn calc_borrowers_reserve_fraction(
     (borrowers_reserve_fraction_ratio * u128_to_dec(reserve_deposited)).to_uint_ceil()
 }
 
+/// available_to_borrow_regular_liquidity = max(regular_deposited + accumulated_rewards - unbonded, regular_borrowed) - regular_borrowed
 pub fn calc_available_to_borrow_regular_liquidity(
     regular_deposited: Uint128,
     accumulated_rewards: Uint128,
@@ -263,6 +269,7 @@ pub fn calc_available_to_borrow_regular_liquidity(
     ) - regular_borrowed
 }
 
+/// available_to_borrow_reserve_liquidity = max(borrowers_reserve_fraction_ratio * reserve_deposited, reserve_borrowed) - reserve_borrowed
 pub fn calc_available_to_borrow_reserve_liquidity(
     borrowers_reserve_fraction: Uint128,
     reserve_borrowed: Uint128,
@@ -270,6 +277,7 @@ pub fn calc_available_to_borrow_reserve_liquidity(
     max(borrowers_reserve_fraction, reserve_borrowed) - reserve_borrowed
 }
 
+/// total_available_to_borrow_liquidity = available_to_borrow_regular_liquidity + available_to_borrow_reserve_liquidity
 pub fn calc_total_available_to_borrow_liquidity(
     regular_deposited: Uint128,
     accumulated_rewards: Uint128,
