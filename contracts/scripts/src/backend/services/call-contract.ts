@@ -66,6 +66,12 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
 
+    await lending.cwQueryBalances(true);
+    await lending.cwQueryTotalAvailableToBorrowLiquidity(true);
+    await lending.cwQueryPlatformRevenue(true);
+    await lending.cwQueryConditionalDepositApr(0, 0, true);
+    return;
+
     // await getBalance(owner, TOKEN.NEUTRON.TESTNET.USDC);
 
     const collectionList = [
