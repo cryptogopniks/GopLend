@@ -178,6 +178,58 @@ pub fn try_unbond(
     Ok(Response::new().add_attribute("action", "try_unbond"))
 }
 
+pub fn try_rebond(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    creation_date: u64,
+) -> Result<Response, ContractError> {
+    helpers::check_pause_state(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &address_config.admin,
+        &address_config.worker,
+        AuthType::Any,
+    )?;
+
+    let block_time = env.block.time.seconds();
+    let common_config = COMMON_CONFIG.load(deps.storage)?;
+    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+
+    let mut unbonder = UNBONDERS.load(deps.storage, &sender_address)?;
+    let (returned, unbonded) = unbonder
+        .returned_and_unbonded
+        .iter()
+        .find(|(_returned, unbonded)| unbonded.creation_date == creation_date)
+        .ok_or(ContractError::VaultIsNotFound)?;
+
+    // update balances
+    helpers::accumulate_expected_rewards(deps.storage, block_time)?;
+    BALANCES.update(deps.storage, |mut balances| -> StdResult<_> {
+        balances.regular.unbonded -= unbonded.amount;
+        Ok(balances)
+    })?;
+
+    // remove unbonding position to unlock bgl token
+    let msg = get_transfer_msg(&sender_address, *returned, &bgl_currency.token)?;
+
+    unbonder
+        .returned_and_unbonded
+        .retain(|(_returned, unbonded)| unbonded.creation_date != creation_date);
+
+    if unbonder.returned_and_unbonded.is_empty() {
+        UNBONDERS.remove(deps.storage, &sender_address);
+    } else {
+        UNBONDERS.save(deps.storage, &sender_address, &unbonder)?;
+    }
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attribute("action", "try_rebond"))
+}
+
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;

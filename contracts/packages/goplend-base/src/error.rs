@@ -166,6 +166,9 @@ pub enum ContractError {
     #[error("Asset is not found!")]
     AssetIsNotFound,
 
+    #[error("Vault is not found!")]
+    VaultIsNotFound,
+
     #[error("Wrong asset type!")]
     WrongAssetType,
 
