@@ -80,6 +80,92 @@ describe("testing splitOffers and getOffersExtendedUp/getOffersExtendedDown", ()
     expect(tooBigOffers).toStrictEqual(expectedTooBigOffers);
   });
 
+  // // TODO
+  // test("recovering random offers", () => {
+  //   const amountUndistributed: number = 10_000 * M;
+  //   const floorPrice: number = 1_000 * M;
+  //   const priceList: string[] = [
+  //     800 * M,
+  //     806.5 * M,
+  //     813 * M,
+  //     819.5 * M,
+  //     826 * M,
+  //     832.5 * M,
+  //     839 * M,
+  //     845.5 * M,
+  //     852 * M,
+  //     858.5 * M,
+  //     865 * M,
+  //     871.5 * M,
+  //     878 * M,
+  //     884.5 * M,
+  //     891 * M,
+  //     897.5 * M,
+  //     904 * M,
+  //     910.5 * M,
+  //     917 * M,
+  //     923.5 * M,
+  //     930 * M,
+  //   ].map((x) => x.toString());
+  //   const lowerFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.LOWER;
+  //   const upperFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.UPPER;
+  //   const { regularOffers, tooSmallOffers, tooBigOffers } = splitOffers(
+  //     lowerFloorPrice,
+  //     upperFloorPrice,
+  //     priceList
+  //   );
+
+  //   const expectedRegularOffers: number[] = [
+  //     930 * M,
+  //     923.5 * M,
+  //     917 * M,
+  //     910.5 * M,
+  //     904 * M,
+  //     897.5 * M,
+  //     891 * M,
+  //     884.5 * M,
+  //     878 * M,
+  //     871.5 * M,
+  //     865 * M,
+  //     858.5 * M,
+  //     852 * M,
+  //     845.5 * M,
+  //     839 * M,
+  //     832.5 * M,
+  //   ];
+  //   const expectedTooSmallOffers: number[] = [
+  //     800 * M,
+  //     806.5 * M,
+  //     813 * M,
+  //     819.5 * M,
+  //     826 * M,
+  //   ];
+  //   const expectedTooBigOffers: number[] = [];
+
+  //   expect(regularOffers).toStrictEqual(expectedRegularOffers);
+  //   expect(tooSmallOffers).toStrictEqual(expectedTooSmallOffers);
+  //   expect(tooBigOffers).toStrictEqual(expectedTooBigOffers);
+
+  //   const { fromToPriceList, isNoLiquidity, isRequiredMoreLiquidity } =
+  //     getOffersExtendedUp(
+  //       ALLOWED_OFFERS_BOUNDARY.UPPER,
+  //       amountUndistributed,
+  //       floorPrice,
+  //       lowerFloorPrice,
+  //       regularOffers,
+  //       tooSmallOffers,
+  //       MAX_OFFERS
+  //     );
+
+  //   expect(fromToPriceList).toStrictEqual([
+  //     [800 * M, 937.44 * M],
+  //     [806.5 * M, 944.88 * M],
+  //     [813 * M, 952.32 * M],
+  //     [819.5 * M, 959.76 * M],
+  //     [826 * M, 967.2 * M],
+  //   ]);
+  // });
+
   test("fp was increased", () => {
     const amountUndistributed: number = 10_000 * M;
     const floorPrice: number = 1_040 * M;
