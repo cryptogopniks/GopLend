@@ -39,6 +39,12 @@ pub trait LendingPlatformExtension {
         asset: &Token,
     ) -> StdResult<AppResponse>;
 
+    fn lending_platform_try_rebond(
+        &mut self,
+        sender: ProjectAccount,
+        creation_date: u64,
+    ) -> StdResult<AppResponse>;
+
     fn lending_platform_try_withdraw(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
     fn lending_platform_try_deposit_collateral(
@@ -344,6 +350,22 @@ impl LendingPlatformExtension for Project {
             amount,
             asset,
         )
+    }
+
+    #[track_caller]
+    fn lending_platform_try_rebond(
+        &mut self,
+        sender: ProjectAccount,
+        creation_date: u64,
+    ) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_lending_platform_address(),
+                &ExecuteMsg::Rebond { creation_date },
+                &[],
+            )
+            .map_err(parse_err)
     }
 
     #[track_caller]

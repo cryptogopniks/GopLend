@@ -13,7 +13,7 @@ use goplend_base::{
             Balances, BidType, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
             LiquidationItem, Proposal, ProposalType, QueryBorrowersResponseItem,
             QueryCollateralsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
-            RegularBalances, ReserveBalances, Vault,
+            RegularBalances, ReserveBalances, Unbonder, Vault,
         },
     },
     market_maker::types::OffersResponse,
@@ -121,7 +121,6 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
             project.lending_platform_query_liquidation_bids_by_collection_address_list(9, &None)?;
 
         for (collection_address, collateral) in &collection_and_collateral_list_by_borrower {
-            // TODO: update on client
             let price_list = project
                 .market_maker_query_offer_prices(collection_address)
                 .map(|x| x.price_list)
@@ -7522,6 +7521,199 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
             }],
         },
     ]);
+
+    Ok(())
+}
+
+#[test]
+fn rebond() -> StdResult<()> {
+    let mut project = Project::new();
+    let config = project.lending_platform_query_common_config()?;
+    let bgl_token = config
+        .bgl_currency
+        .ok_or(ContractError::AssetIsNotFound)?
+        .token;
+
+    const COLLECTION_PRICE_BEFORE: &str = "2.00";
+    const AMOUNT: u128 = DECIMALS_MULTIPLIER;
+    const DELAY: u64 = 365 * 24 * 3600;
+
+    // push prices to oracle
+    project.oracle_try_update_prices(
+        ProjectAccount::Scheduler,
+        &to_prices_in(&[(ProjectNft::Gopniks, COLLECTION_PRICE_BEFORE)]),
+    )?;
+
+    project.oracle_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(DELAY),
+    )?;
+
+    // set collateral min value
+    project.lending_platform_try_update_common_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &Some(1),
+        &None,
+    )?;
+
+    // list collection
+    let proposal: &Proposal<String, TokenUnverified> = &Proposal {
+        proposal_status: None,
+        listing_price: Funds::new(
+            100u128,
+            &Currency::new(
+                &TokenUnverified::new_cw20(&ProjectToken::Atom.to_string()),
+                6,
+            ),
+        ),
+        proposal_type: ProposalType::AddCollection {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            collection: Collection {
+                name: ProjectNft::Gopniks.to_string(),
+                owner: ProjectAccount::Owner.to_string(),
+            },
+        },
+    };
+
+    project.lending_platform_try_create_proposal(ProjectAccount::Admin, proposal)?;
+    project.lending_platform_try_accept_proposal(
+        ProjectAccount::Owner,
+        1,
+        100,
+        ProjectToken::Atom,
+    )?;
+
+    // add collateral
+    project.increase_allowances_nft(
+        ProjectAccount::Bob,
+        project.get_lending_platform_address(),
+        ProjectNft::Gopniks,
+    );
+
+    // collateral value = 3 * collection_price
+    project.lending_platform_try_deposit_collateral(
+        ProjectAccount::Bob,
+        &[CollectionInfo {
+            collection_address: ProjectNft::Gopniks.to_string(),
+            token_id_list: to_string_vec(&["4", "5", "6"]),
+        }],
+    )?;
+
+    // deposit
+    project.lending_platform_try_deposit(ProjectAccount::Alice, AMOUNT, ProjectCoin::Usdc)?;
+
+    // borrow
+    project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
+
+    project.wait(DELAY);
+
+    // unbond
+    let mut creation_date = 0;
+
+    for i in 0..=1 {
+        project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT / 4, &bgl_token)?;
+        creation_date = project.get_block_time();
+        project.wait(config.unbonding_period / 4);
+
+        if i == 0 {
+            let alice_unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
+            let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+            let balances = project.lending_platform_query_balances()?;
+            let total_available_to_borrow =
+                project.lending_platform_query_total_available_to_borrow_liquidity()?;
+            let deposit_apr =
+                project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
+
+            assert_that(&alice_unbonder).is_equal_to(Unbonder {
+                returned_and_unbonded: vec![(
+                    Uint128::new(250_000),
+                    Vault {
+                        creation_date: 1603333419,
+                        amount: Uint128::new(300_000),
+                    },
+                )],
+            });
+            assert_that(&alice_bgl_token).is_equal_to(750_000);
+            assert_that(&balances).is_equal_to(Balances {
+                regular: RegularBalances {
+                    deposited: Uint128::new(1_000_000),
+                    unbonded: Uint128::new(300_000),
+                    borrowed: Vault {
+                        creation_date: 1603635819,
+                        amount: Uint128::new(1_000_000),
+                    },
+                    accumulated_rewards: Uint128::new(201_917),
+                    liquidation_bids: Uint128::new(0),
+                    main_pool: Uint128::new(1_000_000),
+                    bgl_supply: Uint128::new(1_000_000),
+                },
+                reserve: ReserveBalances {
+                    deposited: Uint128::new(100_000_000_000),
+                    withdrawn: Uint128::new(0),
+                    borrowed: Vault {
+                        creation_date: 1603635819,
+                        amount: Uint128::new(0),
+                    },
+                },
+            });
+
+            assert_that(&total_available_to_borrow.u128()).is_equal_to(60_000_000_000);
+            assert_that(&deposit_apr).is_equal_to(str_to_dec("0.285714285714285714"));
+        }
+    }
+
+    // rebond and check parameters
+    project.lending_platform_try_rebond(ProjectAccount::Alice, creation_date)?;
+
+    let alice_unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
+    let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let balances = project.lending_platform_query_balances()?;
+    let total_available_to_borrow =
+        project.lending_platform_query_total_available_to_borrow_liquidity()?;
+    let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
+
+    assert_that(&alice_unbonder).is_equal_to(Unbonder {
+        returned_and_unbonded: vec![(
+            Uint128::new(250_000),
+            Vault {
+                creation_date: 1603333419,
+                amount: Uint128::new(300_000),
+            },
+        )],
+    });
+    assert_that(&alice_bgl_token).is_equal_to(750_000);
+    assert_that(&balances).is_equal_to(Balances {
+        regular: RegularBalances {
+            deposited: Uint128::new(1_000_000),
+            unbonded: Uint128::new(300_000),
+            borrowed: Vault {
+                creation_date: 1603938219,
+                amount: Uint128::new(1_000_000),
+            },
+            accumulated_rewards: Uint128::new(203_834),
+            liquidation_bids: Uint128::new(0),
+            main_pool: Uint128::new(1_000_000),
+            bgl_supply: Uint128::new(1_000_000),
+        },
+        reserve: ReserveBalances {
+            deposited: Uint128::new(100_000_000_000),
+            withdrawn: Uint128::new(0),
+            borrowed: Vault {
+                creation_date: 1603938219,
+                amount: Uint128::new(0),
+            },
+        },
+    });
+
+    assert_that(&total_available_to_borrow.u128()).is_equal_to(60_000_000_000);
+    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.285714285714285714"));
 
     Ok(())
 }
