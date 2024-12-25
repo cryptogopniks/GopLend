@@ -38,7 +38,7 @@
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"main_currency\":{\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}},\"decimals\":6},\"borrow_apr\":\"0.25\",\"borrow_fee_rate\":\"0.05\",\"liquidation_fee_rate\":\"0.05\",\"discount_min_rate\":\"0\",\"discount_max_rate\":\"0.2\",\"bid_min_rate\":\"0.1\",\"collateral_min_value\":\"10000000\",\"unbonding_period\":1209600,\"borrowers_reserve_fraction_ratio\":\"0.45\"}",
               "MIGRATE_MSG": "{\"version\":\"2.0.0\"}",
               "UPDATE_MSG": "{\"update_address_config\":{\"oracle\":\"neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574\",\"minter\":\"neutron16ue9kysgneyqktmjxdfshajgvlrcx9rehxz8x9th7g8fgtnlxwuqvg9mgp\",\"scheduler\":\"neutron1dujxz9krhd8kjcf50h42ww402u52tvud72wd220vgxhtqcf3jqwqa3pe99\",\"market_maker\":\"neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu\"}}",
-              "CODE": 2741,
+              "CODE": 2872,
               "ADDRESS": "neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u"
             },
             {

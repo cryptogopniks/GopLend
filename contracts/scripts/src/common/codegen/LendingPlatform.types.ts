@@ -44,6 +44,10 @@ export type ExecuteMsg = {
 } | {
   unbond: {};
 } | {
+  rebond: {
+    creation_date: number;
+  };
+} | {
   withdraw: {};
 } | {
   withdraw_collateral: {

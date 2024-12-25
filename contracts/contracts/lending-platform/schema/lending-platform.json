@@ -1,6 +1,6 @@
 {
   "contract_name": "lending-platform",
-  "contract_version": "2.0.0",
+  "contract_version": "2.1.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -255,6 +255,29 @@
         "properties": {
           "unbond": {
             "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "rebond"
+        ],
+        "properties": {
+          "rebond": {
+            "type": "object",
+            "required": [
+              "creation_date"
+            ],
+            "properties": {
+              "creation_date": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
             "additionalProperties": false
           }
         },

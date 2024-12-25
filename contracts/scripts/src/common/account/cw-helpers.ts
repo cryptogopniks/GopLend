@@ -448,6 +448,13 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwRebond(creationDate: number, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [lendingPlatformMsgComposer.rebond({ creationDate })],
+      gasPrice
+    );
+  }
+
   async function cwWithdraw(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [lendingPlatformMsgComposer.withdraw()],
@@ -1392,6 +1399,7 @@ async function getCwExecHelpers(
     lending: {
       cwDeposit,
       cwUnbond,
+      cwRebond,
       cwWithdraw,
       cwWithdrawCollateral,
       cwApproveAndDepositCollateral,

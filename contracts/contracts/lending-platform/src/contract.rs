@@ -93,6 +93,8 @@ pub fn execute(
 
         ExecuteMsg::Unbond {} => e::try_unbond(deps, env, info, None, None),
 
+        ExecuteMsg::Rebond { creation_date } => e::try_rebond(deps, env, info, creation_date),
+
         ExecuteMsg::Withdraw {} => e::try_withdraw(deps, env, info),
 
         ExecuteMsg::DepositCollateral { collections } => {

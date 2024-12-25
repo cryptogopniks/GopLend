@@ -44,6 +44,10 @@ pub enum ExecuteMsg {
 
     Unbond {},
 
+    Rebond {
+        creation_date: u64,
+    },
+
     Withdraw {},
 
     // borrowers, liquidators
