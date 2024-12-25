@@ -56,8 +56,6 @@ pub fn get_targets(project: &Project, borrowers: &[String]) -> StdResult<Vec<Liq
         &collection_and_collateral_list,
     )?;
 
-    // TODO: handle outdated prices
-
     // accumulators
     let mut targets: Vec<LiquidationItem> = vec![];
 
@@ -245,7 +243,7 @@ fn migrate_default() {
             ProjectAccount::Admin.into(),
             project.get_lending_platform_address(),
             &MigrateMsg {
-                version: "2.0.0".to_string(),
+                version: "2.1.0".to_string(),
             },
             project.get_lending_platform_code_id(),
         )

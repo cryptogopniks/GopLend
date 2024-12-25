@@ -520,6 +520,11 @@ export interface LendingPlatformInterface extends LendingPlatformReadOnlyInterfa
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   deposit: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   unbond: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  rebond: ({
+    creationDate
+  }: {
+    creationDate: number;
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   withdraw: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   withdrawCollateral: ({
     collections
@@ -658,6 +663,7 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
     this.receive = this.receive.bind(this);
     this.deposit = this.deposit.bind(this);
     this.unbond = this.unbond.bind(this);
+    this.rebond = this.rebond.bind(this);
     this.withdraw = this.withdraw.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
     this.depositCollateral = this.depositCollateral.bind(this);
@@ -707,6 +713,17 @@ export class LendingPlatformClient extends LendingPlatformQueryClient implements
   unbond = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       unbond: {}
+    }, fee, memo, _funds);
+  };
+  rebond = async ({
+    creationDate
+  }: {
+    creationDate: number;
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      rebond: {
+        creation_date: creationDate
+      }
     }, fee, memo, _funds);
   };
   withdraw = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {

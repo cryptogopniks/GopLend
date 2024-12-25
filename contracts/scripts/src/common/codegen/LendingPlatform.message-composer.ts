@@ -23,6 +23,11 @@ export interface LendingPlatformMsg {
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   deposit: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   unbond: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  rebond: ({
+    creationDate
+  }: {
+    creationDate: number;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   withdraw: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   withdrawCollateral: ({
     collections
@@ -158,6 +163,7 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
     this.receive = this.receive.bind(this);
     this.deposit = this.deposit.bind(this);
     this.unbond = this.unbond.bind(this);
+    this.rebond = this.rebond.bind(this);
     this.withdraw = this.withdraw.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
     this.depositCollateral = this.depositCollateral.bind(this);
@@ -228,6 +234,25 @@ export class LendingPlatformMsgComposer implements LendingPlatformMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           unbond: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  rebond = ({
+    creationDate
+  }: {
+    creationDate: number;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          rebond: {
+            creation_date: creationDate
+          }
         })),
         funds: _funds
       })
