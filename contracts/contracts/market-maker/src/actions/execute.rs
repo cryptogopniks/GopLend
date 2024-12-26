@@ -418,67 +418,6 @@ pub fn try_withdraw_collateral(
     Ok(response)
 }
 
-// use try_set_offers instead
-pub fn try_update_offers(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    collection: String,
-    from_to_price_list: Vec<(Uint128, Uint128)>,
-) -> Result<Response, ContractError> {
-    check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let collection_address = deps.api.addr_validate(&collection)?;
-    let config = CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &config.admin,
-        &config.worker,
-        AuthType::Specified {
-            allowlist: config
-                .controller
-                .map(|x| x.into_iter().map(Some).collect())
-                .unwrap_or_default(),
-        },
-    )?;
-
-    let mut liquidity_to_add: Uint128 = Uint128::zero();
-    let mut liquidity_to_sub: Uint128 = Uint128::zero();
-    let mut offers = OFFERS
-        .load(deps.storage, &collection_address)
-        .unwrap_or_default();
-
-    for (price_before, price_after) in from_to_price_list {
-        liquidity_to_add += price_before;
-        liquidity_to_sub += price_after;
-
-        // replace price
-        offers = offers
-            .into_iter()
-            .map(|x| if x == price_before { price_after } else { x })
-            .collect();
-
-        // add new price
-        if price_before.is_zero() {
-            offers.push(price_after);
-        }
-    }
-
-    offers.sort_unstable_by(|a, b| b.cmp(a));
-    OFFERS.save(deps.storage, &collection_address, &offers)?;
-
-    // previous offers will be removed, new offers will be set
-    UNDISTRIBUTED_LIQUIDITY.update(
-        deps.storage,
-        &collection_address,
-        |x| -> StdResult<Uint128> {
-            Ok(x.unwrap_or_default() + liquidity_to_add - liquidity_to_sub)
-        },
-    )?;
-
-    Ok(Response::new().add_attribute("action", "try_update_offers"))
-}
-
 pub fn try_set_offers(
     deps: DepsMut,
     _env: Env,

@@ -1,0 +1,58 @@
+[
+  {
+    "address": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+    "unbonder": {
+      "returned_and_unbonded": [
+        [
+          "11967295",
+          {
+            "creation_date": 1734792107,
+            "amount": "11998999"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "address": "neutron1j5ft99lyd36e5fyp8kh8ze7qcj00relmrlh86s",
+    "unbonder": {
+      "returned_and_unbonded": [
+        [
+          "998833",
+          {
+            "creation_date": 1734183262,
+            "amount": "999000"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+    "unbonder": {
+      "returned_and_unbonded": [
+        [
+          "99000",
+          {
+            "creation_date": 1734168564,
+            "amount": "99000"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "address": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+    "unbonder": {
+      "returned_and_unbonded": [
+        [
+          "98842",
+          {
+            "creation_date": 1734268994,
+            "amount": "98998"
+          }
+        ]
+      ]
+    }
+  }
+]

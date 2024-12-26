@@ -5856,13 +5856,10 @@ fn market_maker_offer_liquidation() -> StdResult<()> {
         ProjectCoin::Usdc,
     )?;
 
-    project.market_maker_try_update_offers(
+    project.market_maker_try_set_offers(
         ProjectAccount::Scheduler,
         ProjectNft::Gopniks,
-        &[
-            (0, 700 * DECIMALS_MULTIPLIER),
-            (0, 710 * DECIMALS_MULTIPLIER),
-        ],
+        &[700 * DECIMALS_MULTIPLIER, 710 * DECIMALS_MULTIPLIER],
     )?;
 
     // add collateral and borrow
@@ -6099,13 +6096,10 @@ fn regular_bid_and_market_maker_offer_liquidation() -> StdResult<()> {
             ProjectCoin::Usdc,
         )?;
 
-        project.market_maker_try_update_offers(
+        project.market_maker_try_set_offers(
             ProjectAccount::Scheduler,
             collection,
-            &[
-                (0, 700 * DECIMALS_MULTIPLIER),
-                (0, 710 * DECIMALS_MULTIPLIER),
-            ],
+            &[700 * DECIMALS_MULTIPLIER, 710 * DECIMALS_MULTIPLIER],
         )?;
     }
 
@@ -6344,13 +6338,10 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         ProjectCoin::Usdc,
     )?;
 
-    project.market_maker_try_update_offers(
+    project.market_maker_try_set_offers(
         ProjectAccount::Scheduler,
         ProjectNft::Gopniks,
-        &[
-            (0, 700 * DECIMALS_MULTIPLIER),
-            (0, 710 * DECIMALS_MULTIPLIER),
-        ],
+        &[700 * DECIMALS_MULTIPLIER, 710 * DECIMALS_MULTIPLIER],
     )?;
 
     // deposit
@@ -6576,13 +6567,10 @@ fn regular_bid_and_market_maker_offer_liquidation_on_single_user() -> StdResult<
             ProjectCoin::Usdc,
         )?;
 
-        project.market_maker_try_update_offers(
+        project.market_maker_try_set_offers(
             ProjectAccount::Scheduler,
             collection,
-            &[
-                (0, 700 * DECIMALS_MULTIPLIER),
-                (0, 710 * DECIMALS_MULTIPLIER),
-            ],
+            &[700 * DECIMALS_MULTIPLIER, 710 * DECIMALS_MULTIPLIER],
         )?;
     }
 

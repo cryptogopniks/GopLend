@@ -1,0 +1,52 @@
+[
+  {
+    "address": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+    "borrower": {
+      "accumulated_loan": "791201",
+      "loan": {
+        "creation_date": 1735220649,
+        "amount": "289054794"
+      }
+    }
+  },
+  {
+    "address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+    "borrower": {
+      "accumulated_loan": "205218",
+      "loan": {
+        "creation_date": 1734864730,
+        "amount": "54804682"
+      }
+    }
+  },
+  {
+    "address": "neutron133xakkrfksq39wxy575unve2nyehg5npx75nph",
+    "borrower": {
+      "accumulated_loan": "230144",
+      "loan": {
+        "creation_date": 1734463885,
+        "amount": "38000000"
+      }
+    }
+  },
+  {
+    "address": "neutron1xvunup2m747gu6yr5qpmpehal5tr654cgv42q4",
+    "borrower": {
+      "accumulated_loan": "14049",
+      "loan": {
+        "creation_date": 1734974690,
+        "amount": "7000000"
+      }
+    }
+  },
+  {
+    "address": "neutron1j5ft99lyd36e5fyp8kh8ze7qcj00relmrlh86s",
+    "borrower": {
+      "accumulated_loan": "33130",
+      "loan": {
+        "creation_date": 1734183080,
+        "amount": "4000000"
+      }
+    }
+  }
+]

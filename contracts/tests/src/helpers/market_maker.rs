@@ -78,11 +78,11 @@ pub trait MarketMakerExtension {
         collection: ProjectNft,
     ) -> StdResult<AppResponse>;
 
-    fn market_maker_try_update_offers(
+    fn market_maker_try_set_offers(
         &mut self,
         sender: ProjectAccount,
         collection: ProjectNft,
-        from_to_price_list: &[(u128, u128)],
+        price_list: &[u128],
     ) -> StdResult<AppResponse>;
 
     fn market_maker_try_accept_offers(
@@ -320,22 +320,19 @@ impl MarketMakerExtension for Project {
     }
 
     #[track_caller]
-    fn market_maker_try_update_offers(
+    fn market_maker_try_set_offers(
         &mut self,
         sender: ProjectAccount,
         collection: ProjectNft,
-        from_to_price_list: &[(u128, u128)],
+        price_list: &[u128],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_market_maker_address(),
-                &ExecuteMsg::UpdateOffers {
+                &ExecuteMsg::SetOffers {
                     collection: collection.to_string(),
-                    from_to_price_list: from_to_price_list
-                        .iter()
-                        .map(|(from, to)| (Uint128::new(*from), Uint128::new(*to)))
-                        .collect(),
+                    price_list: price_list.iter().map(|x| Uint128::new(*x)).collect(),
                 },
                 &[],
             )

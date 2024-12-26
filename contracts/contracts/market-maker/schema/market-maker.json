@@ -336,44 +336,6 @@
       {
         "type": "object",
         "required": [
-          "update_offers"
-        ],
-        "properties": {
-          "update_offers": {
-            "type": "object",
-            "required": [
-              "collection",
-              "from_to_price_list"
-            ],
-            "properties": {
-              "collection": {
-                "type": "string"
-              },
-              "from_to_price_list": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    },
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
           "set_offers"
         ],
         "properties": {

@@ -52,6 +52,7 @@ yarn run capture-collections "neutron-1|"
 yarn run capture-ltvs "neutron-1|"
 yarn run capture-user "neutron-1|"
 yarn run capture-logs "neutron-1|"
+
 yarn run oracle-controller "neutron-1|"
 yarn run mm-controller "neutron-1|"
 

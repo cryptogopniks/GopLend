@@ -66,6 +66,8 @@ async function main() {
     const { sgMultiSend, sgIbcHookCall, sgSend } = sgExecHelpers;
     console.clear();
 
+    await marketMaker.cwQueryCollateral(ADDRESS.MAINNET.NEUTRON.DEV_2, true);
+
     await lending.cwQueryBalances(true);
     await lending.cwQueryTotalAvailableToBorrowLiquidity(true);
     await lending.cwQueryPlatformRevenue(true);
