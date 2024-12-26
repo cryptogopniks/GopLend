@@ -243,5 +243,4 @@ async function main(userAddress: string) {
   await writeUserInfo();
 }
 
-main("stars1lze4mhdus8tfh40046sz5r533grvua5rcv0f09");
-// main("stars133xakkrfksq39wxy575unve2nyehg5npka2vsp");
+main("neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc");
