@@ -1370,25 +1370,6 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwUpdateOffers(
-    collection: string,
-    fromToPriceList: [number, number][],
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [
-        marketMakerMsgComposer.updateOffers({
-          collection,
-          fromToPriceList: fromToPriceList.map(([priceBefore, priceAfter]) => [
-            priceBefore.toString(),
-            priceAfter.toString(),
-          ]),
-        }),
-      ],
-      gasPrice
-    );
-  }
-
   async function cwSetOffers(
     collection: string,
     priceList: number[],
@@ -1475,7 +1456,6 @@ async function getCwExecHelpers(
       cwDepositLiquidity,
       cwWithdrawUndistributedLiquidity,
       cwWithdrawCollateral: cwMarketMakerWithdrawCollateral,
-      cwUpdateOffers,
       cwSetOffers,
     },
   };

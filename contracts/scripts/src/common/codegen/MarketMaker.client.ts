@@ -236,13 +236,6 @@ export interface MarketMakerInterface extends MarketMakerReadOnlyInterface {
   }: {
     collection: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateOffers: ({
-    collection,
-    fromToPriceList
-  }: {
-    collection: string;
-    fromToPriceList: Uint128[][];
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   setOffers: ({
     collection,
     priceList
@@ -275,7 +268,6 @@ export class MarketMakerClient extends MarketMakerQueryClient implements MarketM
     this.depositLiquidity = this.depositLiquidity.bind(this);
     this.withdrawUndistributedLiquidity = this.withdrawUndistributedLiquidity.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
-    this.updateOffers = this.updateOffers.bind(this);
     this.setOffers = this.setOffers.bind(this);
     this.acceptOffers = this.acceptOffers.bind(this);
   }
@@ -389,20 +381,6 @@ export class MarketMakerClient extends MarketMakerQueryClient implements MarketM
     return await this.client.execute(this.sender, this.contractAddress, {
       withdraw_collateral: {
         collection
-      }
-    }, fee, memo, _funds);
-  };
-  updateOffers = async ({
-    collection,
-    fromToPriceList
-  }: {
-    collection: string;
-    fromToPriceList: Uint128[][];
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_offers: {
-        collection,
-        from_to_price_list: fromToPriceList
       }
     }, fee, memo, _funds);
   };

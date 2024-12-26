@@ -67,11 +67,6 @@ pub enum ExecuteMsg {
     },
 
     // controller
-    UpdateOffers {
-        collection: String,
-        from_to_price_list: Vec<(Uint128, Uint128)>,
-    },
-
     SetOffers {
         collection: String,
         price_list: Vec<Uint128>,

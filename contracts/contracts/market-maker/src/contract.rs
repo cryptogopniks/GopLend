@@ -82,11 +82,6 @@ pub fn execute(
             e::try_withdraw_collateral(deps, env, info, collection)
         }
 
-        ExecuteMsg::UpdateOffers {
-            collection,
-            from_to_price_list,
-        } => e::try_update_offers(deps, env, info, collection, from_to_price_list),
-
         ExecuteMsg::SetOffers {
             collection,
             price_list,

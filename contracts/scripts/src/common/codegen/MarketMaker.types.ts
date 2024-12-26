@@ -62,11 +62,6 @@ export type ExecuteMsg = {
     collection: string;
   };
 } | {
-  update_offers: {
-    collection: string;
-    from_to_price_list: [Uint128, Uint128][];
-  };
-} | {
   set_offers: {
     collection: string;
     price_list: Uint128[];
