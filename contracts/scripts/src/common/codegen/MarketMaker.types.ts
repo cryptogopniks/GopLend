@@ -67,6 +67,11 @@ export type ExecuteMsg = {
     from_to_price_list: [Uint128, Uint128][];
   };
 } | {
+  set_offers: {
+    collection: string;
+    price_list: Uint128[];
+  };
+} | {
   accept_offers: {
     bidded_collateral_item_list: BiddedCollateralItem[];
   };

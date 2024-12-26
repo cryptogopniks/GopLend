@@ -1,6 +1,6 @@
 {
   "contract_name": "market-maker",
-  "contract_version": "2.0.1",
+  "contract_version": "2.1.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -363,6 +363,34 @@
                   ],
                   "maxItems": 2,
                   "minItems": 2
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "set_offers"
+        ],
+        "properties": {
+          "set_offers": {
+            "type": "object",
+            "required": [
+              "collection",
+              "price_list"
+            ],
+            "properties": {
+              "collection": {
+                "type": "string"
+              },
+              "price_list": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Uint128"
                 }
               }
             },

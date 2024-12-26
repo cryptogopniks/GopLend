@@ -21,7 +21,8 @@ export type CollectionName =
   | "BAD_KIDS"
   | "SLOTH"
   | "PIGEON"
-  | "MOO";
+  | "MOO"
+  | "PUNKS";
 
 export const COLLECTION: CollectionConfig = {
   // -------------------------------------------------------------------------------------
@@ -59,6 +60,13 @@ export const COLLECTION: CollectionConfig = {
         "stars12c9nrpkqrfmdvrx4ex8d6qfs8rwrnclsk5jtk4r6u4gy9mjl97js626dtp",
       NEUTRON:
         "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd",
+    },
+
+    PUNKS: {
+      STARGAZE:
+        "stars1me79evxd4kc6wzu7zmpzad3ls22n0563klx0r544fawkxeurwnvs4gunvy",
+      NEUTRON:
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
     },
   },
 

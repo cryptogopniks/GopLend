@@ -1389,6 +1389,22 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwSetOffers(
+    collection: string,
+    priceList: number[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        marketMakerMsgComposer.setOffers({
+          collection,
+          priceList: priceList.map((x) => x.toString()),
+        }),
+      ],
+      gasPrice
+    );
+  }
+
   return {
     utils: { cwTransferAdmin, cwMigrateMultipleContracts, cwRevoke, cwMintNft },
     scheduler: {
@@ -1460,6 +1476,7 @@ async function getCwExecHelpers(
       cwWithdrawUndistributedLiquidity,
       cwWithdrawCollateral: cwMarketMakerWithdrawCollateral,
       cwUpdateOffers,
+      cwSetOffers,
     },
   };
 }

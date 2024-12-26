@@ -9,32 +9,28 @@ import {
   getCwExecHelpers,
   getCwQueryHelpers,
 } from "../../common/account/cw-helpers";
-import {
-  CollectionPriceResponse,
-  getOffersExtendedDown,
-  getOffersExtendedUp,
-  splitOffers,
-} from "./math";
+import { calcOffers, CollectionPriceResponse, splitOffers } from "./math";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
   getWallets,
   parseStoreArgs,
   getStargazeCollections,
+  getLocalBlockTime,
 } from "./utils";
 
 const DELAY = 6_000;
-// TODO: move in contract MAX_OFFERS and MAX_INACTIVE_OFFERS per collection
+const OFFERS_UPDATE_PERIOD = 24 * 3_600;
 const MAX_OFFERS = 15;
 const MAX_INACTIVE_OFFERS = 5;
 const FLOOR_PRICE_BOUNDARY = {
   UPPER: 0.93,
   LOWER: 0.8,
 };
-const ALLOWED_OFFERS_BOUNDARY = {
-  UPPER: 0.93, // 0.8325,
-  LOWER: 0.8,
-};
+// const ALLOWED_OFFERS_BOUNDARY = {
+//   UPPER: 0.93, // 0.8325,
+//   LOWER: 0.8,
+// };
 const PAGINATION = {
   COLLECTIONS: 50,
 };
@@ -80,6 +76,11 @@ async function main(isInfiniteLoop: boolean) {
     collectionEntries
   );
 
+  const updateTime = getLocalBlockTime() + OFFERS_UPDATE_PERIOD;
+  let collectionAndDateList: [string, number][] = collectionList.map(
+    (collection) => [collection, updateTime]
+  );
+
   const collectionAndFloorPriceList = await getFloorPrices(
     stargazeCollectionList
   );
@@ -111,65 +112,52 @@ async function main(isInfiniteLoop: boolean) {
         const amountUndistributed = Number(liquidity.amount_undistributed);
         const lowerFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.LOWER;
         const upperFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.UPPER;
-        const { regularOffers, tooSmallOffers, tooBigOffers } = splitOffers(
+        const { regularOffers } = splitOffers(
           lowerFloorPrice,
           upperFloorPrice,
           liquidity.price_list
         );
 
-        // add initial offers or extend offers up
-        if (
-          !regularOffers.length ||
-          tooSmallOffers.length >= MAX_INACTIVE_OFFERS
-        ) {
-          const { fromToPriceList, isNoLiquidity, isRequiredMoreLiquidity } =
-            getOffersExtendedUp(
-              ALLOWED_OFFERS_BOUNDARY.UPPER,
-              amountUndistributed,
-              floorPrice,
-              lowerFloorPrice,
-              regularOffers,
-              tooSmallOffers,
-              MAX_OFFERS
-            );
+        const blockTime = getLocalBlockTime();
+        const updateTime =
+          collectionAndDateList.find(
+            ([currentCollection, _]) => currentCollection === collection
+          )?.[1] || 0;
 
-          if (isNoLiquidity) {
+        if (
+          regularOffers.length <= MAX_OFFERS - MAX_INACTIVE_OFFERS ||
+          blockTime >= updateTime
+        ) {
+          const offers = calcOffers(
+            lowerFloorPrice,
+            upperFloorPrice,
+            liquidity.price_list,
+            amountUndistributed,
+            MAX_OFFERS
+          );
+
+          if (
+            !offers.length ||
+            JSON.stringify(regularOffers) === JSON.stringify(offers)
+          ) {
             l(`⚠️⚠️⚠️ Warning: No liquidity for collection ${collection}`);
             continue;
           }
 
-          if (isRequiredMoreLiquidity) {
+          if (offers.length < MAX_OFFERS) {
             l(`⚠️⚠️⚠️ Warning: Add liquidity for collection ${collection}`);
           }
 
-          await h.marketMaker.cwUpdateOffers(
-            collection,
-            fromToPriceList,
-            gasPrice
-          );
-          continue;
-        }
+          await h.marketMaker.cwSetOffers(collection, offers, gasPrice);
 
-        // extend offers down
-        if (tooBigOffers.length >= MAX_INACTIVE_OFFERS) {
-          const { fromToPriceList, isNoLiquidity } = getOffersExtendedDown(
-            ALLOWED_OFFERS_BOUNDARY.LOWER,
-            amountUndistributed,
-            floorPrice,
-            upperFloorPrice,
-            regularOffers,
-            tooBigOffers
-          );
+          collectionAndDateList = collectionAndDateList.map(
+            ([currentCollection, updateTime]) => {
+              if (currentCollection === collection) {
+                return [collection, blockTime + OFFERS_UPDATE_PERIOD];
+              }
 
-          if (isNoLiquidity) {
-            l(`⚠️⚠️⚠️ Warning: No liquidity for collection ${collection}`);
-            continue;
-          }
-
-          await h.marketMaker.cwUpdateOffers(
-            collection,
-            fromToPriceList,
-            gasPrice
+              return [collection, updateTime];
+            }
           );
         }
       }

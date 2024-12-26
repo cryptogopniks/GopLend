@@ -71,6 +71,13 @@ export interface MarketMakerMsg {
     collection: string;
     fromToPriceList: Uint128[][];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  setOffers: ({
+    collection,
+    priceList
+  }: {
+    collection: string;
+    priceList: Uint128[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   acceptOffers: ({
     biddedCollateralItemList
   }: {
@@ -94,6 +101,7 @@ export class MarketMakerMsgComposer implements MarketMakerMsg {
     this.withdrawUndistributedLiquidity = this.withdrawUndistributedLiquidity.bind(this);
     this.withdrawCollateral = this.withdrawCollateral.bind(this);
     this.updateOffers = this.updateOffers.bind(this);
+    this.setOffers = this.setOffers.bind(this);
     this.acceptOffers = this.acceptOffers.bind(this);
   }
   acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -305,6 +313,28 @@ export class MarketMakerMsgComposer implements MarketMakerMsg {
           update_offers: {
             collection,
             from_to_price_list: fromToPriceList
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  setOffers = ({
+    collection,
+    priceList
+  }: {
+    collection: string;
+    priceList: Uint128[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          set_offers: {
+            collection,
+            price_list: priceList
           }
         })),
         funds: _funds
