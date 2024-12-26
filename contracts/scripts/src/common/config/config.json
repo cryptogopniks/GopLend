@@ -75,9 +75,9 @@
                 "neutron1f37v0rdvrred27tlqqcpkrqpzfv6ddr2dxqan2"
               ],
               "INIT_MSG": "{\"worker\":\"neutron16nmp4vgaj0tp4fv2eqts3aa8cy67zrp90lmqrcenxla2wmsc2uuqpqd4ht\",\"controller\":[\"neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz\",\"neutron1dgh7svqfpdckn20280qeuuvx7fyf25g87gsv34hwmec80v0x77rsezd6m5\"],\"token\":{\"native\":{\"denom\":\"ibc/B559A80D62249C8AA07A380E2A2BEA6E5CA9A6F079C912C3A9E9B494105E4F81\"}}}",
-              "MIGRATE_MSG": "{\"version\":\"2.0.1\"}",
+              "MIGRATE_MSG": "{\"version\":\"2.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{\"oracle\":\"neutron1h2k60hu3me5p8cngwvsgngn0k7dv5yhx8vfrgyqdfpcyxf6vw4tshcy574\",\"lending_platform\":\"neutron1dta5fnv70ukvu7g95xqr3eeewc00ztcacw5rpew5hl380crzm9gqmx442u\"}}",
-              "CODE": 2744,
+              "CODE": 2873,
               "ADDRESS": "neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu"
             }
           ],

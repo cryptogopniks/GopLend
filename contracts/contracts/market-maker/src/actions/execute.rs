@@ -418,6 +418,7 @@ pub fn try_withdraw_collateral(
     Ok(response)
 }
 
+// use try_set_offers instead
 pub fn try_update_offers(
     deps: DepsMut,
     _env: Env,
@@ -476,6 +477,52 @@ pub fn try_update_offers(
     )?;
 
     Ok(Response::new().add_attribute("action", "try_update_offers"))
+}
+
+pub fn try_set_offers(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    collection: String,
+    price_list: Vec<Uint128>,
+) -> Result<Response, ContractError> {
+    check_pause_state(deps.storage)?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let collection_address = deps.api.addr_validate(&collection)?;
+    let config = CONFIG.load(deps.storage)?;
+    check_authorization(
+        &sender_address,
+        &config.admin,
+        &config.worker,
+        AuthType::Specified {
+            allowlist: config
+                .controller
+                .map(|x| x.into_iter().map(Some).collect())
+                .unwrap_or_default(),
+        },
+    )?;
+
+    let liquidity_to_add = OFFERS
+        .load(deps.storage, &collection_address)
+        .unwrap_or_default()
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur);
+    let liquidity_to_sub = price_list
+        .iter()
+        .fold(Uint128::zero(), |acc, cur| acc + cur);
+
+    OFFERS.save(deps.storage, &collection_address, &price_list)?;
+
+    // previous offers will be removed, new offers will be set
+    UNDISTRIBUTED_LIQUIDITY.update(
+        deps.storage,
+        &collection_address,
+        |x| -> StdResult<Uint128> {
+            Ok(x.unwrap_or_default() + liquidity_to_add - liquidity_to_sub)
+        },
+    )?;
+
+    Ok(Response::new().add_attribute("action", "try_set_offers"))
 }
 
 pub fn try_accept_offers(

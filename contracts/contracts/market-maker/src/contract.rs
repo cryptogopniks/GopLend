@@ -87,6 +87,11 @@ pub fn execute(
             from_to_price_list,
         } => e::try_update_offers(deps, env, info, collection, from_to_price_list),
 
+        ExecuteMsg::SetOffers {
+            collection,
+            price_list,
+        } => e::try_set_offers(deps, env, info, collection, price_list),
+
         ExecuteMsg::AcceptOffers {
             bidded_collateral_item_list,
         } => e::try_accept_offers(deps, env, info, bidded_collateral_item_list),

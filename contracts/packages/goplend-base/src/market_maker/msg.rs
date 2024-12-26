@@ -72,6 +72,11 @@ pub enum ExecuteMsg {
         from_to_price_list: Vec<(Uint128, Uint128)>,
     },
 
+    SetOffers {
+        collection: String,
+        price_list: Vec<Uint128>,
+    },
+
     // lending platform
     AcceptOffers {
         bidded_collateral_item_list: Vec<BiddedCollateralItem>,
