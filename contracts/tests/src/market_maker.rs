@@ -23,7 +23,7 @@ fn migrate_default() {
             ProjectAccount::Admin.into(),
             project.get_market_maker_address(),
             &MigrateMsg {
-                version: "2.1.0".to_string(),
+                version: "2.1.1".to_string(),
             },
             project.get_market_maker_code_id(),
         )

@@ -284,7 +284,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                 },
               }),
               MIGRATE_MSG: toJson<MarketMakerTypes.MigrateMsg>({
-                version: "2.1.0",
+                version: "2.1.1",
               }),
               UPDATE_MSG: toJson<MarketMakerTypes.ExecuteMsg>({
                 update_config: {
@@ -296,7 +296,7 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 2873,
+              CODE: 2877,
               ADDRESS:
                 "neutron1jn2nqmn6ta68ec0rnnlwfs0hu83xkhfetp4tgwaqpz8wd3g0xz0snpn8wu",
             },

@@ -1,11 +1,15 @@
-use cosmwasm_std::{DepsMut, Env, Response, Storage};
+use cosmwasm_std::{Addr, DepsMut, Env, Response, Storage};
 use cw2::{get_contract_version, set_contract_version};
 
 use semver::Version;
 
 use goplend_base::{
     error::ContractError,
-    market_maker::{msg::MigrateMsg, state::CONTRACT_NAME},
+    lending_platform::types::CollectionInfo,
+    market_maker::{
+        msg::MigrateMsg,
+        state::{COLLATERALS, CONTRACT_NAME},
+    },
 };
 
 pub fn migrate_contract(
@@ -17,6 +21,18 @@ pub fn migrate_contract(
 
     if version_new >= version_previous {
         set_contract_version(deps.storage, CONTRACT_NAME, version_new.to_string())?;
+
+        COLLATERALS.clear(deps.storage);
+        COLLATERALS.save(
+            deps.storage,
+            &Addr::unchecked("neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28"),
+            &vec![CollectionInfo {
+                collection_address: Addr::unchecked(
+                    "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd",
+                ),
+                token_id_list: vec!["937".to_string()],
+            }],
+        )?;
     }
 
     Ok(Response::new())

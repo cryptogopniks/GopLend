@@ -306,7 +306,7 @@ pub fn try_deposit_liquidity(
         &sender_address,
         &config.admin,
         &config.worker,
-        AuthType::Specified {
+        AuthType::AdminOrSpecified {
             allowlist: vec![Some(owner)],
         },
     )?;
@@ -564,9 +564,11 @@ pub fn try_accept_offers(
         })?;
 
         // update liquidated collaterals
+        let collection_owner = OWNERS.load(deps.storage, &collection)?;
+
         COLLATERALS.update(
             deps.storage,
-            &collection,
+            &collection_owner,
             |x| -> StdResult<Vec<CollectionInfo<Addr>>> {
                 let mut collaterals: Vec<CollectionInfo<Addr>> = x.unwrap_or_default();
 
