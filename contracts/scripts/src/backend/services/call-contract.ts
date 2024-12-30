@@ -67,11 +67,28 @@ async function main() {
     console.clear();
 
     await marketMaker.cwQueryCollateral(ADDRESS.MAINNET.NEUTRON.DEV_2, true);
+    const punks = await marketMaker.cwQueryOfferPrices(
+      COLLECTION.MAINNET?.PUNKS?.NEUTRON || "",
+      false
+    );
+    l({ punks: punks.price_list.length });
 
     await lending.cwQueryBalances(true);
     await lending.cwQueryTotalAvailableToBorrowLiquidity(true);
     await lending.cwQueryPlatformRevenue(true);
     await lending.cwQueryConditionalDepositApr(0, 0, true);
+    await lending.cwQueryBglCurrencyToMainCurrencyPrice(true);
+
+    const a = await getBalance(
+      ADDRESS.MAINNET.NEUTRON.ORACLE_CONTROLLER_LIST[0],
+      DENOM
+    );
+    const b = await getBalance(
+      ADDRESS.MAINNET.NEUTRON.ORACLE_CONTROLLER_LIST[1],
+      DENOM
+    );
+
+    l({ a, b });
     return;
 
     // await getBalance(owner, TOKEN.NEUTRON.TESTNET.USDC);
