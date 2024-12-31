@@ -28,20 +28,6 @@
     }
   },
   {
-    "address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
-    "unbonder": {
-      "returned_and_unbonded": [
-        [
-          "99000",
-          {
-            "creation_date": 1734168564,
-            "amount": "99000"
-          }
-        ]
-      ]
-    }
-  },
-  {
     "address": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
     "unbonder": {
       "returned_and_unbonded": [

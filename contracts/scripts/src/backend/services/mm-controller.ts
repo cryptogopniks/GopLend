@@ -21,16 +21,12 @@ import {
 
 const DELAY = 6_000;
 const OFFERS_UPDATE_PERIOD = 24 * 3_600;
-const MAX_OFFERS = 15;
-const MAX_INACTIVE_OFFERS = 5;
+const MAX_OFFERS = 100;
+const MAX_INACTIVE_OFFERS_RATE = 0.25;
 const FLOOR_PRICE_BOUNDARY = {
   UPPER: 0.93,
   LOWER: 0.8,
 };
-// const ALLOWED_OFFERS_BOUNDARY = {
-//   UPPER: 0.93, // 0.8325,
-//   LOWER: 0.8,
-// };
 const PAGINATION = {
   COLLECTIONS: 50,
 };
@@ -125,7 +121,7 @@ async function main(isInfiniteLoop: boolean) {
           )?.[1] || 0;
 
         if (
-          regularOffers.length <= MAX_OFFERS - MAX_INACTIVE_OFFERS ||
+          regularOffers.length <= MAX_OFFERS * (1 - MAX_INACTIVE_OFFERS_RATE) ||
           blockTime >= updateTime
         ) {
           const offers = calcOffers(
