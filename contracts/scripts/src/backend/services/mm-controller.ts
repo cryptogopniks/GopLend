@@ -1,5 +1,5 @@
 import { getSigner } from "../account/signer";
-import { l, wait, Request, li } from "../../common/utils";
+import { l, wait, Request, li, floor } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { getChainOptionById } from "../../common/config/config-utils";
 import { ChainConfig } from "../../common/interfaces";
@@ -21,6 +21,8 @@ import {
 
 const DELAY = 6_000;
 const OFFERS_UPDATE_PERIOD = 24 * 3_600;
+const LIQUIDITY_CONSTANT = 500;
+const MIN_OFFERS = 20;
 const MAX_OFFERS = 100;
 const MAX_INACTIVE_OFFERS_RATE = 0.25;
 const FLOOR_PRICE_BOUNDARY = {
@@ -108,6 +110,14 @@ async function main(isInfiniteLoop: boolean) {
         const amountUndistributed = Number(liquidity.amount_undistributed);
         const lowerFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.LOWER;
         const upperFloorPrice = floorPrice * FLOOR_PRICE_BOUNDARY.UPPER;
+        const targetOffersAmount = Math.min(
+          MIN_OFFERS +
+            floor(
+              (2 * LIQUIDITY_CONSTANT) / (lowerFloorPrice + upperFloorPrice)
+            ),
+          MAX_OFFERS
+        );
+
         const { regularOffers } = splitOffers(
           lowerFloorPrice,
           upperFloorPrice,
@@ -121,7 +131,8 @@ async function main(isInfiniteLoop: boolean) {
           )?.[1] || 0;
 
         if (
-          regularOffers.length <= MAX_OFFERS * (1 - MAX_INACTIVE_OFFERS_RATE) ||
+          regularOffers.length <=
+            targetOffersAmount * (1 - MAX_INACTIVE_OFFERS_RATE) ||
           blockTime >= updateTime
         ) {
           const offers = calcOffers(
