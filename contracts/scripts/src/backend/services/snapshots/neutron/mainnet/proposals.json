@@ -50,5 +50,31 @@
         }
       }
     }
+  },
+  {
+    "id": 3,
+    "proposal": {
+      "proposal_status": "accepted",
+      "proposal_type": {
+        "add_collection": {
+          "collection_address": "neutron1y78nkn30nkc6z8ssltdzmqsxzxjulntrxvnmagagtns5x7nvtrcs5k35g6",
+          "collection": {
+            "name": "Underworld",
+            "owner": "neutron10mkczsrf8snhdhazkf7lav2hjdctyupvhr59g9"
+          }
+        }
+      },
+      "listing_price": {
+        "amount": "1",
+        "currency": {
+          "token": {
+            "native": {
+              "denom": "untrn"
+            }
+          },
+          "decimals": 6
+        }
+      }
+    }
   }
 ]

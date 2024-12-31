@@ -89,6 +89,12 @@ async function main() {
     );
 
     l({ a, b });
+
+    await marketMaker.cwQueryLiquidity(
+      COLLECTION.MAINNET?.PUNKS?.NEUTRON || "",
+      true
+    );
+    await oracle.cwQueryPrices(100, undefined, [], true);
     return;
 
     // await getBalance(owner, TOKEN.NEUTRON.TESTNET.USDC);

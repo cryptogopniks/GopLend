@@ -9,6 +9,31 @@
     }
   },
   {
+    "address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd",
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron10xt63f8sf37sye4s3uvn7cu02jgre5n4k7el4w",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron133xakkrfksq39wxy575unve2nyehg5npx75nph",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
     "address": "neutron14hj3ecw0wfaylqm4uakgnq48hvzwqxfds40wwn",
     "liquidator": {
       "collection_addresses": [
@@ -17,7 +42,31 @@
     }
   },
   {
+    "address": "neutron14sd5gtcjh4gg3t0uptqd3hk293c6lj60qjaa2h",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
     "address": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1ep754zhx3cmeawpjvlqp2zh7eqmm85q3ya3wzx",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1fyntu6dud2tgy4l6jghaffjge9m66tfxutzp5g",
     "liquidator": {
       "collection_addresses": [
         "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
@@ -33,10 +82,42 @@
     }
   },
   {
-    "address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+    "address": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
     "liquidator": {
       "collection_addresses": [
-        "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd"
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1kyc0uy0lje8eyc02qhnz3msav2jytz3302yltw",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1luxqwldxje46chyxzsyqcx9yhlnxaefttmacj7",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
       ]
     }
   },
@@ -45,6 +126,30 @@
     "liquidator": {
       "collection_addresses": [
         "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd"
+      ]
+    }
+  },
+  {
+    "address": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1vs7dmrkfdh6kdxuj9pkggaetztqax0hxr83ue9",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
+      ]
+    }
+  },
+  {
+    "address": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+    "liquidator": {
+      "collection_addresses": [
+        "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq"
       ]
     }
   }

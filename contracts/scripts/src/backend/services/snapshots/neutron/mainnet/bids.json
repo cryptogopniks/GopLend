@@ -33,11 +33,3824 @@
           {
             "creation_date": 1734791942,
             "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
-            "token_id_list": [
-              "5439"
-            ],
-            "amount": "2750000",
+            "token_id_list": [],
+            "amount": "86000",
             "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734304544,
+            "liquidator": "neutron1t57tfp3ykhpf87ejaf5mwkn209vmhz9rc556qr",
+            "token_id_list": [
+              "856"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735084458,
+            "liquidator": "neutron1gevl8gzkzpfwsgas3daedu3ry57v0uz8jqfjpz",
+            "token_id_list": [
+              "620"
+            ],
+            "amount": "7200000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      },
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron10xt63f8sf37sye4s3uvn7cu02jgre5n4k7el4w",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron133xakkrfksq39wxy575unve2nyehg5npx75nph",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron14sd5gtcjh4gg3t0uptqd3hk293c6lj60qjaa2h",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1ep754zhx3cmeawpjvlqp2zh7eqmm85q3ya3wzx",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1fyntu6dud2tgy4l6jghaffjge9m66tfxutzp5g",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1kyc0uy0lje8eyc02qhnz3msav2jytz3302yltw",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1luxqwldxje46chyxzsyqcx9yhlnxaefttmacj7",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1vs7dmrkfdh6kdxuj9pkggaetztqax0hxr83ue9",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "liquidator_address": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+    "collection_and_liquidation_bids_list": [
+      {
+        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+        "liquidation_bids": [
+          {
+            "creation_date": 1734791942,
+            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
+            "token_id_list": [],
+            "amount": "86000",
+            "discount": "0.2",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577148,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2425"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577160,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2427"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577168,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "2705"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577176,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "3556"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577183,
+            "liquidator": "neutron1xlaru67y3ddjvnfm4ty6h5mvguyp24fjrgydun",
+            "token_id_list": [
+              "4504"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577805,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2430"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577810,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "2585"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577816,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "4345"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577821,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "5475"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735577831,
+            "liquidator": "neutron1vavxe60erxqx3q08xw7z9mn63cxkvrzyth27d9",
+            "token_id_list": [
+              "6831"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578067,
+            "liquidator": "neutron1q2a09pnfp0rmmy0zeashvnq0fq59a2rr4wnlap",
+            "token_id_list": [
+              "8759"
+            ],
+            "amount": "400000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578454,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3616"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578463,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "3740"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578471,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4087"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735578476,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "4114"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579470,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7955"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579476,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "7093"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735579483,
+            "liquidator": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
+            "token_id_list": [
+              "4551"
+            ],
+            "amount": "100000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735585504,
+            "liquidator": "neutron1qew0q7afxacu3yyvre6phgf0t6py08pvgqsjpy",
+            "token_id_list": [
+              "2246"
+            ],
+            "amount": "200000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639689,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "6928"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639701,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7126"
+            ],
+            "amount": "3000000",
+            "discount": "0",
+            "bid_type": "liquidation_bid"
+          },
+          {
+            "creation_date": 1735639708,
+            "liquidator": "neutron1jmfnwmq9ga02klaavfkt7lvqhhd8amfzk9n8ny",
+            "token_id_list": [
+              "7169"
+            ],
+            "amount": "3000000",
+            "discount": "0",
             "bid_type": "liquidation_bid"
           }
         ]
@@ -105,36 +3918,6 @@
     ]
   },
   {
-    "liquidator_address": "neutron1hvp3q00ypzrurd46h7c7c3hu86tx9uf8qt2q28",
-    "collection_and_liquidation_bids_list": [
-      {
-        "collection_address": "neutron150u7vt6m068z5ezr776z6rxgwmn4wkhlm57nkl4dqvefpygvx4fs0dedzd",
-        "liquidation_bids": [
-          {
-            "creation_date": 1734304544,
-            "liquidator": "neutron1t57tfp3ykhpf87ejaf5mwkn209vmhz9rc556qr",
-            "token_id_list": [
-              "856"
-            ],
-            "amount": "3000000",
-            "discount": "0",
-            "bid_type": "liquidation_bid"
-          },
-          {
-            "creation_date": 1735084458,
-            "liquidator": "neutron1gevl8gzkzpfwsgas3daedu3ry57v0uz8jqfjpz",
-            "token_id_list": [
-              "620"
-            ],
-            "amount": "7200000",
-            "discount": "0.2",
-            "bid_type": "liquidation_bid"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "liquidator_address": "neutron1t57tfp3ykhpf87ejaf5mwkn209vmhz9rc556qr",
     "collection_and_liquidation_bids_list": [
       {
@@ -157,26 +3940,6 @@
               "620"
             ],
             "amount": "7200000",
-            "discount": "0.2",
-            "bid_type": "liquidation_bid"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "liquidator_address": "neutron16j9m4s9hvz2ns2z6fk2s35egca5l6rw9fdfyhc",
-    "collection_and_liquidation_bids_list": [
-      {
-        "collection_address": "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
-        "liquidation_bids": [
-          {
-            "creation_date": 1734791942,
-            "liquidator": "neutron1c3yt57kz5mstnc2n08n47phjumn57ds0jsr7r3",
-            "token_id_list": [
-              "5439"
-            ],
-            "amount": "2750000",
             "discount": "0.2",
             "bid_type": "liquidation_bid"
           }
