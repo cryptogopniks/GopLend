@@ -150,6 +150,24 @@ function getSingleTokenExecMsg(
   );
 }
 
+async function isCollectionApproved(
+  signingClient: SigningCosmWasmClient,
+  owner: string,
+  target: string,
+  collection: string
+) {
+  const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
+    all_operators: {
+      owner,
+    },
+  };
+
+  const { operators }: QueryAllOperatorsResponse =
+    await signingClient.queryContractSmart(collection, queryAllOperatorsMsg);
+
+  return operators.find((x) => x.spender === target);
+}
+
 function getApproveCollectionMsg(
   collectionAddress: string,
   senderAddress: string,
@@ -176,6 +194,82 @@ function getRevokeCollectionMsg(
   };
 
   return getSingleTokenExecMsg(collectionAddress, senderAddress, revokeAllMsg);
+}
+
+function getWrapMsg(
+  contractAddress: string,
+  senderAddress: string,
+  collectionIn: string,
+  tokenList: string[]
+): MsgExecuteContractEncodeObject {
+  const wrapMsg = {
+    wrap: {
+      collection_in: collectionIn,
+      token_list: tokenList,
+    },
+  };
+
+  return getSingleTokenExecMsg(contractAddress, senderAddress, wrapMsg);
+}
+
+function getUnwrapMsg(
+  contractAddress: string,
+  senderAddress: string,
+  collectionOut: string,
+  tokenList: string[]
+): MsgExecuteContractEncodeObject {
+  const wrapMsg = {
+    wrap: {
+      collection_out: collectionOut,
+      token_list: tokenList,
+    },
+  };
+
+  return getSingleTokenExecMsg(contractAddress, senderAddress, wrapMsg);
+}
+
+async function queryBalanceInNft(
+  cosmwasmQueryClient: CosmWasmClient,
+  owner: string,
+  collectionAddress: string,
+  isDisplayed: boolean = false
+) {
+  const MAX_LIMIT = 100;
+  const ITER_LIMIT = 50;
+
+  let tokenList: string[] = [];
+  let tokenAmountSum: number = 0;
+  let i: number = 0;
+  let lastToken: string | undefined = undefined;
+
+  while ((!i || tokenAmountSum === MAX_LIMIT) && i < ITER_LIMIT) {
+    i++;
+
+    try {
+      const queryTokensMsg: QueryTokens = {
+        tokens: {
+          owner,
+          start_after: lastToken,
+          limit: MAX_LIMIT,
+        },
+      };
+
+      const { tokens }: TokensResponse =
+        await cosmwasmQueryClient.queryContractSmart(
+          collectionAddress,
+          queryTokensMsg
+        );
+
+      tokenList = [...tokenList, ...tokens];
+      tokenAmountSum = tokens.length;
+      lastToken = getLast(tokens);
+    } catch (error) {
+      l(error);
+    }
+  }
+
+  const res: TokensResponse = { tokens: tokenList };
+  return logAndReturn(res, isDisplayed);
 }
 
 function getContracts(contracts: ContractInfo[]) {
@@ -462,44 +556,171 @@ async function getCwExecHelpers(
     );
   }
 
+  // TODO: test with tokens from collection A (gop), collection B (ark), collection C (gop + ark)
   async function cwWithdrawCollateral(
+    wrapperAddress: string,
     collections: CollectionInfoForString[],
     gasPrice: string
   ) {
-    return await _msgWrapperWithGasPrice(
-      [lendingPlatformMsgComposer.withdrawCollateral({ collections })],
-      gasPrice,
-      1.05
-    );
+    // withdraw tokens
+    let msgList: MsgExecuteContractEncodeObject[] = [
+      lendingPlatformMsgComposer.withdrawCollateral({ collections }),
+    ];
+
+    // find ark collections
+    const wrapperCollections: {
+      collection_in: string;
+      collection_out: string;
+    }[] = await signingClient.queryContractSmart(wrapperAddress, {
+      collection_list: {},
+    });
+
+    let collectionsToUnwrap: CollectionInfoForString[] = [];
+
+    for (const collection of collections) {
+      if (
+        wrapperCollections.some(
+          (x) => x.collection_out === collection.collection_address
+        )
+      ) {
+        // choose tokens available to unwrap
+        const wrapperTokens = await queryBalanceInNft(
+          signingClient,
+          wrapperAddress,
+          collection.collection_address
+        );
+
+        let tokensToUnwrap = collection.token_id_list.filter((x) =>
+          wrapperTokens.tokens.includes(x)
+        );
+
+        collectionsToUnwrap.push({
+          collection_address: collection.collection_address,
+          token_id_list: tokensToUnwrap,
+        });
+      }
+    }
+
+    // add approve and unwrap msgs for ark collections
+    for (const { collection_address, token_id_list } of collectionsToUnwrap) {
+      const isCollectionApprovedFlag = await isCollectionApproved(
+        signingClient,
+        owner,
+        wrapperAddress,
+        collection_address
+      );
+
+      if (!isCollectionApprovedFlag) {
+        msgList.push(
+          getApproveCollectionMsg(collection_address, owner, wrapperAddress)
+        );
+      }
+
+      msgList.push(
+        getUnwrapMsg(wrapperAddress, owner, collection_address, token_id_list)
+      );
+    }
+
+    return await _msgWrapperWithGasPrice(msgList, gasPrice, 1.05);
   }
 
+  // TODO: test with tokens from collection A (gop), collection B (ark), collection C (gop + ark)
   async function cwApproveAndDepositCollateral(
-    senderAddress: string,
-    operator: string,
+    wrapperAddress: string,
     collections: CollectionInfoForString[],
     gasPrice: string
   ) {
-    const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
-      all_operators: {
-        owner: senderAddress,
-      },
-    };
+    const operator = LENDING_PLATFORM_CONTRACT?.ADDRESS || "";
 
     let msgList: MsgExecuteContractEncodeObject[] = [];
 
-    for (const { collection_address: collectionAddress } of collections) {
-      const { operators }: QueryAllOperatorsResponse =
-        await signingClient.queryContractSmart(
-          collectionAddress,
-          queryAllOperatorsMsg
-        );
+    // find ark collections
+    const wrapperCollections: {
+      collection_in: string;
+      collection_out: string;
+    }[] = await signingClient.queryContractSmart(wrapperAddress, {
+      collection_list: {},
+    });
 
-      const targetOperator = operators.find((x) => x.spender === operator);
+    let collectionsToWrap: CollectionInfoForString[] = [];
+    let collectionsToDeposit: CollectionInfoForString[] = [];
 
-      if (!targetOperator) {
+    for (const collection of collections) {
+      if (
+        wrapperCollections.some(
+          (x) => x.collection_in === collection.collection_address
+        )
+      ) {
+        collectionsToWrap.push(collection);
+      } else {
+        collectionsToDeposit.push(collection);
+      }
+    }
+
+    // add approve and wrap msgs for ark collections
+    for (const { collection_address, token_id_list } of collectionsToWrap) {
+      const isCollectionApprovedFlag = await isCollectionApproved(
+        signingClient,
+        owner,
+        wrapperAddress,
+        collection_address
+      );
+
+      if (!isCollectionApprovedFlag) {
         msgList.push(
-          getApproveCollectionMsg(collectionAddress, senderAddress, operator)
+          getApproveCollectionMsg(collection_address, owner, wrapperAddress)
         );
+      }
+
+      msgList.push(
+        getWrapMsg(wrapperAddress, owner, collection_address, token_id_list)
+      );
+    }
+
+    // merge tokens of gop and ark collections
+    const allCollections = Array.from(
+      new Set([
+        ...collectionsToDeposit.map((x) => x.collection_address),
+        ...collectionsToWrap.map(
+          (x) =>
+            wrapperCollections.find(
+              (y) => y.collection_in === x.collection_address
+            )?.collection_out || ""
+        ),
+      ])
+    ).filter((x) => x);
+
+    const allCollectionsWithTokens: CollectionInfoForString[] =
+      allCollections.map((x) => {
+        const gopTokens =
+          collectionsToDeposit.find((y) => y.collection_address === x)
+            ?.token_id_list || [];
+        const collectionIn =
+          wrapperCollections.find((y) => y.collection_out === x)
+            ?.collection_in || "";
+        const arkTokens =
+          collectionsToWrap.find((y) => y.collection_address === collectionIn)
+            ?.token_id_list || [];
+
+        return {
+          collection_address: x,
+          token_id_list: [...gopTokens, ...arkTokens],
+        };
+      });
+
+    // add approve and deposit msgs for all collections
+    for (const {
+      collection_address: collectionIn,
+    } of allCollectionsWithTokens) {
+      const isCollectionApprovedFlag = await isCollectionApproved(
+        signingClient,
+        owner,
+        operator,
+        collectionIn
+      );
+
+      if (!isCollectionApprovedFlag) {
+        msgList.push(getApproveCollectionMsg(collectionIn, owner, operator));
       }
     }
 
@@ -1547,42 +1768,12 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     collectionAddress: string,
     isDisplayed: boolean = false
   ) {
-    const MAX_LIMIT = 100;
-    const ITER_LIMIT = 50;
-
-    let tokenList: string[] = [];
-    let tokenAmountSum: number = 0;
-    let i: number = 0;
-    let lastToken: string | undefined = undefined;
-
-    while ((!i || tokenAmountSum === MAX_LIMIT) && i < ITER_LIMIT) {
-      i++;
-
-      try {
-        const queryTokensMsg: QueryTokens = {
-          tokens: {
-            owner,
-            start_after: lastToken,
-            limit: MAX_LIMIT,
-          },
-        };
-
-        const { tokens }: TokensResponse =
-          await cosmwasmQueryClient.queryContractSmart(
-            collectionAddress,
-            queryTokensMsg
-          );
-
-        tokenList = [...tokenList, ...tokens];
-        tokenAmountSum = tokens.length;
-        lastToken = getLast(tokens);
-      } catch (error) {
-        l(error);
-      }
-    }
-
-    const res: TokensResponse = { tokens: tokenList };
-    return logAndReturn(res, isDisplayed);
+    return await queryBalanceInNft(
+      cosmwasmQueryClient,
+      owner,
+      collectionAddress,
+      isDisplayed
+    );
   }
 
   async function cwQueryNftOwner(
