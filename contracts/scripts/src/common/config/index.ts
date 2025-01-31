@@ -40,6 +40,8 @@ export const ADDRESS = {
         "neutron1t95n48trupwxytc2ewms2mkhgalfucy2gunecv",
       ],
       MARKET_MAKER_CONTROLLER: "neutron1zp38wxw7y7cfcld36k7jr3cda0r3asdkqhrncz",
+      NFT_WRAPPER:
+        "neutron14kk7zxt043vgm9gczaam6srppx6a52pz4p733jhc3ny7jcmp2s3sc7yh3y",
     },
     STARGAZE: {
       // GOPNIKS_DAO: "stars1u2t3uwgv9rfnfhqya7mmq7xev8nesdy9ae9d5jctlp2hyzwu5rds024g69",
