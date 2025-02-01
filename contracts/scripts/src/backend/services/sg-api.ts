@@ -45,8 +45,15 @@ export async function getFloorPrices(
 
   const { data }: { data: FloorPricesResponse } = await response.json();
 
-  return data.collections.collections.map((x) => ({
-    collection: x.contractAddress,
-    price: floor(x.floor.amountUsd, 2),
-  }));
+  // SG API returns data in wrong order, we need to fix it
+  return addressList.map((address) => {
+    const fpItem = data.collections.collections.find(
+      (x) => x.contractAddress === address
+    );
+
+    return {
+      collection: address,
+      price: floor(fpItem?.floor?.amountUsd || 0, 2),
+    };
+  });
 }
