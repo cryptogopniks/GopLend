@@ -22,7 +22,8 @@ export type CollectionName =
   | "SLOTH"
   | "PIGEON"
   | "MOO"
-  | "PUNKS";
+  | "PUNKS"
+  | "UNDERWORLD";
 
 export const COLLECTION: CollectionConfig = {
   // -------------------------------------------------------------------------------------
@@ -67,6 +68,13 @@ export const COLLECTION: CollectionConfig = {
         "stars1me79evxd4kc6wzu7zmpzad3ls22n0563klx0r544fawkxeurwnvs4gunvy",
       NEUTRON:
         "neutron1j9k4z3tmqmdzeawh2u7uy43rncmz7va3uar69enzd2tgsa0zzpvse59afq",
+    },
+
+    UNDERWORLD: {
+      STARGAZE:
+        "stars1gfzln3v6z0g3h2dl4waj6u7vlrjta4hszwpqwc5s55c63fgrt8ksaq89t8",
+      NEUTRON:
+        "neutron1y78nkn30nkc6z8ssltdzmqsxzxjulntrxvnmagagtns5x7nvtrcs5k35g6",
     },
   },
 

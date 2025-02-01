@@ -157,15 +157,15 @@ async function main(isInfiniteLoop: boolean) {
 
           await h.marketMaker.cwSetOffers(collection, offers, gasPrice);
 
-          collectionAndDateList = collectionAndDateList.map(
-            ([currentCollection, updateTime]) => {
-              if (currentCollection === collection) {
-                return [collection, blockTime + OFFERS_UPDATE_PERIOD];
+          if (blockTime >= updateTime) {
+            collectionAndDateList = collectionAndDateList.map(
+              ([currentCollection, updateTime]) => {
+                return currentCollection === collection
+                  ? [collection, blockTime + OFFERS_UPDATE_PERIOD]
+                  : [collection, updateTime];
               }
-
-              return [collection, updateTime];
-            }
-          );
+            );
+          }
         }
       }
     } catch (error) {
