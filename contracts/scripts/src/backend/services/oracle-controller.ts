@@ -98,16 +98,18 @@ async function main(isInfiniteLoop: boolean) {
   };
 
   const getInitialParameters = async (chainType: ChainType) => {
-    // get execution cooldown
-    const executionCooldown = (await oracle.cwQueryConfig()).execution_cooldown;
+    // get oracle config parameters
+    const {
+      execution_cooldown: executionCooldown,
+      max_price_update_period: maxPriceUpdatePeriod,
+    } = await oracle.cwQueryConfig();
 
     // get all listed collections
     const collectionList = await getCollectionList();
 
     // get blockTimeOffset to fix difference between local and network time
     const blockTime = await oracle.cwQueryBlockTime();
-    const localBlockTime = getLocalBlockTime();
-    const blockTimeOffset = blockTime - localBlockTime;
+    const blockTimeOffset = blockTime - getLocalBlockTime();
 
     const mainnetCollectionEntries = Object.entries(COLLECTION?.MAINNET || {});
     const collectionEntries =
@@ -117,7 +119,9 @@ async function main(isInfiniteLoop: boolean) {
 
     return {
       executionCooldown,
+      maxPriceUpdatePeriod,
       collectionList,
+      blockTime,
       blockTimeOffset,
       mainnetCollectionEntries,
       collectionEntries,
@@ -128,11 +132,9 @@ async function main(isInfiniteLoop: boolean) {
     mainnetCollectionEntries: [string, NetworkItem][],
     collectionEntries: [string, NetworkItem][],
     collectionList: string[],
-    blockTimeOffset: number,
+    blockTime: number,
     collectionPriceResponseList: [string, CollectionPriceResponse][]
   ): Promise<[string, CollectionPriceResponse][]> => {
-    let blockTime = getBlockTime(blockTimeOffset) + BLOCK_TIME_MARGIN;
-
     const stargazeCollectionList = getStargazeCollections(
       collectionList,
       mainnetCollectionEntries,
@@ -177,7 +179,7 @@ async function main(isInfiniteLoop: boolean) {
 
         const newFloorPriceSample: PriceSample = {
           value: floorPrice,
-          timestamp: blockTime,
+          timestamp: blockTime + BLOCK_TIME_MARGIN,
         };
 
         const {
@@ -230,9 +232,10 @@ async function main(isInfiniteLoop: boolean) {
 
   // TODO: restart script on collection list change
   // initialization part - run it single time on script start
-  const {
-    executionCooldown,
+  let {
+    maxPriceUpdatePeriod,
     collectionList,
+    blockTime,
     blockTimeOffset,
     mainnetCollectionEntries,
     collectionEntries,
@@ -240,10 +243,21 @@ async function main(isInfiniteLoop: boolean) {
 
   // [collection, CollectionPriceResponse][]
   let collectionPriceResponseList: [string, CollectionPriceResponse][] = [];
+  let lastUpdateDate = blockTime;
 
   // loop
   while (true) {
-    const date = getLocalBlockTime();
+    // get block time, sync clock
+    try {
+      blockTime = await oracle.cwQueryBlockTime();
+      blockTimeOffset = blockTime - getLocalBlockTime();
+    } catch (_) {
+      blockTime = getBlockTime(blockTimeOffset);
+    }
+
+    if (blockTime < lastUpdateDate + maxPriceUpdatePeriod - BLOCK_TIME_MARGIN) {
+      continue;
+    }
 
     try {
       // TODO: query collectionPriceResponseList from DB
@@ -257,17 +271,17 @@ async function main(isInfiniteLoop: boolean) {
         mainnetCollectionEntries,
         collectionEntries,
         collectionList,
-        blockTimeOffset,
+        blockTime,
         collectionPriceResponseList
       );
+      lastUpdateDate = getBlockTime(blockTimeOffset);
 
       // TODO: write collectionPriceResponseList in DB
       // await setCollectionPriceResponseList(collectionPriceResponseList)
     } catch (error) {
       l(error, "\n");
-      await wait(executionCooldown * 1e3);
     }
-    l({ cycleLength: getLocalBlockTime() - date });
+    l({ cycleLength: getBlockTime(blockTimeOffset) - blockTime });
 
     if (!isInfiniteLoop) break;
   }
