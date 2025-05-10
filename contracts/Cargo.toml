@@ -1,9 +1,5 @@
 [workspace]
-members = [
-    "contracts/*",
-    "packages/*",
-    "tests"
-]
+members = ["contracts/*", "packages/*", "tests"]
 exclude = []
 resolver = "2"
 
@@ -20,7 +16,7 @@ overflow-checks = true
 
 [workspace.dependencies]
 cosmwasm-schema = "1.5.0"
-cosmwasm-std = { version = "1.5.4", features = ["stargate"] }
+cosmwasm-std = "1.5.4"
 cw-storage-plus = "1.1.0"
 cw2 = "1.1.0"
 cw20 = "1.0.1"
@@ -33,13 +29,22 @@ strum = "0.24.1"
 strum_macros = "0.24.3"
 thiserror = "1.0.40"
 anyhow = "1.0.71"
-# cw-multi-test = { version = "0.17.0", features = ["cosmwasm_1_1"] }
-cw-multi-test = { version = "1.2.0", features = ["cosmwasm_1_1"] }
-speculoos = "0.11.0"
 semver = "1.0.20"
+cw-gopniks = { git = "https://github.com/cryptogopniks/cw-gopniks", branch = "dev", features = [
+    "cw-v1",
+    "assets-v1",
+    "auth-v1",
+    "nft",
+] }
 
+# testing
+cw-multi-test = { version = "1.2.0", features = ["cosmwasm_1_1"] }
+pretty_assertions = "1.4.1"
+
+# packages
 goplend-base = { path = "./packages/goplend-base" }
 
+# contracts
 lending-platform = { path = "./contracts/lending-platform" }
 oracle = { path = "./contracts/oracle" }
 minter = { path = "./contracts/minter" }

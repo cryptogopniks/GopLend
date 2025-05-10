@@ -1,5 +1,5 @@
 use cw_multi_test::Executor;
-use speculoos::assert_that;
+use pretty_assertions::assert_eq;
 
 use cosmwasm_std::StdResult;
 
@@ -90,10 +90,13 @@ fn default() -> StdResult<()> {
 
     p.wait(3);
 
-    assert_that(&res.data).is_equal_to(to_prices_out(&[
-        (ProjectNft::Gopniks, "800.00"),
-        (ProjectNft::Pinjeons, "300.00"),
-    ]));
+    assert_eq!(
+        res.data,
+        to_prices_out(&[
+            (ProjectNft::Gopniks, "800.00"),
+            (ProjectNft::Pinjeons, "300.00"),
+        ])
+    );
 
     Ok(())
 }
@@ -112,7 +115,7 @@ fn unauthorized() -> StdResult<()> {
         )
         .unwrap_err();
 
-    assert_error(&res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Unauthorized);
 
     Ok(())
 }
@@ -177,21 +180,21 @@ fn query_prices_pagination() -> StdResult<()> {
     let QueryPricesResponse {
         data: data_full, ..
     } = p.oracle_query_prices(9, &None::<ProjectNft>, &None::<Vec<ProjectNft>>)?;
-    assert_that(&data_full.len()).is_equal_to(2);
+    assert_eq!(data_full.len(), 2);
 
     let QueryPricesResponse { data, .. } = p.oracle_query_prices(
         9,
         &Some(data_full.first().unwrap().collection.to_owned()),
         &None::<Vec<ProjectNft>>,
     )?;
-    assert_that(&data.len()).is_equal_to(1);
+    assert_eq!(data.len(), 1);
 
     let QueryPricesResponse { data, .. } = p.oracle_query_prices(
         9,
         &Some(data_full.last().unwrap().collection.to_owned()),
         &None::<Vec<ProjectNft>>,
     )?;
-    assert_that(&data.len()).is_equal_to(0);
+    assert_eq!(data.len(), 0);
 
     Ok(())
 }

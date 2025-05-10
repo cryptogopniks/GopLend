@@ -1,7 +1,6 @@
-use std::fmt::Debug;
-
 use cosmwasm_std::{
-    coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdResult, Timestamp, Uint128,
+    coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdError, StdResult, Timestamp,
+    Uint128,
 };
 use cw_multi_test::{
     App, AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
@@ -609,18 +608,27 @@ impl Default for Project {
     }
 }
 
-pub fn assert_error<S: std::fmt::Debug + ToString>(
-    subject: &S,
-    err: impl ToString + Sized + Debug,
-) {
-    let expected_error_name = &format!("{:#?}", err);
-    let expected_error_text = &err.to_string();
+#[track_caller]
+pub fn assert_error(err: StdError, expected: impl ToString + Sized + std::fmt::Debug) {
+    let expected_error_name = format!("{:#?}", expected);
+    let expected_error_text = expected.to_string();
 
-    speculoos::assert_that(subject).matches(|x| {
-        let error = format!("{:#?}", x);
+    let error = format!("{}", err);
+    let contains_name = error.contains(&expected_error_name);
+    let contains_text = error.contains(&expected_error_text);
 
-        error.contains(expected_error_name) || error.contains(expected_error_text)
-    });
+    pretty_assertions::assert_eq!(
+        "",
+        if contains_name || contains_text {
+            ""
+        } else {
+            " "
+        },
+        "\n\n✅ Expected error:\n{} -> {}\n\n❌ Received error:\n{}",
+        expected_error_name,
+        expected_error_text,
+        error
+    );
 }
 
 pub fn add_funds_to_exec_msg<T: Serialize + std::fmt::Debug>(

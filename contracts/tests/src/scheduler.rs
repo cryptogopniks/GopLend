@@ -1,5 +1,5 @@
 use cw_multi_test::Executor;
-use speculoos::assert_that;
+use pretty_assertions::assert_eq;
 
 use cosmwasm_std::StdResult;
 
@@ -189,23 +189,26 @@ fn push_multiple_clock_sources() -> StdResult<()> {
     project.scheduler_try_push(ProjectAccount::Bob, &targets)?;
 
     let log = project.scheduler_query_log()?;
-    assert_that(&log).is_equal_to(vec![
-        Log {
-            block_time: 1571799519,
-            sender: ProjectAccount::Bob.into(),
-            counter: 2,
-        },
-        Log {
-            block_time: 1571798519,
-            sender: ProjectAccount::Alice.into(),
-            counter: 1,
-        },
-        Log {
-            block_time: 1571797419,
-            sender: ProjectAccount::Admin.into(),
-            counter: 0,
-        },
-    ]);
+    assert_eq!(
+        log,
+        vec![
+            Log {
+                block_time: 1571799519,
+                sender: ProjectAccount::Bob.into(),
+                counter: 2,
+            },
+            Log {
+                block_time: 1571798519,
+                sender: ProjectAccount::Alice.into(),
+                counter: 1,
+            },
+            Log {
+                block_time: 1571797419,
+                sender: ProjectAccount::Admin.into(),
+                counter: 0,
+            },
+        ]
+    );
 
     Ok(())
 }
@@ -357,28 +360,31 @@ fn log_zero_cross() -> StdResult<()> {
     }
 
     let log = project.scheduler_query_log()?;
-    assert_that(&log.into_iter().take(4).collect::<Vec<Log>>()).is_equal_to(vec![
-        Log {
-            block_time: 1572054675,
-            sender: ProjectAccount::Scheduler.into(),
-            counter: 1,
-        },
-        Log {
-            block_time: 1572053674,
-            sender: ProjectAccount::Scheduler.into(),
-            counter: 0,
-        },
-        Log {
-            block_time: 1572052673,
-            sender: ProjectAccount::Scheduler.into(),
-            counter: 255,
-        },
-        Log {
-            block_time: 1572051672,
-            sender: ProjectAccount::Scheduler.into(),
-            counter: 254,
-        },
-    ]);
+    assert_eq!(
+        log.into_iter().take(4).collect::<Vec<Log>>(),
+        vec![
+            Log {
+                block_time: 1572054675,
+                sender: ProjectAccount::Scheduler.into(),
+                counter: 1,
+            },
+            Log {
+                block_time: 1572053674,
+                sender: ProjectAccount::Scheduler.into(),
+                counter: 0,
+            },
+            Log {
+                block_time: 1572052673,
+                sender: ProjectAccount::Scheduler.into(),
+                counter: 255,
+            },
+            Log {
+                block_time: 1572051672,
+                sender: ProjectAccount::Scheduler.into(),
+                counter: 254,
+            },
+        ]
+    );
 
     Ok(())
 }

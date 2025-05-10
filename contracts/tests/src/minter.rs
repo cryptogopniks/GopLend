@@ -1,4 +1,4 @@
-use speculoos::assert_that;
+use pretty_assertions::assert_eq;
 
 use cosmwasm_std::{Addr, StdResult};
 
@@ -23,13 +23,16 @@ fn update_token_owner() -> StdResult<()> {
     let mut project = Project::new();
 
     let currencies = project.minter_query_currency_info_list(10, &None)?;
-    assert_that(&currencies).is_equal_to(vec![CurrencyInfo {
-        currency: Currency::new(&Token::new_cw20(&Addr::unchecked(ADDRESS_A)), 6),
-        cw20_code_id: Some(1),
-        owner: ProjectAccount::Admin.into(),
-        whitelist: vec![project.get_lending_platform_address()],
-        permissionless_burning: false,
-    }]);
+    assert_eq!(
+        currencies,
+        vec![CurrencyInfo {
+            currency: Currency::new(&Token::new_cw20(&Addr::unchecked(ADDRESS_A)), 6),
+            cw20_code_id: Some(1),
+            owner: ProjectAccount::Admin.into(),
+            whitelist: vec![project.get_lending_platform_address()],
+            permissionless_burning: false,
+        }]
+    );
 
     project.minter_try_update_currency_info(
         ProjectAccount::Admin,
@@ -42,18 +45,21 @@ fn update_token_owner() -> StdResult<()> {
     let res = project
         .minter_try_accept_token_owner_role(ProjectAccount::Bob)
         .unwrap_err();
-    assert_error(&res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Unauthorized);
 
     project.minter_try_accept_token_owner_role(ProjectAccount::Alice)?;
 
     let currencies = project.minter_query_currency_info_list(10, &None)?;
-    assert_that(&currencies).is_equal_to(vec![CurrencyInfo {
-        currency: Currency::new(&Token::new_cw20(&Addr::unchecked(ADDRESS_A)), 6),
-        cw20_code_id: Some(1),
-        owner: ProjectAccount::Alice.into(),
-        whitelist: vec![project.get_lending_platform_address()],
-        permissionless_burning: false,
-    }]);
+    assert_eq!(
+        currencies,
+        vec![CurrencyInfo {
+            currency: Currency::new(&Token::new_cw20(&Addr::unchecked(ADDRESS_A)), 6),
+            cw20_code_id: Some(1),
+            owner: ProjectAccount::Alice.into(),
+            whitelist: vec![project.get_lending_platform_address()],
+            permissionless_burning: false,
+        }]
+    );
 
     Ok(())
 }

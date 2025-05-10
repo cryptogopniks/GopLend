@@ -1,5 +1,5 @@
 use cw_multi_test::Executor;
-use speculoos::assert_that;
+use pretty_assertions::assert_eq;
 
 use cosmwasm_std::StdResult;
 
@@ -49,7 +49,8 @@ fn query_collection_owner_list_pagination() -> StdResult<()> {
         .iter()
         .map(|x| x.collection_address.to_string())
         .collect();
-    assert_that(&collection_list_response).is_equal_to(
+    assert_eq!(
+        collection_list_response,
         collection_list
             .iter()
             .map(|x| x.to_string())
@@ -61,7 +62,7 @@ fn query_collection_owner_list_pagination() -> StdResult<()> {
         .iter()
         .map(|x| x.collection_address.to_string())
         .collect();
-    assert_that(&collection_list_response).is_equal_to(vec![]);
+    assert_eq!(collection_list_response, Vec::<String>::new());
 
     Ok(())
 }

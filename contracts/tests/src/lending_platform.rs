@@ -19,7 +19,7 @@ use goplend_base::{
     market_maker::types::OffersResponse,
 };
 use lending_platform::{helpers, math};
-use speculoos::assert_that;
+use pretty_assertions::assert_eq;
 
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
@@ -324,8 +324,8 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(deposit_apr, str_to_dec("0"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1"));
 
     // check deposit apr and bgl price after 1/2 year
     project.wait(DELAY / 2);
@@ -333,8 +333,8 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(deposit_apr, str_to_dec("0"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1"));
 
     // borrow and check deposit apr and bgl price
     project.oracle_try_update_prices(
@@ -347,8 +347,8 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(deposit_apr, str_to_dec("0.2"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1"));
 
     // check deposit apr and bgl price after 1/2 year
     project.wait(DELAY / 2);
@@ -361,8 +361,8 @@ fn deposit_apr_with_depositors_and_borrowers() -> StdResult<()> {
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.1"));
+    assert_eq!(deposit_apr, str_to_dec("0.2"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1.1"));
 
     Ok(())
 }
@@ -440,8 +440,8 @@ fn deposit_apr_without_depositors() -> StdResult<()> {
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(deposit_apr, str_to_dec(MAX_DEPOSIT_APR));
+    assert_eq!(bgl_to_main_price, str_to_dec("1"));
 
     Ok(())
 }
@@ -615,7 +615,7 @@ fn borrow_without_collateral() -> StdResult<()> {
     let res = project
         .lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)
         .unwrap_err();
-    assert_error(&res, ContractError::ExceededLtv);
+    assert_error(res, ContractError::ExceededLtv);
 
     Ok(())
 }
@@ -702,35 +702,34 @@ fn borrow_and_repay_all_after_1_year() -> StdResult<()> {
     )?;
 
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
-    assert_that(&borrower.accumulated_loan.u128()).is_equal_to(250_000);
+    assert_eq!(borrower.accumulated_loan.u128(), 250_000);
 
     // repay all
     project.lending_platform_try_repay(ProjectAccount::Bob, 1_250_000, ProjectCoin::Usdc)?;
 
     // check loans
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
-    assert_that(&borrower.loan.amount.u128()).is_equal_to(0);
-    assert_that(&borrower.accumulated_loan.u128()).is_equal_to(0);
+    assert_eq!(borrower.loan.amount.u128(), 0);
+    assert_eq!(borrower.accumulated_loan.u128(), 0);
 
     // check apr, bgl price
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0"));
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.2"));
+    assert_eq!(deposit_apr, str_to_dec("0"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1.2"));
 
     // check platform revenue
     let revenue = project.lending_platform_query_platform_revenue()?;
 
-    assert_that(
-        &revenue
+    assert_eq!(
+        revenue
             .iter()
             .find(|x| x.currency.token == ProjectCoin::Usdc.into())
-            .unwrap()
-            .amount
-            .u128(),
-    )
-    .is_equal_to(50_000);
+            .map(|x| x.amount.u128())
+            .unwrap_or_default(),
+        50_000
+    );
 
     Ok(())
 }
@@ -892,11 +891,11 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     let borrower_john = project.lending_platform_query_borrower(ProjectAccount::John)?;
 
     //  0.25 * (1_000_000 / 2 + 500_000 / 4) = 156_250
-    assert_that(&borrower_bob.accumulated_loan.u128()).is_equal_to(156_250);
-    assert_that(&borrower_bob.loan.amount.u128()).is_equal_to(1_500_000);
+    assert_eq!(borrower_bob.accumulated_loan.u128(), 156_250);
+    assert_eq!(borrower_bob.loan.amount.u128(), 1_500_000);
     //  0.25 * (500_000 / 2 + 1_000_000 / 4) = 125_000
-    assert_that(&borrower_john.accumulated_loan.u128()).is_equal_to(125_000);
-    assert_that(&borrower_john.loan.amount.u128()).is_equal_to(1_500_000);
+    assert_eq!(borrower_john.accumulated_loan.u128(), 125_000);
+    assert_eq!(borrower_john.loan.amount.u128(), 1_500_000);
 
     // repay half
     project.lending_platform_try_repay(
@@ -915,20 +914,20 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     let borrower_john = project.lending_platform_query_borrower(ProjectAccount::John)?;
 
     //  1_500_000 - (828_125 - 156_250) = 828_125
-    assert_that(&borrower_bob.accumulated_loan.u128()).is_equal_to(0);
-    assert_that(&borrower_bob.loan.amount.u128()).is_equal_to(828_125);
+    assert_eq!(borrower_bob.accumulated_loan.u128(), 0);
+    assert_eq!(borrower_bob.loan.amount.u128(), 828_125);
     //  1_500_000 - (812_500 - 125_000) = 812_500
-    assert_that(&borrower_john.accumulated_loan.u128()).is_equal_to(0);
-    assert_that(&borrower_john.loan.amount.u128()).is_equal_to(812_500);
+    assert_eq!(borrower_john.accumulated_loan.u128(), 0);
+    assert_eq!(borrower_john.loan.amount.u128(), 812_500);
 
     // check apr, bgl price
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
     let bgl_to_main_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
     // 0.2 * (828_125 + 812_500) / 1_000_000 = 0.328125
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.328125"));
+    assert_eq!(deposit_apr, str_to_dec("0.328125"));
     // (1_000_000 + 0.2 * (1_500_000 / 2 + 1_500_000 / 4)) / 1_000_000 = 1.225
-    assert_that(&bgl_to_main_price).is_equal_to(str_to_dec("1.225"));
+    assert_eq!(bgl_to_main_price, str_to_dec("1.225"));
 
     // wait 1/4 year and check loans
     project.wait(DELAY / 4);
@@ -936,23 +935,22 @@ fn multiple_borrow_and_repay() -> StdResult<()> {
     let borrower_bob = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
     let borrower_john = project.lending_platform_query_borrower(ProjectAccount::John)?;
 
-    assert_that(&borrower_bob.accumulated_loan.u128()).is_equal_to(51_758);
-    assert_that(&borrower_bob.loan.amount.u128()).is_equal_to(828_125);
-    assert_that(&borrower_john.accumulated_loan.u128()).is_equal_to(50_781);
-    assert_that(&borrower_john.loan.amount.u128()).is_equal_to(812_500);
+    assert_eq!(borrower_bob.accumulated_loan.u128(), 51_758);
+    assert_eq!(borrower_bob.loan.amount.u128(), 828_125);
+    assert_eq!(borrower_john.accumulated_loan.u128(), 50_781);
+    assert_eq!(borrower_john.loan.amount.u128(), 812_500);
 
     // check platform revenue
     let revenue = project.lending_platform_query_platform_revenue()?;
 
-    assert_that(
-        &revenue
+    assert_eq!(
+        revenue
             .iter()
             .find(|x| x.currency.token == ProjectCoin::Usdc.into())
-            .unwrap()
-            .amount
-            .u128(),
-    )
-    .is_equal_to(56_250);
+            .map(|x| x.amount.u128())
+            .unwrap_or_default(),
+        56_250
+    );
 
     Ok(())
 }
@@ -1061,17 +1059,17 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
     let stars_difference = stars_after - stars_before;
 
-    assert_that(&stars_difference).is_equal_to(1_200_000);
+    assert_eq!(stars_difference, 1_200_000);
     // 0.2 * 1_000_000 * ((365 + 14) * 24 * 3600) / (365 * 24 * 3600) = 207_671
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 207_671);
 
     // repay
     project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT / 10, ProjectCoin::Usdc)?;
 
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(80_000);
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(127_671);
+    assert_eq!(balances.regular.main_pool.u128(), 80_000);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 127_671);
 
     Ok(())
 }
@@ -1180,20 +1178,20 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
     let stars_difference = stars_after - stars_before;
 
-    assert_that(&stars_difference).is_equal_to(1_200_000);
+    assert_eq!(stars_difference, 1_200_000);
     // 0.2 * 1_000_000 * ((365 + 14) * 24 * 3600) / (365 * 24 * 3600) = 207_671
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 207_671);
 
     // repay
     project.lending_platform_try_repay(ProjectAccount::Bob, 1_207_671, ProjectCoin::Usdc)?;
 
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(207_671);
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.main_pool.u128(), 207_671);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 0);
 
-    assert_that(&balances.regular.borrowed.amount.u128()).is_equal_to(51_918);
-    assert_that(&balances.reserve.withdrawn.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.borrowed.amount.u128(), 51_918);
+    assert_eq!(balances.reserve.withdrawn.u128(), 0);
 
     Ok(())
 }
@@ -1302,20 +1300,20 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
     let stars_difference = stars_after - stars_before;
 
-    assert_that(&stars_difference).is_equal_to(1_200_000);
+    assert_eq!(stars_difference, 1_200_000);
     // 0.2 * 1_000_000 * ((365 + 14) * 24 * 3600) / (365 * 24 * 3600) = 207_671
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(207_671);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 207_671);
 
     // repay
     project.lending_platform_try_repay(ProjectAccount::Bob, 1_259_589, ProjectCoin::Usdc)?;
 
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(207_671);
-    assert_that(&balances.regular.accumulated_rewards.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.main_pool.u128(), 207_671);
+    assert_eq!(balances.regular.accumulated_rewards.u128(), 0);
 
-    assert_that(&balances.regular.borrowed.amount.u128()).is_equal_to(0);
-    assert_that(&balances.reserve.withdrawn.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.borrowed.amount.u128(), 0);
+    assert_eq!(balances.reserve.withdrawn.u128(), 0);
 
     Ok(())
 }
@@ -1408,7 +1406,7 @@ fn withdraw_from_reserve_limit() -> StdResult<()> {
     let res = project
         .lending_platform_try_borrow(ProjectAccount::Bob, 86 * AMOUNT + 1)
         .unwrap_err();
-    assert_error(&res, ContractError::LowAvailableLiquidity);
+    assert_error(res, ContractError::LowAvailableLiquidity);
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, 86 * AMOUNT)?;
 
@@ -1523,7 +1521,7 @@ fn borrow_and_withdraw_from_reserve_limit() -> StdResult<()> {
     let res = project
         .lending_platform_try_borrow(ProjectAccount::Bob, 86 * AMOUNT + 1)
         .unwrap_err();
-    assert_error(&res, ContractError::LowAvailableLiquidity);
+    assert_error(res, ContractError::LowAvailableLiquidity);
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, 45 * AMOUNT)?;
     project.wait(1);
@@ -1642,8 +1640,8 @@ fn borrow_and_repay_immediately() -> StdResult<()> {
 
     let borrower = project.lending_platform_query_borrower(ProjectAccount::Bob)?;
 
-    assert_that(&borrower.loan.amount.u128()).is_equal_to(0);
-    assert_that(&borrower.accumulated_loan.u128()).is_equal_to(0);
+    assert_eq!(borrower.loan.amount.u128(), 0);
+    assert_eq!(borrower.accumulated_loan.u128(), 0);
 
     Ok(())
 }
@@ -1739,7 +1737,7 @@ fn repay_withdraw_loop() -> StdResult<()> {
         project.wait(DELAY);
 
         let (_, ltv) = project.lending_platform_query_ltv_list(1, &None)?[0];
-        assert_that(&ltv.unwrap().to_string().as_str()).is_equal_to("0.625");
+        assert_eq!(ltv.unwrap().to_string().as_str(), "0.625");
 
         project.lending_platform_try_repay(ProjectAccount::Bob, 10 * AMOUNT, ProjectCoin::Usdc)?;
 
@@ -1756,10 +1754,10 @@ fn repay_withdraw_loop() -> StdResult<()> {
         let bgl_price_after =
             project.lending_platform_query_bgl_currency_to_main_currency_price()?;
 
-        assert_that(
-            &(Decimal::one() - bgl_price_before / bgl_price_after < str_to_dec("0.000000001")),
-        )
-        .is_equal_to(true);
+        assert_eq!(
+            (Decimal::one() - bgl_price_before / bgl_price_after < str_to_dec("0.000000001")),
+            true
+        );
     }
 
     Ok(())
@@ -1776,7 +1774,7 @@ fn deposit_improper_main_currency() -> StdResult<()> {
         .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Stars)
         .unwrap_err();
 
-    assert_error(&res, ContractError::WrongAssetType);
+    assert_error(res, ContractError::WrongAssetType);
 
     Ok(())
 }
@@ -1791,7 +1789,7 @@ fn deposit_zero() -> StdResult<()> {
         .lending_platform_try_deposit(ProjectAccount::Alice, DEPOSIT_AMOUNT, ProjectCoin::Usdc)
         .unwrap_err();
 
-    assert_error(&res, "Cannot transfer empty coins amount");
+    assert_error(res, "Cannot transfer empty coins amount");
 
     Ok(())
 }
@@ -1823,15 +1821,15 @@ fn deposit_default() -> StdResult<()> {
     let stars_difference = stars_before - stars_after;
     let bgl_stars_difference = bgl_stars_after - bgl_stars_before;
 
-    assert_that(&stars_difference).is_equal_to(DEPOSIT_AMOUNT);
-    assert_that(&bgl_stars_difference).is_equal_to(DEPOSIT_AMOUNT);
+    assert_eq!(stars_difference, DEPOSIT_AMOUNT);
+    assert_eq!(bgl_stars_difference, DEPOSIT_AMOUNT);
 
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(DEPOSIT_AMOUNT);
-    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_eq!(balances.regular.deposited.u128(), DEPOSIT_AMOUNT);
+    assert_eq!(balances.regular.main_pool.u128(), DEPOSIT_AMOUNT);
+    assert_eq!(balances.regular.bgl_supply.u128(), DEPOSIT_AMOUNT);
 
     Ok(())
 }
@@ -1843,7 +1841,7 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(bgl_price, str_to_dec("1"));
 
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
@@ -1853,12 +1851,12 @@ fn deposit_does_not_change_bgl_price() -> StdResult<()> {
 
     // deposit doesn't change bgl token price
     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(bgl_price, str_to_dec("1"));
 
     project.lending_platform_try_deposit(ProjectAccount::Bob, DEPOSIT_AMOUNT, ProjectCoin::Usdc)?;
 
     let bgl_price = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-    assert_that(&bgl_price).is_equal_to(str_to_dec("1"));
+    assert_eq!(bgl_price, str_to_dec("1"));
 
     Ok(())
 }
@@ -1924,7 +1922,7 @@ fn collection_address_duplication() -> StdResult<()> {
         )
         .unwrap_err();
 
-    assert_error(&res, ContractError::CollectionDuplication);
+    assert_error(res, ContractError::CollectionDuplication);
 
     Ok(())
 }
@@ -1994,7 +1992,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         )
         .unwrap_err();
 
-    assert_error(&res, "min collateral");
+    assert_error(res, "min collateral");
 
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
@@ -2014,7 +2012,7 @@ fn collateral_value_limitations() -> StdResult<()> {
         )
         .unwrap_err();
 
-    assert_error(&res, "min collateral");
+    assert_error(res, "min collateral");
 
     project.lending_platform_try_withdraw_collateral(
         ProjectAccount::Bob,
@@ -2050,7 +2048,7 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
-    assert_that(&balances.regular.deposited.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_eq!(balances.regular.deposited.u128(), DEPOSIT_AMOUNT);
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
@@ -2066,16 +2064,16 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     let stars_difference = stars_before - stars_after;
     let bgl_stars_difference = bgl_stars_after - bgl_stars_before;
 
-    assert_that(&stars_difference).is_equal_to(0);
-    assert_that(&bgl_stars_difference).is_equal_to(0);
+    assert_eq!(stars_difference, 0);
+    assert_eq!(bgl_stars_difference, 0);
 
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&balances.regular.deposited.u128()).is_equal_to(0);
-    assert_that(&balances.regular.unbonded.u128()).is_equal_to(0);
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(0);
-    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.deposited.u128(), 0);
+    assert_eq!(balances.regular.unbonded.u128(), 0);
+    assert_eq!(balances.regular.main_pool.u128(), 0);
+    assert_eq!(balances.regular.bgl_supply.u128(), 0);
 
     Ok(())
 }
@@ -2100,13 +2098,13 @@ fn withdraw_reserve_liquidity_default() -> StdResult<()> {
 
     // check contract balances
     let balances = project.lending_platform_query_balances()?;
-    assert_that(&balances.regular.bgl_supply.u128()).is_equal_to(DEPOSIT_AMOUNT);
+    assert_eq!(balances.regular.bgl_supply.u128(), DEPOSIT_AMOUNT);
 
     let admin_main_balance_before =
         project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc)?;
 
     let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token)?;
-    assert_that(&admin_bgl_balance).is_equal_to(0);
+    assert_eq!(admin_bgl_balance, 0);
 
     // unbond
     project.lending_platform_try_withdraw_reserve_liquidity(
@@ -2117,8 +2115,10 @@ fn withdraw_reserve_liquidity_default() -> StdResult<()> {
     let admin_main_balance_after =
         project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc)?;
 
-    assert_that(&(admin_main_balance_after - admin_main_balance_before))
-        .is_equal_to(INITIAL_LIQUIDITY);
+    assert_eq!(
+        (admin_main_balance_after - admin_main_balance_before),
+        INITIAL_LIQUIDITY
+    );
 
     Ok(())
 }
@@ -2150,17 +2150,17 @@ fn multiple_unbonding_positions() -> StdResult<()> {
     project.wait(config.unbonding_period / 4);
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 2, &bgl_token)?;
     let unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
-    assert_that(&unbonder.returned_and_unbonded.len()).is_equal_to(3);
+    assert_eq!(unbonder.returned_and_unbonded.len(), 3);
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
     let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT / 8);
+    assert_eq!((stars_after - stars_before), DEPOSIT_AMOUNT / 8);
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
     let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    assert_that(&(stars_after - stars_before)).is_equal_to(DEPOSIT_AMOUNT * 7 / 8);
+    assert_eq!((stars_after - stars_before), DEPOSIT_AMOUNT * 7 / 8);
 
     Ok(())
 }
@@ -2234,18 +2234,18 @@ fn min_available_liquidity_limitation_without_depositors() -> StdResult<()> {
     // 100_000_000_000 - 0 - 0.15 * 100_000_000_000 = 85_000_000_000
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(AMOUNT);
+    assert_eq!(total_available_to_borrow_liquidity.u128(), AMOUNT);
 
     let res = project
         .lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT + 1)
         .unwrap_err();
-    assert_error(&res, ContractError::LowAvailableLiquidity);
+    assert_error(res, ContractError::LowAvailableLiquidity);
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(0);
+    assert_eq!(total_available_to_borrow_liquidity.u128(), 0);
 
     Ok(())
 }
@@ -2328,18 +2328,18 @@ fn min_available_liquidity_limitation_with_depositors() -> StdResult<()> {
     // 500_000 + 85_000_000_000 = 85_000_500_000
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(85_000_500_000);
+    assert_eq!(total_available_to_borrow_liquidity.u128(), 85_000_500_000);
 
     let res = project
         .lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_001)
         .unwrap_err();
-    assert_error(&res, ContractError::LowAvailableLiquidity);
+    assert_error(res, ContractError::LowAvailableLiquidity);
 
     project.lending_platform_try_borrow(ProjectAccount::Bob, 85_000_500_000)?;
 
     let total_available_to_borrow_liquidity =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&total_available_to_borrow_liquidity.u128()).is_equal_to(0);
+    assert_eq!(total_available_to_borrow_liquidity.u128(), 0);
 
     Ok(())
 }
@@ -2366,14 +2366,14 @@ fn clear_unbonders_storage() -> StdResult<()> {
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT, &bgl_token)?;
 
     let unbonders = project.lending_platform_query_unbonder_list(9, &None)?;
-    assert_that(&unbonders.len()).is_equal_to(1);
+    assert_eq!(unbonders.len(), 1);
 
     // wait and withdraw
     project.wait(config.unbonding_period);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
 
     let unbonders = project.lending_platform_query_unbonder_list(9, &None)?;
-    assert_that(&unbonders.is_empty()).is_equal_to(true);
+    assert_eq!(unbonders.is_empty(), true);
 
     Ok(())
 }
@@ -2432,7 +2432,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
     )?;
 
     let collaterals = project.lending_platform_query_collateral_list(9, &None)?;
-    assert_that(&collaterals.len()).is_equal_to(1);
+    assert_eq!(collaterals.len(), 1);
 
     project.lending_platform_try_withdraw_collateral(
         ProjectAccount::Bob,
@@ -2443,7 +2443,7 @@ fn clear_collaterals_storage() -> StdResult<()> {
     )?;
 
     let collaterals = project.lending_platform_query_collateral_list(9, &None)?;
-    assert_that(&collaterals.is_empty()).is_equal_to(true);
+    assert_eq!(collaterals.is_empty(), true);
 
     Ok(())
 }
@@ -2506,12 +2506,12 @@ fn clear_borrowers_storage() -> StdResult<()> {
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT)?;
 
     let borrowers = project.lending_platform_query_borrower_list(9, &None)?;
-    assert_that(&borrowers.len()).is_equal_to(1);
+    assert_eq!(borrowers.len(), 1);
 
     project.lending_platform_try_repay(ProjectAccount::Bob, AMOUNT, ProjectCoin::Usdc)?;
 
     let borrowers = project.lending_platform_query_borrower_list(9, &None)?;
-    assert_that(&borrowers.is_empty()).is_equal_to(true);
+    assert_eq!(borrowers.is_empty(), true);
 
     Ok(())
 }
@@ -2585,8 +2585,8 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
     let bids =
         project.lending_platform_query_liquidation_bids_by_liquidator_address_list(9, &None)?;
 
-    assert_that(&liquidators.len()).is_equal_to(1);
-    assert_that(&bids.len()).is_equal_to(1);
+    assert_eq!(liquidators.len(), 1);
+    assert_eq!(bids.len(), 1);
 
     project.lending_platform_try_remove_bid(
         ProjectAccount::Alice,
@@ -2598,8 +2598,8 @@ fn clear_liquidators_and_bids_storage() -> StdResult<()> {
     let bids =
         project.lending_platform_query_liquidation_bids_by_liquidator_address_list(9, &None)?;
 
-    assert_that(&liquidators.is_empty()).is_equal_to(true);
-    assert_that(&bids.is_empty()).is_equal_to(true);
+    assert_eq!(liquidators.is_empty(), true);
+    assert_eq!(bids.is_empty(), true);
 
     Ok(())
 }
@@ -2676,7 +2676,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     project.lending_platform_try_borrow(ProjectAccount::Bob, AMOUNT_TO_BORROW)?;
 
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
-    assert_that(&deposit_apr).is_equal_to(str_to_dec(MAX_DEPOSIT_APR));
+    assert_eq!(deposit_apr, str_to_dec(MAX_DEPOSIT_APR));
 
     // deposit
     project.lending_platform_try_deposit(
@@ -2686,7 +2686,10 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     )?;
 
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
-    assert_that(&deposit_apr).is_equal_to(str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE));
+    assert_eq!(
+        deposit_apr,
+        str_to_dec(BORROW_APR) - str_to_dec(BORROW_FEE_RATE)
+    );
 
     // place bid
     project.lending_platform_try_place_bid(
@@ -2722,11 +2725,11 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
     let liquidation_bids_after =
         project.lending_platform_query_liquidation_bids_by_collection_address_list(9, &None)?;
 
-    assert_that(&collaterals_before).is_equal_to(collaterals_after);
-    assert_that(&liquidation_bids_before).is_equal_to(liquidation_bids_after);
+    assert_eq!(collaterals_before, collaterals_after);
+    assert_eq!(liquidation_bids_before, liquidation_bids_after);
 
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.2"));
+    assert_eq!(deposit_apr, str_to_dec("0.2"));
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
@@ -2746,7 +2749,7 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
 
     // liquidation reduces deposit apr
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.121764832705882352"));
+    assert_eq!(deposit_apr, str_to_dec("0.121764832705882352"));
 
     let ltv_after = project.lending_platform_query_conditional_ltv(
         ProjectAccount::Bob,
@@ -2796,9 +2799,9 @@ fn partial_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult
             }],
         }];
 
-    assert_that(&(ltv_after <= ltv_max)).is_equal_to(true);
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!((ltv_after <= ltv_max), true);
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -2953,9 +2956,9 @@ fn partial_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdRe
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.807693343846153846");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.807693343846153846");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3110,9 +3113,9 @@ fn partial_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdRe
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.807693343846153846");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.807693343846153846");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3267,9 +3270,9 @@ fn partial_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> S
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.807693343846153846");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.807693343846153846");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3418,9 +3421,9 @@ fn full_liquidation_single_liquidator_enough_bids_enough_funds() -> StdResult<()
             }],
         }];
 
-    assert_that(&ltv_after).is_equal_to(str_to_dec("0.727272727272727272"));
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after, str_to_dec("0.727272727272727272"));
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3575,9 +3578,9 @@ fn full_liquidation_single_liquidator_enough_bids_not_enough_funds() -> StdResul
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("2.2500033675");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "2.2500033675");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3732,9 +3735,9 @@ fn full_liquidation_single_liquidator_not_enough_bids_enough_funds() -> StdResul
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("2.2500033675");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "2.2500033675");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -3889,9 +3892,9 @@ fn full_liquidation_single_liquidator_not_enough_bids_not_enough_funds() -> StdR
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("2.2500033675");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "2.2500033675");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -4058,41 +4061,44 @@ fn single_discount_liquidation() -> StdResult<()> {
             }],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.715386687692307692");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.715386687692307692");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
     // 2 * 650 * 0.95 * 0.05 = 61.75
-    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(61_750_000);
-    assert_that(&balances_after).is_equal_to(Balances {
-        regular: RegularBalances {
-            deposited: Uint128::new(AMOUNT_TO_BORROW),
-            unbonded: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1571797519,
-                amount: Uint128::new(0),
+    assert_eq!(platform_revenue[1].amount.u128(), 61_750_000);
+    assert_eq!(
+        balances_after,
+        Balances {
+            regular: RegularBalances {
+                deposited: Uint128::new(AMOUNT_TO_BORROW),
+                unbonded: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1571797519,
+                    amount: Uint128::new(0),
+                },
+                accumulated_rewards: Uint128::new(0),
+                liquidation_bids: Uint128::new(
+                    LIQUIDATION_BID
+                        - 2 * (str_to_dec(COLLECTION_PRICE_AFTER)
+                            * u128_to_dec(DECIMALS_MULTIPLIER)
+                            * (Decimal::one() - str_to_dec(DISCOUNT)))
+                        .to_uint_ceil()
+                        .u128(),
+                ),
+                main_pool: Uint128::new(AMOUNT_TO_BORROW + 1_078),
+                bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
             },
-            accumulated_rewards: Uint128::new(0),
-            liquidation_bids: Uint128::new(
-                LIQUIDATION_BID
-                    - 2 * (str_to_dec(COLLECTION_PRICE_AFTER)
-                        * u128_to_dec(DECIMALS_MULTIPLIER)
-                        * (Decimal::one() - str_to_dec(DISCOUNT)))
-                    .to_uint_ceil()
-                    .u128(),
-            ),
-            main_pool: Uint128::new(AMOUNT_TO_BORROW + 1_078),
-            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
-        },
-        reserve: ReserveBalances {
-            deposited: Uint128::new(INITIAL_LIQUIDITY),
-            withdrawn: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1571797519,
-                // 1700 - 2 * 650 * 0.95 * 0.95 = 526.75
-                amount: Uint128::new(526_751_078),
+            reserve: ReserveBalances {
+                deposited: Uint128::new(INITIAL_LIQUIDITY),
+                withdrawn: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1571797519,
+                    // 1700 - 2 * 650 * 0.95 * 0.95 = 526.75
+                    amount: Uint128::new(526_751_078),
+                },
             },
-        },
-    });
+        }
+    );
 
     Ok(())
 }
@@ -4286,47 +4292,50 @@ fn multiple_discount_liquidation() -> StdResult<()> {
             ],
         }];
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.700002179411764705");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.700002179411764705");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
     // TODO: it's 61.75 actually
     // 2 * 650 * 0.95 * 0.05 = 61.2
-    assert_that(&platform_revenue[1].amount.u128()).is_equal_to(61_200_000);
-    assert_that(&balances_after).is_equal_to(Balances {
-        regular: RegularBalances {
-            deposited: Uint128::new(AMOUNT_TO_BORROW),
-            unbonded: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1571797529,
-                amount: Uint128::new(0),
+    assert_eq!(platform_revenue[1].amount.u128(), 61_200_000);
+    assert_eq!(
+        balances_after,
+        Balances {
+            regular: RegularBalances {
+                deposited: Uint128::new(AMOUNT_TO_BORROW),
+                unbonded: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1571797529,
+                    amount: Uint128::new(0),
+                },
+                accumulated_rewards: Uint128::new(0),
+                liquidation_bids: Uint128::new(
+                    LIQUIDATION_BID
+                        - (str_to_dec(COLLECTION_PRICE_AFTER)
+                            * u128_to_dec(DECIMALS_MULTIPLIER)
+                            * (Decimal::one() - str_to_dec(DISCOUNT_1)))
+                        .to_uint_ceil()
+                        .u128()
+                        - (str_to_dec(COLLECTION_PRICE_AFTER)
+                            * u128_to_dec(DECIMALS_MULTIPLIER)
+                            * (Decimal::one() - str_to_dec(DISCOUNT_0)))
+                        .to_uint_ceil()
+                        .u128(),
+                ),
+                main_pool: Uint128::new(AMOUNT_TO_BORROW + 1_185),
+                bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
             },
-            accumulated_rewards: Uint128::new(0),
-            liquidation_bids: Uint128::new(
-                LIQUIDATION_BID
-                    - (str_to_dec(COLLECTION_PRICE_AFTER)
-                        * u128_to_dec(DECIMALS_MULTIPLIER)
-                        * (Decimal::one() - str_to_dec(DISCOUNT_1)))
-                    .to_uint_ceil()
-                    .u128()
-                    - (str_to_dec(COLLECTION_PRICE_AFTER)
-                        * u128_to_dec(DECIMALS_MULTIPLIER)
-                        * (Decimal::one() - str_to_dec(DISCOUNT_0)))
-                    .to_uint_ceil()
-                    .u128(),
-            ),
-            main_pool: Uint128::new(AMOUNT_TO_BORROW + 1_185),
-            bgl_supply: Uint128::new(AMOUNT_TO_BORROW),
-        },
-        reserve: ReserveBalances {
-            deposited: Uint128::new(INITIAL_LIQUIDITY),
-            withdrawn: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1571797529,
-                // 1700 - 680 * 0.95 - 680 * 0.8 * 0.95 = 537.2
-                amount: Uint128::new(537_201_185),
+            reserve: ReserveBalances {
+                deposited: Uint128::new(INITIAL_LIQUIDITY),
+                withdrawn: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1571797529,
+                    // 1700 - 680 * 0.95 - 680 * 0.8 * 0.95 = 537.2
+                    amount: Uint128::new(537_201_185),
+                },
             },
-        },
-    });
+        }
+    );
 
     Ok(())
 }
@@ -4577,9 +4586,9 @@ fn multiple_collection_liquidation() -> StdResult<()> {
         },
     ]);
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.7100013475");
-    assert_that(&collaterals_after).is_equal_to(expected_collateral);
-    assert_that(&liquidation_bids_after).is_equal_to(expected_liquidation_bids_after);
+    assert_eq!(ltv_after.to_string().as_str(), "0.7100013475");
+    assert_eq!(collaterals_after, expected_collateral);
+    assert_eq!(liquidation_bids_after, expected_liquidation_bids_after);
 
     Ok(())
 }
@@ -4729,10 +4738,16 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
         .find(|x| x.currency.token == ProjectCoin::Usdc.into());
     let balances_before = project.lending_platform_query_balances()?;
 
-    assert_that(&stars_revenue_before).is_equal_to(None);
-    assert_that(&balances_before.regular.main_pool.u128()).is_equal_to(AMOUNT_TO_BORROW);
-    assert_that(&balances_before.regular.borrowed.amount.u128()).is_equal_to(AMOUNT_TO_BORROW);
-    assert_that(&balances_before.regular.liquidation_bids.u128()).is_equal_to(LIQUIDATION_BID);
+    assert_eq!(stars_revenue_before, None);
+    assert_eq!(balances_before.regular.main_pool.u128(), AMOUNT_TO_BORROW);
+    assert_eq!(
+        balances_before.regular.borrowed.amount.u128(),
+        AMOUNT_TO_BORROW
+    );
+    assert_eq!(
+        balances_before.regular.liquidation_bids.u128(),
+        LIQUIDATION_BID
+    );
 
     project.scheduler_try_push(ProjectAccount::Scheduler, &targets)?;
 
@@ -4746,16 +4761,22 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let balances_after = project.lending_platform_query_balances()?;
 
     // 2 * (700 * 0.9) * 0.05 = 63
-    assert_that(&stars_revenue_after).is_equal_to(63 * DECIMALS_MULTIPLIER);
+    assert_eq!(stars_revenue_after, 63 * DECIMALS_MULTIPLIER);
     // main pool is unchanged as we don't have rewards
-    assert_that(&balances_after.regular.main_pool.u128())
-        .is_equal_to(1_700 * DECIMALS_MULTIPLIER + 1_078);
+    assert_eq!(
+        balances_after.regular.main_pool.u128(),
+        1_700 * DECIMALS_MULTIPLIER + 1_078
+    );
     // 1_700 - 2 * (700 * 0.9) * 0.95 = 503
-    assert_that(&balances_after.regular.borrowed.amount.u128())
-        .is_equal_to(503 * DECIMALS_MULTIPLIER + 1_078);
+    assert_eq!(
+        balances_after.regular.borrowed.amount.u128(),
+        503 * DECIMALS_MULTIPLIER + 1_078
+    );
     // 2_000 - 2 * (700 * 0.9) = 740
-    assert_that(&balances_after.regular.liquidation_bids.u128())
-        .is_equal_to(740 * DECIMALS_MULTIPLIER);
+    assert_eq!(
+        balances_after.regular.liquidation_bids.u128(),
+        740 * DECIMALS_MULTIPLIER
+    );
 
     // add more collateral and borrow again
     // push prices to oracle
@@ -4808,16 +4829,24 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let balances_after = project.lending_platform_query_balances()?;
 
     // limited by deposit amount
-    assert_that(&balances_after.regular.borrowed.amount.u128())
-        .is_equal_to(1_700 * DECIMALS_MULTIPLIER);
+    assert_eq!(
+        balances_after.regular.borrowed.amount.u128(),
+        1_700 * DECIMALS_MULTIPLIER
+    );
     // 503 + 1_700 - 1_700 = 503
-    assert_that(&balances_after.reserve.borrowed.amount.u128())
-        .is_equal_to(503 * DECIMALS_MULTIPLIER + 1_078);
-    assert_that(&balances_after.regular.main_pool.u128())
-        .is_equal_to(1_700 * DECIMALS_MULTIPLIER + 1_078);
+    assert_eq!(
+        balances_after.reserve.borrowed.amount.u128(),
+        503 * DECIMALS_MULTIPLIER + 1_078
+    );
+    assert_eq!(
+        balances_after.regular.main_pool.u128(),
+        1_700 * DECIMALS_MULTIPLIER + 1_078
+    );
     // 740 + 2_000 = 2_740
-    assert_that(&balances_after.regular.liquidation_bids.u128())
-        .is_equal_to(2_740 * DECIMALS_MULTIPLIER);
+    assert_eq!(
+        balances_after.regular.liquidation_bids.u128(),
+        2_740 * DECIMALS_MULTIPLIER
+    );
 
     project.scheduler_try_push(ProjectAccount::Scheduler, &targets)?;
 
@@ -4831,17 +4860,24 @@ fn deposit_borrow_liquidate_balances() -> StdResult<()> {
     let balances_after = project.lending_platform_query_balances()?;
 
     // 63 + 2 * (650 * 0.9) * 0.05 = 121.5
-    assert_that(&stars_revenue_after).is_equal_to(121_500_000);
+    assert_eq!(stars_revenue_after, 121_500_000);
     // 1700 - (2 * (650 * 0.9) * 0.95 - 503) = 1091.5
-    assert_that(&balances_after.regular.borrowed.amount.u128()).is_equal_to(1_091_500_000 + 2_475);
+    assert_eq!(
+        balances_after.regular.borrowed.amount.u128(),
+        1_091_500_000 + 2_475
+    );
     // 503 - min(2 * (650 * 0.9) * 0.95, 503) = 0
-    assert_that(&balances_after.reserve.borrowed.amount.u128()).is_equal_to(0);
+    assert_eq!(balances_after.reserve.borrowed.amount.u128(), 0);
     // main pool is unchanged as we don't have rewards
-    assert_that(&balances_after.regular.main_pool.u128())
-        .is_equal_to(1_700 * DECIMALS_MULTIPLIER + 2_475);
+    assert_eq!(
+        balances_after.regular.main_pool.u128(),
+        1_700 * DECIMALS_MULTIPLIER + 2_475
+    );
     // 2_740 - 2 * (650 * 0.9) = 1_570
-    assert_that(&balances_after.regular.liquidation_bids.u128())
-        .is_equal_to(1_570 * DECIMALS_MULTIPLIER);
+    assert_eq!(
+        balances_after.regular.liquidation_bids.u128(),
+        1_570 * DECIMALS_MULTIPLIER
+    );
 
     Ok(())
 }
@@ -4990,11 +5026,11 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     )?;
 
     // 570 / 800 = 0.7125
-    assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
+    assert_eq!(ltv_before.to_string().as_str(), "0.71250056483066971");
 
     let available_to_borrow =
         project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
-    assert_that(&available_to_borrow.u128()).is_equal_to(11_817_730);
+    assert_eq!(available_to_borrow.u128(), 11_817_730);
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
@@ -5012,11 +5048,11 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     )?;
 
     // 570 / 700 = 0.814286359806479669
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
+    assert_eq!(ltv_after.to_string().as_str(), "0.814286359806479669");
 
     let available_to_borrow =
         project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
-    assert_that(&available_to_borrow.u128()).is_equal_to(0);
+    assert_eq!(available_to_borrow.u128(), 0);
 
     // process with liquidations
     let borrowers = project
@@ -5045,19 +5081,22 @@ fn ltv_before_and_after_full_liquidation() -> StdResult<()> {
     let collateral_by_owner =
         project.lending_platform_query_collateral_by_owner(ProjectAccount::Bob)?;
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    assert_eq!(ltv_after.to_string().as_str(), "0");
     // borrower was removed from storage
-    assert_that(&ltv_list_after).is_equal_to(vec![]);
-    assert_that(&available_to_borrow.u128()).is_equal_to(0);
+    assert_eq!(ltv_list_after, vec![]);
+    assert_eq!(available_to_borrow.u128(), 0);
     // borrower was removed from storage
-    assert_that(&borrower).is_equal_to(Borrower::default());
+    assert_eq!(borrower, Borrower::default());
 
-    assert_that(&collateral).is_equal_to(vec![Collateral {
-        owner: ProjectAccount::Alice.into(),
-        token_item_list: to_token_item_list(&["4"], date + 100),
-    }]);
+    assert_eq!(
+        collateral,
+        vec![Collateral {
+            owner: ProjectAccount::Alice.into(),
+            token_item_list: to_token_item_list(&["4"], date + 100),
+        }]
+    );
 
-    assert_that(&collateral_by_owner).is_equal_to(vec![]);
+    assert_eq!(collateral_by_owner, vec![]);
 
     Ok(())
 }
@@ -5077,7 +5116,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::NoParameters);
+    assert_error(res, ContractError::NoParameters);
 
     let res = project
         .lending_platform_try_update_common_config(
@@ -5089,7 +5128,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Unauthorized);
 
     let res = project
         .lending_platform_try_update_common_config(
@@ -5101,7 +5140,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Unauthorized);
 
     let res = project
         .lending_platform_try_update_common_config(
@@ -5113,7 +5152,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::NoParameters);
+    assert_error(res, ContractError::NoParameters);
 
     // transfer admin
     project.lending_platform_try_update_address_config(
@@ -5131,7 +5170,7 @@ fn authorization() -> StdResult<()> {
     let res = project
         .lending_platform_try_accept_admin_role(ProjectAccount::Alice)
         .unwrap_err();
-    assert_error(&res, ContractError::TransferAdminDeadline);
+    assert_error(res, ContractError::TransferAdminDeadline);
 
     project.lending_platform_try_update_address_config(
         ProjectAccount::Admin,
@@ -5308,40 +5347,46 @@ fn big_numbers() -> StdResult<()> {
     project.wait(DELAY);
 
     let res = project.lending_platform_query_platform_revenue()?;
-    assert_that(&res).is_equal_to(vec![Funds {
-        amount: Uint128::new(2 * AMOUNT),
-        currency: Currency::new(&Token::new_cw20(&ProjectToken::Atom.into()), 6),
-    }]);
+    assert_eq!(
+        res,
+        vec![Funds {
+            amount: Uint128::new(2 * AMOUNT),
+            currency: Currency::new(&Token::new_cw20(&ProjectToken::Atom.into()), 6),
+        }]
+    );
 
     let res = project.lending_platform_query_balances()?;
-    assert_that(&res).is_equal_to(Balances {
-        regular: RegularBalances {
-            deposited: Uint128::new(AMOUNT),
-            unbonded: Uint128::new(AMOUNT / 2),
-            borrowed: Vault {
-                creation_date: 1887157419,
-                amount: Uint128::new(AMOUNT / 2),
+    assert_eq!(
+        res,
+        Balances {
+            regular: RegularBalances {
+                deposited: Uint128::new(AMOUNT),
+                unbonded: Uint128::new(AMOUNT / 2),
+                borrowed: Vault {
+                    creation_date: 1887157419,
+                    amount: Uint128::new(AMOUNT / 2),
+                },
+                accumulated_rewards: Uint128::new(AMOUNT * 12 / 10),
+                liquidation_bids: Uint128::new(AMOUNT),
+                main_pool: Uint128::new(AMOUNT),
+                bgl_supply: Uint128::new(AMOUNT),
             },
-            accumulated_rewards: Uint128::new(AMOUNT * 12 / 10),
-            liquidation_bids: Uint128::new(AMOUNT),
-            main_pool: Uint128::new(AMOUNT),
-            bgl_supply: Uint128::new(AMOUNT),
-        },
-        reserve: ReserveBalances {
-            deposited: Uint128::new(10_100_000_000_000),
-            withdrawn: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1887157419,
-                amount: Uint128::new(AMOUNT / 10),
+            reserve: ReserveBalances {
+                deposited: Uint128::new(10_100_000_000_000),
+                withdrawn: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1887157419,
+                    amount: Uint128::new(AMOUNT / 10),
+                },
             },
-        },
-    });
+        }
+    );
 
     let res = project.lending_platform_query_bgl_currency_to_main_currency_price()?;
-    assert_that(&res).is_equal_to(str_to_dec("2.2"));
+    assert_eq!(res, str_to_dec("2.2"));
 
     let res = project.lending_platform_query_conditional_deposit_apr(&Some(AMOUNT), &None)?;
-    assert_that(&res).is_equal_to(str_to_dec("0.08"));
+    assert_eq!(res, str_to_dec("0.08"));
 
     let res = project.lending_platform_query_conditional_ltv(
         ProjectAccount::Bob,
@@ -5350,13 +5395,13 @@ fn big_numbers() -> StdResult<()> {
         &Some(2 * AMOUNT),
         &None,
     )?;
-    assert_that(&res).is_equal_to(str_to_dec("1.025"));
+    assert_eq!(res, str_to_dec("1.025"));
 
     let res = project.lending_platform_query_total_available_to_borrow_liquidity()?;
-    assert_that(&res).is_equal_to(Uint128::new(17_060_000_000_000));
+    assert_eq!(res, Uint128::new(17_060_000_000_000));
 
     let res = project.lending_platform_query_available_to_borrow(ProjectAccount::Bob, &None)?;
-    assert_that(&res).is_equal_to(Uint128::new(818_181_818_181));
+    assert_eq!(res, Uint128::new(818_181_818_181));
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
@@ -5499,7 +5544,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             ProjectCoin::Usdc,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::OwnCollateralBids);
+    assert_error(res, ContractError::OwnCollateralBids);
 
     let res = project
         .lending_platform_try_place_bid(
@@ -5513,7 +5558,7 @@ fn place_bid_own_collateral() -> StdResult<()> {
             ProjectCoin::Usdc,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::NftIsNotFound);
+    assert_error(res, ContractError::NftIsNotFound);
 
     project.lending_platform_try_place_bid(
         ProjectAccount::Alice,
@@ -5528,7 +5573,8 @@ fn place_bid_own_collateral() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(
+    assert_eq!(
+        bids[0].token_id_list,
         vec!["4"]
             .into_iter()
             .map(|x| x.to_string())
@@ -5643,7 +5689,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             ProjectCoin::Usdc,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::NftIsNotFound);
+    assert_error(res, ContractError::NftIsNotFound);
 
     let res = project
         .lending_platform_try_update_bid(
@@ -5661,7 +5707,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
             ProjectCoin::Usdc,
         )
         .unwrap_err();
-    assert_error(&res, ContractError::NftDuplication);
+    assert_error(res, ContractError::NftDuplication);
 
     project.lending_platform_try_update_bid(
         ProjectAccount::Alice,
@@ -5677,7 +5723,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(to_string_vec(&["4", "5"]));
+    assert_eq!(bids[0].token_id_list, to_string_vec(&["4", "5"]));
 
     project.lending_platform_try_update_bid(
         ProjectAccount::Alice,
@@ -5693,7 +5739,8 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(
+    assert_eq!(
+        bids[0].token_id_list,
         vec!["5"]
             .into_iter()
             .map(|x| x.to_string())
@@ -5722,7 +5769,7 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(vec![]);
+    assert_eq!(bids[0].token_id_list, Vec::<String>::new());
 
     project.lending_platform_try_deposit_collateral(
         ProjectAccount::Bob,
@@ -5746,7 +5793,8 @@ fn update_bid_replace_tokens() -> StdResult<()> {
 
     let bids = project
         .lending_platform_query_liquidation_bids_by_collection_address(ProjectNft::Gopniks)?;
-    assert_that(&bids[0].token_id_list).is_equal_to(
+    assert_eq!(
+        bids[0].token_id_list,
         vec!["6"]
             .into_iter()
             .map(|x| x.to_string())
@@ -5905,7 +5953,7 @@ fn market_maker_offer_liquidation() -> StdResult<()> {
     )?;
 
     // 570 / 800 = 0.7125
-    assert_that(&ltv_before.to_string().as_str()).is_equal_to("0.71250056483066971");
+    assert_eq!(ltv_before.to_string().as_str(), "0.71250056483066971");
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
@@ -5923,17 +5971,17 @@ fn market_maker_offer_liquidation() -> StdResult<()> {
     )?;
 
     // 570 / 700 = 0.814286359806479669
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0.814286359806479669");
+    assert_eq!(ltv_after.to_string().as_str(), "0.814286359806479669");
 
     // check market maker offers
     let OffersResponse { price_list, .. } =
         project.market_maker_query_offer_prices(ProjectNft::Gopniks)?;
-    assert_that(&price_list.len()).is_equal_to(2);
+    assert_eq!(price_list.len(), 2);
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(AMOUNT_TO_BORROW);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.main_pool.u128(), AMOUNT_TO_BORROW);
+    assert_eq!(balances.regular.liquidation_bids.u128(), 0);
 
     // process with liquidations
     let borrowers = project
@@ -5966,27 +6014,27 @@ fn market_maker_offer_liquidation() -> StdResult<()> {
     // check balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&ltv_after.to_string().as_str()).is_equal_to("0");
+    assert_eq!(ltv_after.to_string().as_str(), "0");
     // borrower was removed from storage
-    assert_that(&ltv_list_after).is_equal_to(vec![]);
+    assert_eq!(ltv_list_after, vec![]);
     // borrower was removed from storage
-    assert_that(&borrower).is_equal_to(Borrower::default());
+    assert_eq!(borrower, Borrower::default());
 
     // collateral is completely removed as it was sent to market maker
-    assert_that(&collateral).is_equal_to(vec![]);
-    assert_that(&collateral_by_owner).is_equal_to(vec![]);
-    assert_that(&price_list.len()).is_equal_to(1);
+    assert_eq!(collateral, vec![]);
+    assert_eq!(collateral_by_owner, vec![]);
+    assert_eq!(price_list.len(), 1);
 
     // 570 + (700 - 570 - 0.05 * 700) = 665
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(665 * DECIMALS_MULTIPLIER);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(0);
+    assert_eq!(balances.regular.main_pool.u128(), 665 * DECIMALS_MULTIPLIER);
+    assert_eq!(balances.regular.liquidation_bids.u128(), 0);
 
     let res = project.query_all_nft(project.get_market_maker_address());
     let (_collection, token_info) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_that(&token_info.tokens.contains(&"4".to_string())).is_equal_to(true);
+    assert_eq!(token_info.tokens.contains(&"4".to_string()), true);
 
     Ok(())
 }
@@ -6173,8 +6221,8 @@ fn regular_bid_and_market_maker_offer_liquidation() -> StdResult<()> {
         &None,
     )?;
 
-    assert_that(&ltv_before_alice.to_string().as_str()).is_equal_to("0.72957436399217221");
-    assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("0.72957436399217221");
+    assert_eq!(ltv_before_alice.to_string().as_str(), "0.72957436399217221");
+    assert_eq!(ltv_before_bob.to_string().as_str(), "0.72957436399217221");
 
     // check market maker offers
     let OffersResponse {
@@ -6186,13 +6234,13 @@ fn regular_bid_and_market_maker_offer_liquidation() -> StdResult<()> {
         ..
     } = project.market_maker_query_offer_prices(ProjectNft::Pinjeons)?;
 
-    assert_that(&price_list_gopniks.len()).is_equal_to(2);
-    assert_that(&price_list_pingeons.len()).is_equal_to(2);
+    assert_eq!(price_list_gopniks.len(), 2);
+    assert_eq!(price_list_pingeons.len(), 2);
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(2 * AMOUNT_TO_BORROW);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(LIQUIDATION_BID);
+    assert_eq!(balances.regular.main_pool.u128(), 2 * AMOUNT_TO_BORROW);
+    assert_eq!(balances.regular.liquidation_bids.u128(), LIQUIDATION_BID);
 
     // process with liquidations
     let borrowers = project
@@ -6235,30 +6283,36 @@ fn regular_bid_and_market_maker_offer_liquidation() -> StdResult<()> {
     // check balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&ltv_after_alice.to_string().as_str()).is_equal_to("0");
-    assert_that(&ltv_after_bob.to_string().as_str()).is_equal_to("0");
+    assert_eq!(ltv_after_alice.to_string().as_str(), "0");
+    assert_eq!(ltv_after_bob.to_string().as_str(), "0");
 
     // collateral is completely removed as it was sent to market maker
-    assert_that(&collateral_pingeons).is_equal_to(vec![Collateral {
-        owner: ProjectAccount::Kate.into(),
-        token_item_list: to_token_item_list(&["4"], date + 2_700_000),
-    }]);
-    assert_that(&collateral_gopniks).is_equal_to(vec![]);
+    assert_eq!(
+        collateral_pingeons,
+        vec![Collateral {
+            owner: ProjectAccount::Kate.into(),
+            token_item_list: to_token_item_list(&["4"], date + 2_700_000),
+        }]
+    );
+    assert_eq!(collateral_gopniks, vec![]);
 
-    assert_that(&price_list_gopniks.len()).is_equal_to(1);
-    assert_that(&price_list_pingeons.len()).is_equal_to(2);
+    assert_eq!(price_list_gopniks.len(), 1);
+    assert_eq!(price_list_pingeons.len(), 2);
 
     // main_currency_pool_addition = 0.95 * 700 + 0.95 * 0.9 * 700 = 1263.5
     // main_pool = 1000 + 17 + (1263.5 - 17 - 1000) = 1263.5
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(1_263_500_000);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(1_370 * DECIMALS_MULTIPLIER);
+    assert_eq!(balances.regular.main_pool.u128(), 1_263_500_000);
+    assert_eq!(
+        balances.regular.liquidation_bids.u128(),
+        1_370 * DECIMALS_MULTIPLIER
+    );
 
     let res = project.query_all_nft(project.get_market_maker_address());
     let (_collection, token_info) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_that(&token_info.tokens.contains(&"1".to_string())).is_equal_to(true);
+    assert_eq!(token_info.tokens.contains(&"1".to_string()), true);
 
     Ok(())
 }
@@ -6398,7 +6452,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         &None,
         &None,
     )?;
-    assert_that(&ltv.to_string().as_str()).is_equal_to("0.904761911934357709");
+    assert_eq!(ltv.to_string().as_str(), "0.904761911934357709");
 
     // process with liquidations
     let borrowers = project
@@ -6436,27 +6490,33 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
 
-    assert_that(&ltv.to_string().as_str()).is_equal_to("0.714285735714285714");
+    assert_eq!(ltv.to_string().as_str(), "0.714285735714285714");
 
-    assert_that(&collateral_alice).is_equal_to(vec![QueryCollateralsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        collateral: vec![Collateral {
-            owner: ProjectAccount::Alice.into(),
-            token_item_list: to_token_item_list(&["4"], date + 1),
-        }],
-    }]);
+    assert_eq!(
+        collateral_alice,
+        vec![QueryCollateralsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            collateral: vec![Collateral {
+                owner: ProjectAccount::Alice.into(),
+                token_item_list: to_token_item_list(&["4"], date + 1),
+            }],
+        }]
+    );
 
-    assert_that(&collateral_bob).is_equal_to(vec![QueryCollateralsResponseItem {
-        address: ProjectNft::Gopniks.into(),
-        collateral: vec![Collateral {
-            owner: ProjectAccount::Bob.into(),
-            token_item_list: to_token_item_list(&["6"], date),
-        }],
-    }]);
+    assert_eq!(
+        collateral_bob,
+        vec![QueryCollateralsResponseItem {
+            address: ProjectNft::Gopniks.into(),
+            collateral: vec![Collateral {
+                owner: ProjectAccount::Bob.into(),
+                token_item_list: to_token_item_list(&["6"], date),
+            }],
+        }]
+    );
 
-    assert_that(&price_list_gopniks.len()).is_equal_to(1);
-    assert_that(&platform_balance).is_equal_to(105_700_000_000);
-    assert_that(&token_info.tokens.contains(&"5".to_string())).is_equal_to(true);
+    assert_eq!(price_list_gopniks.len(), 1);
+    assert_eq!(platform_balance, 105_700_000_000);
+    assert_eq!(token_info.tokens.contains(&"5".to_string()), true);
 
     Ok(())
 }
@@ -6650,8 +6710,11 @@ fn regular_bid_and_market_maker_offer_liquidation_on_single_user() -> StdResult<
         &None,
     )?;
 
-    assert_that(&ltv_before_alice.to_string().as_str()).is_equal_to("0.729008117706747843");
-    assert_that(&ltv_before_bob.to_string().as_str()).is_equal_to("1.275764205986808726");
+    assert_eq!(
+        ltv_before_alice.to_string().as_str(),
+        "0.729008117706747843"
+    );
+    assert_eq!(ltv_before_bob.to_string().as_str(), "1.275764205986808726");
 
     // check market maker offers
     let OffersResponse {
@@ -6663,13 +6726,13 @@ fn regular_bid_and_market_maker_offer_liquidation_on_single_user() -> StdResult<
         ..
     } = project.market_maker_query_offer_prices(ProjectNft::Pinjeons)?;
 
-    assert_that(&price_list_gopniks.len()).is_equal_to(2);
-    assert_that(&price_list_pingeons.len()).is_equal_to(2);
+    assert_eq!(price_list_gopniks.len(), 2);
+    assert_eq!(price_list_pingeons.len(), 2);
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(2 * AMOUNT_TO_BORROW);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(LIQUIDATION_BID);
+    assert_eq!(balances.regular.main_pool.u128(), 2 * AMOUNT_TO_BORROW);
+    assert_eq!(balances.regular.liquidation_bids.u128(), LIQUIDATION_BID);
 
     // process with liquidations
     let borrowers = project
@@ -6712,31 +6775,40 @@ fn regular_bid_and_market_maker_offer_liquidation_on_single_user() -> StdResult<
     // check balances
     let balances = project.lending_platform_query_balances()?;
 
-    assert_that(&ltv_after_alice.to_string().as_str()).is_equal_to("0");
-    assert_that(&ltv_after_bob.to_string().as_str()).is_equal_to("0");
+    assert_eq!(ltv_after_alice.to_string().as_str(), "0");
+    assert_eq!(ltv_after_bob.to_string().as_str(), "0");
 
     // collateral is completely removed as it was sent to market maker
-    assert_that(&collateral_pingeons).is_equal_to(vec![Collateral {
-        owner: ProjectAccount::Kate.into(),
-        token_item_list: to_token_item_list(&["4"], date + 2_600_000),
-    }]);
-    assert_that(&collateral_gopniks).is_equal_to(vec![]);
+    assert_eq!(
+        collateral_pingeons,
+        vec![Collateral {
+            owner: ProjectAccount::Kate.into(),
+            token_item_list: to_token_item_list(&["4"], date + 2_600_000),
+        }]
+    );
+    assert_eq!(collateral_gopniks, vec![]);
 
-    assert_that(&price_list_gopniks.len()).is_equal_to(1);
-    assert_that(&price_list_pingeons.len()).is_equal_to(1);
+    assert_eq!(price_list_gopniks.len(), 1);
+    assert_eq!(price_list_pingeons.len(), 1);
 
     // main_currency_pool_addition = 0.95 * 700 + 0.95 * 700 + 0.95 * 0.9 * 400 = 1672
     // platform_revenue = (1 - 0.95) * 700 + (1 - 0.95) * 700 + (1 - 0.95) * 0.9 * 400 = 88
     // main_pool = 1000 + 88 + (1672 - 88 - 1500) = 1172
-    assert_that(&balances.regular.main_pool.u128()).is_equal_to(1_172 * DECIMALS_MULTIPLIER);
-    assert_that(&balances.regular.liquidation_bids.u128()).is_equal_to(1_640 * DECIMALS_MULTIPLIER);
+    assert_eq!(
+        balances.regular.main_pool.u128(),
+        1_172 * DECIMALS_MULTIPLIER
+    );
+    assert_eq!(
+        balances.regular.liquidation_bids.u128(),
+        1_640 * DECIMALS_MULTIPLIER
+    );
 
     let res = project.query_all_nft(project.get_market_maker_address());
     let (_collection, token_info) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_that(&token_info.tokens.contains(&"1".to_string())).is_equal_to(true);
+    assert_eq!(token_info.tokens.contains(&"1".to_string()), true);
 
     Ok(())
 }
@@ -6931,7 +7003,7 @@ fn outdated_prices() -> StdResult<()> {
             }],
         )
         .unwrap_err();
-    assert_error(&res, ContractError::OutdatedPrice);
+    assert_error(res, ContractError::OutdatedPrice);
 
     // reduce prices to trigger liquidation
     project.oracle_try_update_prices(
@@ -7091,20 +7163,23 @@ fn outdated_prices() -> StdResult<()> {
 
     // all users have ltv > ltv_max but some of them will be ignored due to outdated prices
     let ltv_list = project.lending_platform_query_ltv_list(9, &None)?;
-    assert_that(&ltv_list).is_equal_to(sort_ltv_list(&[
-        (
-            ProjectAccount::Alice,
-            Some(str_to_dec("2.137556134785522175")),
-        ),
-        (
-            ProjectAccount::Bob,
-            Some(str_to_dec("2.175056780124043148")),
-        ),
-        (
-            ProjectAccount::John,
-            Some(str_to_dec("2.167556328548175174")),
-        ),
-    ]));
+    assert_eq!(
+        ltv_list,
+        sort_ltv_list(&[
+            (
+                ProjectAccount::Alice,
+                Some(str_to_dec("2.137556134785522175")),
+            ),
+            (
+                ProjectAccount::Bob,
+                Some(str_to_dec("2.175056780124043148")),
+            ),
+            (
+                ProjectAccount::John,
+                Some(str_to_dec("2.167556328548175174")),
+            ),
+        ])
+    );
 
     // process with liquidations
     project.lending_platform_try_place_bid(
@@ -7126,26 +7201,29 @@ fn outdated_prices() -> StdResult<()> {
     let targets = get_targets(&project, &borrowers)?;
 
     let borrower_alice = project.lending_platform_query_borrower(ProjectAccount::Alice)?;
-    assert_that(&borrower_alice.loan.amount.u128()).is_equal_to(570_000_100);
+    assert_eq!(borrower_alice.loan.amount.u128(), 570_000_100);
 
     project.scheduler_try_push(ProjectAccount::Scheduler, &targets)?;
 
     // alice got liquidation as her ltv was known
     let borrower_alice = project.lending_platform_query_borrower(ProjectAccount::Alice)?;
-    assert_that(&borrower_alice.loan.amount.u128()).is_equal_to(330_006_100);
+    assert_eq!(borrower_alice.loan.amount.u128(), 330_006_100);
 
     let ltv_list = project.lending_platform_query_ltv_list(9, &None)?;
-    assert_that(&ltv_list).is_equal_to(sort_ltv_list(&[
-        (
-            ProjectAccount::Alice,
-            Some(str_to_dec("0.727272727272727272")),
-        ),
-        (ProjectAccount::Bob, Some(str_to_dec("4.72517033675841896"))),
-        (
-            ProjectAccount::John,
-            Some(str_to_dec("7.237781639540988524")),
-        ),
-    ]));
+    assert_eq!(
+        ltv_list,
+        sort_ltv_list(&[
+            (
+                ProjectAccount::Alice,
+                Some(str_to_dec("0.727272727272727272")),
+            ),
+            (ProjectAccount::Bob, Some(str_to_dec("4.72517033675841896"))),
+            (
+                ProjectAccount::John,
+                Some(str_to_dec("7.237781639540988524")),
+            ),
+        ])
+    );
 
     // update all prices to liquidate other users
     project.wait(1);
@@ -7193,39 +7271,45 @@ fn outdated_prices() -> StdResult<()> {
     let targets = get_targets(&project, &borrowers)?;
 
     let ltv_list = project.lending_platform_query_ltv_list(9, &None)?;
-    assert_that(&ltv_list).is_equal_to(sort_ltv_list(&[
-        (
-            ProjectAccount::Alice,
-            Some(str_to_dec("0.727272727272727272")),
-        ),
-        (
-            ProjectAccount::Bob,
-            Some(str_to_dec("2.362585187108454939")),
-        ),
-        (
-            ProjectAccount::John,
-            Some(str_to_dec("3.618890848459023615")),
-        ),
-    ]));
+    assert_eq!(
+        ltv_list,
+        sort_ltv_list(&[
+            (
+                ProjectAccount::Alice,
+                Some(str_to_dec("0.727272727272727272")),
+            ),
+            (
+                ProjectAccount::Bob,
+                Some(str_to_dec("2.362585187108454939")),
+            ),
+            (
+                ProjectAccount::John,
+                Some(str_to_dec("3.618890848459023615")),
+            ),
+        ])
+    );
 
     project.scheduler_try_push(ProjectAccount::Scheduler, &targets)?;
 
     // bob and john got liquidation
     let ltv_list = project.lending_platform_query_ltv_list(9, &None)?;
-    assert_that(&ltv_list).is_equal_to(sort_ltv_list(&[
-        (
-            ProjectAccount::Alice,
-            Some(str_to_dec("0.727272727272727272")),
-        ),
-        (
-            ProjectAccount::Bob,
-            Some(str_to_dec("0.727272727272727272")),
-        ),
-        (
-            ProjectAccount::John,
-            Some(str_to_dec("0.727272727272727272")),
-        ),
-    ]));
+    assert_eq!(
+        ltv_list,
+        sort_ltv_list(&[
+            (
+                ProjectAccount::Alice,
+                Some(str_to_dec("0.727272727272727272")),
+            ),
+            (
+                ProjectAccount::Bob,
+                Some(str_to_dec("0.727272727272727272")),
+            ),
+            (
+                ProjectAccount::John,
+                Some(str_to_dec("0.727272727272727272")),
+            ),
+        ])
+    );
 
     Ok(())
 }
@@ -7390,13 +7474,16 @@ fn ltv_list_for_collections_removed_from_oracle() -> StdResult<()> {
 
     // owners of removed from oracle collections will be ignored
     let ltv_list = project.lending_platform_query_ltv_list(9, &None)?;
-    assert_that(&ltv_list).is_equal_to(sort_ltv_list(&[
-        (ProjectAccount::Alice, Some(str_to_dec("0.4"))),
-        (
-            ProjectAccount::Bob,
-            Some(str_to_dec("0.133333333333333333")),
-        ),
-    ]));
+    assert_eq!(
+        ltv_list,
+        sort_ltv_list(&[
+            (ProjectAccount::Alice, Some(str_to_dec("0.4"))),
+            (
+                ProjectAccount::Bob,
+                Some(str_to_dec("0.133333333333333333")),
+            ),
+        ])
+    );
 
     Ok(())
 }
@@ -7481,8 +7568,9 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
     let kate_bids = project
         .lending_platform_query_liquidation_bids_by_liquidator_address(ProjectAccount::Kate)?;
 
-    assert_that(&alice_bids).is_equal_to(vec![
-        QueryLiquidationBidsByCollectionAddressListResponseItem {
+    assert_eq!(
+        alice_bids,
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
             collection_address: ProjectNft::Gopniks.into(),
             liquidation_bids: vec![LiquidationBid {
                 creation_date: date,
@@ -7492,10 +7580,11 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
             }],
-        },
-    ]);
-    assert_that(&kate_bids).is_equal_to(vec![
-        QueryLiquidationBidsByCollectionAddressListResponseItem {
+        },]
+    );
+    assert_eq!(
+        kate_bids,
+        vec![QueryLiquidationBidsByCollectionAddressListResponseItem {
             collection_address: ProjectNft::Gopniks.into(),
             liquidation_bids: vec![LiquidationBid {
                 creation_date: date,
@@ -7505,8 +7594,8 @@ fn query_liquidation_bids_by_liquidator_address_default() -> StdResult<()> {
                 discount: Decimal::zero(),
                 bid_type: BidType::LiquidationBid,
             }],
-        },
-    ]);
+        },]
+    );
 
     Ok(())
 }
@@ -7617,41 +7706,47 @@ fn rebond() -> StdResult<()> {
             let deposit_apr =
                 project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
 
-            assert_that(&alice_unbonder).is_equal_to(Unbonder {
-                returned_and_unbonded: vec![(
-                    Uint128::new(250_000),
-                    Vault {
-                        creation_date: 1603333419,
-                        amount: Uint128::new(300_000),
+            assert_eq!(
+                alice_unbonder,
+                Unbonder {
+                    returned_and_unbonded: vec![(
+                        Uint128::new(250_000),
+                        Vault {
+                            creation_date: 1603333419,
+                            amount: Uint128::new(300_000),
+                        },
+                    )],
+                }
+            );
+            assert_eq!(alice_bgl_token, 750_000);
+            assert_eq!(
+                balances,
+                Balances {
+                    regular: RegularBalances {
+                        deposited: Uint128::new(1_000_000),
+                        unbonded: Uint128::new(300_000),
+                        borrowed: Vault {
+                            creation_date: 1603635819,
+                            amount: Uint128::new(1_000_000),
+                        },
+                        accumulated_rewards: Uint128::new(201_917),
+                        liquidation_bids: Uint128::new(0),
+                        main_pool: Uint128::new(1_000_000),
+                        bgl_supply: Uint128::new(1_000_000),
                     },
-                )],
-            });
-            assert_that(&alice_bgl_token).is_equal_to(750_000);
-            assert_that(&balances).is_equal_to(Balances {
-                regular: RegularBalances {
-                    deposited: Uint128::new(1_000_000),
-                    unbonded: Uint128::new(300_000),
-                    borrowed: Vault {
-                        creation_date: 1603635819,
-                        amount: Uint128::new(1_000_000),
+                    reserve: ReserveBalances {
+                        deposited: Uint128::new(100_000_000_000),
+                        withdrawn: Uint128::new(0),
+                        borrowed: Vault {
+                            creation_date: 1603635819,
+                            amount: Uint128::new(0),
+                        },
                     },
-                    accumulated_rewards: Uint128::new(201_917),
-                    liquidation_bids: Uint128::new(0),
-                    main_pool: Uint128::new(1_000_000),
-                    bgl_supply: Uint128::new(1_000_000),
-                },
-                reserve: ReserveBalances {
-                    deposited: Uint128::new(100_000_000_000),
-                    withdrawn: Uint128::new(0),
-                    borrowed: Vault {
-                        creation_date: 1603635819,
-                        amount: Uint128::new(0),
-                    },
-                },
-            });
+                }
+            );
 
-            assert_that(&total_available_to_borrow.u128()).is_equal_to(60_000_000_000);
-            assert_that(&deposit_apr).is_equal_to(str_to_dec("0.285714285714285714"));
+            assert_eq!(total_available_to_borrow.u128(), 60_000_000_000);
+            assert_eq!(deposit_apr, str_to_dec("0.285714285714285714"));
         }
     }
 
@@ -7665,41 +7760,47 @@ fn rebond() -> StdResult<()> {
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
     let deposit_apr = project.lending_platform_query_conditional_deposit_apr(&None, &None)?;
 
-    assert_that(&alice_unbonder).is_equal_to(Unbonder {
-        returned_and_unbonded: vec![(
-            Uint128::new(250_000),
-            Vault {
-                creation_date: 1603333419,
-                amount: Uint128::new(300_000),
+    assert_eq!(
+        alice_unbonder,
+        Unbonder {
+            returned_and_unbonded: vec![(
+                Uint128::new(250_000),
+                Vault {
+                    creation_date: 1603333419,
+                    amount: Uint128::new(300_000),
+                },
+            )],
+        }
+    );
+    assert_eq!(alice_bgl_token, 750_000);
+    assert_eq!(
+        balances,
+        Balances {
+            regular: RegularBalances {
+                deposited: Uint128::new(1_000_000),
+                unbonded: Uint128::new(300_000),
+                borrowed: Vault {
+                    creation_date: 1603938219,
+                    amount: Uint128::new(1_000_000),
+                },
+                accumulated_rewards: Uint128::new(203_834),
+                liquidation_bids: Uint128::new(0),
+                main_pool: Uint128::new(1_000_000),
+                bgl_supply: Uint128::new(1_000_000),
             },
-        )],
-    });
-    assert_that(&alice_bgl_token).is_equal_to(750_000);
-    assert_that(&balances).is_equal_to(Balances {
-        regular: RegularBalances {
-            deposited: Uint128::new(1_000_000),
-            unbonded: Uint128::new(300_000),
-            borrowed: Vault {
-                creation_date: 1603938219,
-                amount: Uint128::new(1_000_000),
+            reserve: ReserveBalances {
+                deposited: Uint128::new(100_000_000_000),
+                withdrawn: Uint128::new(0),
+                borrowed: Vault {
+                    creation_date: 1603938219,
+                    amount: Uint128::new(0),
+                },
             },
-            accumulated_rewards: Uint128::new(203_834),
-            liquidation_bids: Uint128::new(0),
-            main_pool: Uint128::new(1_000_000),
-            bgl_supply: Uint128::new(1_000_000),
-        },
-        reserve: ReserveBalances {
-            deposited: Uint128::new(100_000_000_000),
-            withdrawn: Uint128::new(0),
-            borrowed: Vault {
-                creation_date: 1603938219,
-                amount: Uint128::new(0),
-            },
-        },
-    });
+        }
+    );
 
-    assert_that(&total_available_to_borrow.u128()).is_equal_to(60_000_000_000);
-    assert_that(&deposit_apr).is_equal_to(str_to_dec("0.285714285714285714"));
+    assert_eq!(total_available_to_borrow.u128(), 60_000_000_000);
+    assert_eq!(deposit_apr, str_to_dec("0.285714285714285714"));
 
     Ok(())
 }
