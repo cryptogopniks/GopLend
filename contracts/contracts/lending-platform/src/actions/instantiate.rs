@@ -1,8 +1,8 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw2::set_contract_version;
+use cw_gopniks::assets::Currency;
 
 use goplend_base::{
-    assets::{Currency, Token},
     converters::str_to_dec,
     error::ContractError,
     lending_platform::{
@@ -37,9 +37,7 @@ pub fn try_instantiate(
 
     let bgl_currency = msg
         .bgl_currency
-        .map(|x| -> StdResult<Currency<Token>> {
-            Ok(Currency::new(&x.token.verify(deps.api)?, x.decimals))
-        })
+        .map(|x| -> StdResult<_> { Ok(Currency::new(&x.token.verify(deps.api)?, x.decimals)) })
         .transpose()?;
 
     ADDRESS_CONFIG.save(

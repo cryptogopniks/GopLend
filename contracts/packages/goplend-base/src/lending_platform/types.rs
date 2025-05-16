@@ -2,8 +2,22 @@ use std::cmp::Ordering;
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, Uint128};
+use cw_gopniks::assets::{Currency, Token};
 
-use crate::assets::{Currency, Funds, Token};
+#[cw_serde]
+pub struct Funds<T: From<Token>> {
+    pub amount: Uint128,
+    pub currency: Currency<T>,
+}
+
+impl<T: From<Token> + Clone> Funds<T> {
+    pub fn new(amount: impl Into<Uint128> + Clone, currency: &Currency<T>) -> Self {
+        Self {
+            amount: amount.into(),
+            currency: currency.to_owned(),
+        }
+    }
+}
 
 #[cw_serde]
 pub struct Collection<A: ToString> {
@@ -219,12 +233,6 @@ pub struct CommonConfig {
     pub unbonding_period: u64,
     pub collateral_min_value: Uint128,
     pub borrowers_reserve_fraction_ratio: Decimal,
-}
-
-#[cw_serde]
-pub struct TransferAdminState {
-    pub new_admin: Addr,
-    pub deadline: u64,
 }
 
 #[cw_serde]

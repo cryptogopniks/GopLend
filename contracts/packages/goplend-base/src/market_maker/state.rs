@@ -1,17 +1,13 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::{
-    lending_platform::types::{CollectionInfo, TransferAdminState},
-    market_maker::types::Config,
-};
+use crate::{lending_platform::types::CollectionInfo, market_maker::types::Config};
 
 pub const CONTRACT_NAME: &str = "goplend-market-maker";
 
 /// Stores user functions pause flag
 pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
 
 /// collection offers sorted in descending order by collection address
 pub const OFFERS: Map<&Addr, Vec<Uint128>> = Map::new("offers_by_collection");

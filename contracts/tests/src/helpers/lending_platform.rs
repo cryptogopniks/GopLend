@@ -1,15 +1,15 @@
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
+use cw_gopniks::assets::{Currency, Token, TokenUnverified};
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
     converters::str_to_dec,
     error::parse_err,
     lending_platform::{
         msg::{ExecuteMsg, QueryMsg},
         types::{
             AddressConfig, Balances, Borrower, Collateral, Collection, CollectionInfo,
-            CommonConfig, LiquidationBid, LiquidationItem, Liquidator, Proposal,
+            CommonConfig, Funds, LiquidationBid, LiquidationItem, Liquidator, Proposal,
             QueryAmountsResponse, QueryBorrowersResponseItem, QueryCollateralsResponseItem,
             QueryCollectionsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
             QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,

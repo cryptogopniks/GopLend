@@ -1,24 +1,21 @@
 use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
-
+use cw_gopniks::assets::Token;
 use cw_storage_plus::Bound;
-use goplend_base::{
-    assets::{Funds, Token},
-    lending_platform::{
-        state::{
-            ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
-            LIQUIDATION_BIDS, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS, RATE_CONFIG, UNBONDERS,
-        },
-        types::{
-            AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig,
-            LiquidationBid, Liquidator, QueryAmountsResponse, QueryBorrowersResponseItem,
-            QueryCollateralsResponseItem, QueryCollectionsResponseItem,
-            QueryLiquidationBidsByCollectionAddressListResponseItem,
-            QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,
-            QueryProposalsResponseItem, QueryUnbondersResponseItem, QueryUserInfoResponse,
-            RateConfig, Unbonder,
-        },
+
+use goplend_base::lending_platform::{
+    state::{
+        ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
+        LIQUIDATION_BIDS, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS, RATE_CONFIG, UNBONDERS,
     },
-    utils::unwrap_field,
+    types::{
+        AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig, Funds,
+        LiquidationBid, Liquidator, QueryAmountsResponse, QueryBorrowersResponseItem,
+        QueryCollateralsResponseItem, QueryCollectionsResponseItem,
+        QueryLiquidationBidsByCollectionAddressListResponseItem,
+        QueryLiquidationBidsByLiquidatorAddressListResponseItem, QueryLiquidatorsResponseItem,
+        QueryProposalsResponseItem, QueryUnbondersResponseItem, QueryUserInfoResponse, RateConfig,
+        Unbonder,
+    },
 };
 
 use crate::{helpers, math};
@@ -444,7 +441,7 @@ pub fn query_ltv_list(
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+    let oracle = address_config.oracle.as_ref().unwrap();
     let ltv_max = math::calc_ltv_max(
         rate_config.bid_min_rate,
         rate_config.discount_max_rate,
@@ -594,7 +591,7 @@ pub fn query_available_to_borrow(
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+    let oracle = address_config.oracle.as_ref().unwrap();
     let borrower_address = deps.api.addr_validate(&borrower)?;
     let borrower = BORROWERS
         .load(deps.storage, &borrower_address)
@@ -675,9 +672,9 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
         bid_min_rate,
         ..
     } = RATE_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(oracle, "oracle")?;
+    let oracle = oracle.as_ref().unwrap();
     let main_denom = main_currency.token.try_get_native()?;
-    let bgl_token = unwrap_field(bgl_currency, "bgl_currency")?.token;
+    let bgl_token = bgl_currency.unwrap().token;
 
     // balances
     let main_token_balance = deps.querier.query_balance(user, main_denom)?.amount;

@@ -1,6 +1,6 @@
 use cw_storage_plus::{Item, Map};
 
-use crate::{lending_platform::types::TransferAdminState, oracle::types::Config};
+use crate::oracle::types::Config;
 
 pub const CONTRACT_NAME: &str = "goplend-oracle";
 
@@ -9,8 +9,6 @@ pub const MAX_PRICE_UPDATE_PERIOD: u64 = 90;
 pub const DECIMALS_MULTIPLIER: u128 = 10_000;
 
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
-
 pub const UPDATE_DATE: Item<u64> = Item::new("update_date");
 
 /// usd_price_with_decimals_2 by collection_address_postfix                                                 \

@@ -1,14 +1,11 @@
+use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{Addr, StdResult, Uint128};
+use cw_gopniks::assets::{Currency, TokenUnverified};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 
-use serde::Serialize;
 use strum::IntoEnumIterator;
 
-use goplend_base::{
-    assets::{Currency, TokenUnverified},
-    converters::str_to_dec,
-    error::parse_err,
-};
+use goplend_base::{converters::str_to_dec, error::parse_err};
 
 use crate::helpers::suite::{
     core::Project,

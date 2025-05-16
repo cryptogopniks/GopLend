@@ -1,4 +1,5 @@
 use cosmwasm_std::{testing::MockStorage, Addr, Binary, Decimal, Empty, StdResult};
+use cw_gopniks::assets::Token;
 use cw_multi_test::{
     App, AppResponse, BankKeeper, DistributionKeeper, FailingModule, GovFailingModule,
     IbcFailingModule, MockApiBech32, StakeKeeper, WasmKeeper,
@@ -7,7 +8,7 @@ use cw_multi_test::{
 use anyhow::Error;
 use strum_macros::{Display, EnumIter, IntoStaticStr};
 
-use goplend_base::{assets::Token, converters::str_to_dec, math::P12};
+use goplend_base::{constants::P12, converters::str_to_dec};
 
 pub const DEFAULT_FUNDS_AMOUNT: u128 = P12; // give each user 1 asset (1 CRD, 1 INJ, etc.)
 pub const INCREASED_FUNDS_AMOUNT: u128 = 100 * P12; // give admin such amount of assets to ensure providing 1e6 of assets to each pair

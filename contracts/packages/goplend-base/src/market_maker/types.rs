@@ -1,7 +1,8 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Uint128};
+use cw_gopniks::assets::Token;
 
-use crate::{assets::Token, lending_platform::types::CollectionInfo};
+use crate::lending_platform::types::CollectionInfo;
 
 #[cw_serde]
 pub struct CollectionOwner<T: ToString> {

@@ -22,7 +22,6 @@ cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw721 = { workspace = true }
 cw721-base = { workspace = true }
-serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 thiserror = { workspace = true }
@@ -31,6 +30,7 @@ cw-multi-test = { workspace = true }
 pretty_assertions = { workspace = true }
 
 goplend-base = { workspace = true }
+cw-gopniks = { workspace = true }
 
 lending-platform = { workspace = true }
 oracle = { workspace = true }

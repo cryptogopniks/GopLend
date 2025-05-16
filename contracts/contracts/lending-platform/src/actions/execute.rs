@@ -2,11 +2,17 @@ use cosmwasm_std::{
     to_json_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response,
     StdResult, Uint128, WasmMsg,
 };
+use cw_gopniks::{
+    assets::{
+        self, add_funds_to_exec_msg, get_transfer_msg, Currency, InfoResp, Token, TokenUnverified,
+    },
+    auth::{Auth, TransferAdminState},
+    nft::get_approve_all_msgs,
+};
 
 use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
     converters::u128_to_dec,
     error::ContractError,
     lending_platform::{
@@ -14,19 +20,15 @@ use goplend_base::{
             ADDRESS_CONFIG, BALANCES, BORROWERS, COLLATERALS, COLLECTIONS, COMMON_CONFIG,
             IS_PAUSED, LIQUIDATION_BIDS, LIQUIDATION_BID_MAX_COLLECTION_AMOUNT,
             LIQUIDATION_BID_MAX_TOKEN_AMOUNT, LIQUIDATORS, PLATFORM_REVENUE, PROPOSALS,
-            PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
+            PROPOSAL_COUNTER, RATE_CONFIG, TRANSFER_ADMIN_TIMEOUT, UNBONDERS,
         },
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            Collection, CollectionInfo, CommonConfig, LiquidationBid, LiquidationItem, Liquidator,
-            Proposal, ProposalStatus, ProposalType, TokenItem, TransferAdminState, Unbonder, Vault,
+            Collection, CollectionInfo, CommonConfig, Funds, LiquidationBid, LiquidationItem,
+            Liquidator, Proposal, ProposalStatus, ProposalType, TokenItem, Unbonder, Vault,
         },
     },
     minter,
-    utils::{
-        add_funds_to_exec_msg, check_authorization, check_funds, get_collection_operator_approvals,
-        get_transfer_msg, unwrap_field, AuthType, FundsType,
-    },
 };
 
 use crate::{helpers, math};
@@ -39,26 +41,23 @@ pub fn try_deposit(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
 
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(address_config.minter, "minter")?;
+    let bgl_currency = common_config.bgl_currency.unwrap();
+    let minter_address = address_config.minter.unwrap();
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != common_config.main_currency.token {
+    if asset_token != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -76,16 +75,15 @@ pub fn try_deposit(
     balances.regular.deposited += asset_amount;
     balances.regular.main_pool += asset_amount;
     balances.regular.bgl_supply += bgl_token_amount;
-
     BALANCES.save(deps.storage, &balances)?;
 
     // mint bgl_token to sender
     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: minter_address.to_string(),
         msg: to_json_binary(&minter::msg::ExecuteMsg::Mint {
-            denom_or_address: bgl_currency.token.get_denom_or_address(),
+            denom_or_address: bgl_currency.token.get_symbol(),
             amount: bgl_token_amount,
-            recipient: Some(sender_address.to_string()),
+            recipient: Some(sender.to_string()),
         })?,
         funds: vec![],
     });
@@ -103,32 +101,26 @@ pub fn try_unbond(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+    let bgl_currency = common_config.bgl_currency.unwrap();
 
     if asset_amount.is_zero() {
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != bgl_currency.token {
+    if asset_token != bgl_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
     // update balances
     helpers::accumulate_expected_rewards(deps.storage, block_time)?;
     let mut balances = BALANCES.load(deps.storage)?;
-
     let main_token_amount = math::calc_unbonded_main_token_amount(
         asset_amount,
         balances.regular.main_pool,
@@ -137,11 +129,10 @@ pub fn try_unbond(
     );
 
     balances.regular.unbonded += main_token_amount;
-
     BALANCES.save(deps.storage, &balances)?;
 
     // create unbonding position to withdraw main token later
-    UNBONDERS.update(deps.storage, &sender_address, |x| -> StdResult<Unbonder> {
+    UNBONDERS.update(deps.storage, &sender, |x| -> StdResult<Unbonder> {
         let returned_and_unbonded = (
             asset_amount,
             Vault {
@@ -164,7 +155,6 @@ pub fn try_unbond(
                 }
 
                 unbonder.returned_and_unbonded.push(returned_and_unbonded);
-
                 unbonder
             }
             None => Unbonder {
@@ -185,20 +175,12 @@ pub fn try_rebond(
     creation_date: u64,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
+    let bgl_currency = common_config.bgl_currency.unwrap();
 
-    let mut unbonder = UNBONDERS.load(deps.storage, &sender_address)?;
+    let mut unbonder = UNBONDERS.load(deps.storage, &sender)?;
     let (returned, unbonded) = unbonder
         .returned_and_unbonded
         .iter()
@@ -213,16 +195,16 @@ pub fn try_rebond(
     })?;
 
     // remove unbonding position to unlock bgl token
-    let msg = get_transfer_msg(&sender_address, *returned, &bgl_currency.token)?;
+    let msg = get_transfer_msg(&sender, *returned, &bgl_currency.token)?;
 
     unbonder
         .returned_and_unbonded
         .retain(|(_returned, unbonded)| unbonded.creation_date != creation_date);
 
     if unbonder.returned_and_unbonded.is_empty() {
-        UNBONDERS.remove(deps.storage, &sender_address);
+        UNBONDERS.remove(deps.storage, &sender);
     } else {
-        UNBONDERS.save(deps.storage, &sender_address, &unbonder)?;
+        UNBONDERS.save(deps.storage, &sender, &unbonder)?;
     }
 
     Ok(Response::new()
@@ -232,23 +214,17 @@ pub fn try_rebond(
 
 pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
 
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let bgl_currency = unwrap_field(common_config.bgl_currency, "bgl_currency")?;
-    let minter_address = unwrap_field(address_config.minter, "minter")?;
+    let bgl_currency = common_config.bgl_currency.unwrap();
+    let minter_address = address_config.minter.unwrap();
 
     let mut amount_to_burn = Uint128::zero();
     let mut amount_to_withdraw = Uint128::zero();
-    let mut unbonder = UNBONDERS.load(deps.storage, &sender_address)?;
+    let mut unbonder = UNBONDERS.load(deps.storage, &sender)?;
 
     unbonder
         .returned_and_unbonded
@@ -264,9 +240,9 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         });
 
     if unbonder.returned_and_unbonded.is_empty() {
-        UNBONDERS.remove(deps.storage, &sender_address);
+        UNBONDERS.remove(deps.storage, &sender);
     } else {
-        UNBONDERS.save(deps.storage, &sender_address, &unbonder)?;
+        UNBONDERS.save(deps.storage, &sender, &unbonder)?;
     }
 
     if amount_to_withdraw.is_zero() {
@@ -318,7 +294,7 @@ pub fn try_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respon
         )?
         .into(),
         get_transfer_msg(
-            &sender_address,
+            &sender,
             amount_to_withdraw,
             &common_config.main_currency.token,
         )?,
@@ -336,14 +312,8 @@ pub fn try_deposit_collateral(
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
 
     if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
@@ -375,10 +345,10 @@ pub fn try_deposit_collateral(
     // query collection prices
     let block_time = env.block.time.seconds();
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle, "oracle")?;
+    let oracle = address_config.oracle.as_ref().unwrap();
 
     // check if nfts are on user balance
-    helpers::check_collections_holder(deps.as_ref(), &sender_address, &collections)?;
+    helpers::check_collections_holder(deps.as_ref(), &sender, &collections)?;
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -418,11 +388,11 @@ pub fn try_deposit_collateral(
                     Some(mut collaterals) => {
                         let current_collateral = collaterals
                             .iter()
-                            .find(|collateral| collateral.owner == sender_address);
+                            .find(|collateral| collateral.owner == sender);
 
                         if current_collateral.is_none() {
                             collaterals.push(Collateral {
-                                owner: sender_address.to_owned(),
+                                owner: sender.to_owned(),
                                 token_item_list: vec![],
                             });
                         }
@@ -430,7 +400,7 @@ pub fn try_deposit_collateral(
                         collaterals = collaterals
                             .into_iter()
                             .map(|mut collateral| {
-                                if collateral.owner == sender_address {
+                                if collateral.owner == sender {
                                     for token_id in token_id_list {
                                         if collateral
                                             .token_item_list
@@ -455,7 +425,7 @@ pub fn try_deposit_collateral(
                     }
                     None => {
                         vec![Collateral {
-                            owner: sender_address.clone(),
+                            owner: sender.clone(),
                             token_item_list: token_id_list
                                 .iter()
                                 .map(|id| TokenItem {
@@ -478,7 +448,7 @@ pub fn try_deposit_collateral(
         .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
 
     let collection_and_collateral_list =
-        helpers::get_collaterals_by_borrower(&collateral_list, &sender_address);
+        helpers::get_collaterals_by_borrower(&collateral_list, &sender);
 
     let collection_addresses_full: Vec<String> = collection_and_collateral_list
         .iter()
@@ -517,14 +487,8 @@ pub fn try_withdraw_collateral(
     collections: Vec<CollectionInfo<String>>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
 
     if collections.iter().any(|x| x.token_id_list.is_empty()) {
         Err(ContractError::EmptyCollectionList)?;
@@ -556,7 +520,7 @@ pub fn try_withdraw_collateral(
 
     // query collection prices
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let oracle = &unwrap_field(address_config.oracle.clone(), "oracle")?;
+    let oracle = address_config.oracle.as_ref().unwrap();
 
     // check if nfts are on contract balance
     helpers::check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
@@ -577,7 +541,7 @@ pub fn try_withdraw_collateral(
         // add transfer msgs
         for token_id in &token_id_list {
             let cw721_msg = Cw721ExecuteMsg::TransferNft {
-                recipient: sender_address.to_string(),
+                recipient: sender.to_string(),
                 token_id: token_id.to_string(),
             };
 
@@ -595,7 +559,7 @@ pub fn try_withdraw_collateral(
             .load(deps.storage, &collection_address)?
             .into_iter()
             .map(|mut collateral| {
-                if collateral.owner == sender_address {
+                if collateral.owner == sender {
                     collateral
                         .token_item_list
                         .retain(|item| !token_id_list.contains(&item.id));
@@ -619,7 +583,7 @@ pub fn try_withdraw_collateral(
         .collect::<StdResult<Vec<(Addr, Vec<Collateral>)>>>()?;
 
     let collection_and_collateral_list =
-        helpers::get_collaterals_by_borrower(&collateral_list, &sender_address);
+        helpers::get_collaterals_by_borrower(&collateral_list, &sender);
 
     let collection_addresses: Vec<String> = collection_and_collateral_list
         .iter()
@@ -650,15 +614,13 @@ pub fn try_withdraw_collateral(
         rate_config.discount_max_rate,
         rate_config.discount_min_rate,
     );
-    let borrower = BORROWERS
-        .load(deps.storage, &sender_address)
-        .unwrap_or_default();
+    let borrower = BORROWERS.load(deps.storage, &sender).unwrap_or_default();
     let ltv = helpers::get_conditional_ltv(
         deps.as_ref(),
         &address_config,
         &rate_config,
         ltv_max,
-        &sender_address,
+        &sender,
         &borrower,
         block_time,
         None,
@@ -683,14 +645,8 @@ pub fn try_borrow(
     amount: Uint128,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
 
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
@@ -701,9 +657,7 @@ pub fn try_borrow(
         rate_config.discount_min_rate,
     );
 
-    let mut borrower = BORROWERS
-        .load(deps.storage, &sender_address)
-        .unwrap_or_default();
+    let mut borrower = BORROWERS.load(deps.storage, &sender).unwrap_or_default();
     borrower.accumulated_loan = math::calc_accumulated_loan(
         rate_config.borrow_apr,
         borrower.accumulated_loan,
@@ -713,7 +667,7 @@ pub fn try_borrow(
     );
     borrower.loan.creation_date = block_time;
     borrower.loan.amount += amount;
-    BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+    BORROWERS.save(deps.storage, &sender, &borrower)?;
 
     // check ltv
     let ltv = helpers::get_conditional_ltv(
@@ -721,7 +675,7 @@ pub fn try_borrow(
         &address_config,
         &rate_config,
         ltv_max,
-        &sender_address,
+        &sender,
         &borrower,
         block_time,
         None,
@@ -774,7 +728,7 @@ pub fn try_borrow(
     BALANCES.save(deps.storage, &balances)?;
 
     // create send msg
-    let msg = get_transfer_msg(&sender_address, amount, &common_config.main_currency.token)?;
+    let msg = get_transfer_msg(&sender, amount, &common_config.main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
@@ -791,16 +745,11 @@ pub fn try_repay(
     let mut response = Response::new().add_attribute("action", "try_repay");
 
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
@@ -809,12 +758,12 @@ pub fn try_repay(
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != common_config.main_currency.token {
+    if asset_token != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
     // accumulate loan
-    let mut borrower = BORROWERS.load(deps.storage, &sender_address)?;
+    let mut borrower = BORROWERS.load(deps.storage, &sender)?;
     borrower.accumulated_loan = math::calc_accumulated_loan(
         rate_config.borrow_apr,
         borrower.accumulated_loan,
@@ -831,7 +780,7 @@ pub fn try_repay(
 
     if !residue.is_zero() {
         response = response.add_message(get_transfer_msg(
-            &sender_address,
+            &sender,
             residue,
             &common_config.main_currency.token,
         )?);
@@ -861,9 +810,9 @@ pub fn try_repay(
 
     // update states
     if borrower.accumulated_loan.is_zero() && borrower.loan.amount.is_zero() {
-        BORROWERS.remove(deps.storage, &sender_address);
+        BORROWERS.remove(deps.storage, &sender);
     } else {
-        BORROWERS.save(deps.storage, &sender_address, &borrower)?;
+        BORROWERS.save(deps.storage, &sender, &borrower)?;
     }
 
     helpers::accumulate_expected_rewards(deps.storage, block_time)?;
@@ -911,16 +860,11 @@ pub fn try_place_bid(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
@@ -929,7 +873,7 @@ pub fn try_place_bid(
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != common_config.main_currency.token {
+    if asset_token != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -995,7 +939,7 @@ pub fn try_place_bid(
             .into_iter()
             .fold(Ok(vec![]), |acc, cur| -> StdResult<Vec<String>> {
                 // doesn't allow to place bids on own collateral
-                if cur.owner == sender_address
+                if cur.owner == sender
                     && cur
                         .token_item_list
                         .iter()
@@ -1025,7 +969,7 @@ pub fn try_place_bid(
             |x| -> StdResult<Vec<LiquidationBid>> {
                 let bid = LiquidationBid {
                     creation_date: block_time,
-                    liquidator: sender_address.clone(),
+                    liquidator: sender.clone(),
                     token_id_list: token_id_list.clone(),
                     amount: asset_amount,
                     discount,
@@ -1037,7 +981,7 @@ pub fn try_place_bid(
                         let bids_by_liquidator: Vec<LiquidationBid> = y
                             .iter()
                             .cloned()
-                            .filter(|z| z.liquidator == sender_address)
+                            .filter(|z| z.liquidator == sender)
                             .collect();
 
                         // check if there is no token duplication
@@ -1075,27 +1019,23 @@ pub fn try_place_bid(
         Err(ContractError::ExceededBidAmount)?;
     }
 
-    LIQUIDATORS.update(
-        deps.storage,
-        &sender_address,
-        |x| -> StdResult<Liquidator> {
-            let liquidator = match x {
-                Some(mut y) => {
-                    y.collection_addresses =
-                        vec![y.collection_addresses, collection_addresses].concat();
-                    y.collection_addresses.sort_unstable();
-                    y.collection_addresses.dedup();
+    LIQUIDATORS.update(deps.storage, &sender, |x| -> StdResult<Liquidator> {
+        let liquidator = match x {
+            Some(mut y) => {
+                y.collection_addresses =
+                    vec![y.collection_addresses, collection_addresses].concat();
+                y.collection_addresses.sort_unstable();
+                y.collection_addresses.dedup();
 
-                    y
-                }
-                None => Liquidator {
-                    collection_addresses,
-                },
-            };
+                y
+            }
+            None => Liquidator {
+                collection_addresses,
+            },
+        };
 
-            Ok(liquidator)
-        },
-    )?;
+        Ok(liquidator)
+    })?;
 
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
         x.regular.liquidation_bids += asset_amount;
@@ -1119,21 +1059,16 @@ pub fn try_update_bid(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
 
-    if asset_info != common_config.main_currency.token {
+    if asset_token != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -1147,6 +1082,7 @@ pub fn try_update_bid(
         .map(|x| x.collection_address.to_string())
         .collect();
 
+    // TODO
     collection_addresses.sort_unstable();
     collection_addresses.dedup();
 
@@ -1198,7 +1134,7 @@ pub fn try_update_bid(
             .into_iter()
             .fold(Ok(vec![]), |acc, cur| -> StdResult<Vec<String>> {
                 // doesn't allow to place bids on own collateral
-                if cur.owner == sender_address
+                if cur.owner == sender
                     && cur
                         .token_item_list
                         .iter()
@@ -1235,15 +1171,13 @@ pub fn try_update_bid(
                         y = y
                             .into_iter()
                             .map(|z| {
-                                if z.liquidator == sender_address
-                                    && z.creation_date == creation_date
-                                {
+                                if z.liquidator == sender && z.creation_date == creation_date {
                                     // update current bid value
                                     current_bid_value += z.amount;
 
                                     LiquidationBid {
                                         creation_date: block_time, // decrease changed bid priority
-                                        liquidator: sender_address.clone(),
+                                        liquidator: sender.clone(),
                                         token_id_list: token_id_list.clone(),
                                         amount: bid_amount,
                                         discount,
@@ -1277,7 +1211,7 @@ pub fn try_update_bid(
         })?;
 
         if !amount_to_return.is_zero() {
-            let msg = get_transfer_msg(&sender_address, amount_to_return, &asset_info)?;
+            let msg = get_transfer_msg(&sender, amount_to_return, &asset_token)?;
 
             return Ok(response.add_message(msg));
         }
@@ -1295,7 +1229,7 @@ pub fn try_update_bid(
         })?;
 
         if !amount_to_return.is_zero() {
-            let msg = get_transfer_msg(&sender_address, amount_to_return, &asset_info)?;
+            let msg = get_transfer_msg(&sender, amount_to_return, &asset_token)?;
 
             return Ok(response.add_message(msg));
         }
@@ -1314,15 +1248,7 @@ pub fn try_remove_bid(
     creation_date: u64,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Any,
-    )?;
-
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
     if collection_addresses.is_empty() {
@@ -1340,7 +1266,7 @@ pub fn try_remove_bid(
     }
 
     let mut amount_to_withdraw = Uint128::zero();
-    let mut liquidator = LIQUIDATORS.load(deps.storage, &sender_address)?;
+    let mut liquidator = LIQUIDATORS.load(deps.storage, &sender)?;
 
     for collection_address in collection_addresses {
         // validate collection
@@ -1358,7 +1284,7 @@ pub fn try_remove_bid(
         let liquidation_bids = liquidation_bids
             .into_iter()
             .filter(|z| {
-                if z.liquidator == sender_address && z.creation_date == creation_date {
+                if z.liquidator == sender && z.creation_date == creation_date {
                     amount_to_withdraw += z.amount;
 
                     false
@@ -1379,9 +1305,9 @@ pub fn try_remove_bid(
     }
 
     if liquidator.collection_addresses.is_empty() {
-        LIQUIDATORS.remove(deps.storage, &sender_address);
+        LIQUIDATORS.remove(deps.storage, &sender);
     } else {
-        LIQUIDATORS.save(deps.storage, &sender_address, &liquidator)?;
+        LIQUIDATORS.save(deps.storage, &sender, &liquidator)?;
     }
 
     BALANCES.update(deps.storage, |mut x| -> StdResult<Balances> {
@@ -1390,7 +1316,7 @@ pub fn try_remove_bid(
         Ok(x)
     })?;
 
-    let msg = get_transfer_msg(&sender_address, amount_to_withdraw, &main_currency.token)?;
+    let msg = get_transfer_msg(&sender, amount_to_withdraw, &main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
@@ -1404,22 +1330,21 @@ pub fn try_liquidate(
     targets: Vec<LiquidationItem>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
 
     let block_time = env.block.time.seconds();
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
     let rate_config = RATE_CONFIG.load(deps.storage)?;
     let common_config = COMMON_CONFIG.load(deps.storage)?;
-    let scheduler = unwrap_field(address_config.scheduler, "scheduler")?;
+    let scheduler = address_config.scheduler.unwrap();
 
-    check_authorization(
-        &sender_address,
+    Auth::simple_optional_specified(
+        deps.api,
         &address_config.admin,
         &address_config.worker,
-        AuthType::Specified {
-            allowlist: vec![Some(scheduler)],
-        },
-    )?;
+        &[scheduler],
+    )?
+    .assert(&sender)?;
 
     if targets.is_empty() {
         Err(ContractError::EmptyTargetList)?;
@@ -1499,7 +1424,7 @@ pub fn try_liquidate(
     let mut response = Response::new().add_attribute("action", "try_liquidate");
 
     if !marketplace_bidded_collateral_item_list.is_empty() {
-        let market_maker = unwrap_field(address_config.market_maker, "market_maker")?;
+        let market_maker = address_config.market_maker.unwrap();
 
         // check operator and add approvals if it's required
         let mut collection_list: Vec<String> = marketplace_bidded_collateral_item_list
@@ -1510,7 +1435,7 @@ pub fn try_liquidate(
         collection_list.dedup();
 
         response = response
-            .add_messages(get_collection_operator_approvals(
+            .add_messages(get_approve_all_msgs(
                 deps.querier,
                 &collection_list,
                 env.contract.address,
@@ -1529,38 +1454,15 @@ pub fn try_liquidate(
 }
 
 pub fn try_accept_admin_role(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    let block_time = env.block.time.seconds();
-    let TransferAdminState {
-        new_admin,
-        deadline,
-    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
+    TransferAdminState::accept_admin(&mut deps, &env, &sender)?;
 
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Specified {
-            allowlist: vec![Some(new_admin)],
-        },
-    )?;
-
-    if block_time >= deadline {
-        Err(ContractError::TransferAdminDeadline)?;
-    }
-
-    ADDRESS_CONFIG.update(deps.storage, |mut x| -> StdResult<AddressConfig> {
-        x.admin = sender_address;
-        Ok(x)
-    })?;
-
-    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
-        x.deadline = block_time;
+    ADDRESS_CONFIG.update(deps.storage, |mut x| -> StdResult<_> {
+        x.admin = sender;
         Ok(x)
     })?;
 
@@ -1569,7 +1471,7 @@ pub fn try_accept_admin_role(
 
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_address_config(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     admin: Option<String>,
@@ -1579,87 +1481,53 @@ pub fn try_update_address_config(
     scheduler: Option<String>,
     market_maker: Option<String>,
 ) -> Result<Response, ContractError> {
-    helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
 
     helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = ADDRESS_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
     let current_admin = &config.admin;
-    let current_worker = &config.worker.clone();
 
     if let Some(x) = admin {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        let block_time = env.block.time.seconds();
-        let new_admin = &deps.api.addr_validate(&x)?;
-
-        TRANSFER_ADMIN_STATE.save(
-            deps.storage,
-            &TransferAdminState {
-                new_admin: new_admin.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
+        Auth::simple(current_admin).assert(&sender)?;
+        TransferAdminState::update_admin(
+            &mut deps,
+            &env,
+            &sender,
+            &current_admin,
+            &x,
+            TRANSFER_ADMIN_TIMEOUT,
         )?;
 
         is_config_updated = true;
     }
 
     if let Some(x) = worker {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.worker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = oracle {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.oracle = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = minter {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.minter = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = scheduler {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.scheduler = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = market_maker {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.market_maker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
@@ -1686,46 +1554,45 @@ pub fn try_update_rate_config(
     discount_max_rate: Option<Decimal>,
     bid_min_rate: Option<Decimal>,
 ) -> Result<Response, ContractError> {
-    helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
+    let AddressConfig { admin, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
     helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let mut config = RATE_CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
 
     if let Some(x) = borrow_apr {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.borrow_apr = x;
         is_config_updated = true;
     }
 
     if let Some(x) = borrow_fee_rate {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.borrow_fee_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = liquidation_fee_rate {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.liquidation_fee_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = discount_min_rate {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.discount_min_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = discount_max_rate {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.discount_max_rate = x;
         is_config_updated = true;
     }
 
     if let Some(x) = bid_min_rate {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.bid_min_rate = x;
         is_config_updated = true;
     }
@@ -1752,8 +1619,8 @@ pub fn try_update_common_config(
     borrowers_reserve_fraction_ratio: Option<Decimal>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
+    let AddressConfig { admin, .. } = ADDRESS_CONFIG.load(deps.storage)?;
 
     helpers::accumulate_expected_rewards(deps.storage, env.block.time.seconds())?;
     let balances = BALANCES.load(deps.storage)?;
@@ -1761,7 +1628,7 @@ pub fn try_update_common_config(
     let mut is_config_updated = false;
 
     if let Some(x) = main_currency {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
 
         if !balances.regular.main_pool.is_zero() {
             Err(ContractError::ChangingCurrency)?;
@@ -1772,7 +1639,7 @@ pub fn try_update_common_config(
     }
 
     if let Some(x) = bgl_currency {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
 
         if !balances.regular.bgl_supply.is_zero() {
             Err(ContractError::ChangingCurrency)?;
@@ -1783,19 +1650,19 @@ pub fn try_update_common_config(
     }
 
     if let Some(x) = unbonding_period {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.unbonding_period = x;
         is_config_updated = true;
     }
 
     if let Some(x) = collateral_min_value {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.collateral_min_value = x;
         is_config_updated = true;
     }
 
     if let Some(x) = borrowers_reserve_fraction_ratio {
-        check_authorization(&sender_address, &admin, &worker, AuthType::Admin)?;
+        Auth::simple(&admin).assert(&sender)?;
         config.borrowers_reserve_fraction_ratio = x;
         is_config_updated = true;
     }
@@ -1818,15 +1685,13 @@ pub fn try_deposit_reserve_liquidity(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     let common_config = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1834,7 +1699,7 @@ pub fn try_deposit_reserve_liquidity(
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != common_config.main_currency.token {
+    if asset_token != common_config.main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -1854,14 +1719,9 @@ pub fn try_withdraw_reserve_liquidity(
     amount: Uint128,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     let common_config = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1879,7 +1739,7 @@ pub fn try_withdraw_reserve_liquidity(
     })?;
 
     // send main_token
-    let msg = get_transfer_msg(&sender_address, amount, &common_config.main_currency.token)?;
+    let msg = get_transfer_msg(&sender, amount, &common_config.main_currency.token)?;
 
     Ok(Response::new()
         .add_message(msg)
@@ -1894,15 +1754,13 @@ pub fn try_reinforce_bgl_token(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     let CommonConfig { main_currency, .. } = COMMON_CONFIG.load(deps.storage)?;
 
@@ -1910,7 +1768,7 @@ pub fn try_reinforce_bgl_token(
         Err(ContractError::ZeroAmount)?;
     }
 
-    if asset_info != main_currency.token {
+    if asset_token != main_currency.token {
         Err(ContractError::WrongAssetType)?;
     }
 
@@ -1925,31 +1783,21 @@ pub fn try_reinforce_bgl_token(
 }
 
 pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::AdminOrWorker,
-    )?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    Auth::simple_optional(deps.api, &admin, &worker)?.assert(&sender)?;
 
-    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(true) })?;
+    IS_PAUSED.save(deps.storage, &true)?;
 
     Ok(Response::new().add_attribute("action", "try_pause"))
 }
 
 pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::AdminOrWorker,
-    )?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
+    let AddressConfig { admin, worker, .. } = ADDRESS_CONFIG.load(deps.storage)?;
+    Auth::simple_optional(deps.api, &admin, &worker)?.assert(&sender)?;
 
-    IS_PAUSED.update(deps.storage, |_| -> StdResult<bool> { Ok(false) })?;
+    IS_PAUSED.save(deps.storage, &false)?;
 
     Ok(Response::new().add_attribute("action", "try_unpause"))
 }
@@ -1961,14 +1809,9 @@ pub fn try_distribute_funds(
     address_and_weight_list: Vec<(String, Decimal)>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     // verify weights
     // check if all weights are in range [0, 1]
@@ -2028,14 +1871,9 @@ pub fn try_remove_collection(
     address: String,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     // update state
     let collection_address = &deps.api.addr_validate(&address)?;
@@ -2051,14 +1889,9 @@ pub fn try_create_proposal(
     proposal: Proposal<String, TokenUnverified>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     // verify proposal fields
     let Proposal {
@@ -2151,31 +1984,21 @@ pub fn try_reject_proposal(
     id: u32,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = assets::Funds::empty().check(deps.api, &info)?;
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
-        &address_config.admin,
-        &address_config.worker,
-        AuthType::Admin,
-    )?;
+    Auth::simple(&address_config.admin).assert(&sender)?;
 
     // update proposal status
-    PROPOSALS.update(
-        deps.storage,
-        id,
-        |proposal| -> StdResult<Proposal<Addr, Token>> {
-            let proposal = unwrap_field(proposal, "proposal")?;
+    PROPOSALS.update(deps.storage, id, |x| -> StdResult<_> {
+        let proposal = x.unwrap();
+        // verify proposal status
+        helpers::verify_proposal_status(&proposal, ProposalStatus::Active)?;
 
-            // verify proposal status
-            helpers::verify_proposal_status(&proposal, ProposalStatus::Active)?;
-
-            Ok(Proposal {
-                proposal_status: Some(ProposalStatus::Rejected),
-                ..proposal
-            })
-        },
-    )?;
+        Ok(Proposal {
+            proposal_status: Some(ProposalStatus::Rejected),
+            ..proposal
+        })
+    })?;
 
     Ok(Response::new().add_attribute("action", "try_reject_proposal"))
 }
@@ -2189,14 +2012,17 @@ pub fn try_accept_proposal(
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
     helpers::check_pause_state(deps.storage)?;
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = assets::Funds::single(sender, amount).check(deps.api, &info)?;
 
     let proposal = PROPOSALS.load(deps.storage, id)?;
 
     // verify funds
     if (asset_amount != proposal.listing_price.amount)
-        || (asset_info != proposal.listing_price.currency.token)
+        || (asset_token != proposal.listing_price.currency.token)
     {
         Err(ContractError::WrongFundsCombination)?;
     }
@@ -2230,7 +2056,7 @@ pub fn try_accept_proposal(
         } => {
             let collections = &COLLECTIONS
                 .range(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<(Addr, Collection<Addr>)>>>()?;
+                .collect::<StdResult<Vec<_>>>()?;
 
             let is_collection_found = collections
                 .iter()
@@ -2245,7 +2071,7 @@ pub fn try_accept_proposal(
                     .iter()
                     .any(|(current_address, _current_collection)| {
                         new_collection_address.is_some()
-                            && (current_address == new_collection_address.clone().unwrap())
+                            && (current_address == new_collection_address.as_ref().unwrap())
                     });
 
             if is_collection_found {
@@ -2262,14 +2088,13 @@ pub fn try_accept_proposal(
 
     // verify sender
     let address_config = ADDRESS_CONFIG.load(deps.storage)?;
-    check_authorization(
-        &sender_address,
+    Auth::simple_optional_specified(
+        deps.api,
         &address_config.admin,
         &address_config.worker,
-        AuthType::Specified {
-            allowlist: vec![Some(collection.owner.clone())],
-        },
-    )?;
+        &[&collection.owner],
+    )?
+    .assert(&sender)?;
 
     // add/update collection
     match new_collection_address {
@@ -2284,7 +2109,7 @@ pub fn try_accept_proposal(
     helpers::increase_platform_revenue(
         deps.storage,
         asset_amount,
-        &asset_info,
+        &asset_token,
         &proposal.listing_price.currency,
     )?;
 

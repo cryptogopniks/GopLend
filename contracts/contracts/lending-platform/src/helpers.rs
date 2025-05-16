@@ -1,9 +1,9 @@
 use std::cmp::max;
 
 use cosmwasm_std::{Addr, Decimal, Deps, Order, QuerierWrapper, StdResult, Storage, Uint128};
+use cw_gopniks::assets::{Currency, Token};
 
 use goplend_base::{
-    assets::{Currency, Funds, Token},
     error::ContractError,
     lending_platform::{
         state::{
@@ -12,11 +12,11 @@ use goplend_base::{
         },
         types::{
             AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem, Vault,
+            CollectionInfo, Funds, LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem,
+            Vault,
         },
     },
     oracle::{self, types::QueryPricesResponse},
-    utils::unwrap_field,
 };
 
 use crate::math;
@@ -34,13 +34,13 @@ pub fn verify_proposal_status(
     proposal: &Proposal<Addr, Token>,
     expected: ProposalStatus,
 ) -> StdResult<()> {
-    let proposal_status = unwrap_field(proposal.proposal_status.as_ref(), "proposal_status")?;
-
-    if proposal_status != &expected {
-        Err(ContractError::WrongProposalStatus)?;
+    if let Some(proposal_status) = proposal.proposal_status.as_ref() {
+        if proposal_status == &expected {
+            return Ok(());
+        }
     }
 
-    Ok(())
+    Err(ContractError::WrongProposalStatus)?
 }
 
 pub fn check_collections_holder(
@@ -430,7 +430,7 @@ pub fn get_conditional_ltv(
     amount_to_borrow: Option<Uint128>,
     amount_to_repay: Option<Uint128>,
 ) -> StdResult<Decimal> {
-    let oracle = &unwrap_field(address_config.oracle.clone(), "oracle")?;
+    let oracle = address_config.oracle.as_ref().unwrap();
 
     // get collaterals owned by borrower
     let collection_and_collateral_list = COLLATERALS

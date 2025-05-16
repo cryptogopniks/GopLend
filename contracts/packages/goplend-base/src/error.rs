@@ -1,4 +1,5 @@
 use cosmwasm_std::StdError;
+use cw_gopniks::{assets::AssetError, auth::AuthError, nft::NftError};
 use thiserror::Error;
 
 impl From<StdError> for ContractError {
@@ -33,15 +34,18 @@ pub enum ContractError {
     #[error("Custom Error val: {val:?}")]
     CustomError { val: String },
 
-    // ------------------------------ common ----------------------------------------
-    #[error("Sender does not have access permissions!")]
-    Unauthorized,
+    #[error("{0}")]
+    Asset(#[from] AssetError),
 
+    #[error("{0}")]
+    Nft(#[from] NftError),
+
+    #[error("{0}")]
+    Auth(#[from] AuthError),
+
+    // ------------------------------ common ----------------------------------------
     #[error("Parameters are not provided!")]
     NoParameters,
-
-    #[error("It's too late to accept admin role!")]
-    TransferAdminDeadline,
 
     #[error("Chain ID is not found!")]
     ChainIdIsNotFound,

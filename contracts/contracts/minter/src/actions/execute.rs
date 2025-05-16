@@ -2,6 +2,10 @@ use cosmwasm_std::{
     coin, coins, to_json_binary, Addr, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response,
     StdResult, Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
+use cw_gopniks::{
+    assets::{Currency, Funds, InfoResp, Token, TokenUnverified},
+    auth::{Auth, AuthError, TransferAdminState},
+};
 
 use cw20::Logo;
 use osmosis_std::types::{
@@ -10,47 +14,27 @@ use osmosis_std::types::{
 };
 
 use goplend_base::{
-    assets::{Currency, Token, TokenUnverified},
     error::ContractError,
-    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
+    lending_platform::state::TRANSFER_ADMIN_TIMEOUT,
     minter::{
         state::{
             CONFIG, CURRENCIES, DEFAULT_DECIMALS, FAUCET_CONFIG, IS_PAUSED, LAST_CLAIM_DATE,
-            SAVE_CW20_ADDRESS_REPLY, TEMPORARY_CURRENCY, TOKEN_COUNT, TRANSFER_ADMIN_STATE,
-            TRANSFER_OWNER_STATE,
+            SAVE_CW20_ADDRESS_REPLY, TEMPORARY_CURRENCY, TOKEN_COUNT, TRANSFER_OWNER_STATE,
         },
         types::{Config, CurrencyInfo, DenomUnit, FaucetConfig, Metadata},
     },
-    utils::{check_funds, unwrap_field, FundsType},
 };
 
 pub fn try_accept_admin_role(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let block_time = env.block.time.seconds();
-    let TransferAdminState {
-        new_admin,
-        deadline,
-    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
+    TransferAdminState::accept_admin(&mut deps, &env, &sender)?;
 
-    if sender_address != new_admin {
-        Err(ContractError::Unauthorized)?;
-    }
-
-    if block_time >= deadline {
-        Err(ContractError::TransferAdminDeadline)?;
-    }
-
-    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
-        x.admin = sender_address;
-        Ok(x)
-    })?;
-
-    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
-        x.deadline = block_time;
+    CONFIG.update(deps.storage, |mut x| -> StdResult<_> {
+        x.admin = sender;
         Ok(x)
     })?;
 
@@ -62,32 +46,26 @@ pub fn try_accept_token_owner_role(
     env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let block_time = env.block.time.seconds();
     let config = CONFIG.load(deps.storage)?;
     let mut transfer_owner_state_list = TRANSFER_OWNER_STATE.load(deps.storage).unwrap_or_default();
 
     let current_transfer_owner_state_list = transfer_owner_state_list
         .iter()
-        .filter(|(_, transfer_state)| transfer_state.new_admin == sender_address)
+        .filter(|(_, transfer_state)| transfer_state.get_new_admin() == sender)
         .collect::<Vec<_>>();
 
     if current_transfer_owner_state_list.is_empty() {
-        Err(ContractError::Unauthorized)?;
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
-    for (
-        denom_or_address,
-        TransferAdminState {
-            new_admin: new_token_owner,
-            deadline,
-        },
-    ) in current_transfer_owner_state_list
-    {
-        if &block_time >= deadline {
-            Err(ContractError::TransferAdminDeadline)?;
+    for (denom_or_address, transfer_admin_state) in current_transfer_owner_state_list {
+        if block_time >= transfer_admin_state.get_deadline() {
+            Err(ContractError::Auth(AuthError::TransferAdminDeadline))?;
         }
 
+        let new_token_owner = &transfer_admin_state.get_new_admin();
         let mut currency_info = CURRENCIES.load(deps.storage, denom_or_address)?;
         let current_owner_token_count = TOKEN_COUNT.load(deps.storage, &currency_info.owner)? - 1;
         let new_owner_token_count = TOKEN_COUNT
@@ -117,19 +95,16 @@ pub fn try_accept_token_owner_role(
     }
 
     transfer_owner_state_list
-        .retain(|(_, transfer_state)| transfer_state.new_admin != sender_address);
+        .retain(|(_, transfer_state)| transfer_state.get_new_admin() != sender);
     TRANSFER_OWNER_STATE.save(deps.storage, &transfer_owner_state_list)?;
 
     Ok(Response::new().add_attribute("action", "try_accept_token_owner_role"))
 }
 
 pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let Config { admin, .. } = CONFIG.load(deps.storage)?;
-
-    if sender_address != admin {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&admin).assert(&sender)?;
 
     IS_PAUSED.save(deps.storage, &true)?;
 
@@ -137,12 +112,9 @@ pub fn try_pause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
 }
 
 pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let Config { admin, .. } = CONFIG.load(deps.storage)?;
-
-    if sender_address != admin {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&admin).assert(&sender)?;
 
     IS_PAUSED.save(deps.storage, &false)?;
 
@@ -151,7 +123,7 @@ pub fn try_unpause(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respon
 
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     admin: Option<String>,
@@ -161,24 +133,20 @@ pub fn try_update_config(
     permissionless_token_registration: Option<bool>,
     max_tokens_per_owner: Option<u16>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
-
-    if sender_address != config.admin {
-        Err(ContractError::Unauthorized)?;
-    }
+    let current_admin = &config.admin;
+    Auth::simple(current_admin).assert(&sender)?;
 
     if let Some(x) = admin {
-        let block_time = env.block.time.seconds();
-        let new_admin = &deps.api.addr_validate(&x)?;
-
-        TRANSFER_ADMIN_STATE.save(
-            deps.storage,
-            &TransferAdminState {
-                new_admin: new_admin.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
+        TransferAdminState::update_admin(
+            &mut deps,
+            &env,
+            &sender,
+            &current_admin,
+            &x,
+            TRANSFER_ADMIN_TIMEOUT,
         )?;
 
         is_config_updated = true;
@@ -234,30 +202,23 @@ pub fn try_create_native(
     decimals: Option<u8>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(
-        deps.as_ref(),
-        &info,
-        FundsType::Single {
-            sender: None,
-            amount: None,
-        },
-    )?;
+    let InfoResp { sender, .. } = Funds::single(None, None).check(deps.api, &info)?;
     let config = CONFIG.load(deps.storage)?;
 
-    if !config.permissionless_token_creation && !config.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
+    if !config.permissionless_token_creation && !config.whitelist.contains(&sender) {
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
     let owner = owner
         .map(|x| deps.api.addr_validate(&x))
         .transpose()?
-        .unwrap_or(sender_address.clone());
+        .unwrap_or(sender.clone());
     let creator = env.contract.address;
     let full_denom = &get_full_denom(&creator, &subdenom);
     let decimals = decimals.unwrap_or(DEFAULT_DECIMALS);
     let currency = Currency::new(&Token::new_native(full_denom), decimals);
     let whitelist = whitelist
-        .unwrap_or(vec![sender_address.to_string()])
+        .unwrap_or(vec![sender.to_string()])
         .iter()
         .map(|x| deps.api.addr_validate(x))
         .collect::<StdResult<Vec<Addr>>>()?;
@@ -275,11 +236,10 @@ pub fn try_create_native(
         }
     })?;
 
-    TOKEN_COUNT.update(deps.storage, &sender_address, |x| -> StdResult<u16> {
+    TOKEN_COUNT.update(deps.storage, &sender, |x| -> StdResult<u16> {
         let token_count = x.unwrap_or_default() + 1;
 
-        if !config.whitelist.contains(&sender_address) && token_count > config.max_tokens_per_owner
-        {
+        if !config.whitelist.contains(&sender) && token_count > config.max_tokens_per_owner {
             Err(ContractError::TokenLimit)?;
         }
 
@@ -312,26 +272,23 @@ pub fn try_create_cw20(
     marketing: Option<cw20_base::msg::InstantiateMarketingInfo>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let config = CONFIG.load(deps.storage)?;
 
-    if !config.permissionless_token_creation && !config.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
+    if !config.permissionless_token_creation && !config.whitelist.contains(&sender) {
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
     let owner = owner
         .map(|x| deps.api.addr_validate(&x))
         .transpose()?
-        .unwrap_or(sender_address.clone());
+        .unwrap_or(sender.clone());
     let creator = env.contract.address;
     let decimals = decimals.unwrap_or(DEFAULT_DECIMALS);
-    let currency = Currency::new(&Token::new_cw20(&sender_address), decimals);
-    let cw20_code_id = unwrap_field(
-        cw20_code_id.map_or(config.cw20_code_id, Some),
-        "cw20_code_id",
-    )?;
+    let currency = Currency::new(&Token::new_cw20(&sender), decimals);
+    let cw20_code_id = cw20_code_id.map_or(config.cw20_code_id, Some).unwrap();
     let whitelist = whitelist
-        .unwrap_or(vec![sender_address.to_string()])
+        .unwrap_or(vec![sender.to_string()])
         .iter()
         .map(|x| deps.api.addr_validate(x))
         .collect::<StdResult<Vec<Addr>>>()?;
@@ -343,11 +300,10 @@ pub fn try_create_cw20(
     });
     marketing_info.marketing = Some(creator.to_string());
 
-    TOKEN_COUNT.update(deps.storage, &sender_address, |x| -> StdResult<u16> {
+    TOKEN_COUNT.update(deps.storage, &sender, |x| -> StdResult<u16> {
         let token_count = x.unwrap_or_default() + 1;
 
-        if !config.whitelist.contains(&sender_address) && token_count > config.max_tokens_per_owner
-        {
+        if !config.whitelist.contains(&sender) && token_count > config.max_tokens_per_owner {
             Err(ContractError::TokenLimit)?;
         }
 
@@ -402,24 +358,15 @@ pub fn save_cw20_address(
         .into_result()
         .map_err(|e| ContractError::CustomError { val: e })?;
 
-    let instantiate_event = unwrap_field(
-        res.events.iter().find(|x| x.ty == "instantiate"),
-        "instantiate_event",
-    )?;
+    let instantiate_event = res.events.iter().find(|x| x.ty == "instantiate").unwrap();
+    let cw20_address = &instantiate_event
+        .attributes
+        .iter()
+        .find(|x| x.key == "_contract_address")
+        .unwrap()
+        .value;
 
-    let cw20_address = &unwrap_field(
-        instantiate_event
-            .attributes
-            .iter()
-            .find(|x| x.key == "_contract_address"),
-        "cw20_address",
-    )?
-    .value;
-
-    let mut currency_info = unwrap_field(
-        TEMPORARY_CURRENCY.pop_front(deps.storage)?,
-        "owner_and_decimals",
-    )?;
+    let mut currency_info = TEMPORARY_CURRENCY.pop_front(deps.storage)?.unwrap();
     currency_info.currency = Currency::new(
         &Token::new_cw20(&deps.api.addr_validate(cw20_address)?),
         currency_info.currency.decimals,
@@ -448,21 +395,21 @@ pub fn try_register_native(
     decimals: Option<u8>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let config = CONFIG.load(deps.storage)?;
 
-    if !config.permissionless_token_registration && !config.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
+    if !config.permissionless_token_registration && !config.whitelist.contains(&sender) {
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
     let owner = owner
         .map(|x| deps.api.addr_validate(&x))
         .transpose()?
-        .unwrap_or(sender_address.clone());
+        .unwrap_or(sender.clone());
     let decimals = decimals.unwrap_or(DEFAULT_DECIMALS);
     let currency = Currency::new(&Token::new_native(&denom), decimals);
     let whitelist = whitelist
-        .unwrap_or(vec![sender_address.to_string()])
+        .unwrap_or(vec![sender.to_string()])
         .iter()
         .map(|x| deps.api.addr_validate(x))
         .collect::<StdResult<Vec<Addr>>>()?;
@@ -480,11 +427,10 @@ pub fn try_register_native(
         }
     })?;
 
-    TOKEN_COUNT.update(deps.storage, &sender_address, |x| -> StdResult<u16> {
+    TOKEN_COUNT.update(deps.storage, &sender, |x| -> StdResult<u16> {
         let token_count = x.unwrap_or_default() + 1;
 
-        if !config.whitelist.contains(&sender_address) && token_count > config.max_tokens_per_owner
-        {
+        if !config.whitelist.contains(&sender) && token_count > config.max_tokens_per_owner {
             Err(ContractError::TokenLimit)?;
         }
 
@@ -509,28 +455,25 @@ pub fn try_register_cw20(
     decimals: Option<u8>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let config = CONFIG.load(deps.storage)?;
 
-    if !config.permissionless_token_registration && !config.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
+    if !config.permissionless_token_registration && !config.whitelist.contains(&sender) {
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
     let owner = owner
         .map(|x| deps.api.addr_validate(&x))
         .transpose()?
-        .unwrap_or(sender_address.clone());
+        .unwrap_or(sender.clone());
     let decimals = decimals.unwrap_or(DEFAULT_DECIMALS);
     let currency = Currency::new(
         &TokenUnverified::new_cw20(&address).verify(deps.api)?,
         decimals,
     );
-    let cw20_code_id = unwrap_field(
-        cw20_code_id.map_or(config.cw20_code_id, Some),
-        "cw20_code_id",
-    )?;
+    let cw20_code_id = cw20_code_id.map_or(config.cw20_code_id, Some).unwrap();
     let whitelist = whitelist
-        .unwrap_or(vec![sender_address.to_string()])
+        .unwrap_or(vec![sender.to_string()])
         .iter()
         .map(|x| deps.api.addr_validate(x))
         .collect::<StdResult<Vec<Addr>>>()?;
@@ -548,11 +491,10 @@ pub fn try_register_cw20(
         }
     })?;
 
-    TOKEN_COUNT.update(deps.storage, &sender_address, |x| -> StdResult<u16> {
+    TOKEN_COUNT.update(deps.storage, &sender, |x| -> StdResult<u16> {
         let token_count = x.unwrap_or_default() + 1;
 
-        if !config.whitelist.contains(&sender_address) && token_count > config.max_tokens_per_owner
-        {
+        if !config.whitelist.contains(&sender) && token_count > config.max_tokens_per_owner {
             Err(ContractError::TokenLimit)?;
         }
 
@@ -572,15 +514,12 @@ pub fn try_update_currency_info(
     permissionless_burning: Option<bool>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let mut is_currency_info_updated = false;
     let mut currency_info = CURRENCIES
         .load(deps.storage, &denom_or_address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     if let Some(x) = owner {
         let block_time = env.block.time.seconds();
@@ -592,10 +531,7 @@ pub fn try_update_currency_info(
 
         transfer_owner_state_list.push((
             denom_or_address.clone(),
-            TransferAdminState {
-                new_admin: new_owner.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
+            TransferAdminState::new(new_owner, block_time + TRANSFER_ADMIN_TIMEOUT),
         ));
 
         TRANSFER_OWNER_STATE.save(deps.storage, &transfer_owner_state_list)?;
@@ -634,14 +570,11 @@ pub fn try_update_metadata_native(
     metadata: Metadata,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &denom)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     let sender = env.contract.address.to_string();
     let Metadata {
@@ -699,14 +632,11 @@ pub fn try_update_metadata_cw20(
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
     let mut response = Response::new().add_attribute("action", "try_update_metadata_cw20");
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     if project.is_some() || description.is_some() {
         response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
@@ -743,14 +673,11 @@ pub fn try_exclude_native(
     denom: String,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &denom)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     let token_count = TOKEN_COUNT.load(deps.storage, &currency_info.owner)? - 1;
     if token_count == 0 {
@@ -782,14 +709,11 @@ pub fn try_exclude_cw20(
     address: String,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     let token_count = TOKEN_COUNT.load(deps.storage, &currency_info.owner)? - 1;
     if token_count == 0 {
@@ -838,14 +762,11 @@ pub fn try_update_faucet_config(
     claim_cooldown: Option<u64>,
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &denom_or_address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if currency_info.owner != sender_address {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::simple(&currency_info.owner).assert(&sender)?;
 
     let mut is_config_updated = false;
     let mut config = FAUCET_CONFIG
@@ -882,20 +803,17 @@ pub fn try_mint(
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
     let mut response = Response::new().add_attribute("action", "try_mint");
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let currency_info = CURRENCIES
         .load(deps.storage, &denom_or_address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if !currency_info.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::specified(deps.api, &currency_info.whitelist)?.assert(&sender)?;
 
     let creator = &env.contract.address;
     let recipient = recipient
         .map(|x| deps.api.addr_validate(&x))
         .transpose()?
-        .unwrap_or(sender_address)
+        .unwrap_or(sender)
         .to_string();
 
     if currency_info.currency.token.is_native() {
@@ -937,15 +855,12 @@ pub fn try_mint_multiple(
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
     let mut response = Response::new().add_attribute("action", "try_mint_multiple");
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let creator = &env.contract.address;
     let currency_info = CURRENCIES
         .load(deps.storage, &denom_or_address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
-
-    if !currency_info.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::specified(deps.api, &currency_info.whitelist)?.assert(&sender)?;
 
     let total_amount = account_and_amount_list
         .iter()
@@ -989,19 +904,22 @@ pub fn try_burn(
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
     let mut response = Response::new().add_attribute("action", "try_burn");
-    let (sender_address, asset_amount, asset_info) =
-        check_funds(deps.as_ref(), &info, FundsType::Single { sender, amount })?;
+    let InfoResp {
+        sender,
+        asset_amount,
+        asset_token,
+    } = Funds::single(sender, amount).check(deps.api, &info)?;
     let creator = env.contract.address.to_string();
-    let denom_or_address = asset_info.get_denom_or_address();
+    let denom_or_address = asset_token.get_symbol();
     let currency_info = CURRENCIES
         .load(deps.storage, &denom_or_address)
         .map_err(|_| ContractError::AssetIsNotFound)?;
 
-    if !currency_info.permissionless_burning && !currency_info.whitelist.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
+    if !currency_info.permissionless_burning && !currency_info.whitelist.contains(&sender) {
+        Err(ContractError::Auth(AuthError::Unauthorized))?;
     }
 
-    if asset_info.is_native() {
+    if asset_token.is_native() {
         let amount = coin(asset_amount.u128(), denom_or_address);
         let msg: CosmosMsg = OsmosisFactory::MsgBurn {
             sender: creator.clone(),
@@ -1034,7 +952,7 @@ pub fn try_claim(
 ) -> Result<Response, ContractError> {
     check_pause_state(deps.storage)?;
     let mut response = Response::new().add_attribute("action", "try_claim");
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let creator = &env.contract.address;
     let block_time = env.block.time.seconds();
     let currency_info = CURRENCIES
@@ -1048,7 +966,7 @@ pub fn try_claim(
         .load(deps.storage, &denom_or_address)
         .unwrap_or_default();
     let last_claimed = LAST_CLAIM_DATE
-        .load(deps.storage, (&sender_address, &denom_or_address))
+        .load(deps.storage, (&sender, &denom_or_address))
         .unwrap_or_default();
 
     if claimable_amount.is_zero() {
@@ -1061,11 +979,7 @@ pub fn try_claim(
         })?;
     }
 
-    LAST_CLAIM_DATE.save(
-        deps.storage,
-        (&sender_address, &denom_or_address),
-        &block_time,
-    )?;
+    LAST_CLAIM_DATE.save(deps.storage, (&sender, &denom_or_address), &block_time)?;
 
     if currency_info.currency.token.is_native() {
         let amount = coin(claimable_amount.u128(), denom_or_address);
@@ -1078,7 +992,7 @@ pub fn try_claim(
             }
             .into(),
             CosmosMsg::Bank(BankMsg::Send {
-                to_address: sender_address.to_string(),
+                to_address: sender.to_string(),
                 amount: vec![amount],
             }),
         ];
@@ -1088,7 +1002,7 @@ pub fn try_claim(
         let msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: denom_or_address,
             msg: to_json_binary(&cw20::Cw20ExecuteMsg::Mint {
-                recipient: sender_address.to_string(),
+                recipient: sender.to_string(),
                 amount: claimable_amount,
             })?,
             funds: vec![],

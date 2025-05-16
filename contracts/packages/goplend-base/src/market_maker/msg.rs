@@ -1,7 +1,8 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Uint128};
+use cw_gopniks::assets::TokenUnverified;
 
-use crate::{assets::TokenUnverified, lending_platform::types::BiddedCollateralItem};
+use crate::lending_platform::types::BiddedCollateralItem;
 
 #[cw_serde]
 pub struct InstantiateMsg {

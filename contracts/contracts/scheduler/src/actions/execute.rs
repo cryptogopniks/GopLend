@@ -1,18 +1,18 @@
 use cosmwasm_std::{
     to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
 };
+use cw_gopniks::{
+    assets::{Funds, InfoResp},
+    auth::{Auth, TransferAdminState},
+};
 
 use goplend_base::{
     error::ContractError,
-    lending_platform::{
-        state::TRANSFER_ADMIN_TIMEOUT,
-        types::{LiquidationItem, TransferAdminState},
-    },
+    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::LiquidationItem},
     scheduler::{
-        state::{CONFIG, LOG, TRANSFER_ADMIN_STATE},
+        state::{CONFIG, LOG},
         types::{Config, Log},
     },
-    utils::{check_authorization, check_funds, unwrap_field, AuthType, FundsType},
 };
 
 // offchain handler
@@ -29,12 +29,9 @@ pub fn try_push(
         offchain_clock,
         ..
     } = CONFIG.load(deps.storage)?;
+    Auth::specified(deps.api, &offchain_clock)?.assert(&sender)?;
 
-    if !offchain_clock.contains(&sender) {
-        Err(ContractError::Unauthorized)?;
-    }
-
-    let Log { counter, .. } = unwrap_field(LOG.back(deps.storage)?, "log")?;
+    let Log { counter, .. } = LOG.back(deps.storage)?.unwrap();
     let counter = if counter == u8::MAX { 0 } else { counter + 1 };
 
     if LOG.len(deps.storage)? == u8::MAX as u32 + 1 {
@@ -63,38 +60,15 @@ pub fn try_push(
 }
 
 pub fn try_accept_admin_role(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
-    let block_time = env.block.time.seconds();
-    let TransferAdminState {
-        new_admin,
-        deadline,
-    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
+    TransferAdminState::accept_admin(&mut deps, &env, &sender)?;
 
-    check_authorization(
-        &sender_address,
-        &admin,
-        &worker,
-        AuthType::Specified {
-            allowlist: vec![Some(new_admin)],
-        },
-    )?;
-
-    if block_time >= deadline {
-        Err(ContractError::TransferAdminDeadline)?;
-    }
-
-    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
-        x.admin = sender_address;
-        Ok(x)
-    })?;
-
-    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
-        x.deadline = block_time;
+    CONFIG.update(deps.storage, |mut x| -> StdResult<_> {
+        x.admin = sender;
         Ok(x)
     })?;
 
@@ -103,7 +77,7 @@ pub fn try_accept_admin_role(
 
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     admin: Option<String>,
@@ -112,62 +86,36 @@ pub fn try_update_config(
     offchain_clock: Option<Vec<String>>,
     execution_cooldown: Option<u64>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
     let current_admin = &config.admin;
-    let current_worker = &config.worker.clone();
+    Auth::simple(current_admin).assert(&sender)?;
 
     if let Some(x) = admin {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        let block_time = env.block.time.seconds();
-        let new_admin = &deps.api.addr_validate(&x)?;
-
-        TRANSFER_ADMIN_STATE.save(
-            deps.storage,
-            &TransferAdminState {
-                new_admin: new_admin.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
+        TransferAdminState::update_admin(
+            &mut deps,
+            &env,
+            &sender,
+            &current_admin,
+            &x,
+            TRANSFER_ADMIN_TIMEOUT,
         )?;
 
         is_config_updated = true;
     }
 
     if let Some(x) = worker {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
         config.worker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = lending_platform {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
         config.lending_platform = deps.api.addr_validate(&x)?;
         is_config_updated = true;
     }
 
     if let Some(x) = offchain_clock {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
         config.offchain_clock = x
             .into_iter()
             .map(|y| deps.api.addr_validate(&y))
@@ -176,12 +124,6 @@ pub fn try_update_config(
     }
 
     if let Some(x) = execution_cooldown {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
         config.execution_cooldown = x;
         is_config_updated = true;
     }

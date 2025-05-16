@@ -1,13 +1,13 @@
 use cosmwasm_std::Addr;
+use cw_gopniks::assets::Token;
 use cw_storage_plus::{Item, Map};
 
-use crate::{
-    assets::{Funds, Token},
-    lending_platform::types::{
-        AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig, LiquidationBid,
-        Liquidator, Proposal, RateConfig, TransferAdminState, Unbonder,
-    },
+use crate::lending_platform::types::{
+    AddressConfig, Balances, Borrower, Collateral, Collection, CommonConfig, LiquidationBid,
+    Liquidator, Proposal, RateConfig, Unbonder,
 };
+
+use super::types::Funds;
 
 pub const CONTRACT_NAME: &str = "goplend-lending-platform";
 
@@ -42,7 +42,6 @@ pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
 pub const ADDRESS_CONFIG: Item<AddressConfig> = Item::new("address_config");
 pub const RATE_CONFIG: Item<RateConfig> = Item::new("rate_config");
 pub const COMMON_CONFIG: Item<CommonConfig> = Item::new("common_config");
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
 pub const BALANCES: Item<Balances> = Item::new("balances");
 pub const PLATFORM_REVENUE: Item<Vec<Funds<Token>>> = Item::new("platform_revenue");
 pub const PROPOSAL_COUNTER: Item<u32> = Item::new("proposal_counter");

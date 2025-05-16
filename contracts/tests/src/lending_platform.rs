@@ -1,6 +1,13 @@
+use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
+use cw_gopniks::{
+    assets::{Currency, Token, TokenUnverified},
+    auth::AuthError,
+};
 use cw_multi_test::Executor;
+use lending_platform::{helpers, math};
+use pretty_assertions::assert_eq;
+
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     lending_platform::{
@@ -10,18 +17,14 @@ use goplend_base::{
             MAX_DEPOSIT_APR,
         },
         types::{
-            Balances, BidType, Borrower, Collateral, Collection, CollectionInfo, LiquidationBid,
-            LiquidationItem, Proposal, ProposalType, QueryBorrowersResponseItem,
+            Balances, BidType, Borrower, Collateral, Collection, CollectionInfo, Funds,
+            LiquidationBid, LiquidationItem, Proposal, ProposalType, QueryBorrowersResponseItem,
             QueryCollateralsResponseItem, QueryLiquidationBidsByCollectionAddressListResponseItem,
             RegularBalances, ReserveBalances, Unbonder, Vault,
         },
     },
     market_maker::types::OffersResponse,
 };
-use lending_platform::{helpers, math};
-use pretty_assertions::assert_eq;
-
-use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 
 use crate::{
     helpers::{
@@ -5128,7 +5131,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Auth(AuthError::Unauthorized));
 
     let res = project
         .lending_platform_try_update_common_config(
@@ -5140,7 +5143,7 @@ fn authorization() -> StdResult<()> {
             &None,
         )
         .unwrap_err();
-    assert_error(res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Auth(AuthError::Unauthorized));
 
     let res = project
         .lending_platform_try_update_common_config(
@@ -5170,7 +5173,7 @@ fn authorization() -> StdResult<()> {
     let res = project
         .lending_platform_try_accept_admin_role(ProjectAccount::Alice)
         .unwrap_err();
-    assert_error(res, ContractError::TransferAdminDeadline);
+    assert_error(res, ContractError::Auth(AuthError::TransferAdminDeadline));
 
     project.lending_platform_try_update_address_config(
         ProjectAccount::Admin,

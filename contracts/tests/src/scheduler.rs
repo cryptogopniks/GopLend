@@ -1,11 +1,10 @@
+use cosmwasm_std::StdResult;
+use cw_gopniks::assets::{Currency, TokenUnverified};
 use cw_multi_test::Executor;
 use pretty_assertions::assert_eq;
 
-use cosmwasm_std::StdResult;
-
 use goplend_base::{
-    assets::{Currency, Funds, TokenUnverified},
-    lending_platform::types::{Collection, CollectionInfo, Proposal, ProposalType},
+    lending_platform::types::{Collection, CollectionInfo, Funds, Proposal, ProposalType},
     scheduler::{msg::MigrateMsg, types::Log},
 };
 

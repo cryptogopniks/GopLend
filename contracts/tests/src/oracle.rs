@@ -1,7 +1,7 @@
+use cosmwasm_std::StdResult;
+use cw_gopniks::auth::AuthError;
 use cw_multi_test::Executor;
 use pretty_assertions::assert_eq;
-
-use cosmwasm_std::StdResult;
 
 use goplend_base::{
     converters::{str_to_dec, u128_to_dec},
@@ -115,7 +115,7 @@ fn unauthorized() -> StdResult<()> {
         )
         .unwrap_err();
 
-    assert_error(res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Auth(AuthError::Unauthorized));
 
     Ok(())
 }

@@ -1,13 +1,16 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
 
+use cw_gopniks::{
+    assets::{Funds, InfoResp},
+    auth::{Auth, TransferAdminState},
+};
 use goplend_base::{
     error::ContractError,
-    lending_platform::{state::TRANSFER_ADMIN_TIMEOUT, types::TransferAdminState},
+    lending_platform::state::TRANSFER_ADMIN_TIMEOUT,
     oracle::{
-        state::{CONFIG, PRICES, TRANSFER_ADMIN_STATE, UPDATE_DATE},
+        state::{CONFIG, PRICES, UPDATE_DATE},
         types::Config,
     },
-    utils::{check_authorization, check_funds, AuthType, FundsType},
 };
 
 // update prices for specified collections
@@ -24,10 +27,7 @@ pub fn try_update_prices(
         execution_cooldown,
         ..
     } = CONFIG.load(deps.storage)?;
-
-    if !controller.contains(&info.sender) {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::specified(deps.api, &controller)?.assert(&info.sender)?;
 
     if block_time < UPDATE_DATE.load(deps.storage)? + execution_cooldown {
         Err(ContractError::EarlyExecution)?;
@@ -53,12 +53,9 @@ pub fn try_remove_prices(
     info: MessageInfo,
     collections: Vec<String>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let Config { controller, .. } = CONFIG.load(deps.storage)?;
-
-    if !controller.contains(&sender_address) {
-        Err(ContractError::Unauthorized)?;
-    }
+    Auth::specified(deps.api, &controller)?.assert(&sender)?;
 
     for postfix in collections {
         PRICES.remove(deps.storage, &postfix);
@@ -68,38 +65,15 @@ pub fn try_remove_prices(
 }
 
 pub fn try_accept_admin_role(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;
-    let block_time = env.block.time.seconds();
-    let TransferAdminState {
-        new_admin,
-        deadline,
-    } = TRANSFER_ADMIN_STATE.load(deps.storage)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
+    TransferAdminState::accept_admin(&mut deps, &env, &sender)?;
 
-    check_authorization(
-        &sender_address,
-        &admin,
-        &Some(worker),
-        AuthType::Specified {
-            allowlist: vec![Some(new_admin)],
-        },
-    )?;
-
-    if block_time >= deadline {
-        Err(ContractError::TransferAdminDeadline)?;
-    }
-
-    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
-        x.admin = sender_address;
-        Ok(x)
-    })?;
-
-    TRANSFER_ADMIN_STATE.update(deps.storage, |mut x| -> StdResult<TransferAdminState> {
-        x.deadline = block_time;
+    CONFIG.update(deps.storage, |mut x| -> StdResult<_> {
+        x.admin = sender;
         Ok(x)
     })?;
 
@@ -108,7 +82,7 @@ pub fn try_accept_admin_role(
 
 #[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     admin: Option<String>,
@@ -117,51 +91,34 @@ pub fn try_update_config(
     execution_cooldown: Option<u64>,
     max_price_update_period: Option<u64>,
 ) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    let InfoResp { sender, .. } = Funds::empty().check(deps.api, &info)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut is_config_updated = false;
     let current_admin = &config.admin;
     let current_worker = &Some(config.worker.clone());
 
     if let Some(x) = admin {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
-        let block_time = env.block.time.seconds();
-        let new_admin = &deps.api.addr_validate(&x)?;
-
-        TRANSFER_ADMIN_STATE.save(
-            deps.storage,
-            &TransferAdminState {
-                new_admin: new_admin.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
+        Auth::simple(current_admin).assert(&sender)?;
+        TransferAdminState::update_admin(
+            &mut deps,
+            &env,
+            &sender,
+            &current_admin,
+            &x,
+            TRANSFER_ADMIN_TIMEOUT,
         )?;
 
         is_config_updated = true;
     }
 
     if let Some(x) = worker {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::Admin,
-        )?;
+        Auth::simple(current_admin).assert(&sender)?;
         config.worker = deps.api.addr_validate(&x)?;
         is_config_updated = true;
     }
 
     if let Some(x) = controller {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::AdminOrWorker,
-        )?;
+        Auth::simple_optional(deps.api, current_admin, current_worker)?.assert(&sender)?;
         config.controller = x
             .into_iter()
             .map(|y| deps.api.addr_validate(&y))
@@ -170,23 +127,13 @@ pub fn try_update_config(
     }
 
     if let Some(x) = execution_cooldown {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::AdminOrWorker,
-        )?;
+        Auth::simple_optional(deps.api, current_admin, current_worker)?.assert(&sender)?;
         config.execution_cooldown = x;
         is_config_updated = true;
     }
 
     if let Some(x) = max_price_update_period {
-        check_authorization(
-            &sender_address,
-            current_admin,
-            current_worker,
-            AuthType::AdminOrWorker,
-        )?;
+        Auth::simple_optional(deps.api, current_admin, current_worker)?.assert(&sender)?;
         config.max_price_update_period = x;
         is_config_updated = true;
     }

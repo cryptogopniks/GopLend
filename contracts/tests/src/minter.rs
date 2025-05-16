@@ -1,12 +1,11 @@
+use cosmwasm_std::{Addr, StdResult};
+use cw_gopniks::{
+    assets::{Currency, Token},
+    auth::AuthError,
+};
 use pretty_assertions::assert_eq;
 
-use cosmwasm_std::{Addr, StdResult};
-
-use goplend_base::{
-    assets::{Currency, Token},
-    error::ContractError,
-    minter::types::CurrencyInfo,
-};
+use goplend_base::{error::ContractError, minter::types::CurrencyInfo};
 
 use crate::helpers::{
     minter::MinterExtension,
@@ -36,7 +35,7 @@ fn update_token_owner() -> StdResult<()> {
 
     project.minter_try_update_currency_info(
         ProjectAccount::Admin,
-        &currencies[0].currency.token.get_denom_or_address(),
+        &currencies[0].currency.token.get_symbol(),
         &Some(ProjectAccount::Alice),
         &None,
         &None,
@@ -45,7 +44,7 @@ fn update_token_owner() -> StdResult<()> {
     let res = project
         .minter_try_accept_token_owner_role(ProjectAccount::Bob)
         .unwrap_err();
-    assert_error(res, ContractError::Unauthorized);
+    assert_error(res, ContractError::Auth(AuthError::Unauthorized));
 
     project.minter_try_accept_token_owner_role(ProjectAccount::Alice)?;
 

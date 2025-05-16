@@ -25,6 +25,7 @@ pub enum ExecuteMsg {
     // any specified ------------------------------------------------------------------------------
     AcceptAdminRole {},
 
+    /// allows to accept admin role for multiple tokens at once
     AcceptTokenOwnerRole {},
 
     // minter admin ------------------------------------------------------------------------------

@@ -1,10 +1,8 @@
 use cosmwasm_std::Addr;
+use cw_gopniks::auth::TransferAdminState;
 use cw_storage_plus::{Deque, Item, Map};
 
-use crate::{
-    lending_platform::types::TransferAdminState,
-    minter::types::{Config, CurrencyInfo, FaucetConfig},
-};
+use crate::minter::types::{Config, CurrencyInfo, FaucetConfig};
 
 pub const CONTRACT_NAME: &str = "goplend-minter";
 
@@ -17,8 +15,6 @@ pub const MAX_TOKENS_PER_OWNER: u16 = 10;
 pub const IS_PAUSED: Item<bool> = Item::new("is_paused");
 pub const CONFIG: Item<Config> = Item::new("config");
 
-/// Stores the state of changing admin process
-pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer_admin_state");
 /// Stores the state of changing token owner process
 pub const TRANSFER_OWNER_STATE: Item<Vec<(String, TransferAdminState)>> =
     Item::new("denom_or_address_and_transfer_owner_state");

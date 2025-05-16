@@ -1,19 +1,22 @@
+use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{
     coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdError, StdResult, Timestamp,
     Uint128,
 };
+use cw_gopniks::assets::{Currency, Token, TokenUnverified};
 use cw_multi_test::{
     App, AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
     WasmKeeper,
 };
 
-use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use goplend_base::{
-    assets::{Currency, Funds, Token, TokenUnverified},
     error::parse_err,
-    lending_platform::{state::BGL_CURRENCY_DECIMALS, types::TokenItem},
+    lending_platform::{
+        state::BGL_CURRENCY_DECIMALS,
+        types::{Funds, TokenItem},
+    },
 };
 
 use crate::helpers::{

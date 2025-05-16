@@ -1,11 +1,11 @@
 use cosmwasm_std::{coins, Addr, StdResult, Uint128};
 use cw20::Logo;
+use cw_gopniks::assets::Token;
 use cw_multi_test::{AppResponse, Executor};
 
 use cw20_base::msg::InstantiateMarketingInfo;
 
 use goplend_base::{
-    assets::Token,
     error::parse_err,
     minter::{
         msg::{ExecuteMsg, QueryMsg},

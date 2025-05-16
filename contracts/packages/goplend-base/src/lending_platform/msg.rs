@@ -2,11 +2,9 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
+use cw_gopniks::assets::{Currency, TokenUnverified};
 
-use crate::{
-    assets::{Currency, TokenUnverified},
-    lending_platform::types::{CollectionInfo, LiquidationItem, Proposal},
-};
+use crate::lending_platform::types::{CollectionInfo, LiquidationItem, Proposal};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -166,7 +164,7 @@ pub enum QueryMsg {
     #[returns(super::types::CommonConfig)]
     QueryCommonConfig {},
 
-    #[returns(Vec<crate::assets::Funds<crate::assets::Token>>)]
+    #[returns(Vec<super::types::Funds<cw_gopniks::assets::Token> >)]
     QueryPlatformRevenue {},
 
     #[returns(super::types::Balances)]

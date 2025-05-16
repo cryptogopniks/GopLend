@@ -1,8 +1,8 @@
 use cosmwasm_std::{Addr, StdResult, Uint128};
+use cw_gopniks::assets::TokenUnverified;
 use cw_multi_test::{AppResponse, Executor};
 
 use goplend_base::{
-    assets::TokenUnverified,
     error::parse_err,
     lending_platform::types::{BiddedCollateralItem, CollectionInfo},
     market_maker::{
