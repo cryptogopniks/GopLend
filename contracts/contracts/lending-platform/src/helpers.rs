@@ -11,9 +11,8 @@ use goplend_base::{
             PLATFORM_REVENUE, RATE_CONFIG,
         },
         types::{
-            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral,
-            CollectionInfo, Funds, LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem,
-            Vault,
+            AddressConfig, Balances, BidType, BiddedCollateralItem, Borrower, Collateral, Funds,
+            LiquidationBid, Proposal, ProposalStatus, RateConfig, TokenItem, Vault,
         },
     },
     oracle::{self, types::QueryPricesResponse},
@@ -41,55 +40,6 @@ pub fn verify_proposal_status(
     }
 
     Err(ContractError::WrongProposalStatus)?
-}
-
-pub fn check_collections_holder(
-    deps: Deps,
-    holder: &Addr,
-    collections: &Vec<CollectionInfo<String>>,
-) -> StdResult<()> {
-    const MAX_LIMIT: u32 = 100;
-    const ITER_LIMIT: u32 = 50;
-
-    for CollectionInfo {
-        collection_address,
-        token_id_list,
-    } in collections
-    {
-        let mut token_list: Vec<String> = vec![];
-        let mut token_amount_sum: u32 = 0;
-        let mut i: u32 = 0;
-        let mut last_token: Option<String> = None;
-
-        while (i == 0 || token_amount_sum == MAX_LIMIT) && i < ITER_LIMIT {
-            i += 1;
-
-            let query_tokens_msg = cw721::Cw721QueryMsg::Tokens {
-                owner: holder.to_string(),
-                start_after: last_token,
-                limit: Some(MAX_LIMIT),
-            };
-
-            let cw721::TokensResponse { tokens } = deps
-                .querier
-                .query_wasm_smart(collection_address, &query_tokens_msg)?;
-
-            for token in tokens.clone() {
-                token_list.push(token);
-            }
-
-            token_amount_sum = tokens.len() as u32;
-            last_token = tokens.last().cloned();
-        }
-
-        let are_tokens_owned = token_id_list.iter().all(|x| token_list.contains(x));
-
-        if !are_tokens_owned {
-            Err(ContractError::NftIsNotFound)?;
-        }
-    }
-
-    Ok(())
 }
 
 pub fn get_balances_with_updated_rewards(

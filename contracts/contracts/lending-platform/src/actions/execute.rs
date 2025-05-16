@@ -7,10 +7,8 @@ use cw_gopniks::{
         self, add_funds_to_exec_msg, get_transfer_msg, Currency, InfoResp, Token, TokenUnverified,
     },
     auth::{Auth, TransferAdminState},
-    nft::get_approve_all_msgs,
+    nft,
 };
-
-use cw721::Cw721ExecuteMsg;
 
 use goplend_base::{
     converters::u128_to_dec,
@@ -348,7 +346,13 @@ pub fn try_deposit_collateral(
     let oracle = address_config.oracle.as_ref().unwrap();
 
     // check if nfts are on user balance
-    helpers::check_collections_holder(deps.as_ref(), &sender, &collections)?;
+    for CollectionInfo {
+        collection_address,
+        token_id_list,
+    } in &collections
+    {
+        nft::check_tokens_holder(deps.as_ref(), &sender, collection_address, token_id_list)?;
+    }
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -365,18 +369,11 @@ pub fn try_deposit_collateral(
 
         // add transfer msgs
         for token_id in token_id_list {
-            let cw721_msg = Cw721ExecuteMsg::TransferNft {
-                recipient: env.contract.address.to_string(),
-                token_id: token_id.to_string(),
-            };
-
-            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: collection_address.to_string(),
-                msg: to_json_binary(&cw721_msg)?,
-                funds: vec![],
-            });
-
-            msg_list.push(msg);
+            msg_list.push(nft::get_transfer_msg(
+                &collection_address,
+                &env.contract.address,
+                token_id,
+            )?);
         }
 
         // update collaterals
@@ -523,7 +520,18 @@ pub fn try_withdraw_collateral(
     let oracle = address_config.oracle.as_ref().unwrap();
 
     // check if nfts are on contract balance
-    helpers::check_collections_holder(deps.as_ref(), &env.contract.address, &collections)?;
+    for CollectionInfo {
+        collection_address,
+        token_id_list,
+    } in &collections
+    {
+        nft::check_tokens_holder(
+            deps.as_ref(),
+            &env.contract.address,
+            collection_address,
+            token_id_list,
+        )?;
+    }
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -540,18 +548,11 @@ pub fn try_withdraw_collateral(
 
         // add transfer msgs
         for token_id in &token_id_list {
-            let cw721_msg = Cw721ExecuteMsg::TransferNft {
-                recipient: sender.to_string(),
-                token_id: token_id.to_string(),
-            };
-
-            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: collection_address.to_string(),
-                msg: to_json_binary(&cw721_msg)?,
-                funds: vec![],
-            });
-
-            msg_list.push(msg);
+            msg_list.push(nft::get_transfer_msg(
+                &collection_address,
+                &sender,
+                token_id,
+            )?);
         }
 
         // update collaterals
@@ -1435,7 +1436,7 @@ pub fn try_liquidate(
         collection_list.dedup();
 
         response = response
-            .add_messages(get_approve_all_msgs(
+            .add_messages(nft::get_approve_all_msgs(
                 deps.querier,
                 &collection_list,
                 env.contract.address,
