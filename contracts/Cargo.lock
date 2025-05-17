@@ -260,7 +260,7 @@ dependencies = [
 [[package]]
 name = "cw-gopniks"
 version = "1.0.0"
-source = "git+https://github.com/cryptogopniks/cw-gopniks?branch=dev#0bdfd3278897a14490d4013f0fb29e18941469d2"
+source = "git+https://github.com/cryptogopniks/cw-gopniks?branch=dev#73111b64447e7ebe77df94ca7c3fa36da3ec45f0"
 dependencies = [
  "cosmwasm-schema 2.2.2",
  "cosmwasm-std",
@@ -644,7 +644,6 @@ dependencies = [
  "cw-storage-plus 1.2.0",
  "cw20",
  "cw20-base",
- "cw721 0.18.0",
  "thiserror 2.0.12",
 ]
 
@@ -765,7 +764,6 @@ dependencies = [
  "cw-gopniks",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw721 0.18.0",
  "goplend-base",
  "semver",
 ]
@@ -1222,7 +1220,6 @@ dependencies = [
  "cw2 1.1.2",
  "cw20",
  "cw20-base",
- "cw721 0.18.0",
  "cw721-base 0.18.0",
  "goplend-base",
  "lending-platform",

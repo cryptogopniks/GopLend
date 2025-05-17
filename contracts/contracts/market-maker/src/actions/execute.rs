@@ -1,10 +1,8 @@
-use cosmwasm_std::{
-    to_json_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Storage,
-    Uint128, WasmMsg,
-};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult, Storage, Uint128};
 use cw_gopniks::{
     assets::{get_transfer_msg, Funds, InfoResp, TokenUnverified},
     auth::{Auth, TransferAdminState},
+    nft,
 };
 
 use goplend_base::{
@@ -285,14 +283,7 @@ pub fn try_withdraw_collateral(
     }
 
     for token_id in token_id_list {
-        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: collection.to_string(),
-            msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
-                recipient: owner.to_string(),
-                token_id,
-            })?,
-            funds: vec![],
-        }));
+        response = response.add_message(nft::get_transfer_msg(&collection, &owner, token_id)?);
     }
 
     collaterals.retain(|x| x.collection_address != collection_address);
@@ -400,14 +391,11 @@ pub fn try_accept_offers(
         })?;
 
         // transfer liquidated nfts from lending platform
-        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: collection.to_string(),
-            msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
-                recipient: env.contract.address.to_string(),
-                token_id: token_item.id,
-            })?,
-            funds: vec![],
-        }));
+        response = response.add_message(nft::get_transfer_msg(
+            &collection,
+            &env.contract.address,
+            token_item.id,
+        )?);
     }
 
     Ok(response.add_message(get_transfer_msg(&sender, amount_to_send, &config.token)?))

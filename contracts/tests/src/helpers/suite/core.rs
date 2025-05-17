@@ -3,7 +3,10 @@ use cosmwasm_std::{
     coin, coins, to_json_binary, Addr, BlockInfo, Coin, Empty, StdError, StdResult, Timestamp,
     Uint128,
 };
-use cw_gopniks::assets::{Currency, Token, TokenUnverified};
+use cw_gopniks::{
+    assets::{Currency, Token, TokenUnverified},
+    nft,
+};
 use cw_multi_test::{
     App, AppBuilder, AppResponse, BankSudo, Executor, MockAddressGenerator, MockApiBech32, SudoMsg,
     WasmKeeper,
@@ -469,28 +472,22 @@ impl Project {
             .unwrap();
     }
 
-    pub fn query_all_nft(&self, owner: impl ToString) -> Vec<(ProjectNft, cw721::TokensResponse)> {
-        let mut collection_and_tokens_response_list: Vec<(ProjectNft, cw721::TokensResponse)> =
-            vec![];
+    pub fn query_all_nft(&self, owner: impl ToString) -> Vec<(ProjectNft, Vec<String>)> {
+        let mut collection_and_tokens_list: Vec<(ProjectNft, Vec<String>)> = vec![];
 
         for collection in ProjectNft::iter() {
-            let res: cw721::TokensResponse = self
-                .app
-                .wrap()
-                .query_wasm_smart(
-                    collection.to_string(),
-                    &cw721::Cw721QueryMsg::Tokens {
-                        owner: owner.to_string(),
-                        start_after: None,
-                        limit: None,
-                    },
-                )
-                .unwrap();
+            let tokens = nft::query_tokens(
+                self.app.wrap(),
+                owner.to_string(),
+                collection.to_string(),
+                None,
+                None,
+            );
 
-            collection_and_tokens_response_list.push((collection, res));
+            collection_and_tokens_list.push((collection, tokens));
         }
 
-        collection_and_tokens_response_list
+        collection_and_tokens_list
     }
 
     pub fn query_balance(

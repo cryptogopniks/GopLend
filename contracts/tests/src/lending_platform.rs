@@ -6033,11 +6033,11 @@ fn market_maker_offer_liquidation() -> StdResult<()> {
     assert_eq!(balances.regular.liquidation_bids.u128(), 0);
 
     let res = project.query_all_nft(project.get_market_maker_address());
-    let (_collection, token_info) = res
+    let (_collection, tokens) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_eq!(token_info.tokens.contains(&"4".to_string()), true);
+    assert_eq!(tokens.contains(&"4".to_string()), true);
 
     Ok(())
 }
@@ -6311,11 +6311,11 @@ fn regular_bid_and_market_maker_offer_liquidation() -> StdResult<()> {
     );
 
     let res = project.query_all_nft(project.get_market_maker_address());
-    let (_collection, token_info) = res
+    let (_collection, tokens) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_eq!(token_info.tokens.contains(&"1".to_string()), true);
+    assert_eq!(tokens.contains(&"1".to_string()), true);
 
     Ok(())
 }
@@ -6488,7 +6488,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
         project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Usdc)?;
 
     let res = project.query_all_nft(project.get_market_maker_address());
-    let (_collection, token_info) = res
+    let (_collection, tokens) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
@@ -6519,7 +6519,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
 
     assert_eq!(price_list_gopniks.len(), 1);
     assert_eq!(platform_balance, 105_700_000_000);
-    assert_eq!(token_info.tokens.contains(&"5".to_string()), true);
+    assert_eq!(tokens.contains(&"5".to_string()), true);
 
     Ok(())
 }
@@ -6807,11 +6807,11 @@ fn regular_bid_and_market_maker_offer_liquidation_on_single_user() -> StdResult<
     );
 
     let res = project.query_all_nft(project.get_market_maker_address());
-    let (_collection, token_info) = res
+    let (_collection, tokens) = res
         .iter()
         .find(|(collection, _token_info)| collection.to_string() == ProjectNft::Gopniks.to_string())
         .ok_or(ContractError::CollectionIsNotFound)?;
-    assert_eq!(token_info.tokens.contains(&"1".to_string()), true);
+    assert_eq!(tokens.contains(&"1".to_string()), true);
 
     Ok(())
 }
