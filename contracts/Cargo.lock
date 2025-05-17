@@ -260,7 +260,7 @@ dependencies = [
 [[package]]
 name = "cw-gopniks"
 version = "1.0.0"
-source = "git+https://github.com/cryptogopniks/cw-gopniks?branch=dev#ab41b9e245903ba4e4770c9a30dea6b08f48f7d9"
+source = "git+https://github.com/cryptogopniks/cw-gopniks?branch=dev#58665b482cfd217a5f44258642940d28ef2cefdc"
 dependencies = [
  "cosmwasm-schema 2.2.2",
  "cosmwasm-std",

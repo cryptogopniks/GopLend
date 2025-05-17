@@ -677,8 +677,8 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
     let bgl_token = bgl_currency.unwrap().token;
 
     // balances
-    let main_token_balance = deps.querier.query_balance(user, main_denom)?.amount;
-    let bgl_token_balance = query_balance(deps.querier, user, bgl_token.get_symbol());
+    let main_token_balance = query_balance(deps.querier, user, main_denom, false);
+    let bgl_token_balance = query_balance(deps.querier, user, bgl_token.get_symbol(), false);
 
     // unbonder
     let Unbonder {

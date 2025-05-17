@@ -2,6 +2,7 @@ use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
 use cw_gopniks::{
     assets::{Currency, Token, TokenUnverified},
     auth::AuthError,
+    utils::to_string_vec,
 };
 use cw_multi_test::Executor;
 use lending_platform::{helpers, math};
@@ -33,7 +34,7 @@ use crate::{
         oracle::OracleExtension,
         scheduler::SchedulerExtension,
         suite::{
-            core::{assert_error, to_string_vec, to_token_item_list, Project, INITIAL_LIQUIDITY},
+            core::{assert_error, to_token_item_list, Project, INITIAL_LIQUIDITY},
             types::{ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },

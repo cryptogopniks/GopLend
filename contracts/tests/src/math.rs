@@ -1,4 +1,5 @@
 use cosmwasm_std::{Addr, Decimal, StdResult, Uint128};
+use cw_gopniks::utils::to_string_vec;
 use goplend_base::{
     converters::{str_to_dec, u128_to_dec},
     lending_platform::types::{BidType, BiddedCollateralItem, Collateral, LiquidationBid},
@@ -8,7 +9,7 @@ use lending_platform::math;
 use pretty_assertions::assert_eq;
 
 use crate::helpers::suite::{
-    core::{to_string_vec, to_token_item, to_token_item_list},
+    core::{to_token_item, to_token_item_list},
     types::{ProjectAccount, ProjectNft},
 };
 

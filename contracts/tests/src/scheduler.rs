@@ -1,5 +1,8 @@
 use cosmwasm_std::StdResult;
-use cw_gopniks::assets::{Currency, TokenUnverified};
+use cw_gopniks::{
+    assets::{Currency, TokenUnverified},
+    utils::to_string_vec,
+};
 use cw_multi_test::Executor;
 use pretty_assertions::assert_eq;
 
@@ -14,7 +17,7 @@ use crate::{
         oracle::OracleExtension,
         scheduler::SchedulerExtension,
         suite::{
-            core::{to_string_vec, Project},
+            core::Project,
             types::{ProjectAccount, ProjectCoin, ProjectNft, ProjectToken},
         },
     },

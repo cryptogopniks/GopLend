@@ -496,7 +496,7 @@ impl Project {
         token: &(impl Into<Token> + Clone),
     ) -> u128 {
         let token: Token = token.to_owned().into();
-        query_balance(self.app.wrap(), account, token.get_symbol()).u128()
+        query_balance(self.app.wrap(), account, token.get_symbol(), false).u128()
     }
 
     pub fn query_all_balances(&self, account: impl ToString) -> StdResult<Vec<Funds<Token>>> {
@@ -505,7 +505,7 @@ impl Project {
 
         for token_native in ProjectCoin::iter() {
             let symbol = &token_native.to_string();
-            let amount = query_balance(self.app.wrap(), account, symbol);
+            let amount = query_balance(self.app.wrap(), account, symbol, false);
             let currency = &Currency::new(&Token::new_native(symbol), token_native.get_decimals());
 
             if !amount.is_zero() {
@@ -515,7 +515,7 @@ impl Project {
 
         for token_cw20 in ProjectToken::iter() {
             let symbol: &Addr = &token_cw20.into();
-            let amount = query_balance(self.app.wrap(), account, symbol);
+            let amount = query_balance(self.app.wrap(), account, symbol, true);
             let currency = &Currency::new(&Token::new_cw20(symbol), token_cw20.get_decimals());
 
             if !amount.is_zero() {
@@ -678,10 +678,6 @@ pub fn add_token_to_exec_msg<T: Serialize + std::fmt::Debug>(
                 .map_err(parse_err)
         }
     }
-}
-
-pub fn to_string_vec(str_vec: &[&str]) -> Vec<String> {
-    str_vec.iter().map(|x| x.to_string()).collect()
 }
 
 pub fn to_token_item_list(str_vec: &[&str], date: u64) -> Vec<TokenItem> {
