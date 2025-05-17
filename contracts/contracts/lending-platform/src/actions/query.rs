@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Decimal, Deps, Env, Order, StdResult, Uint128};
-use cw_gopniks::assets::Token;
+use cw_gopniks::assets::{query_balance, Token};
 use cw_storage_plus::Bound;
 
 use goplend_base::lending_platform::{
@@ -678,19 +678,7 @@ pub fn query_user_info(deps: Deps, env: Env, address: String) -> StdResult<Query
 
     // balances
     let main_token_balance = deps.querier.query_balance(user, main_denom)?.amount;
-    let bgl_token_balance = match bgl_token {
-        Token::Native { denom } => deps.querier.query_balance(user, denom)?.amount,
-        Token::Cw20 { address } => {
-            deps.querier
-                .query_wasm_smart::<cw20::BalanceResponse>(
-                    address,
-                    &cw20::Cw20QueryMsg::Balance {
-                        address: user.to_string(),
-                    },
-                )?
-                .balance
-        }
-    };
+    let bgl_token_balance = query_balance(deps.querier, user, bgl_token.get_symbol());
 
     // unbonder
     let Unbonder {

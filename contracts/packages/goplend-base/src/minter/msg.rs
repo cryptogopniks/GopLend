@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Uint128};
+use cw_gopniks::assets::{Cw20ReceiveMsg, Logo};
 
-use cw20::Logo;
 use cw20_base::msg::InstantiateMarketingInfo;
 
 use crate::minter::types::Metadata;
@@ -136,7 +136,7 @@ pub enum ExecuteMsg {
         denom_or_address: String,
     },
 
-    Receive(cw20::Cw20ReceiveMsg),
+    Receive(Cw20ReceiveMsg),
 }
 
 #[cw_serde]

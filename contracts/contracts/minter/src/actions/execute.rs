@@ -3,11 +3,10 @@ use cosmwasm_std::{
     StdResult, Storage, SubMsg, SubMsgResult, Uint128, WasmMsg,
 };
 use cw_gopniks::{
-    assets::{Currency, Funds, InfoResp, Token, TokenUnverified},
+    assets::{get_upload_logo_msg, Currency, Funds, InfoResp, Logo, Token, TokenUnverified},
     auth::{Auth, AuthError, TransferAdminState},
 };
 
-use cw20::Logo;
 use osmosis_std::types::{
     cosmos::bank::v1beta1::{DenomUnit as OsmosisDenomUnit, Metadata as OsmosisMetadata},
     osmosis::tokenfactory::v1beta1 as OsmosisFactory,
@@ -651,11 +650,7 @@ pub fn try_update_metadata_cw20(
     }
 
     if let Some(x) = logo {
-        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: address,
-            msg: to_json_binary(&cw20::Cw20ExecuteMsg::UploadLogo(x))?,
-            funds: vec![],
-        }));
+        response = response.add_message(get_upload_logo_msg(address, x)?);
     }
 
     // don't allow empty messages

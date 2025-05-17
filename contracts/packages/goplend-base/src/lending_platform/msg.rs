@@ -1,8 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::{Addr, Decimal, Uint128};
-use cw20::Cw20ReceiveMsg;
-use cw_gopniks::assets::{Currency, TokenUnverified};
+use cw_gopniks::assets::{Currency, Cw20ReceiveMsg, TokenUnverified};
 
 use crate::lending_platform::types::{CollectionInfo, LiquidationItem, Proposal};
 

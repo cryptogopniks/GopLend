@@ -4,7 +4,7 @@ use cosmwasm_std::{
     Uint128,
 };
 use cw_gopniks::{
-    assets::{Currency, Token, TokenUnverified},
+    assets::{query_balance, Currency, Token, TokenUnverified},
     nft,
 };
 use cw_multi_test::{
@@ -31,7 +31,7 @@ use crate::helpers::{
         codes::WithCodes,
         types::{
             CustomApp, GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft,
-            ProjectToken, DEFAULT_DECIMALS,
+            ProjectToken,
         },
     },
 };
@@ -494,57 +494,32 @@ impl Project {
         &self,
         account: impl ToString,
         token: &(impl Into<Token> + Clone),
-    ) -> StdResult<u128> {
+    ) -> u128 {
         let token: Token = token.to_owned().into();
-
-        match token {
-            Token::Native { denom } => Ok(self
-                .app
-                .wrap()
-                .query_balance(account.to_string(), denom)?
-                .amount
-                .u128()),
-            Token::Cw20 { address } => {
-                let cw20::BalanceResponse { balance } = self.app.wrap().query_wasm_smart(
-                    address.to_string(),
-                    &cw20::Cw20QueryMsg::Balance {
-                        address: account.to_string(),
-                    },
-                )?;
-
-                Ok(balance.u128())
-            }
-        }
+        query_balance(self.app.wrap(), account, token.get_symbol()).u128()
     }
 
     pub fn query_all_balances(&self, account: impl ToString) -> StdResult<Vec<Funds<Token>>> {
+        let account = &account.to_string();
         let mut funds_list: Vec<Funds<Token>> = vec![];
 
-        for Coin { denom, amount } in self.app.wrap().query_all_balances(account.to_string())? {
+        for token_native in ProjectCoin::iter() {
+            let symbol = &token_native.to_string();
+            let amount = query_balance(self.app.wrap(), account, symbol);
+            let currency = &Currency::new(&Token::new_native(symbol), token_native.get_decimals());
+
             if !amount.is_zero() {
-                funds_list.push(Funds::new(
-                    amount,
-                    &Currency::new(&Token::new_native(&denom), DEFAULT_DECIMALS),
-                ));
+                funds_list.push(Funds::new(amount, currency));
             }
         }
 
         for token_cw20 in ProjectToken::iter() {
-            let cw20::BalanceResponse { balance } = self.app.wrap().query_wasm_smart(
-                token_cw20.to_string(),
-                &cw20::Cw20QueryMsg::Balance {
-                    address: account.to_string(),
-                },
-            )?;
+            let symbol: &Addr = &token_cw20.into();
+            let amount = query_balance(self.app.wrap(), account, symbol);
+            let currency = &Currency::new(&Token::new_cw20(symbol), token_cw20.get_decimals());
 
-            if !balance.is_zero() {
-                funds_list.push(Funds::new(
-                    balance,
-                    &Currency::new(
-                        &Token::new_cw20(&token_cw20.into()),
-                        token_cw20.get_decimals(),
-                    ),
-                ));
+            if !amount.is_zero() {
+                funds_list.push(Funds::new(amount, currency));
             }
         }
 

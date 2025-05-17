@@ -3,8 +3,7 @@ use cosmwasm_std::{
     entry_point, from_json, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
     StdResult,
 };
-
-use cw20::Cw20ReceiveMsg;
+use cw_gopniks::assets::Cw20ReceiveMsg;
 
 use goplend_base::{
     error::ContractError,

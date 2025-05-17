@@ -1048,7 +1048,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -1059,7 +1059,7 @@ fn withdraw_from_reserve_and_partial_repay_smaller_than_rewards() -> StdResult<(
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
     let stars_difference = stars_after - stars_before;
 
     assert_eq!(stars_difference, 1_200_000);
@@ -1167,7 +1167,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -1178,7 +1178,7 @@ fn withdraw_from_reserve_and_partial_repay_greater_than_rewards() -> StdResult<(
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
     let stars_difference = stars_after - stars_before;
 
     assert_eq!(stars_difference, 1_200_000);
@@ -1289,7 +1289,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
     project.wait(DELAY);
 
     // check balances
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, AMOUNT, &bgl_token)?;
@@ -1300,7 +1300,7 @@ fn withdraw_from_reserve_and_full_repay() -> StdResult<()> {
 
     // check balances
     let balances = project.lending_platform_query_balances()?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
     let stars_difference = stars_after - stars_before;
 
     assert_eq!(stars_difference, 1_200_000);
@@ -1808,8 +1808,8 @@ fn deposit_default() -> StdResult<()> {
 
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
+    let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token);
 
     project.lending_platform_try_deposit(
         ProjectAccount::Alice,
@@ -1818,8 +1818,8 @@ fn deposit_default() -> StdResult<()> {
     )?;
 
     // check user balances
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
+    let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token);
 
     let stars_difference = stars_before - stars_after;
     let bgl_stars_difference = bgl_stars_after - bgl_stars_before;
@@ -2039,8 +2039,8 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
 
     const DEPOSIT_AMOUNT: u128 = 1_000;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
+    let bgl_stars_before = project.query_balance(ProjectAccount::Alice, &bgl_token);
 
     // deposit
     project.lending_platform_try_deposit(
@@ -2061,8 +2061,8 @@ fn deposit_unbond_withdraw_default() -> StdResult<()> {
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
 
     // check user balances
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
-    let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
+    let bgl_stars_after = project.query_balance(ProjectAccount::Alice, &bgl_token);
 
     let stars_difference = stars_before - stars_after;
     let bgl_stars_difference = bgl_stars_after - bgl_stars_before;
@@ -2104,9 +2104,9 @@ fn withdraw_reserve_liquidity_default() -> StdResult<()> {
     assert_eq!(balances.regular.bgl_supply.u128(), DEPOSIT_AMOUNT);
 
     let admin_main_balance_before =
-        project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc)?;
+        project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc);
 
-    let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token)?;
+    let admin_bgl_balance = project.query_balance(ProjectAccount::Admin, &bgl_token);
     assert_eq!(admin_bgl_balance, 0);
 
     // unbond
@@ -2115,8 +2115,7 @@ fn withdraw_reserve_liquidity_default() -> StdResult<()> {
         INITIAL_LIQUIDITY,
     )?;
 
-    let admin_main_balance_after =
-        project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc)?;
+    let admin_main_balance_after = project.query_balance(ProjectAccount::Admin, &ProjectCoin::Usdc);
 
     assert_eq!(
         (admin_main_balance_after - admin_main_balance_before),
@@ -2144,7 +2143,7 @@ fn multiple_unbonding_positions() -> StdResult<()> {
         ProjectCoin::Usdc,
     )?;
 
-    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
 
     // unbond
     project.lending_platform_try_unbond(ProjectAccount::Alice, DEPOSIT_AMOUNT / 8, &bgl_token)?;
@@ -2157,12 +2156,12 @@ fn multiple_unbonding_positions() -> StdResult<()> {
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
     assert_eq!((stars_after - stars_before), DEPOSIT_AMOUNT / 8);
 
     project.wait(config.unbonding_period / 2);
     project.lending_platform_try_withdraw(ProjectAccount::Alice)?;
-    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc)?;
+    let stars_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Usdc);
     assert_eq!((stars_after - stars_before), DEPOSIT_AMOUNT * 7 / 8);
 
     Ok(())
@@ -6485,7 +6484,7 @@ fn liquidation_single_borrower_bid_and_offers() -> StdResult<()> {
     } = project.market_maker_query_offer_prices(ProjectNft::Gopniks)?;
 
     let platform_balance =
-        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Usdc)?;
+        project.query_balance(project.get_lending_platform_address(), &ProjectCoin::Usdc);
 
     let res = project.query_all_nft(project.get_market_maker_address());
     let (_collection, tokens) = res
@@ -7702,7 +7701,7 @@ fn rebond() -> StdResult<()> {
 
         if i == 0 {
             let alice_unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
-            let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+            let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token);
             let balances = project.lending_platform_query_balances()?;
             let total_available_to_borrow =
                 project.lending_platform_query_total_available_to_borrow_liquidity()?;
@@ -7757,7 +7756,7 @@ fn rebond() -> StdResult<()> {
     project.lending_platform_try_rebond(ProjectAccount::Alice, creation_date)?;
 
     let alice_unbonder = project.lending_platform_query_unbonder(ProjectAccount::Alice)?;
-    let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token)?;
+    let alice_bgl_token = project.query_balance(ProjectAccount::Alice, &bgl_token);
     let balances = project.lending_platform_query_balances()?;
     let total_available_to_borrow =
         project.lending_platform_query_total_available_to_borrow_liquidity()?;
